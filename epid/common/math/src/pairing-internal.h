@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ struct PairingState {
               /// parameters of G1
   bool neg;   ///< 8-bit integer representing a Boolean value
   FfElement* g[3][5];  ///< 15 elements in Fq2
-  FiniteField Fq;      ///< Fq
-  FiniteField Fq2;     ///< Fq2
-  FiniteField Fq6;     ///< Fq6
+  FiniteField* Fq;     ///< Fq
+  FiniteField* Fq2;    ///< Fq2
+  FiniteField* Fq6;    ///< Fq6
 };
 
 #endif  // EPID_COMMON_MATH_SRC_PAIRING_INTERNAL_H_

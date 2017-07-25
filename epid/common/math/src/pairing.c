@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 #include "epid/common/math/src/pairing-internal.h"
 #include "epid/common/src/memory.h"
 #include "ext/ipp/include/ippcp.h"
-#include "ext/ipp/include/ippcpepid.h"
 
 /// Handle Ipp Errors with Break
 #define BREAK_ON_IPP_ERROR(sts, ret)           \
@@ -128,23 +127,22 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
                            PairingState** ps) {
   EpidStatus result = kEpidErr;
   FfElement* xi = NULL;
-  PairingState* paring_state_ctx = NULL;
+  PairingState* pairing_state_ctx = NULL;
   BigNum* e = NULL;
   BigNum* one = NULL;
-  BigNum* q = NULL;
   BigNum* six = NULL;
-  Ipp8u* scratch_buffer = NULL;
+  OctStr scratch_buffer = NULL;
   do {
     IppStatus sts = ippStsNoErr;
     IppsGFpState* Fq6 = NULL;
     IppsGFpState* Fq2 = NULL;
     IppsGFpState* Fq = NULL;
-    FiniteField Ffq2;
-    IppsGFpInfo info = {0};
-    Fq2ElemDat Fq6IrrPolynomial[3 + 1] = {0};
+    FiniteField* Ffq6 = NULL;
+    FiniteField* Ffq2 = NULL;
+    FiniteField* Ffq = NULL;
+    Fq2ElemDat Fq6IrrPolynomial = {0};
     uint8_t one_str[] = {1};
     uint8_t six_str[] = {6};
-    FqElemDat qDat = {0};
     int i = 0;
     int j = 0;
     int bufferSize = 0;
@@ -159,59 +157,60 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
       break;
     }
     // get Fq6, Fq2, Fq
-    sts = ippsGFpGetInfo(ff->ipp_ff, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq6 = (IppsGFpState*)info.pGroundGF;
-    sts = ippsGFpGetInfo(Fq6, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq2 = (IppsGFpState*)info.pGroundGF;
-    result = InitFiniteFieldFromIpp(Fq2, &Ffq2);
-    BREAK_ON_EPID_ERROR(result);
-    sts = ippsGFpGetInfo(Fq2, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq = (IppsGFpState*)info.pGroundGF;
-    // now get ref to modulus of Fq
-    sts = ippsGFpGetModulus(Fq, (Ipp32u*)&qDat);
-    BREAK_ON_IPP_ERROR(sts, result);
+    Ffq6 = ff->ground_ff;
+    if (!Ffq6) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    Fq6 = Ffq6->ipp_ff;
+    Ffq2 = Ffq6->ground_ff;
+    if (!Ffq2) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    Fq2 = Ffq2->ipp_ff;
+    Ffq = Ffq2->ground_ff;
+    if (!Ffq) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    Fq = Ffq->ipp_ff;
     // extract xi from Fq6 irr poly
-    result = NewFfElement(&Ffq2, &xi);
+    result = NewFfElement(Ffq2, &xi);
     BREAK_ON_EPID_ERROR(result);
-    sts = ippsGFpGetModulus(Fq6, (Ipp32u*)&Fq6IrrPolynomial[0]);
-    BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpSetElement((Ipp32u const*)&Fq6IrrPolynomial[0],
-                            sizeof(Fq6IrrPolynomial[0]) / sizeof(Ipp32u),
-                            xi->ipp_ff_elem, Fq2);
-    BREAK_ON_IPP_ERROR(sts, result);
+    result = WriteBigNum(Ffq6->modulus_0, sizeof(Fq6IrrPolynomial),
+                         &Fq6IrrPolynomial);
+    BREAK_ON_EPID_ERROR(result);
+    result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
+                                   xi, Ffq2);
+    BREAK_ON_EPID_ERROR(result);
     // first coefficent is -xi
     sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
 
-    paring_state_ctx = (PairingState*)SAFE_ALLOC(sizeof(PairingState));
-    if (!paring_state_ctx) {
+    pairing_state_ctx = (PairingState*)SAFE_ALLOC(sizeof(PairingState));
+    if (!pairing_state_ctx) {
       result = kEpidMemAllocErr;
       break;
     }
 
     // 1. Set param(pairing) = (param(G1), param(G2), param(GT), t, neg)
-    paring_state_ctx->ga = (EcGroup*)ga;
-    paring_state_ctx->gb = (EcGroup*)gb;
-    paring_state_ctx->ff = ff;
-    result = NewBigNum(sizeof(BigNumStr), &paring_state_ctx->t);
+    pairing_state_ctx->ga = (EcGroup*)ga;
+    pairing_state_ctx->gb = (EcGroup*)gb;
+    pairing_state_ctx->ff = ff;
+    result = NewBigNum(sizeof(BigNumStr), &pairing_state_ctx->t);
     BREAK_ON_EPID_ERROR(result);
-    result = ReadBigNum(t, sizeof(BigNumStr), paring_state_ctx->t);
+    result = ReadBigNum(t, sizeof(BigNumStr), pairing_state_ctx->t);
     BREAK_ON_EPID_ERROR(result);
-    paring_state_ctx->neg = neg;
-    result = InitFiniteFieldFromIpp(Fq6, &(paring_state_ctx->Fq6));
-    BREAK_ON_EPID_ERROR(result);
-    result = InitFiniteFieldFromIpp(Fq2, &(paring_state_ctx->Fq2));
-    BREAK_ON_EPID_ERROR(result);
-    result = InitFiniteFieldFromIpp(Fq, &(paring_state_ctx->Fq));
-    BREAK_ON_EPID_ERROR(result);
+    pairing_state_ctx->neg = neg;
+    pairing_state_ctx->Fq6 = Ffq6;
+    pairing_state_ctx->Fq2 = Ffq2;
+    pairing_state_ctx->Fq = Ffq;
     // 2. Let g[0][0], ..., g[0][4], g[1][0], ..., g[1][4], g[2][0], ...,
     // g[2][4] be 15 elements in Fq2.
     for (i = 0; i < 3; i++) {
       for (j = 0; j < 5; j++) {
-        result = NewFfElement(&Ffq2, &paring_state_ctx->g[i][j]);
+        result = NewFfElement(Ffq2, &pairing_state_ctx->g[i][j]);
         BREAK_ON_EPID_ERROR(result);
       }
     }
@@ -220,15 +219,10 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
     BREAK_ON_EPID_ERROR(result);
     result = ReadBigNum(one_str, sizeof(one_str), one);
     BREAK_ON_EPID_ERROR(result);
-    result = NewBigNum(sizeof(BigNumStr), &q);
-    BREAK_ON_EPID_ERROR(result);
-    sts = ippsSet_BN(IppsBigNumPOS, sizeof(qDat) / sizeof(Ipp32u),
-                     (Ipp32u*)&qDat, q->ipp_bn);
-    BREAK_ON_IPP_ERROR(sts, result);
     result = NewBigNum(sizeof(BigNumStr), &e);
     BREAK_ON_EPID_ERROR(result);
     // q - 1
-    sts = ippsSub_BN(q->ipp_bn, one->ipp_bn, e->ipp_bn);
+    sts = ippsSub_BN(Ffq->modulus_0->ipp_bn, one->ipp_bn, e->ipp_bn);
     BREAK_ON_IPP_ERROR(sts, result);
     result = NewBigNum(sizeof(BigNumStr), &six);
     BREAK_ON_EPID_ERROR(result);
@@ -243,58 +237,57 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpScratchBufferSize(1, bitSize, Fq2, &bufferSize);
     BREAK_ON_IPP_ERROR(sts, result);
-    scratch_buffer = (Ipp8u*)SAFE_ALLOC(bufferSize);
+    scratch_buffer = (OctStr)SAFE_ALLOC(bufferSize);
     if (!scratch_buffer) {
       result = kEpidMemAllocErr;
       break;
     }
-    sts =
-        ippsGFpExp(xi->ipp_ff_elem, e->ipp_bn,
-                   paring_state_ctx->g[0][0]->ipp_ff_elem, Fq2, scratch_buffer);
+    sts = ippsGFpExp(xi->ipp_ff_elem, e->ipp_bn,
+                     pairing_state_ctx->g[0][0]->ipp_ff_elem, Fq2,
+                     scratch_buffer);
     BREAK_ON_IPP_ERROR(sts, result);
     // 5. For i = 0, ..., 4, compute
     for (i = 0; i < 5; i++) {
       // a. If i > 0, compute g[0][i] = Fq2.mul(g[0][i-1], g[0][0]).
       if (i > 0) {
-        sts = ippsGFpMul(paring_state_ctx->g[0][i - 1]->ipp_ff_elem,
-                         paring_state_ctx->g[0][0]->ipp_ff_elem,
-                         paring_state_ctx->g[0][i]->ipp_ff_elem, Fq2);
+        sts = ippsGFpMul(pairing_state_ctx->g[0][i - 1]->ipp_ff_elem,
+                         pairing_state_ctx->g[0][0]->ipp_ff_elem,
+                         pairing_state_ctx->g[0][i]->ipp_ff_elem, Fq2);
       }
       // b. Compute g[1][i] = Fq2.conjugate(g[0][i]),
-      sts = ippsGFpConj(paring_state_ctx->g[0][i]->ipp_ff_elem,
-                        paring_state_ctx->g[1][i]->ipp_ff_elem, Fq2);
+      sts = ippsGFpConj(pairing_state_ctx->g[0][i]->ipp_ff_elem,
+                        pairing_state_ctx->g[1][i]->ipp_ff_elem, Fq2);
       // c. Compute g[1][i] = Fq2.mul(g[0][i], g[1][i]),
-      sts = ippsGFpMul(paring_state_ctx->g[0][i]->ipp_ff_elem,
-                       paring_state_ctx->g[1][i]->ipp_ff_elem,
-                       paring_state_ctx->g[1][i]->ipp_ff_elem, Fq2);
+      sts = ippsGFpMul(pairing_state_ctx->g[0][i]->ipp_ff_elem,
+                       pairing_state_ctx->g[1][i]->ipp_ff_elem,
+                       pairing_state_ctx->g[1][i]->ipp_ff_elem, Fq2);
       // d. Compute g[2][i] = Fq2.mul(g[0][i], g[1][i]).
-      sts = ippsGFpMul(paring_state_ctx->g[0][i]->ipp_ff_elem,
-                       paring_state_ctx->g[1][i]->ipp_ff_elem,
-                       paring_state_ctx->g[2][i]->ipp_ff_elem, Fq2);
+      sts = ippsGFpMul(pairing_state_ctx->g[0][i]->ipp_ff_elem,
+                       pairing_state_ctx->g[1][i]->ipp_ff_elem,
+                       pairing_state_ctx->g[2][i]->ipp_ff_elem, Fq2);
     }
     // 6. Save g[0][0], ..., g[0][4], g[1][0], ..., g[1][4], g[2][0], ...,
     // g[2][4]
     //    for the pairing operations.
-    *ps = paring_state_ctx;
+    *ps = pairing_state_ctx;
     result = kEpidNoErr;
   } while (0);
   SAFE_FREE(scratch_buffer)
   DeleteBigNum(&six);
   DeleteBigNum(&e);
-  DeleteBigNum(&q);
   DeleteBigNum(&one);
   DeleteFfElement(&xi);
   if (kEpidNoErr != result) {
-    if (paring_state_ctx) {
+    if (pairing_state_ctx) {
       int i = 0;
       int j = 0;
       for (i = 0; i < 3; i++) {
         for (j = 0; j < 5; j++) {
-          DeleteFfElement(&paring_state_ctx->g[i][j]);
+          DeleteFfElement(&pairing_state_ctx->g[i][j]);
         }
       }
-      DeleteBigNum(&paring_state_ctx->t);
-      SAFE_FREE(paring_state_ctx);
+      DeleteBigNum(&pairing_state_ctx->t);
+      SAFE_FREE(pairing_state_ctx);
     }
   }
   return result;
@@ -325,8 +318,8 @@ void DeletePairingState(PairingState** ps) {
   }
 }
 
-EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
-                   EcPoint const* b) {
+EpidStatus Pairing(PairingState* ps, EcPoint const* a, EcPoint const* b,
+                   FfElement* d) {
   EpidStatus result = kEpidErr;
   FfElement* ax = NULL;
   FfElement* ay = NULL;
@@ -349,6 +342,9 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
     Ipp32u two_dat[] = {2};
     Ipp32u six_dat[] = {6};
     Ipp32u one_dat[] = {1};
+    G1ElemStr first_val_str = {0};
+    G2ElemStr second_val_str = {0};
+    bool in_group = true;
     int s_ternary[sizeof(BigNumStr) * CHAR_BIT] = {0};
     int i = 0;
     int n = 0;
@@ -357,8 +353,12 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
       result = kEpidBadArgErr;
       break;
     }
+    if (!ps->Fq || !ps->Fq2) {
+      result = kEpidBadArgErr;
+      break;
+    }
     if (!d->ipp_ff_elem || !a->ipp_ec_pt || !b->ipp_ec_pt || !ps->ff ||
-        !ps->ff->ipp_ff || !ps->Fq.ipp_ff || !ps->Fq2.ipp_ff || !ps->t ||
+        !ps->ff->ipp_ff || !ps->Fq->ipp_ff || !ps->Fq2->ipp_ff || !ps->t ||
         !ps->t->ipp_bn || !ps->ga || !ps->ga->ipp_ec || !ps->gb ||
         !ps->gb->ipp_ec) {
       result = kEpidBadArgErr;
@@ -366,29 +366,29 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
     }
     // Let ax, ay be elements in Fq. Let bx, by, x, y, z, z2, bx', by'
     // be elements in Fq2. Let f be a variable in GT.
-    result = NewFfElement(&ps->Fq, &ax);
+    result = NewFfElement(ps->Fq, &ax);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq, &ay);
+    result = NewFfElement(ps->Fq, &ay);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &bx);
+    result = NewFfElement(ps->Fq2, &bx);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &by);
+    result = NewFfElement(ps->Fq2, &by);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &x);
+    result = NewFfElement(ps->Fq2, &x);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &y);
+    result = NewFfElement(ps->Fq2, &y);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &z);
+    result = NewFfElement(ps->Fq2, &z);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &z2);
+    result = NewFfElement(ps->Fq2, &z2);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &bx_);
+    result = NewFfElement(ps->Fq2, &bx_);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &by_);
+    result = NewFfElement(ps->Fq2, &by_);
     BREAK_ON_EPID_ERROR(result);
     result = NewFfElement(ps->ff, &f);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ps->Fq2, &neg_qy);
+    result = NewFfElement(ps->Fq2, &neg_qy);
     BREAK_ON_EPID_ERROR(result);
 
     // 1. If neg = 0, compute integer s = 6t + 2, otherwise, compute
@@ -420,23 +420,43 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
         Ternary(s_ternary, &n, sizeof(s_ternary) / sizeof(s_ternary[0]), s);
     BREAK_ON_EPID_ERROR(result);
     // 3. Set (ax, ay) = E(Fq).outputPoint(a)
+    // check if a is in ga that was used to create ps
+    result = WriteEcPoint(ps->ga, a, &first_val_str, sizeof(first_val_str));
+    BREAK_ON_EPID_ERROR(result);
+    result =
+        EcInGroup(ps->ga, &first_val_str, sizeof(first_val_str), &in_group);
+    BREAK_ON_EPID_ERROR(result);
+    if (false == in_group) {
+      result = kEpidBadArgErr;
+      break;
+    }
     sts = ippsGFpECGetPoint(a->ipp_ec_pt, ax->ipp_ff_elem, ay->ipp_ff_elem,
                             ps->ga->ipp_ec);
     BREAK_ON_IPP_ERROR(sts, result);
     // 4. Set (bx, by) = E(Fq2).outputPoint(b).
+    // check if b is in gb that was used to create ps
+    result = WriteEcPoint(ps->gb, b, &second_val_str, sizeof(second_val_str));
+    BREAK_ON_EPID_ERROR(result);
+    result =
+        EcInGroup(ps->gb, &second_val_str, sizeof(second_val_str), &in_group);
+    BREAK_ON_EPID_ERROR(result);
+    if (false == in_group) {
+      result = kEpidBadArgErr;
+      break;
+    }
     sts = ippsGFpECGetPoint(b->ipp_ec_pt, bx->ipp_ff_elem, by->ipp_ff_elem,
                             ps->gb->ipp_ec);
     BREAK_ON_IPP_ERROR(sts, result);
     // 5. Set X = bx, Y = by, Z = Z2 = 1.
-    sts = ippsGFpCpyElement(bx->ipp_ff_elem, x->ipp_ff_elem, ps->Fq2.ipp_ff);
+    sts = ippsGFpCpyElement(bx->ipp_ff_elem, x->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpCpyElement(by->ipp_ff_elem, y->ipp_ff_elem, ps->Fq2.ipp_ff);
-    BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpSetElement(one_dat, sizeof(one_dat) / sizeof(Ipp32u),
-                            z->ipp_ff_elem, ps->Fq2.ipp_ff);
+    sts = ippsGFpCpyElement(by->ipp_ff_elem, y->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement(one_dat, sizeof(one_dat) / sizeof(Ipp32u),
-                            z2->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            z->ipp_ff_elem, ps->Fq2->ipp_ff);
+    BREAK_ON_IPP_ERROR(sts, result);
+    sts = ippsGFpSetElement(one_dat, sizeof(one_dat) / sizeof(Ipp32u),
+                            z2->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 6. Set d = 1.
     sts = ippsGFpSetElement(one_dat, sizeof(one_dat) / sizeof(Ipp32u),
@@ -459,7 +479,7 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
         // i. Set (f, x, y, z, z2) = line(ax, ay, x, y, z, z2, bx,
         // -by),
         BREAK_ON_EPID_ERROR(result);
-        sts = ippsGFpNeg(by->ipp_ff_elem, neg_qy->ipp_ff_elem, ps->Fq2.ipp_ff);
+        sts = ippsGFpNeg(by->ipp_ff_elem, neg_qy->ipp_ff_elem, ps->Fq2->ipp_ff);
         BREAK_ON_IPP_ERROR(sts, result);
         result = Line(ps->ff, f, x, y, z, z2, ax, ay, x, y, z, z2, bx, neg_qy);
         BREAK_ON_EPID_ERROR(result);
@@ -482,7 +502,7 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
     // 8. if neg = true,
     if (ps->neg) {
       // a. Set Y = Fq2.negate(y),
-      sts = ippsGFpNeg(y->ipp_ff_elem, y->ipp_ff_elem, ps->Fq2.ipp_ff);
+      sts = ippsGFpNeg(y->ipp_ff_elem, y->ipp_ff_elem, ps->Fq2->ipp_ff);
       BREAK_ON_IPP_ERROR(sts, result);
       // b. Set d = Fq12.conjugate(d).
       sts = ippsGFpConj(d->ipp_ff_elem, d->ipp_ff_elem, ps->ff->ipp_ff);
@@ -501,7 +521,7 @@ EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
     result = PiOp(ps, bx_, by_, bx, by, 2);
     BREAK_ON_EPID_ERROR(result);
     // 13. Set by' = Fq2.negate(by').
-    sts = ippsGFpNeg(by_->ipp_ff_elem, by_->ipp_ff_elem, ps->Fq2.ipp_ff);
+    sts = ippsGFpNeg(by_->ipp_ff_elem, by_->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 14. Set (f, x, y, z, z2) = line(ax, ay, x, y, z, z2, bx', by').
     result = Line(ps->ff, f, x, y, z, z2, ax, ay, x, y, z, z2, bx_, by_);
@@ -791,8 +811,9 @@ static EpidStatus PiOp(PairingState* ps, FfElement* x_out, FfElement* y_out,
   IppStatus sts = ippStsNoErr;
   IppsGFpState* Fq2 = 0;
   IppsGFpState* Fq6 = 0;
-  FiniteField* Fq12 = 0;
-  IppsGFpInfo info = {0};
+  FiniteField* Ffq12 = 0;
+  FiniteField* Ffq6 = 0;
+  FiniteField* Ffq2 = 0;
   // check parameters
   if (!ps || !x_out || !y_out || !x || !y) {
     return kEpidBadArgErr;
@@ -800,14 +821,21 @@ static EpidStatus PiOp(PairingState* ps, FfElement* x_out, FfElement* y_out,
   if (e < 1 || e > 3) {
     return kEpidBadArgErr;
   }
-  Fq12 = ps->ff;
+  Ffq12 = ps->ff;
   // get Fq6, Fq2
-  sts = ippsGFpGetInfo(Fq12->ipp_ff, &info);
-  RETURN_ON_IPP_ERROR(sts);
-  Fq6 = (IppsGFpState*)info.pGroundGF;
-  sts = ippsGFpGetInfo(Fq6, &info);
-  RETURN_ON_IPP_ERROR(sts);
-  Fq2 = (IppsGFpState*)info.pGroundGF;
+  if (!Ffq12) {
+    return kEpidBadArgErr;
+  }
+  Ffq6 = Ffq12->ground_ff;
+  if (!Ffq6) {
+    return kEpidBadArgErr;
+  }
+  Fq6 = Ffq6->ipp_ff;
+  Ffq2 = Ffq6->ground_ff;
+  if (!Ffq2) {
+    return kEpidBadArgErr;
+  }
+  Fq2 = Ffq2->ipp_ff;
   // 1. Set x' = x and y' = y.
   sts = ippsGFpCpyElement(x->ipp_ff_elem, x_out->ipp_ff_elem, Fq2);
   RETURN_ON_IPP_ERROR(sts);
@@ -853,18 +881,21 @@ static EpidStatus FrobeniusOp(PairingState* ps, FfElement* d_out,
     if (!ps || !d_out || !a) {
       return kEpidBadArgErr;
     }
-    if (e < 1 || e > 3 || !d_out->ipp_ff_elem || !a->ipp_ff_elem || !ps->ff ||
-        !ps->ff->ipp_ff || !ps->Fq2.ipp_ff) {
+    if (!ps->ff || !ps->Fq2) {
+      return kEpidBadArgErr;
+    }
+    if (e < 1 || e > 3 || !d_out->ipp_ff_elem || !a->ipp_ff_elem ||
+        !ps->ff->ipp_ff || !ps->Fq2->ipp_ff) {
       return kEpidBadArgErr;
     }
 
     for (i = 0; i < sizeof(d) / sizeof(FfElement*); i++) {
-      result = NewFfElement(&ps->Fq2, &d[i]);
+      result = NewFfElement(ps->Fq2, &d[i]);
       BREAK_ON_EPID_ERROR(result);
     }
 
     // 1.  Let a = ((a[0], a[2], a[4]), (a[1], a[3], a[5])).
-    sts = ippsGFpGetElement(a->ipp_ff_elem, (Ipp32u*)&a_dat,
+    sts = ippsGFpGetElement(a->ipp_ff_elem, (BNU)&a_dat,
                             sizeof(a_dat) / sizeof(Ipp32u), ps->ff->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 2.  Let d = ((d[0], d[2], d[4]), (d[1], d[3], d[5])).
@@ -872,66 +903,67 @@ static EpidStatus FrobeniusOp(PairingState* ps, FfElement* d_out,
     //   a. set d[i] = a[i].
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0].x[0],
                             sizeof(a_dat.x[0].x[0]) / sizeof(Ipp32u),
-                            d[0]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[0]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0].x[1],
                             sizeof(a_dat.x[0].x[1]) / sizeof(Ipp32u),
-                            d[2]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[2]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0].x[2],
                             sizeof(a_dat.x[0].x[2]) / sizeof(Ipp32u),
-                            d[4]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[4]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1].x[0],
                             sizeof(a_dat.x[1].x[0]) / sizeof(Ipp32u),
-                            d[1]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[1]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1].x[1],
                             sizeof(a_dat.x[1].x[1]) / sizeof(Ipp32u),
-                            d[3]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[3]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1].x[2],
                             sizeof(a_dat.x[1].x[2]) / sizeof(Ipp32u),
-                            d[5]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            d[5]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
 
     // b. If e = 1 or 3, set d[i] = Fq2.conjugate(d[i]).
     if (1 == e || 3 == e) {
       for (i = 0; i < sizeof(d) / sizeof(FfElement*); i++) {
-        sts = ippsGFpConj(d[i]->ipp_ff_elem, d[i]->ipp_ff_elem, ps->Fq2.ipp_ff);
+        sts =
+            ippsGFpConj(d[i]->ipp_ff_elem, d[i]->ipp_ff_elem, ps->Fq2->ipp_ff);
         BREAK_ON_IPP_ERROR(sts, result);
       }
     }
     // 4.  For i = 1, ..., 5, compute d[i] = Fq2.mul(d[i], g[e-1][i-1]).
     for (i = 1; i < sizeof(d) / sizeof(FfElement*); i++) {
       sts = ippsGFpMul(d[i]->ipp_ff_elem, ps->g[e - 1][i - 1]->ipp_ff_elem,
-                       d[i]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                       d[i]->ipp_ff_elem, ps->Fq2->ipp_ff);
       BREAK_ON_IPP_ERROR(sts, result);
     }
     // 5.  Return d.
-    sts = ippsGFpGetElement(d[0]->ipp_ff_elem, (Ipp32u*)&d_dat.x[0].x[0],
+    sts = ippsGFpGetElement(d[0]->ipp_ff_elem, (BNU)&d_dat.x[0].x[0],
                             sizeof(d_dat.x[0].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(d[2]->ipp_ff_elem, (Ipp32u*)&d_dat.x[0].x[1],
+    sts = ippsGFpGetElement(d[2]->ipp_ff_elem, (BNU)&d_dat.x[0].x[1],
                             sizeof(d_dat.x[0].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(d[4]->ipp_ff_elem, (Ipp32u*)&d_dat.x[0].x[2],
+    sts = ippsGFpGetElement(d[4]->ipp_ff_elem, (BNU)&d_dat.x[0].x[2],
                             sizeof(d_dat.x[0].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(d[1]->ipp_ff_elem, (Ipp32u*)&d_dat.x[1].x[0],
+    sts = ippsGFpGetElement(d[1]->ipp_ff_elem, (BNU)&d_dat.x[1].x[0],
                             sizeof(d_dat.x[1].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(d[3]->ipp_ff_elem, (Ipp32u*)&d_dat.x[1].x[1],
+    sts = ippsGFpGetElement(d[3]->ipp_ff_elem, (BNU)&d_dat.x[1].x[1],
                             sizeof(d_dat.x[1].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(d[5]->ipp_ff_elem, (Ipp32u*)&d_dat.x[1].x[2],
+    sts = ippsGFpGetElement(d[5]->ipp_ff_elem, (BNU)&d_dat.x[1].x[2],
                             sizeof(d_dat.x[1].x[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&d_dat, sizeof(d_dat) / sizeof(Ipp32u),
                             d_out->ipp_ff_elem, ps->ff->ipp_ff);
@@ -977,8 +1009,8 @@ static EpidStatus Line(FiniteField* gt, FfElement* f, FfElement* x_out,
     IppStatus sts = ippStsNoErr;
     IppsGFpState* Fq2 = 0;
     IppsGFpState* Fq6 = 0;
-    IppsGFpInfo info = {0};
-    FiniteField Ffq2;
+    FiniteField* Ffq6 = 0;
+    FiniteField* Ffq2 = 0;
 
     // check parameters
     if (!f || !x_out || !y_out || !z_out || !z2_out || !px || !py || !x || !y ||
@@ -995,62 +1027,64 @@ static EpidStatus Line(FiniteField* gt, FfElement* f, FfElement* x_out,
       break;
     }
     // get Fq6, Fq2
-    sts = ippsGFpGetInfo(gt->ipp_ff, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq6 = (IppsGFpState*)info.pGroundGF;
-    sts = ippsGFpGetInfo(Fq6, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq2 = (IppsGFpState*)info.pGroundGF;
-    result = InitFiniteFieldFromIpp(Fq2, &Ffq2);
-    BREAK_ON_EPID_ERROR(result);
+    Ffq6 = gt->ground_ff;
+    if (!Ffq6) {
+      return kEpidBadArgErr;
+    }
+    Fq6 = Ffq6->ipp_ff;
+    Ffq2 = Ffq6->ground_ff;
+    if (!Ffq2) {
+      return kEpidBadArgErr;
+    }
+    Fq2 = Ffq2->ipp_ff;
     // Let t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10 be temporary
     // elements in Fq2. All the following operations are computed in
     // Fq2 unless explicitly specified.
-    result = NewFfElement(&Ffq2, &t0);
+    result = NewFfElement(Ffq2, &t0);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t1);
+    result = NewFfElement(Ffq2, &t1);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t2);
+    result = NewFfElement(Ffq2, &t2);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t3);
+    result = NewFfElement(Ffq2, &t3);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t4);
+    result = NewFfElement(Ffq2, &t4);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t5);
+    result = NewFfElement(Ffq2, &t5);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t6);
+    result = NewFfElement(Ffq2, &t6);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t7);
+    result = NewFfElement(Ffq2, &t7);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t8);
+    result = NewFfElement(Ffq2, &t8);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t9);
+    result = NewFfElement(Ffq2, &t9);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t10);
+    result = NewFfElement(Ffq2, &t10);
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFfElement(&Ffq2, &t);
+    result = NewFfElement(Ffq2, &t);
     if (kEpidNoErr != result) {
       break;
     }
@@ -1158,8 +1192,8 @@ static EpidStatus Line(FiniteField* gt, FfElement* f, FfElement* x_out,
     sts = ippsGFpSub(t9->ipp_ff_elem, t10->ipp_ff_elem, t9->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 20. Set t10 = Fq2.mul(Z', Py).
-    sts = ippsGFpMul_GFpE(z_out->ipp_ff_elem, py->ipp_ff_elem, t10->ipp_ff_elem,
-                          Fq2);
+    sts = ippsGFpMul_PE(z_out->ipp_ff_elem, py->ipp_ff_elem, t10->ipp_ff_elem,
+                        Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 21. Set t10 = t10 + t10.
     sts = ippsGFpAdd(t10->ipp_ff_elem, t10->ipp_ff_elem, t10->ipp_ff_elem, Fq2);
@@ -1168,20 +1202,19 @@ static EpidStatus Line(FiniteField* gt, FfElement* f, FfElement* x_out,
     sts = ippsGFpNeg(t6->ipp_ff_elem, t6->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 23. Set t1 = Fq2.mul(t6, Px).
-    sts =
-        ippsGFpMul_GFpE(t6->ipp_ff_elem, px->ipp_ff_elem, t1->ipp_ff_elem, Fq2);
+    sts = ippsGFpMul_PE(t6->ipp_ff_elem, px->ipp_ff_elem, t1->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 24. Set t1 = t1 + t1.
     sts = ippsGFpAdd(t1->ipp_ff_elem, t1->ipp_ff_elem, t1->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 25. Set f = ((t10, 0, 0), (t1, t9, 0)).
-    sts = ippsGFpGetElement(t10->ipp_ff_elem, (Ipp32u*)&fDat.x[0].x[0],
+    sts = ippsGFpGetElement(t10->ipp_ff_elem, (BNU)&fDat.x[0].x[0],
                             sizeof(fDat.x[0].x[0]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(t1->ipp_ff_elem, (Ipp32u*)&fDat.x[1].x[0],
+    sts = ippsGFpGetElement(t1->ipp_ff_elem, (BNU)&fDat.x[1].x[0],
                             sizeof(fDat.x[1].x[0]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(t9->ipp_ff_elem, (Ipp32u*)&fDat.x[1].x[1],
+    sts = ippsGFpGetElement(t9->ipp_ff_elem, (BNU)&fDat.x[1].x[1],
                             sizeof(fDat.x[1].x[1]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&fDat, sizeof(fDat) / sizeof(Ipp32u),
@@ -1230,8 +1263,9 @@ static EpidStatus Tangent(FiniteField* gt, FfElement* f, FfElement* x_out,
     IppStatus sts = ippStsNoErr;
     IppsGFpState* Fq2 = NULL;
     IppsGFpState* Fq6 = NULL;
-    FiniteField Ffq2;
-    IppsGFpInfo info = {0};
+    FiniteField* Ffq2 = NULL;
+    FiniteField* Ffq6 = NULL;
+
     int i = 0;
     // validate input
     if (!gt || !f || !x_out || !y_out || !z_out || !z2_out || !px || !py ||
@@ -1247,33 +1281,37 @@ static EpidStatus Tangent(FiniteField* gt, FfElement* f, FfElement* x_out,
       break;
     }
     // get Fq2, Fq6
-    sts = ippsGFpGetInfo(gt->ipp_ff, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq6 = (IppsGFpState*)info.pGroundGF;
-    sts = ippsGFpGetInfo(Fq6, &info);
-    BREAK_ON_IPP_ERROR(sts, result);
-    Fq2 = (IppsGFpState*)info.pGroundGF;
-    result = InitFiniteFieldFromIpp(Fq2, &Ffq2);
-    BREAK_ON_EPID_ERROR(result);
+    Ffq6 = gt->ground_ff;
+    if (!Ffq6) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    Fq6 = Ffq6->ipp_ff;
+    Ffq2 = Ffq6->ground_ff;
+    if (!Ffq2) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    Fq2 = Ffq2->ipp_ff;
     // Let t0, t1, t2, t3, t4, t5, t6 be elements in Fq2. All the following
     // operations are computed in Fq2 unless explicitly specified.
     // 1. Set t0 = X * X.
-    result = NewFfElement(&Ffq2, &t0);
+    result = NewFfElement(Ffq2, &t0);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpMul(x->ipp_ff_elem, x->ipp_ff_elem, t0->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 2. Set t1 = Y * Y.
-    result = NewFfElement(&Ffq2, &t1);
+    result = NewFfElement(Ffq2, &t1);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpMul(y->ipp_ff_elem, y->ipp_ff_elem, t1->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 3. Set t2 = t1 * t1.
-    result = NewFfElement(&Ffq2, &t2);
+    result = NewFfElement(Ffq2, &t2);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpMul(t1->ipp_ff_elem, t1->ipp_ff_elem, t2->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 4. Set t3 = (t1 + X)^2 - t0 - t2.
-    result = NewFfElement(&Ffq2, &t3);
+    result = NewFfElement(Ffq2, &t3);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpAdd(t1->ipp_ff_elem, x->ipp_ff_elem, t3->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
@@ -1287,19 +1325,19 @@ static EpidStatus Tangent(FiniteField* gt, FfElement* f, FfElement* x_out,
     sts = ippsGFpAdd(t3->ipp_ff_elem, t3->ipp_ff_elem, t3->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 6. Set t4 = 3 * t0.
-    result = NewFfElement(&Ffq2, &t4);
+    result = NewFfElement(Ffq2, &t4);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpAdd(t0->ipp_ff_elem, t0->ipp_ff_elem, t4->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(t4->ipp_ff_elem, t0->ipp_ff_elem, t4->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 7. Set t6 = X + t4.
-    result = NewFfElement(&Ffq2, &t6);
+    result = NewFfElement(Ffq2, &t6);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpAdd(x->ipp_ff_elem, t4->ipp_ff_elem, t6->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 8. Set t5 = t4 * t4.
-    result = NewFfElement(&Ffq2, &t5);
+    result = NewFfElement(Ffq2, &t5);
     BREAK_ON_EPID_ERROR(result);
     sts = ippsGFpMul(t4->ipp_ff_elem, t4->ipp_ff_elem, t5->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
@@ -1341,8 +1379,7 @@ static EpidStatus Tangent(FiniteField* gt, FfElement* f, FfElement* x_out,
     sts = ippsGFpNeg(t3->ipp_ff_elem, t3->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 13.Set t3 = Fq2.mul(t3, Px).
-    sts =
-        ippsGFpMul_GFpE(t3->ipp_ff_elem, px->ipp_ff_elem, t3->ipp_ff_elem, Fq2);
+    sts = ippsGFpMul_PE(t3->ipp_ff_elem, px->ipp_ff_elem, t3->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 14.Set t6 = t6 * t6 - t0 - t5 - 4 * t1.
     sts = ippsGFpMul(t6->ipp_ff_elem, t6->ipp_ff_elem, t6->ipp_ff_elem, Fq2);
@@ -1361,17 +1398,16 @@ static EpidStatus Tangent(FiniteField* gt, FfElement* f, FfElement* x_out,
     sts = ippsGFpAdd(t0->ipp_ff_elem, t0->ipp_ff_elem, t0->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 16.Set t0 = Fq2.mul(t0, Py).
-    sts =
-        ippsGFpMul_GFpE(t0->ipp_ff_elem, py->ipp_ff_elem, t0->ipp_ff_elem, Fq2);
+    sts = ippsGFpMul_PE(t0->ipp_ff_elem, py->ipp_ff_elem, t0->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     // 17.Set f = ((t0, 0, 0), (t3, t6, 0)).
-    sts = ippsGFpGetElement(t0->ipp_ff_elem, (Ipp32u*)&fDat.x[0].x[0],
+    sts = ippsGFpGetElement(t0->ipp_ff_elem, (BNU)&fDat.x[0].x[0],
                             sizeof(fDat.x[0].x[0]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(t3->ipp_ff_elem, (Ipp32u*)&fDat.x[1].x[0],
+    sts = ippsGFpGetElement(t3->ipp_ff_elem, (BNU)&fDat.x[1].x[0],
                             sizeof(fDat.x[1].x[0]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(t6->ipp_ff_elem, (Ipp32u*)&fDat.x[1].x[1],
+    sts = ippsGFpGetElement(t6->ipp_ff_elem, (BNU)&fDat.x[1].x[1],
                             sizeof(fDat.x[1].x[1]) / sizeof(Ipp32u), Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&fDat, sizeof(fDat) / sizeof(Ipp32u),
@@ -1425,7 +1461,7 @@ static EpidStatus Ternary(int* s, int* n, int max_elements, BigNum const* x) {
     int flag = 0;
     int i = 0;
     int num_bits = 0;
-    Ipp32u* data = 0;
+    IppBNU data = 0;
 
     // check parameters
     if (!s || !n || !x || !x->ipp_bn) {
@@ -1525,59 +1561,65 @@ static EpidStatus MulXiFast(FfElement* e, FfElement const* a,
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
-    if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq.ipp_ff ||
-        !ps->Fq2.ipp_ff) {
+    if (!ps->Fq || !ps->Fq2) {
+      retvalue = kEpidBadArgErr;
+      BREAK_ON_EPID_ERROR(retvalue);
+    }
+    if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq->ipp_ff ||
+        !ps->Fq2->ipp_ff) {
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
     // All the following arithmetic operations are in ps->Fq.
     // 1. Let a = (a[0], a[1]), xi = (xi[0], xi[1]), and e = (e[0], e[1]).
-    retvalue = NewFfElement(&(ps->Fq), &a0);
+    retvalue = NewFfElement(ps->Fq, &a0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq), &a1);
+    retvalue = NewFfElement(ps->Fq, &a1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq), &e0);
+    retvalue = NewFfElement(ps->Fq, &e0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq), &e1);
+    retvalue = NewFfElement(ps->Fq, &e1);
     BREAK_ON_EPID_ERROR(retvalue);
 
-    sts = ippsGFpGetElement(a->ipp_ff_elem, (Ipp32u*)&a_dat,
-                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq2.ipp_ff);
+    sts = ippsGFpGetElement(a->ipp_ff_elem, (BNU)&a_dat,
+                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0],
                             sizeof(a_dat.x[0]) / sizeof(Ipp32u),
-                            a0->ipp_ff_elem, ps->Fq.ipp_ff);
+                            a0->ipp_ff_elem, ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1],
                             sizeof(a_dat.x[1]) / sizeof(Ipp32u),
-                            a1->ipp_ff_elem, ps->Fq.ipp_ff);
+                            a1->ipp_ff_elem, ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
 
     // 4. If xi[0] = 2, xi[1] = 1, beta = -1, then e[0] and e[1] can
     //    be computed as
     //   a. e[0] = a[0] + a[0] - a[1].
     sts = ippsGFpAdd(a0->ipp_ff_elem, a0->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq.ipp_ff);
+                     ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSub(e0->ipp_ff_elem, a1->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq.ipp_ff);
+                     ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     //   b. e[1] = a[0] + a[1] + a[1].
     sts = ippsGFpAdd(a0->ipp_ff_elem, a1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq.ipp_ff);
+                     ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpAdd(e1->ipp_ff_elem, a1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq.ipp_ff);
+                     ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 5. Return e = (e[0], e[1]).
-    sts = ippsGFpGetElement(e0->ipp_ff_elem, (Ipp32u*)&e_dat.x[0],
-                            sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq.ipp_ff);
+    sts =
+        ippsGFpGetElement(e0->ipp_ff_elem, (BNU)&e_dat.x[0],
+                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
-    sts = ippsGFpGetElement(e1->ipp_ff_elem, (Ipp32u*)&e_dat.x[1],
-                            sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq.ipp_ff);
+    sts =
+        ippsGFpGetElement(e1->ipp_ff_elem, (BNU)&e_dat.x[1],
+                          sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&e_dat, sizeof(e_dat) / sizeof(Ipp32u),
-                            e->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            e->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     retvalue = kEpidNoErr;
   } while (0);
@@ -1614,27 +1656,31 @@ static EpidStatus MulV(FfElement* e, FfElement* a, PairingState* ps) {
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
-    if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq2.ipp_ff ||
-        !ps->Fq6.ipp_ff) {
+    if (!ps->Fq2 || !ps->Fq6) {
+      retvalue = kEpidBadArgErr;
+      BREAK_ON_EPID_ERROR(retvalue);
+    }
+    if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq2->ipp_ff ||
+        !ps->Fq6->ipp_ff) {
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
     // 1. Let a = (a[0], a[1], a[2]) and e = (e[0], e[1], e[2]).
-    retvalue = NewFfElement(&(ps->Fq2), &a2);
+    retvalue = NewFfElement(ps->Fq2, &a2);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e0);
+    retvalue = NewFfElement(ps->Fq2, &e0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e1);
+    retvalue = NewFfElement(ps->Fq2, &e1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e2);
+    retvalue = NewFfElement(ps->Fq2, &e2);
     BREAK_ON_EPID_ERROR(retvalue);
 
-    sts = ippsGFpGetElement(a->ipp_ff_elem, (Ipp32u*)&a_dat,
-                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq6.ipp_ff);
+    sts = ippsGFpGetElement(a->ipp_ff_elem, (BNU)&a_dat,
+                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[2],
                             sizeof(a_dat.x[2]) / sizeof(Ipp32u),
-                            a2->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a2->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 2. e[0] = Fq2.mulXi(a[2]).
     retvalue = MulXiFast(e0, a2, ps);
@@ -1645,11 +1691,11 @@ static EpidStatus MulV(FfElement* e, FfElement* a, PairingState* ps) {
     e_dat.x[2] = a_dat.x[1];
 
     sts =
-        ippsGFpGetElement(e0->ipp_ff_elem, (Ipp32u*)&e_dat.x[0],
-                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq2.ipp_ff);
+        ippsGFpGetElement(e0->ipp_ff_elem, (BNU)&e_dat.x[0],
+                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&e_dat, sizeof(e_dat) / sizeof(Ipp32u),
-                            e->ipp_ff_elem, ps->Fq6.ipp_ff);
+                            e->ipp_ff_elem, ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     retvalue = kEpidNoErr;
   } while (0);
@@ -1696,121 +1742,125 @@ static EpidStatus Fq6MulGFpE2(FfElement* e, FfElement* a, FfElement* b0,
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
+    if (!ps->Fq2 || !ps->Fq6) {
+      retvalue = kEpidBadArgErr;
+      BREAK_ON_EPID_ERROR(retvalue);
+    }
     if (!e->ipp_ff_elem || !a->ipp_ff_elem || !b0->ipp_ff_elem ||
-        !b1->ipp_ff_elem || !ps->Fq2.ipp_ff || !ps->Fq6.ipp_ff) {
+        !b1->ipp_ff_elem || !ps->Fq2->ipp_ff || !ps->Fq6->ipp_ff) {
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
 
     // Let t0, t1, t3, t4 be temporary variables in Fq2. All the
     // following arithmetic operations are in Fq2.
-    retvalue = NewFfElement(&(ps->Fq2), &t0);
+    retvalue = NewFfElement(ps->Fq2, &t0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &t1);
+    retvalue = NewFfElement(ps->Fq2, &t1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &t2);
+    retvalue = NewFfElement(ps->Fq2, &t2);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &t3);
+    retvalue = NewFfElement(ps->Fq2, &t3);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &t4);
+    retvalue = NewFfElement(ps->Fq2, &t4);
     BREAK_ON_EPID_ERROR(retvalue);
     // 1. Let a = (a[0], a[1], a[2]) and e = (e[0], e[1], e[2]).
-    retvalue = NewFfElement(&(ps->Fq2), &a0);
+    retvalue = NewFfElement(ps->Fq2, &a0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &a1);
+    retvalue = NewFfElement(ps->Fq2, &a1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &a2);
+    retvalue = NewFfElement(ps->Fq2, &a2);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e0);
+    retvalue = NewFfElement(ps->Fq2, &e0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e1);
+    retvalue = NewFfElement(ps->Fq2, &e1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &e2);
+    retvalue = NewFfElement(ps->Fq2, &e2);
     BREAK_ON_EPID_ERROR(retvalue);
 
-    sts = ippsGFpGetElement(a->ipp_ff_elem, (Ipp32u*)&a_dat,
-                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq6.ipp_ff);
+    sts = ippsGFpGetElement(a->ipp_ff_elem, (BNU)&a_dat,
+                            sizeof(a_dat) / sizeof(Ipp32u), ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0],
                             sizeof(a_dat.x[0]) / sizeof(Ipp32u),
-                            a0->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a0->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1],
                             sizeof(a_dat.x[1]) / sizeof(Ipp32u),
-                            a1->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a1->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[2],
                             sizeof(a_dat.x[2]) / sizeof(Ipp32u),
-                            a2->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a2->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 2. t0 = a[0] * b[0].
     sts = ippsGFpMul(a0->ipp_ff_elem, b0->ipp_ff_elem, t0->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 3. t1 = a[1] * b[1].
     sts = ippsGFpMul(a1->ipp_ff_elem, b1->ipp_ff_elem, t1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 4. t3 = a[1] + a[2].
     sts = ippsGFpAdd(a1->ipp_ff_elem, a2->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 5. t3 = t3 * b[1].
     sts = ippsGFpMul(t3->ipp_ff_elem, b1->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 6. t3 = t3 - t1.
     sts = ippsGFpSub(t3->ipp_ff_elem, t1->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 7. e[0] = Fq2.mulXi(t3) + t0.
     retvalue = MulXiFast(e0, t3, ps);
     BREAK_ON_EPID_ERROR(retvalue);
     sts = ippsGFpAdd(e0->ipp_ff_elem, t0->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 8. t3 = a[0] + a[1].
     sts = ippsGFpAdd(a0->ipp_ff_elem, a1->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 9. t4 = b[0] + b[1].
     sts = ippsGFpAdd(b0->ipp_ff_elem, b1->ipp_ff_elem, t4->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 10. t3 = t3 * t4.
     sts = ippsGFpMul(t3->ipp_ff_elem, t4->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 11. e[1] = t3 - t0 - t1.
     sts = ippsGFpSub(t3->ipp_ff_elem, t0->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSub(e1->ipp_ff_elem, t1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 12. t3 = a[2] * b[0].
     sts = ippsGFpMul(a2->ipp_ff_elem, b0->ipp_ff_elem, t3->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 13. e[2] = t3 + t1.
     sts = ippsGFpAdd(t3->ipp_ff_elem, t1->ipp_ff_elem, e2->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 14. Return e.
     sts =
-        ippsGFpGetElement(e0->ipp_ff_elem, (Ipp32u*)&e_dat.x[0],
-                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq2.ipp_ff);
+        ippsGFpGetElement(e0->ipp_ff_elem, (BNU)&e_dat.x[0],
+                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts =
-        ippsGFpGetElement(e1->ipp_ff_elem, (Ipp32u*)&e_dat.x[1],
-                          sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq2.ipp_ff);
+        ippsGFpGetElement(e1->ipp_ff_elem, (BNU)&e_dat.x[1],
+                          sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts =
-        ippsGFpGetElement(e2->ipp_ff_elem, (Ipp32u*)&e_dat.x[2],
-                          sizeof(e_dat.x[2]) / sizeof(Ipp32u), ps->Fq2.ipp_ff);
+        ippsGFpGetElement(e2->ipp_ff_elem, (BNU)&e_dat.x[2],
+                          sizeof(e_dat.x[2]) / sizeof(Ipp32u), ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&e_dat, sizeof(e_dat) / sizeof(Ipp32u),
-                            e->ipp_ff_elem, ps->Fq6.ipp_ff);
+                            e->ipp_ff_elem, ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     retvalue = kEpidNoErr;
   } while (0);
@@ -1863,73 +1913,78 @@ static EpidStatus MulSpecial(FfElement* e, FfElement const* a,
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
+    if (!ps->Fq2 || !ps->Fq6) {
+      retvalue = kEpidBadArgErr;
+      BREAK_ON_EPID_ERROR(retvalue);
+    }
     if (!e->ipp_ff_elem || !a->ipp_ff_elem || !b->ipp_ff_elem ||
-        !ps->Fq2.ipp_ff || !ps->Fq6.ipp_ff || !ps->ff || !ps->ff->ipp_ff) {
+        !ps->Fq2->ipp_ff || !ps->Fq6->ipp_ff || !ps->ff || !ps->ff->ipp_ff) {
       retvalue = kEpidBadArgErr;
       BREAK_ON_EPID_ERROR(retvalue);
     }
 
     // Let t0, t1, t2 be temporary variables in ps->Fq6.
-    retvalue = NewFfElement(&(ps->Fq6), &t0);
+    retvalue = NewFfElement(ps->Fq6, &t0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq6), &t1);
+    retvalue = NewFfElement(ps->Fq6, &t1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq6), &t2);
+    retvalue = NewFfElement(ps->Fq6, &t2);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &b0plusb1);
+    retvalue = NewFfElement(ps->Fq2, &b0plusb1);
     BREAK_ON_EPID_ERROR(retvalue);
 
     // 1.  Let a = (a[0], a[1]) and e = (e[0], e[1]).
-    retvalue = NewFfElement(&(ps->Fq6), &a0);
+    retvalue = NewFfElement(ps->Fq6, &a0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq6), &a1);
+    retvalue = NewFfElement(ps->Fq6, &a1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq6), &e0);
+    retvalue = NewFfElement(ps->Fq6, &e0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq6), &e1);
+    retvalue = NewFfElement(ps->Fq6, &e1);
     BREAK_ON_EPID_ERROR(retvalue);
 
-    sts = ippsGFpGetElement(a->ipp_ff_elem, (Ipp32u*)&a_dat,
+    sts = ippsGFpGetElement(a->ipp_ff_elem, (BNU)&a_dat,
                             sizeof(a_dat) / sizeof(Ipp32u), ps->ff->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[0],
                             sizeof(a_dat.x[0]) / sizeof(Ipp32u),
-                            a0->ipp_ff_elem, ps->Fq6.ipp_ff);
+                            a0->ipp_ff_elem, ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&a_dat.x[1],
                             sizeof(a_dat.x[1]) / sizeof(Ipp32u),
-                            a1->ipp_ff_elem, ps->Fq6.ipp_ff);
+                            a1->ipp_ff_elem, ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
 
     // 2.  Let b = ((b[0], b[2], b[4]), (b[1], b[3], b[5])) where
     //     b[0], ..., b[5] are elements in ps->Fq2 and b[2] = b[4] = b[5]
     //     = 0.
-    retvalue = NewFfElement(&(ps->Fq2), &b0);
+    retvalue = NewFfElement(ps->Fq2, &b0);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &b1);
+    retvalue = NewFfElement(ps->Fq2, &b1);
     BREAK_ON_EPID_ERROR(retvalue);
-    retvalue = NewFfElement(&(ps->Fq2), &b3);
+    retvalue = NewFfElement(ps->Fq2, &b3);
     BREAK_ON_EPID_ERROR(retvalue);
 
-    sts = ippsGFpGetElement(b->ipp_ff_elem, (Ipp32u*)&b_dat,
+    sts = ippsGFpGetElement(b->ipp_ff_elem, (BNU)&b_dat,
                             sizeof(b_dat) / sizeof(Ipp32u), ps->ff->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&b_dat.x[0].x[0],
                             sizeof(a_dat.x[0].x[0]) / sizeof(Ipp32u),
-                            b0->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            b0->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&b_dat.x[1].x[0],
                             sizeof(a_dat.x[1].x[0]) / sizeof(Ipp32u),
-                            b1->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            b1->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&b_dat.x[1].x[1],
                             sizeof(a_dat.x[1].x[1]) / sizeof(Ipp32u),
-                            b3->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            b3->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
 
     // 3.  t0 = ps->Fq6.mul(a[0], b[0]).
-    sts = ippsGFpMul_GFpE(a0->ipp_ff_elem, b0->ipp_ff_elem, t0->ipp_ff_elem,
-                          ps->Fq6.ipp_ff);
+
+    sts = ippsGFpMul_PE(a0->ipp_ff_elem, b0->ipp_ff_elem, t0->ipp_ff_elem,
+                        ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 4.  t1 = ps->Fq6.mul(a[1], b[1], b[3]).
     retvalue = Fq6MulGFpE2(t1, a1, b1, b3, ps);
@@ -1939,34 +1994,34 @@ static EpidStatus MulSpecial(FfElement* e, FfElement const* a,
     BREAK_ON_EPID_ERROR(retvalue);
     // 6.  e[0] = ps->Fq6.add(t0, e[0]).
     sts = ippsGFpAdd(t0->ipp_ff_elem, e0->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq6.ipp_ff);
+                     ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 7.  t2 = ps->Fq6.add(a[0], a[1]).
     sts = ippsGFpAdd(a0->ipp_ff_elem, a1->ipp_ff_elem, t2->ipp_ff_elem,
-                     ps->Fq6.ipp_ff);
+                     ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 8.  e[1] = ps->Fq6.mul(t2, b[0] + b[1], b[3]).
     sts = ippsGFpAdd(b0->ipp_ff_elem, b1->ipp_ff_elem, b0plusb1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     retvalue = Fq6MulGFpE2(e1, t2, b0plusb1, b3, ps);
     BREAK_ON_EPID_ERROR(retvalue);
     // 9.  e[1] = ps->Fq6.subtract(e[1], t0).
     sts = ippsGFpSub(e1->ipp_ff_elem, t0->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq6.ipp_ff);
+                     ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 10. e[1] = ps->Fq6.subtract(e[1], t1).
     sts = ippsGFpSub(e1->ipp_ff_elem, t1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq6.ipp_ff);
+                     ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     // 11. Return e.
     sts =
-        ippsGFpGetElement(e0->ipp_ff_elem, (Ipp32u*)&e_dat.x[0],
-                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq6.ipp_ff);
+        ippsGFpGetElement(e0->ipp_ff_elem, (BNU)&e_dat.x[0],
+                          sizeof(e_dat.x[0]) / sizeof(Ipp32u), ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts =
-        ippsGFpGetElement(e1->ipp_ff_elem, (Ipp32u*)&e_dat.x[1],
-                          sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq6.ipp_ff);
+        ippsGFpGetElement(e1->ipp_ff_elem, (BNU)&e_dat.x[1],
+                          sizeof(e_dat.x[1]) / sizeof(Ipp32u), ps->Fq6->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, retvalue);
     sts = ippsGFpSetElement((Ipp32u*)&e_dat, sizeof(e_dat) / sizeof(Ipp32u),
                             e->ipp_ff_elem, ps->ff->ipp_ff);
@@ -2002,74 +2057,76 @@ static EpidStatus SquareForFq4(PairingState* ps, FfElement* e0, FfElement* e1,
   FfElement* t0 = NULL;
   FfElement* t1 = NULL;
   FfElement* xi = NULL;
-  Fq2ElemStr Fq6IrrPolynomial[3 + 1] = {0};
+  Fq2ElemStr Fq6IrrPolynomial = {0};
 
   // check parameters
   if (!e0 || !e1 || !a0 || !a1 || !ps) return kEpidBadArgErr;
-
+  if (!ps->Fq2 || !ps->Fq6) {
+    return kEpidBadArgErr;
+  }
   if (!e0->ipp_ff_elem || !e1->ipp_ff_elem || !a0->ipp_ff_elem ||
-      !a1->ipp_ff_elem || !ps->ff || !ps->ff->ipp_ff || !ps->Fq2.ipp_ff ||
-      !ps->Fq6.ipp_ff)
+      !a1->ipp_ff_elem || !ps->ff || !ps->ff->ipp_ff || !ps->Fq2->ipp_ff ||
+      !ps->Fq6->ipp_ff)
     return kEpidBadArgErr;
 
   do {
     IppStatus sts = ippStsNoErr;
 
     // extract xi from Fq6 irr poly
-    result = NewFfElement(&(ps->Fq2), &xi);
+    result = NewFfElement(ps->Fq2, &xi);
     BREAK_ON_EPID_ERROR(result);
-    sts = ippsGFpGetModulus(ps->Fq6.ipp_ff, (Ipp32u*)&Fq6IrrPolynomial[0]);
-    BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpSetElement((Ipp32u const*)&Fq6IrrPolynomial[0],
-                            sizeof(Fq6IrrPolynomial[0]) / sizeof(Ipp32u),
-                            xi->ipp_ff_elem, ps->Fq2.ipp_ff);
-    BREAK_ON_IPP_ERROR(sts, result);
+    result = WriteBigNum(ps->Fq6->modulus_0, sizeof(Fq6IrrPolynomial),
+                         &Fq6IrrPolynomial);
+    BREAK_ON_EPID_ERROR(result);
+    result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
+                                   xi, ps->Fq2);
+    BREAK_ON_EPID_ERROR(result);
     // first coefficent is -xi
-    sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2.ipp_ff);
+    sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
 
     // Let t0, t1 be temporary variables in Fq2. All the following
     // operations are computed in Fq2.
-    result = NewFfElement(&(ps->Fq2), &t0);
+    result = NewFfElement(ps->Fq2, &t0);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t1);
+    result = NewFfElement(ps->Fq2, &t1);
     BREAK_ON_EPID_ERROR(result);
 
     // 1. Set t0 = a0 * a0.
     sts = ippsGFpMul(a0->ipp_ff_elem, a0->ipp_ff_elem, t0->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 2. Set t1 = a1 * a1.
     sts = ippsGFpMul(a1->ipp_ff_elem, a1->ipp_ff_elem, t1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 3. Set e0 = t1 * xi.
     sts = ippsGFpMul(t1->ipp_ff_elem, xi->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 4. Set e0 = e0 + t0.
     sts = ippsGFpAdd(e0->ipp_ff_elem, t0->ipp_ff_elem, e0->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 5. Set e1 = a0 + a1.
     sts = ippsGFpAdd(a0->ipp_ff_elem, a1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 6. Set e1 = e1 * e1 - t0 - t1.
     sts = ippsGFpMul(e1->ipp_ff_elem, e1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e1->ipp_ff_elem, t0->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e1->ipp_ff_elem, t1->ipp_ff_elem, e1->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 7. Return (e0, e1).
     result = kEpidNoErr;
   } while (0);
 
-  EpidZeroMemory(Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial));
+  EpidZeroMemory(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial));
   DeleteFfElement(&t0);
   DeleteFfElement(&t1);
   DeleteFfElement(&xi);
@@ -2099,80 +2156,82 @@ static EpidStatus SquareCyclotomic(PairingState* ps, FfElement* e_out,
   int i = 0;
   Fq12ElemStr a_str = {0};
   Fq12ElemStr e_str = {0};
-  Fq2ElemStr Fq6IrrPolynomial[3 + 1] = {0};
+  Fq2ElemStr Fq6IrrPolynomial = {0};
 
   // check parameters
   if (!e_out || !a_in || !ps) return kEpidBadArgErr;
-
+  if (!ps->Fq || !ps->Fq2 || !ps->Fq6) {
+    return kEpidBadArgErr;
+  }
   if (!e_out->ipp_ff_elem || !a_in->ipp_ff_elem || !ps->ff || !ps->ff->ipp_ff ||
-      !ps->Fq.ipp_ff || !ps->Fq2.ipp_ff || !ps->Fq6.ipp_ff)
+      !ps->Fq->ipp_ff || !ps->Fq2->ipp_ff || !ps->Fq6->ipp_ff)
     return kEpidBadArgErr;
 
   do {
     IppStatus sts = ippStsNoErr;
 
     // extract xi from Fq6 irr poly
-    result = NewFfElement(&(ps->Fq2), &xi);
+    result = NewFfElement(ps->Fq2, &xi);
     BREAK_ON_EPID_ERROR(result);
-    sts = ippsGFpGetModulus(ps->Fq6.ipp_ff, (Ipp32u*)&Fq6IrrPolynomial);
-    BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpSetElement((Ipp32u const*)&Fq6IrrPolynomial[0],
-                            sizeof(Fq6IrrPolynomial[0]) / sizeof(Ipp32u),
-                            xi->ipp_ff_elem, ps->Fq2.ipp_ff);
-    BREAK_ON_IPP_ERROR(sts, result);
+    result = WriteBigNum(ps->Fq6->modulus_0, sizeof(Fq6IrrPolynomial),
+                         &Fq6IrrPolynomial);
+    BREAK_ON_EPID_ERROR(result);
+    result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
+                                   xi, ps->Fq2);
+    BREAK_ON_EPID_ERROR(result);
     // first coefficent is -xi
-    sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2.ipp_ff);
+    sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
 
     // Let t00, t01, t02, t10, t11, t12 be temporary variables in
     // Fq2. All the following operations are computed in Fq2 unless
     // specified otherwise.
-    result = NewFfElement(&(ps->Fq2), &t00);
+    result = NewFfElement(ps->Fq2, &t00);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t01);
+    result = NewFfElement(ps->Fq2, &t01);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t02);
+    result = NewFfElement(ps->Fq2, &t02);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t10);
+    result = NewFfElement(ps->Fq2, &t10);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t11);
+    result = NewFfElement(ps->Fq2, &t11);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&(ps->Fq2), &t12);
+    result = NewFfElement(ps->Fq2, &t12);
     BREAK_ON_EPID_ERROR(result);
     for (i = 0; i < 6; i++) {
-      result = NewFfElement(&(ps->Fq2), &a[i]);
+      result = NewFfElement(ps->Fq2, &a[i]);
       BREAK_ON_EPID_ERROR(result);
-      result = NewFfElement(&(ps->Fq2), &e[i]);
+      result = NewFfElement(ps->Fq2, &e[i]);
       BREAK_ON_EPID_ERROR(result);
     }
     BREAK_ON_EPID_ERROR(result);
     // 1.  Let a = ((a[0], a[2], a[4]), (a[1], a[3], a[5])).
-    sts = ippsGFpGetElement(a_in->ipp_ff_elem, (Ipp32u*)&a_str,
+    sts = ippsGFpGetElement(a_in->ipp_ff_elem, (BNU)&a_str,
                             sizeof(a_str) / sizeof(Ipp32u), ps->ff->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[0].a[0],
                             sizeof(a_str.a[0].a[0]) / sizeof(Ipp32u),
-                            a[0]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[0]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[0].a[1],
                             sizeof(a_str.a[0].a[1]) / sizeof(Ipp32u),
-                            a[2]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[2]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[0].a[2],
                             sizeof(a_str.a[0].a[2]) / sizeof(Ipp32u),
-                            a[4]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[4]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[1].a[0],
                             sizeof(a_str.a[1].a[0]) / sizeof(Ipp32u),
-                            a[1]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[1]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[1].a[1],
                             sizeof(a_str.a[1].a[1]) / sizeof(Ipp32u),
-                            a[3]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[3]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&a_str.a[1].a[2],
                             sizeof(a_str.a[1].a[2]) / sizeof(Ipp32u),
-                            a[5]->ipp_ff_elem, ps->Fq2.ipp_ff);
+                            a[5]->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 2.  Let e = ((e[0], e[2], e[4]), (e[1], e[3], e[5])).
 
@@ -2187,110 +2246,110 @@ static EpidStatus SquareCyclotomic(PairingState* ps, FfElement* e_out,
     BREAK_ON_EPID_ERROR(result);
     // 6.  Set t10 = t10 * xi.
     sts = ippsGFpMul(t10->ipp_ff_elem, xi->ipp_ff_elem, t10->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 7.  Set e[0] = 3 * t00 - 2 * a[0].
     sts = ippsGFpAdd(t00->ipp_ff_elem, t00->ipp_ff_elem, e[0]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[0]->ipp_ff_elem, t00->ipp_ff_elem, e[0]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[0]->ipp_ff_elem, a[0]->ipp_ff_elem, e[0]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[0]->ipp_ff_elem, a[0]->ipp_ff_elem, e[0]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 8.  Set e[2] = 3 * t01 - 2 * a[2].
     sts = ippsGFpAdd(t01->ipp_ff_elem, t01->ipp_ff_elem, e[2]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[2]->ipp_ff_elem, t01->ipp_ff_elem, e[2]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[2]->ipp_ff_elem, a[2]->ipp_ff_elem, e[2]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[2]->ipp_ff_elem, a[2]->ipp_ff_elem, e[2]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 9.  Set e[4] = 3 * t02 - 2 * a[4].
     sts = ippsGFpAdd(t02->ipp_ff_elem, t02->ipp_ff_elem, e[4]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[4]->ipp_ff_elem, t02->ipp_ff_elem, e[4]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[4]->ipp_ff_elem, a[4]->ipp_ff_elem, e[4]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSub(e[4]->ipp_ff_elem, a[4]->ipp_ff_elem, e[4]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 10. Set e[1] = 3 * t10 + 2 * a[1].
     sts = ippsGFpAdd(t10->ipp_ff_elem, t10->ipp_ff_elem, e[1]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[1]->ipp_ff_elem, t10->ipp_ff_elem, e[1]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[1]->ipp_ff_elem, a[1]->ipp_ff_elem, e[1]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[1]->ipp_ff_elem, a[1]->ipp_ff_elem, e[1]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 11. Set e[3] = 3 * t11 + 2 * a[3].
     sts = ippsGFpAdd(t11->ipp_ff_elem, t11->ipp_ff_elem, e[3]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[3]->ipp_ff_elem, t11->ipp_ff_elem, e[3]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[3]->ipp_ff_elem, a[3]->ipp_ff_elem, e[3]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[3]->ipp_ff_elem, a[3]->ipp_ff_elem, e[3]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 12. Set e[5] = 3 * t12 + 2 * a[5].
     sts = ippsGFpAdd(t12->ipp_ff_elem, t12->ipp_ff_elem, e[5]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[5]->ipp_ff_elem, t12->ipp_ff_elem, e[5]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[5]->ipp_ff_elem, a[5]->ipp_ff_elem, e[5]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpAdd(e[5]->ipp_ff_elem, a[5]->ipp_ff_elem, e[5]->ipp_ff_elem,
-                     ps->Fq2.ipp_ff);
+                     ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     // 13. Return e.
-    sts = ippsGFpGetElement(e[0]->ipp_ff_elem, (Ipp32u*)&e_str.a[0].a[0],
+    sts = ippsGFpGetElement(e[0]->ipp_ff_elem, (BNU)&e_str.a[0].a[0],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(e[2]->ipp_ff_elem, (Ipp32u*)&e_str.a[0].a[1],
+    sts = ippsGFpGetElement(e[2]->ipp_ff_elem, (BNU)&e_str.a[0].a[1],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(e[4]->ipp_ff_elem, (Ipp32u*)&e_str.a[0].a[2],
+    sts = ippsGFpGetElement(e[4]->ipp_ff_elem, (BNU)&e_str.a[0].a[2],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(e[1]->ipp_ff_elem, (Ipp32u*)&e_str.a[1].a[0],
+    sts = ippsGFpGetElement(e[1]->ipp_ff_elem, (BNU)&e_str.a[1].a[0],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(e[3]->ipp_ff_elem, (Ipp32u*)&e_str.a[1].a[1],
+    sts = ippsGFpGetElement(e[3]->ipp_ff_elem, (BNU)&e_str.a[1].a[1],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
-    sts = ippsGFpGetElement(e[5]->ipp_ff_elem, (Ipp32u*)&e_str.a[1].a[2],
+    sts = ippsGFpGetElement(e[5]->ipp_ff_elem, (BNU)&e_str.a[1].a[2],
                             sizeof(e_str.a[0].a[0]) / sizeof(Ipp32u),
-                            ps->Fq2.ipp_ff);
+                            ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpSetElement((Ipp32u*)&e_str, sizeof(e_str) / sizeof(Ipp32u),
                             e_out->ipp_ff_elem, ps->ff->ipp_ff);
@@ -2300,7 +2359,7 @@ static EpidStatus SquareCyclotomic(PairingState* ps, FfElement* e_out,
 
   EpidZeroMemory(&a_str, sizeof(a_str));
   EpidZeroMemory(&e_str, sizeof(e_str));
-  EpidZeroMemory(Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial));
+  EpidZeroMemory(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial));
   DeleteFfElement(&t00);
   DeleteFfElement(&t01);
   DeleteFfElement(&t02);
@@ -2336,15 +2395,17 @@ static EpidStatus ExpCyclotomic(PairingState* ps, FfElement* e,
 
   // check parameters
   if (!e || !a || !b || !ps) return kEpidBadArgErr;
-
-  if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq.ipp_ff || !ps->Fq2.ipp_ff ||
-      !b->ipp_bn)
+  if (!ps->Fq || !ps->Fq2) {
+    return kEpidBadArgErr;
+  }
+  if (!e->ipp_ff_elem || !a->ipp_ff_elem || !ps->Fq->ipp_ff ||
+      !ps->Fq2->ipp_ff || !b->ipp_bn)
     return kEpidBadArgErr;
 
   do {
     IppStatus sts = ippStsNoErr;
     int num_bits = 0;
-    Ipp32u* b_str = 0;
+    IppBNU b_str = 0;
     int i = 0;
 
     // 1.  Let bn...b1b0 be the binary representation of b.

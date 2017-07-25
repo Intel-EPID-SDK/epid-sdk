@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -34,48 +34,14 @@
   Defines the APIs needed by Intel(R) EPID members. Each member
   context (::MemberCtx) represents membership in a single group.
 
+  To use this module, include the header epid/member/api.h.
+
   \ingroup EpidModule
   @{
 */
 
 /// Internal context of member.
 typedef struct MemberCtx MemberCtx;
-
-/// Pre-computed member settings.
-/*!
- Serialized form of the information about a member that remains stable for
- a given set of keys.
-
- \note e12 = 0 implies that this data is not valid
- */
-#pragma pack(1)
-typedef struct MemberPrecomp {
-  GtElemStr e12;  ///< an element in GT
-  GtElemStr e22;  ///< an element in GT
-  GtElemStr e2w;  ///< an element in GT
-  GtElemStr ea2;  ///< an element in GT
-} MemberPrecomp;
-
-/// Pre-computed signature.
-/*!
- Serialized form of an intermediate signature that does not depend on
- basename or message. This can be used to time-shift compute time needed to
- sign a message.
- */
-typedef struct PreComputedSignature {
-  G1ElemStr B;   ///< an element in G1
-  G1ElemStr K;   ///< an element in G1
-  G1ElemStr T;   ///< an element in G1
-  G1ElemStr R1;  ///< an element in G1
-  GtElemStr R2;  ///< an element in G1
-  FpElemStr a;   ///< an integer between [0, p-1]
-  FpElemStr b;   ///< an integer between [0, p-1]
-  FpElemStr rx;  ///< an integer between [0, p-1]
-  FpElemStr rf;  ///< an integer between [0, p-1]
-  FpElemStr ra;  ///< an integer between [0, p-1]
-  FpElemStr rb;  ///< an integer between [0, p-1]
-} PreComputedSignature;
-#pragma pack()
 
 /// Creates a new member context.
 /*!
@@ -85,6 +51,12 @@ typedef struct PreComputedSignature {
  Allocates memory for the context, then initializes it.
 
  EpidMemberDelete() must be called to safely release the member context.
+
+ You need to use a cryptographically secure random
+ number generator to create a member context using
+ ::EpidMemberCreate. The ::BitSupplier is provided
+ as a function prototype for your own implementation
+ of the random number generator.
 
  \param[in] pub_key
  The group certificate.
@@ -96,7 +68,8 @@ typedef struct PreComputedSignature {
  \param[in] rnd_func
  Random number generator.
  \param[in] rnd_param
- Pass through context data for rnd_func.
+ Pass through user data that will be passed to the user_data
+ parameter of the random number generator.
  \param[out] ctx
  Newly constructed member context.
 
@@ -111,6 +84,11 @@ typedef struct PreComputedSignature {
 
  \see EpidMemberDelete
  \see EpidMemberWritePrecomp
+ \see BitSupplier
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidMemberCreate(GroupPubKey const* pub_key, PrivKey const* priv_key,
                             MemberPrecomp const* precomp, BitSupplier rnd_func,
@@ -128,6 +106,10 @@ EpidStatus EpidMemberCreate(GroupPubKey const* pub_key, PrivKey const* priv_key,
  The member context. Can be NULL.
 
  \see EpidMemberCreate
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 void EpidMemberDelete(MemberCtx** ctx);
 
@@ -142,6 +124,10 @@ void EpidMemberDelete(MemberCtx** ctx);
 
  \note
  If the result is not ::kEpidNoErr, the content of precomp is undefined.
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidMemberWritePrecomp(MemberCtx const* ctx, MemberPrecomp* precomp);
 
@@ -160,8 +146,51 @@ EpidStatus EpidMemberWritePrecomp(MemberCtx const* ctx, MemberPrecomp* precomp);
 
  \see EpidMemberCreate
  \see ::HashAlg
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
+
+/// Sets the signature based revocation list to be used by a member.
+/*!
+ The caller is responsible for ensuring the revocation list is authorized,
+ e.g. signed by the issuer. The caller is also responsible checking the version
+ of the revocation list. The call fails if trying to set an older version
+ of the revocation list than was last set.
+
+ \attention
+ The memory pointed to by sig_rl is accessed directly by the member
+ until a new list is set or the member is destroyed. Do not modify the
+ contents of this memory. The behavior of subsequent operations that rely on
+ the revocation list is undefined if the memory is modified.
+
+ \attention
+ It is the responsibility of the caller to free the memory pointed to by sig_rl
+ after the member is no longer using it.
+
+ \param[in] ctx
+ The member context.
+ \param[in] sig_rl
+ The signature based revocation list.
+ \param[in] sig_rl_size
+ The size of the signature based revocation list in bytes.
+
+ \returns ::EpidStatus
+
+ \note
+ If the result is not ::kEpidNoErr the signature based revocation list pointed
+ to by the member is not changed.
+
+ \see EpidMemberCreate
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
+ */
+EpidStatus EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
+                              size_t sig_rl_size);
 
 /// Computes the size in bytes required for an Intel(R) EPID signature.
 /*!
@@ -174,6 +203,10 @@ EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
  in the signature based revocation list.
 
  \see ::SigRl
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
 */
 size_t EpidGetSigSize(SigRl const* sig_rl);
 
@@ -192,11 +225,7 @@ size_t EpidGetSigSize(SigRl const* sig_rl);
  basename is provided, it must already be registered, or
  ::kEpidBadArgErr is returned.
  \param[in] basename_len
- The size of basename in bytes. Must be 0 basename is NULL.
- \param[in] sig_rl
- The signature based revocation list.
- \param[in] sig_rl_size
- The size in bytes of the signature based revocation list.
+ The size of basename in bytes. Must be 0 if basename is NULL.
  \param[out] sig
  The generated signature
  \param[in] sig_len
@@ -213,12 +242,17 @@ size_t EpidGetSigSize(SigRl const* sig_rl);
  \see
  EpidMemberSetHashAlg
  \see
+ EpidMemberSetSigRl
+ \see
  EpidGetSigSize
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
                     void const* basename, size_t basename_len,
-                    SigRl const* sig_rl, size_t sig_rl_size, EpidSignature* sig,
-                    size_t sig_len);
+                    EpidSignature* sig, size_t sig_len);
 
 /// Registers a basename with a member.
 /*!
@@ -249,38 +283,28 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
  \note
  If the result is not ::kEpidNoErr or ::kEpidDuplicateErr it is undefined if the
  basename is registered.
+
+ \b Example
+
+ \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidRegisterBaseName(MemberCtx* ctx, void const* basename,
                                 size_t basename_len);
 
 /// Extends the member's pool of pre-computed signatures.
 /*!
- Can either generate new pre-computed signatures or import existing ones.
- ::EpidWritePreSigs can be used to export pre-computed signatures.
+  Generate new pre-computed signatures and add them to the internal pool.
 
  \param[in] ctx
  The member context.
  \param[in] number_presigs
  The number of pre-computed signatures to add to the internal pool.
- \param[in,out] presigs
- Optional array of valid pre-computed signatures to import. If presigs is not
- NULL it most contain at least number_presigs pre-computed signatures.
 
  \returns ::EpidStatus
 
- \note
- presigs buffer is zeroed out before return to prevent pre-computed
- signatures from being reused.
-
- \note
- If the result is not ::kEpidNoErr the state of the pre-computed signature
- pool, and of presigs, is undefined.
-
  \see ::EpidMemberCreate
- \see ::EpidWritePreSigs
  */
-EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs,
-                          PreComputedSignature* presigs);
+EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs);
 
 /// Gets the number of pre-computed signatures in the member's pool.
 /*!
@@ -291,36 +315,8 @@ EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs,
  Number of remaining pre-computed signatures. Returns 0 if ctx is NULL.
 
  \see ::EpidMemberCreate
- \see ::EpidWritePreSigs
 */
 size_t EpidGetNumPreSigs(MemberCtx const* ctx);
-
-/// Serializes pre-computed signatures from the member's pool.
-/*!
- Removes requested number of pre-computed signatures from member's pool and
- stores them in presigs array. Use ::EpidAddPreSigs to add pre-computed
- signatures to the pool.
-
- \param[in] ctx
- The member context.
- \param[out] presigs
- An existing buffer of pre-computed signatures.
- \param[in] number_presigs
- Number of pre-computed signatures to read. Number_presigs must not be greater
- than the value returned by ::EpidGetNumPreSigs.
-
- \returns ::EpidStatus
-
- \note
- If the result is not ::kEpidNoErr the state of the pre-computed signature
- pool, and of presigs, is undefined.
-
- \see ::EpidMemberCreate
- \see ::EpidGetNumPreSigs
- \see ::EpidAddPreSigs
-*/
-EpidStatus EpidWritePreSigs(MemberCtx* ctx, PreComputedSignature* presigs,
-                            size_t number_presigs);
 
 /// Creates a request to join a group.
 /*!
@@ -382,7 +378,7 @@ EpidStatus EpidRequestJoin(GroupPubKey const* pub_key, IssuerNonce const* ni,
  basename is provided it must already be registered or
  ::kEpidBadArgErr is returned.
  \param[in] basename_len
- The size of basename in bytes. Must be 0 basename is NULL.
+ The size of basename in bytes. Must be 0 if basename is NULL.
  \param[out] sig
  The generated basic signature
 
@@ -436,28 +432,34 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
                        BasicSignature const* sig, SigRlEntry const* sigrl_entry,
                        NrProof* proof);
 
-/// Tests if a member private key is valid without checking revocation.
+/// Assembles member private key from membership credential and f value.
 /*!
- Used to check that a member private key is a valid key for a group. This
- is useful as a cross check when creating a new member private key as part of
- the join process
 
- \param[in] pub_key
- The public key of the group.
- \param[in] priv_key
- The private key to check.
+  Combines membership credential obtained from the issuer in response
+  to a successful join request with the f value chosen by the member
+  to create a complete member private key.
 
- \result bool
+  The assembled private key is sanity checked to confirm it is a
+  possible key in the group.  If it is not ::kEpidBadArgErr is
+  returned.
 
- \retval true
- if the private key is valid for the group of the public key
- \retval false
- if the private key is not valid for the group of the public key
+  \param[in] credential
+  Membership credential received.
+  \param[in] f
+  The f value used to generate the join request associated with the
+  membership credential.
+  \param[in] pub_key
+  The public key of the group.
+  \param[out] priv_key
+  The private key.
 
+  \returns ::EpidStatus
 
- \see EpidRequestJoin
- */
-bool EpidIsPrivKeyInGroup(GroupPubKey const* pub_key, PrivKey const* priv_key);
+  \see EpidRequestJoin
+*/
+EpidStatus EpidAssemblePrivKey(MembershipCredential const* credential,
+                               FpElemStr const* f, GroupPubKey const* pub_key,
+                               PrivKey* priv_key);
 
 /// Decompresses compressed member private key.
 /*!
@@ -473,6 +475,10 @@ bool EpidIsPrivKeyInGroup(GroupPubKey const* pub_key, PrivKey const* priv_key);
   The member private key.
 
   \returns ::EpidStatus
+
+  \b Example
+
+  \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidDecompressPrivKey(GroupPubKey const* pub_key,
                                  CompressedPrivKey const* compressed_privkey,

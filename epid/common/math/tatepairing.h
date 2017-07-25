@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -65,6 +65,9 @@ typedef struct Epid11PairingState Epid11PairingState;
  Newly constructed pairing state.
 
  \returns ::EpidStatus
+
+ \attention It is the responsibility of the caller to ensure that ga, gb, and
+ ff exist for the entire lifetime of the new Epid11PairingState.
 
  \see DeleteEpid11PairingState
  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1

@@ -30,13 +30,12 @@ LIB_VERIFIER_DIR = .
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
 LIB_COMMON_DIR = ../common
 LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
-LIB_IPPCPEPID_DIR = ../../ext/ipp/sources/ippcpepid/src
 
 #set flags for linker
 LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR) \
-	-L$(LIB_VERIFIER_DIR) -L$(LIB_COMMON_DIR) -L$(LIB_IPPCPEPID_DIR) \
+	-L$(LIB_VERIFIER_DIR) -L$(LIB_COMMON_DIR) \
 	-L$(LIB_IPPCP_DIR) -lgtest -lcommon-testhelper -lverifier -lcommon \
-	-lippcpepid -lippcp
+	-lippcp
 
 #target part
 $(VERIFIER_OBJ): %.o: %.c
@@ -45,13 +44,13 @@ $(VERIFIER_OBJ): %.o: %.c
 
 $(VERIFIER_LIB): $(VERIFIER_OBJ)
 	$(AR) rc $(VERIFIER_LIB) $(VERIFIER_OBJ)
-	ranlib $(VERIFIER_LIB)
+	$(RANLIB) $(VERIFIER_LIB)
 
 $(VERIFIER_UTEST_EXE): $(VERIFIER_UTEST_OBJ)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(VERIFIER_UTEST_OBJ): %.o: %.cc
-	$(CXX) -o $@ $(CXXFLAGS) -I$(VERIFIER_INCLUDE_DIR) \
+	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(VERIFIER_INCLUDE_DIR) \
 	-I$(VERIFIER_11_INCLUDE_DIR) -I$(GTEST_INCLUDE_DIR) -c $^
 
 
@@ -72,10 +71,12 @@ ifneq (,$(wildcard $(VERIFIER_UTEST_EXE)))
 	cp $(VERIFIER_UTEST_EXE) '$(TEST_INSTALL_DIR)'
 endif
 
-check: $(VERIFIER_UTEST_EXE) run
+utest: $(VERIFIER_UTEST_EXE)
 
-run:
+run_utest:
 	$(VERIFIER_UTEST_EXE) $(GTEST_FLAGS)
+
+check: utest run_utest
 
 clean:
 	rm -f  $(VERIFIER_OBJ) \

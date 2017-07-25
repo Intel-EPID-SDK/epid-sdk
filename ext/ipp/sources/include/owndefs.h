@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 1999-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -50,14 +50,16 @@
 
 #if defined( IPP_W32DLL )
   #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
-    #define IPPFUN(type,name,arg) __declspec(dllexport) type __STDCALL name arg
+    #define IPPDEF(type) __declspec(dllexport) type
+    #undef IPPAPI
+    #define IPPAPI( type,name,arg ) \
+                   __declspec(dllexport)   type __STDCALL name arg;
   #else
-    #define IPPFUN(type,name,arg)                extern type __STDCALL name arg
+    #define IPPDEF(type) type
   #endif
 #else
-  #define   IPPFUN(type,name,arg)                extern type __STDCALL name arg
+  #define   IPPDEF(type) type
 #endif
-
 
 /* structure represeting 128 bit unsigned integer type */
 
@@ -73,6 +75,7 @@ typedef struct{
 #define _IPP_W7 8    /* Pentium 4 - SSE2 ia32                         */
 #define _IPP_T7 16   /* Pentium with x64 support (Nocona) - SSE3 ia32 */
 #define _IPP_V8 32   /* Merom - SSSE3 ia32                            */
+#define _IPP_S8 33   /* Atom - SSSE3 ia32 (Silverthorne)+MOVBE        */
 #define _IPP_P8 64   /* Penryn - SSE4.1 + tick for SSE4.2 ia32        */
 #define _IPP_G9 128  /* SandyBridge (GSSE) - AVX ia32                 */
 #define _IPP_H9 256  /* Haswell (AVX2) ia32                           */
@@ -94,26 +97,18 @@ typedef struct{
 #define _IPP32E_PX _IPP_PX /* pure C-code x64                              */
 #define _IPP32E_M7 32      /* Pentium with x64 support (Nocona) - SSE3 x64 */
 #define _IPP32E_U8 64      /* Merom - SSSE3 x64                            */
+#define _IPP32E_N8 65      /* Atom  - SSSE3 x64 (Silverthorne)+MOVBE       */
 #define _IPP32E_Y8 128     /* Penryn - SSE4.1 + tick for SSE4.2 x64        */
 #define _IPP32E_E9 256     /* SandyBridge (GSSE) - AVX x64                 */
 #define _IPP32E_L9 512     /* Haswell (AVX2) x64                           */
 #define _IPP32E_N0 1024    /* KNL (AVX-512) x64                            */
 #define _IPP32E_K0 2048    /* SkyLake Xeon (AVX-512) x64                   */
 
-#define _IPPLP32_PX _IPP_PX
-#define _IPPLP32_S8 1      /* old Atom (SSSE3+movbe) (Silverthorne) ia32   */
-
-#define _IPPLP64_PX _IPP_PX
-#define _IPPLP64_N8 1      /* old Atom (SSSE3+movbe) (Silverthorne) x64    */
 
 #if defined(__INTEL_COMPILER) || (_MSC_VER >= 1300)
     #define __ALIGN8  __declspec (align(8))
     #define __ALIGN16 __declspec (align(16))
-#if !defined( OSX32 )
     #define __ALIGN32 __declspec (align(32))
-#else
-    #define __ALIGN32 __declspec (align(16))
-#endif
     #define __ALIGN64 __declspec (align(64))
 #else
     #define __ALIGN8
@@ -126,152 +121,147 @@ typedef struct{
   #define _IPP    _IPP_M5
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) m5_##name
 
 #elif defined ( _M6 ) /* Pentium MMX - MMX ia32                        */
   #define _IPP    _IPP_M6
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) m6_##name
 
 #elif defined( _A6 ) /* Pentium III - SSE ia32                        */
   #define _IPP    _IPP_A6
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) a6_##name
 
 #elif defined( _W7 ) /* Pentium 4 - SSE2 ia32                         */
   #define _IPP    _IPP_W7
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) w7_##name
 
 #elif defined( _T7 ) /* Pentium with x64 support (Nocona) - SSE3 ia32 */
   #define _IPP    _IPP_T7
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) t7_##name
 
 #elif defined( _V8 ) /* Merom - SSSE3 ia32                            */
   #define _IPP    _IPP_V8
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) v8_##name
+
+#elif defined( _S8 ) /* old Atom (SSSE3+movbe) (Silverthorne) ia32   */
+  #define _IPP    _IPP_S8
+  #define _IPP32E _IPP32E_PX
+  #define _IPPLRB _IPPLRB_PX
+  #define OWNAPI(name) s8_##name
 
 #elif defined( _P8 ) /* Penryn - SSE4.1 + tick for SSE4.2 ia32        */
   #define _IPP    _IPP_P8
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) p8_##name
 
 #elif defined( _G9 ) /* SandyBridge (GSSE) - AVX ia32                 */
   #define _IPP    _IPP_G9
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) g9_##name
 
 #elif defined( _H9 ) /* Haswell (AVX2) ia32                           */
   #define _IPP    _IPP_H9
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) h9_##name
 
 #elif defined( _M7 ) /* Pentium with x64 support (Nocona) - SSE3 x64 */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_M7
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) m7_##name
 
 #elif defined( _U8 ) /* Merom - SSSE3 x64                            */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_U8
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) u8_##name
+
+#elif defined( _N8 ) /* old Atom (SSSE3+movbe) (Silverthorne) x64    */
+  #define _IPP    _IPP_PX
+  #define _IPP32E _IPP32E_N8
+  #define _IPPLRB _IPPLRB_PX
+  #define OWNAPI(name) n8_##name
 
 #elif defined( _Y8 ) /* Penryn - SSE4.1 + tick for SSE4.2 x64        */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_Y8
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) y8_##name
 
 #elif defined( _E9 ) /* SandyBridge (GSSE) - AVX x64                 */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_E9
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) e9_##name
 
 #elif defined( _L9 ) /* Haswell (AVX2) x64                           */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_L9
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) l9_##name
 
 #elif defined( _N0 ) /* KNL (AVX-512) x64                            */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_N0
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) n0_##name
 
 #elif defined( _K0 ) /* SkyLake Xeon (AVX-512) x64                   */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_K0
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
+  #define OWNAPI(name) k0_##name
 
 #elif defined( _B2 ) /* KNC (MIC)                                    */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_B2
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
-
-#elif defined( _S8 ) /* old Atom (SSSE3+movbe) (Silverthorne) ia32   */
-  #define _IPP    _IPP_V8
-  #define _IPP32E _IPP32E_PX
-  #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_S8
-  #define _IPPLP64 _IPPLP64_PX
-
-#elif defined( _N8 ) /* old Atom (SSSE3+movbe) (Silverthorne) x64    */
-  #define _IPP    _IPP_PX
-  #define _IPP32E _IPP32E_U8
-  #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_N8
+  #define OWNAPI(name) b2_##name
 
 #else
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_PX
   #define _IPPLRB _IPPLRB_PX
-  #define _IPPLP32 _IPPLP32_PX
-  #define _IPPLP64 _IPPLP64_PX
-
+ #if defined (_M_AMD64) || defined (__x86_64__) || defined ( _ARCH_EM64T )
+  #define OWNAPI(name) mx_##name
+ #else
+  #define OWNAPI(name) px_##name
+ #endif
 #endif
 
+#ifndef _OWN_MERGED_BLD
+  #undef OWNAPI
+  #define OWNAPI(name) name
+#endif
+
+  #if defined( IPP_W32DLL )
+    #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
+      #define IPPFUN(type,name,arg) __declspec(dllexport) type __STDCALL name arg
+    #else
+      #define IPPFUN(type,name,arg)                extern type __STDCALL name arg
+    #endif
+  #else
+    #define   IPPFUN(type,name,arg)                extern type __STDCALL name arg
+  #endif
 
 #define _IPP_ARCH_IA32    1
 #define _IPP_ARCH_IA64    2
 #define _IPP_ARCH_EM64T   4
 #define _IPP_ARCH_XSC     8
 #define _IPP_ARCH_LRB     16
-#define _IPP_ARCH_LP32    32
-#define _IPP_ARCH_LP64    64
 #define _IPP_ARCH_LRB2    128
 
 #if defined ( _ARCH_IA32 )
@@ -283,12 +273,6 @@ typedef struct{
 #elif defined( _ARCH_LRB2 )
   #define _IPP_ARCH    _IPP_ARCH_LRB2
 
-#elif defined( _ARCH_LP32 )
-  #define _IPP_ARCH    _IPP_ARCH_LP32
-
-#elif defined( _ARCH_LP64 )
-  #define _IPP_ARCH    _IPP_ARCH_LP64
-
 #else
   #if defined(_M_AMD64) || defined(__x86_64) || defined(__x86_64__)
     #define _IPP_ARCH    _IPP_ARCH_EM64T
@@ -299,7 +283,7 @@ typedef struct{
   #endif
 #endif
 
-#if ((_IPP_ARCH == _IPP_ARCH_IA32) || (_IPP_ARCH == _IPP_ARCH_LP32))
+#if ((_IPP_ARCH == _IPP_ARCH_IA32))
 __INLINE
 Ipp32s IPP_INT_PTR( const void* ptr )  {
     union {
@@ -319,7 +303,7 @@ Ipp32u IPP_UINT_PTR( const void* ptr )  {
     dd.Ptr = (void*)ptr;
     return dd.Int;
 }
-#elif ((_IPP_ARCH == _IPP_ARCH_EM64T) || (_IPP_ARCH == _IPP_ARCH_LRB2) || (_IPP_ARCH == _IPP_ARCH_LP64))
+#elif ((_IPP_ARCH == _IPP_ARCH_EM64T) || (_IPP_ARCH == _IPP_ARCH_LRB2))
 __INLINE
 Ipp64s IPP_INT_PTR( const void* ptr )  {
     union {
@@ -606,16 +590,17 @@ typedef enum {
     idCtxGFPXEC,
     idCtxGFPXECPoint,
     idCtxPairing,
-    idCtxResize_32f,
+    idCtxResize,
     idCtxResizeYUV420,
     idCtxResizeYUV422,
-    idCtxResize_64f,
+    idCtxResize_L,
     idCtxFilterBilateralBorder,
     idCtxThresholdAdaptiveGauss,
     idCtxHOG,
     idCtxFastN,
     idCtxHash,
-    idCtxSM3
+    idCtxSM3,
+    idCtxAESXTS
 } IppCtxId;
 
 
@@ -719,10 +704,9 @@ typedef enum {
     ippvc   = 15,
     ippvm   = 16,
     ippmsdk = 17,
-    ippcpepid = 18,
-    ippe = 19,
-    ipprs = 20,
-    ippsq = 21,
+    ippe = 18,
+    ipprs = 19,
+    ippsq = 20,
     ippnomore
 } IppDomain;
 
@@ -817,7 +801,7 @@ static char G[] = {73, 80, 80, 71, 101, 110, 117, 105, 110, 101, 243, 193, 210, 
                 #include "emmintrin.h"
                 #define _mm_loadu _mm_loadu_si128
             #endif
-        #elif (_IPP == _IPP_V8) || (_IPP32E == _IPP32E_U8)
+        #elif ((_IPP == _IPP_V8) || (_IPP32E == _IPP32E_U8) || (_IPP == _IPP_S8) || (_IPP32E == _IPP32E_N8))
             #if defined(__INTEL_COMPILER)
                 #include "tmmintrin.h"
                 #define _mm_loadu _mm_lddqu_si128
@@ -848,17 +832,6 @@ static char G[] = {73, 80, 80, 71, 101, 110, 117, 105, 110, 101, 243, 193, 210, 
                 #define _mm_loadu _mm_lddqu_si128
             #endif
         #endif
-    #endif
-#elif (_IPPLP32 >= _IPPLP32_S8) || (_IPPLP64 >= _IPPLP64_N8)
-    #if defined(__INTEL_COMPILER)
-        #include "tmmintrin.h"
-        #define _mm_loadu _mm_lddqu_si128
-    #elif (_MSC_FULL_VER >= 140050110)
-        #include "intrin.h"
-        #define _mm_loadu _mm_lddqu_si128
-    #elif (_MSC_FULL_VER < 140050110)
-        #include "emmintrin.h"
-        #define _mm_loadu _mm_loadu_si128
     #endif
 #elif (_IPPLRB >= _IPPLRB_B2)
     #if defined(__INTEL_COMPILER) || defined(_REF_LIB)
@@ -905,6 +878,13 @@ extern double            __intel_castu64_f64(unsigned __int64 val);
 #define _ps2yps _mm256_castps128_ps256
 #define _pi2ypi _mm256_castsi128_si256
 #define _pd2ypd _mm256_castpd128_pd256
+
+#define _zpd2zpi _mm512_castpd_si512
+#define _zpi2zpd _mm512_castsi512_pd
+#define _zps2zpi _mm512_castps_si512
+#define _zpi2zps _mm512_castsi512_ps
+#define _zpd2zps _mm512_castpd_ps
+#define _zps2zpd _mm512_castps_pd
 
 
 #if defined(__INTEL_COMPILER)

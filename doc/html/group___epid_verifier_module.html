@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -145,7 +145,8 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Verifier functionality. </p>
-<p>Defines the APIs needed by Intel(R) EPID verifiers. Each verifier context (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c" title="Internal context of verifier. ">VerifierCtx</a>) represents a verifier for a single group. </p>
+<p>Defines the APIs needed by Intel(R) EPID verifiers. Each verifier context (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c" title="Internal context of verifier. ">VerifierCtx</a>) represents a verifier for a single group.</p>
+<p>To use this module, include the header <a class="el" href="verifier_2api_8h.html" title="Intel(R) EPID SDK verifier API. ">epid/verifier/api.h</a>. </p>
 <h2 class="groupheader">Function Documentation</h2>
 <a class="anchor" id="gae44bd8acbc1e7205aeedff0c7e2632a8"></a>
 <div class="memitem">
@@ -193,7 +194,7 @@ Functions</h2></td></tr>
 <dd>
 <a class="el" href="group___epid_member_module.html#gae04a250d5981fcf9bd6f9f57e0468faa" title="Creates a basic signature for use in constrained environment. ">EpidSignBasic</a> </dd>
 <dd>
-<a class="el" href="group___epid_member_module.html#ga759155a719254f734157722716dac640" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
+<a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
 
 </div>
 </div>
@@ -468,7 +469,9 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the content of ctx is undefined.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga6707e691f4b3916f9c684d5bbd463d12" title="Deletes an existing verifier context. ">EpidVerifierDelete</a> </dd>
 <dd>
-<a class="el" href="group___epid_verifier_module.html#ga92df4d00ea4ee59d7bfd35b23da03392" title="Serializes the pre-computed verifier settings. ">EpidVerifierWritePrecomp</a> </dd></dl>
+<a class="el" href="group___epid_verifier_module.html#ga92df4d00ea4ee59d7bfd35b23da03392" title="Serializes the pre-computed verifier settings. ">EpidVerifierWritePrecomp</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -495,7 +498,9 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -540,7 +545,9 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -589,7 +596,9 @@ It is the responsibility of the caller to free the memory pointed to by grp_rl a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the group based revocation list pointed to by the verifier is undefined.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -629,7 +638,9 @@ It is the responsibility of the caller to free the memory pointed to by grp_rl a
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a>, the hash algorithm used by the verifier is undefined.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
 <dd>
-<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890" title="Recognized hash algorithms. ">HashAlg</a> </dd></dl>
+<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890" title="Recognized hash algorithms. ">HashAlg</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -678,7 +689,9 @@ It is the responsibility of the caller to free the memory pointed to by priv_rl 
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the private key based revocation list pointed to by the verifier is undefined.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -727,7 +740,9 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the signature based revocation list pointed to by the verifier is undefined.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -778,7 +793,9 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
 <dd>
 <a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69" title="Adds a valid name-based signature to the verifier blacklist. ">EpidBlacklistSig</a> </dd>
 <dd>
-<a class="el" href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81" title="Serializes the verifier blacklist to a buffer. ">EpidWriteVerifierRl</a> </dd></dl>
+<a class="el" href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81" title="Serializes the verifier blacklist to a buffer. ">EpidWriteVerifierRl</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -815,7 +832,9 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
-<dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the content of precomp is undefined. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the content of precomp is undefined.</dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -889,7 +908,9 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
 <dd>
 <a class="el" href="group___epid_member_module.html#gae04a250d5981fcf9bd6f9f57e0468faa" title="Creates a basic signature for use in constrained environment. ">EpidSignBasic</a> </dd>
 <dd>
-<a class="el" href="group___epid_member_module.html#ga759155a719254f734157722716dac640" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
+<a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a></dd></dl>
+<p><b>Example</b> </p>
+<p><a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> </p>
 
 </div>
 </div>
@@ -948,7 +969,7 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
 <dd>
 <a class="el" href="group___epid_member_module.html#gae04a250d5981fcf9bd6f9f57e0468faa" title="Creates a basic signature for use in constrained environment. ">EpidSignBasic</a> </dd>
 <dd>
-<a class="el" href="group___epid_member_module.html#ga759155a719254f734157722716dac640" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
+<a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
 
 </div>
 </div>
@@ -1011,7 +1032,7 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

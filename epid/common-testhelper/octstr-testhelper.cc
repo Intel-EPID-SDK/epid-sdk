@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ extern "C" {
 #include "epid/common/src/memory.h"
 }
 #include "ext/ipp/include/ippcp.h"
+#include "epid/common/types.h"
+
+typedef Ipp8u* IppOctStr;
 
 /// Internal function to delete BigNum
 void delete_BigNum(IppsBigNumState** bn) {
@@ -71,7 +74,7 @@ EpidStatus create_BigNum(IppsBigNumState** bn, const OctStr256* str) {
       break;
     }
 
-    sts = ippsSetOctString_BN((Ipp8u*)str, byte_size, ipp_bn_ctx);
+    sts = ippsSetOctString_BN((IppOctStr)str, byte_size, ipp_bn_ctx);
     if (sts != ippStsNoErr) {
       if (sts == ippStsLengthErr) {
         result = kEpidBadArgErr;

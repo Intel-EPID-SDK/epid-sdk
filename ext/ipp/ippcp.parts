@@ -17,28 +17,28 @@ Import('*')
 
 import os
 
-env.PartVersion("9.0.1")
+env.PartVersion("2017.0.2")
 env.PartName("ippcp")
-env.DependsOn([Component('ippcommon')])
 ipp_libname = '${PART_SHORT_NAME}'
-
-ipp_src_install_loc = 'epid/src/primitives/${IPP_DIR}/'
-
-env.ExportCPPPATH([AbsDir('sources/ippcp/src/')])  #ippcpepid needs this
 
 #includes to install
 install_headers = Pattern(src_dir='include/',
                           includes=[
                               'ippcp.h',
                               'ippcpdefs.h',
+                              'ippdefs.h',
+                              'ippbase.h',
+                              'ipptypes.h'
                           ],
                           excludes=[],
                           recursive=True)
+source_headers = Pattern(src_dir='sources/include/',
+                         includes=['*'],
+                         excludes=[],
+                         recursive=True)
 # common headers, for SdkInclude
 common_headers = Pattern(src_dir='include/',
                          includes=['ippdefs.h',
-                                   'ippversion.h',
-                                   'ippcore.h',
                                    'ippbase.h',
                                    'ipptypes.h'],
                          excludes=[],
@@ -52,6 +52,13 @@ ippcp_files = Pattern(src_dir='sources/ippcp/src/',
                       recursive=True)
 
 ippdir = ''
+
+#prebuild installs prebuild headers instead of src headers.
+#internal ipp includes src/primitives/ipp/
+env.Append(CPPPATH=[AbsDir('sources/include/')])
+
+# env.Append(CPPDEFINES = '_IPP_BE')  #only for BE targets
+
 #internal ipp includes src/primitives/ipp/
 env.Append(CPPPATH=[AbsDir('include/')])
 env.Append(CPPPATH=[AbsDir('sources/ippcp/src/')])
@@ -59,6 +66,15 @@ env.Append(CPPPATH=[AbsDir('sources/ippcp/src/')])
 env.Append(CPPDEFINES='_IPP_v50_') #required for all ippcp
 
 env.Append(CPPDEFINES='_IPP_DEBUG')  #enable function sanity checking
+
+env.Append(CPPDEFINES=['_DISABLE_ALG_MD5_',
+                       '_DISABLE_ALG_SM3_']) #disable unused hash alg
+
+env.ExportCPPPATH([AbsDir('sources/include/')])
+
+#disable warning for misleading indentation from GCC 6
+if env['TARGET_PLATFORM']['OS'] == 'posix':
+    env.Append(CCFLAGS='-Wno-misleading-indentation')
 
 if 'install_package' in env['MODE']:
     # All files at /ext/ipp/source/include
@@ -78,14 +94,12 @@ if 'install_package' in env['MODE']:
                         excludes=[],
                         recursive=True)
     env.InstallTopLevel(makefile, sub_dir='ext/ipp/sources/ippcp')
-
+    env.InstallTopLevel(source_headers, sub_dir='ext/ipp/sources/include')
 else:
-    all_c_files = ippcp_files.files()
-    outputs = env.Library(ipp_libname, all_c_files)
-
     env.SdkInclude(install_headers)
     env.SdkInclude(common_headers)
     if 'use_commercial_ipp' in env['MODE']:
+        env['CCOPY_LOGIC'] = 'copy'
         try:
             IPPROOT = os.environ['IPPROOT']
         except KeyError, e:
@@ -109,7 +123,15 @@ else:
         ipp_dir = IPPROOT + '/lib/' + archdir
         env.SdkLib(ipp_dir + ippcp_libname)
         env.SdkLib(ipp_dir + ippcore_libname)
+        env.SdkInclude(IPPROOT + '/include/ippcore.h')
     else:
-        env.SdkLib(outputs)
-        if 'install_lib' in env['MODE']:
-            env.InstallLib(outputs)
+        all_c_files = ippcp_files.files()
+        if 'build_ipp_shared' in env['MODE']:
+            env.Append(CPPDEFINES=['IPP_W32DLL'])
+            outputs = env.SharedLibrary(ipp_libname, all_c_files)
+            env.InstallTarget(outputs)
+        else:
+            outputs = env.Library(ipp_libname, all_c_files)
+            env.SdkLib(outputs)
+            if 'install_lib' in env['MODE']:
+                env.InstallLib(outputs)

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@
 #include <string.h>
 #include <stdint.h>
 #include "epid/common/math/finitefield.h"
-#include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/src/memory.h"
-#include "ext/ipp/include/ippcp.h"
-#include "ext/ipp/include/ippcpepid.h"
+
+#ifndef MIN
+/// Evaluate to minimum of two values
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif  // MIN
 
 /// Number of leading zero bits in 32 bit integer x.
 static size_t Nlz32(uint32_t x) {
@@ -64,63 +66,13 @@ static size_t Nlz32(uint32_t x) {
 /// Convert bit size to byte size
 #define BIT2BYTE_SIZE(bits) (((bits) + 7) >> 3)
 
-/// Initializes a FiniteField structure
-EpidStatus InitFiniteFieldFromIpp(IppsGFpState* ipp_ff, FiniteField* ff) {
-  EpidStatus result = kEpidErr;
-  IppStatus sts = ippStsNoErr;
-  IppsGFpInfo basic_info;
-  Ipp32u* basic_modulus = NULL;
-
-  if (!ipp_ff || !ff) return kEpidBadArgErr;
-
-  do {
-    memset(ff, 0, sizeof(*ff));
-
-    // set FiniteField::info
-    sts = ippsGFpGetInfo(ipp_ff, &(ff->info));
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
-      break;
-    }
-
-    // set FiniteField::ipp_ff context
-    ff->ipp_ff = ipp_ff;
-
-    // set FiniteField::prime_modulus_size
-    sts = ippsGFpGetInfo(ff->info.pBasicGF, &basic_info);
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
-      break;
-    }
-
-    basic_modulus = (Ipp32u*)SAFE_ALLOC(basic_info.elementLen * sizeof(Ipp32u));
-    if (!basic_modulus) {
-      result = kEpidMemAllocErr;
-      break;
-    }
-
-    sts = ippsGFpGetModulus(ff->info.pBasicGF, basic_modulus);
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
-      break;
-    }
-
-    ff->prime_modulus_size =
-        BIT2BYTE_SIZE(BNU_BITSIZE(basic_modulus, basic_info.elementLen));
-
-    result = kEpidNoErr;
-  } while (0);
-
-  SAFE_FREE(basic_modulus);
-
-  return result;
-}
-
 EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff) {
   EpidStatus result = kEpidErr;
   IppsGFpState* ipp_finitefield_ctx = NULL;
   FiniteField* finitefield_ptr = NULL;
+  BigNum* prime_bn = NULL;
   do {
+    EpidStatus status = kEpidErr;
     IppStatus sts = ippStsNoErr;
     Ipp32u bnu[sizeof(BigNumStr) / sizeof(Ipp32u)];
     int bnu_size;
@@ -161,8 +113,21 @@ EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff) {
       result = kEpidMemAllocErr;
       break;
     }
+
+    status = NewBigNum(sizeof(BigNumStr), &prime_bn);
+    if (kEpidNoErr != status) {
+      result = kEpidMathErr;
+      break;
+    }
+
+    status = ReadBigNum(prime, sizeof(BigNumStr), prime_bn);
+    if (kEpidNoErr != status) {
+      result = kEpidMathErr;
+      break;
+    }
     // Initialize ipp finite field context
-    sts = ippsGFpInit(bnu, bit_size, ipp_finitefield_ctx);
+    sts = ippsGFpInit(prime_bn->ipp_bn, bit_size, ippsGFpMethod_pArb(),
+                      ipp_finitefield_ctx);
     if (ippStsNoErr != sts) {
       if (ippStsSizeErr == sts) {
         result = kEpidBadArgErr;
@@ -176,15 +141,21 @@ EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff) {
       result = kEpidMemAllocErr;
       break;
     }
-    result = InitFiniteFieldFromIpp(ipp_finitefield_ctx, finitefield_ptr);
-    if (kEpidNoErr != result) break;
-
+    finitefield_ptr->element_strlen_required =
+        BIT2BYTE_SIZE(BNU_BITSIZE(bnu, bnu_size));
+    finitefield_ptr->modulus_0 = prime_bn;
+    finitefield_ptr->basic_degree = 1;
+    finitefield_ptr->ground_degree = 1;
+    finitefield_ptr->element_len = bnu_size;
+    finitefield_ptr->ground_ff = NULL;
+    finitefield_ptr->ipp_ff = ipp_finitefield_ctx;
     *ff = finitefield_ptr;
     result = kEpidNoErr;
   } while (0);
 
   if (kEpidNoErr != result) {
     SAFE_FREE(finitefield_ptr);
+    SAFE_FREE(prime_bn);
     SAFE_FREE(ipp_finitefield_ctx);
   }
   return result;
@@ -195,8 +166,11 @@ EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
                                              int degree, FiniteField** ff) {
   EpidStatus result = kEpidErr;
   IppsGFpState* ipp_finitefield_ctx = NULL;
+  IppOctStr ff_elem_str = NULL;
   FiniteField* finitefield_ptr = NULL;
+  BigNum* modulus_0 = NULL;
   do {
+    EpidStatus status = kEpidErr;
     IppStatus sts = ippStsNoErr;
     int state_size_in_bytes = 0;
     if (!ground_field || !ground_element || !ff) {
@@ -227,9 +201,13 @@ EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
     }
 
     // Initialize ipp binomial extension finite field context
-    sts =
-        ippsGFpxInitBinomial(ground_field->ipp_ff, ground_element->ipp_ff_elem,
-                             degree, ipp_finitefield_ctx);
+    sts = ippsGFpxInitBinomial(
+        ground_field->ipp_ff, degree, ground_element->ipp_ff_elem,
+        2 == degree
+            ? (3 == ground_field->basic_degree ? ippsGFpxMethod_binom2()
+                                               : ippsGFpxMethod_binom2_epid2())
+            : ippsGFpxMethod_binom3_epid2(),
+        ipp_finitefield_ctx);
     if (ippStsNoErr != sts) {
       if (ippStsSizeErr == sts) {
         result = kEpidBadArgErr;
@@ -243,15 +221,52 @@ EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
       result = kEpidMemAllocErr;
       break;
     }
-    result = InitFiniteFieldFromIpp(ipp_finitefield_ctx, finitefield_ptr);
+    finitefield_ptr->element_strlen_required =
+        ground_field->element_strlen_required * degree;
+    ff_elem_str =
+        (IppOctStr)SAFE_ALLOC(ground_field->element_len * sizeof(Ipp32u));
+    if (!ff_elem_str) {
+      result = kEpidMemAllocErr;
+      break;
+    }
+    status = NewBigNum(ground_field->element_len * sizeof(Ipp32u), &modulus_0);
+    if (kEpidNoErr != status) {
+      break;
+    }
+    if (kEpidNoErr != status) {
+      result = kEpidMathErr;
+      break;
+    }
+    result =
+        WriteFfElement((FiniteField*)ground_field, ground_element, ff_elem_str,
+                       ground_field->element_len * sizeof(Ipp32u));
     if (kEpidNoErr != result) break;
+    status = ReadBigNum(ff_elem_str, ground_field->element_len * sizeof(Ipp32u),
+                        modulus_0);
+    if (kEpidNoErr != status) {
+      result = kEpidMathErr;
+      break;
+    }
 
+    finitefield_ptr->basic_degree = ground_field->basic_degree * degree;
+    finitefield_ptr->ground_degree = degree;
+    finitefield_ptr->element_len = ground_field->element_len * degree;
+    finitefield_ptr->modulus_0 = modulus_0;
+    // Warning: once assigned ground field must never be modified. this was not
+    // made const
+    // to allow the FiniteField structure to be used in context when we want to
+    // modify the parameters.
+    finitefield_ptr->ground_ff = (FiniteField*)ground_field;
+    finitefield_ptr->ipp_ff = ipp_finitefield_ctx;
     *ff = finitefield_ptr;
     result = kEpidNoErr;
   } while (0);
 
+  SAFE_FREE(ff_elem_str);
+
   if (kEpidNoErr != result) {
     SAFE_FREE(finitefield_ptr);
+    SAFE_FREE(modulus_0);
     SAFE_FREE(ipp_finitefield_ctx);
   }
   return result;
@@ -263,9 +278,12 @@ EpidStatus NewFiniteFieldViaPolynomialExtension(FiniteField const* ground_field,
   EpidStatus result = kEpidErr;
   IppsGFpState* ipp_finitefield_ctx = NULL;
   FiniteField* finitefield_ptr = NULL;
-  Ipp32u* irr_polynomial_bnu = NULL;
+  FfElement** ff_elems = NULL;
+  IppsGFpElement** ff_elems_state = NULL;
+  BigNum* modulus_0 = NULL;
   int i;
   do {
+    EpidStatus status = kEpidErr;
     IppStatus sts = ippStsNoErr;
     int state_size_in_bytes = 0;
     if (!ground_field || !irr_polynomial || !ff) {
@@ -276,17 +294,6 @@ EpidStatus NewFiniteFieldViaPolynomialExtension(FiniteField const* ground_field,
         !ground_field->ipp_ff) {
       result = kEpidBadArgErr;
       break;
-    }
-
-    // irr_polynomial to IPP representation
-    irr_polynomial_bnu = (Ipp32u*)SAFE_ALLOC(sizeof(BigNumStr) * degree);
-    if (!irr_polynomial_bnu) {
-      result = kEpidMemAllocErr;
-      break;
-    }
-    for (i = 0; i < degree; ++i) {
-      OctStr2Bnu(irr_polynomial_bnu + (i * sizeof(BigNumStr) / 4),
-                 &irr_polynomial[i], sizeof(irr_polynomial[i]));
     }
 
     // Determine the memory requirement for finite field context
@@ -306,10 +313,36 @@ EpidStatus NewFiniteFieldViaPolynomialExtension(FiniteField const* ground_field,
       result = kEpidMemAllocErr;
       break;
     }
+    ff_elems = (FfElement**)SAFE_ALLOC(sizeof(FfElement*) * degree);
+    if (!ff_elems) {
+      result = kEpidMemAllocErr;
+      break;
+    }
+    ff_elems_state =
+        (IppsGFpElement**)SAFE_ALLOC(sizeof(IppsGFpElement*) * degree);
+    if (!ff_elems_state) {
+      result = kEpidMemAllocErr;
+      break;
+    }
+    for (i = 0; i < degree; ++i) {
+      status = NewFfElement(ground_field, &ff_elems[i]);
+      if (kEpidNoErr != status) {
+        result = kEpidMathErr;
+        break;
+      }
 
+      status = ReadFfElement((FiniteField*)ground_field, &irr_polynomial[i],
+                             sizeof(BigNumStr), ff_elems[i]);
+      if (kEpidNoErr != status) {
+        result = kEpidMathErr;
+        break;
+      }
+      ff_elems_state[i] = ff_elems[i]->ipp_ff_elem;
+    }
     // Initialize ipp binomial extension finite field context
-    sts = ippsGFpxInit(ground_field->ipp_ff, irr_polynomial_bnu, degree,
-                       ipp_finitefield_ctx);
+    sts = ippsGFpxInit(ground_field->ipp_ff, degree,
+                       (const IppsGFpElement* const*)ff_elems_state, degree,
+                       ippsGFpxMethod_com(), ipp_finitefield_ctx);
     if (ippStsNoErr != sts) {
       if (ippStsSizeErr == sts) {
         result = kEpidBadArgErr;
@@ -318,21 +351,47 @@ EpidStatus NewFiniteFieldViaPolynomialExtension(FiniteField const* ground_field,
       }
       break;
     }
+    status = NewBigNum(sizeof(irr_polynomial[0]), &modulus_0);
+    if (kEpidNoErr != status) {
+      break;
+    }
+    status =
+        ReadBigNum(&irr_polynomial[0], sizeof(irr_polynomial[0]), modulus_0);
+    if (kEpidNoErr != status) {
+      break;
+    }
     finitefield_ptr = (FiniteField*)SAFE_ALLOC(sizeof(FiniteField));
     if (!finitefield_ptr) {
       result = kEpidMemAllocErr;
       break;
     }
-    result = InitFiniteFieldFromIpp(ipp_finitefield_ctx, finitefield_ptr);
-    if (kEpidNoErr != result) break;
-
+    finitefield_ptr->element_strlen_required =
+        ground_field->element_len * sizeof(Ipp32u) * degree;
+    finitefield_ptr->modulus_0 = modulus_0;
+    finitefield_ptr->basic_degree = ground_field->basic_degree * degree;
+    finitefield_ptr->ground_degree = degree;
+    finitefield_ptr->element_len = ground_field->element_len * degree;
+    // Warning: once assigned ground field must never be modified. this was not
+    // made const
+    // to allow the FiniteField structure to be used in context when we want to
+    // modify the parameters.
+    finitefield_ptr->ground_ff = (FiniteField*)ground_field;
+    finitefield_ptr->ipp_ff = ipp_finitefield_ctx;
     *ff = finitefield_ptr;
     result = kEpidNoErr;
   } while (0);
 
-  SAFE_FREE(irr_polynomial_bnu);
+  if (ff_elems != NULL) {
+    for (i = 0; i < degree; i++) {
+      DeleteFfElement(&ff_elems[i]);
+    }
+  }
+  SAFE_FREE(ff_elems);
+  SAFE_FREE(ff_elems_state);
+
   if (kEpidNoErr != result) {
     SAFE_FREE(finitefield_ptr);
+    SAFE_FREE(modulus_0)
     SAFE_FREE(ipp_finitefield_ctx);
   }
   return result;
@@ -342,6 +401,7 @@ void DeleteFiniteField(FiniteField** ff) {
   if (ff) {
     if (*ff) {
       SAFE_FREE((*ff)->ipp_ff);
+      DeleteBigNum(&(*ff)->modulus_0);
     }
     SAFE_FREE((*ff));
   }
@@ -390,12 +450,8 @@ EpidStatus NewFfElement(FiniteField const* ff, FfElement** new_ff_elem) {
     }
 
     ff_elem->ipp_ff_elem = ipp_ff_elem;
-
-    sts = ippsGFpGetInfo(ff->ipp_ff, &(ff_elem->info));
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
-      break;
-    }
+    ff_elem->element_len = ff->element_len;
+    ff_elem->degree = ff->ground_degree;
 
     *new_ff_elem = ff_elem;
     result = kEpidNoErr;
@@ -417,12 +473,109 @@ void DeleteFfElement(FfElement** ff_elem) {
   }
 }
 
-EpidStatus ReadFfElement(FiniteField* ff, void const* ff_elem_str,
+EpidStatus IsValidFfElemOctString(ConstOctStr ff_elem_str, int strlen,
+                                  FiniteField const* ff) {
+  int i;
+  EpidStatus result = kEpidNoErr;
+  IppStatus sts = ippStsNoErr;
+  FiniteField const* basic_ff;
+  BigNum* pData = NULL;
+  int prime_length;
+  IppOctStr ff_elem_str_p;
+  Ipp32u cmp_res;
+  int tmp_strlen = strlen;
+  if (!ff || !ff_elem_str) {
+    return kEpidBadArgErr;
+  }
+  basic_ff = ff;
+  while (basic_ff->ground_ff != NULL) {
+    basic_ff = basic_ff->ground_ff;
+  }
+  prime_length = basic_ff->element_len * sizeof(Ipp32u);
+  ff_elem_str_p = (IppOctStr)ff_elem_str;
+  for (i = 0; (i < ff->basic_degree) && (tmp_strlen > 0); i++) {
+    int length;
+    length = MIN(prime_length, tmp_strlen);
+    result = NewBigNum(length, &pData);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = ReadBigNum(ff_elem_str_p, length, pData);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    sts = ippsCmp_BN(basic_ff->modulus_0->ipp_bn, pData->ipp_bn, &cmp_res);
+    // check return codes
+    if (ippStsNoErr != sts) {
+      if (ippStsContextMatchErr == sts)
+        result = kEpidBadArgErr;
+      else
+        result = kEpidMathErr;
+      break;
+    }
+    if (cmp_res != IPP_IS_GT) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    DeleteBigNum(&pData);
+    tmp_strlen -= length;
+    ff_elem_str_p += length;
+  }
+  DeleteBigNum(&pData);
+  return result;
+}
+
+EpidStatus SetFfElementOctString(ConstOctStr ff_elem_str, int strlen,
+                                 FfElement* ff_elem, FiniteField* ff) {
+  EpidStatus result = kEpidErr;
+  IppOctStr extended_ff_elem_str = NULL;
+  if (!ff || !ff_elem || !ff_elem_str) {
+    return kEpidBadArgErr;
+  }
+  do {
+    IppStatus sts;
+    // Ipp2017u2 contians a bug in ippsGFpSetElementOctString, does not check
+    // whether ff_elem_str < modulus
+    result = IsValidFfElemOctString(ff_elem_str, strlen, ff);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    // workaround because of bug in ipp2017u2
+    if (strlen < (int)(ff->element_len * sizeof(Ipp32u))) {
+      int length = ff->element_len * sizeof(Ipp32u);
+      extended_ff_elem_str = (IppOctStr)SAFE_ALLOC(length);
+      if (!extended_ff_elem_str) {
+        result = kEpidMemAllocErr;
+        break;
+      }
+      memset(extended_ff_elem_str, 0, length);
+      memcpy_S(extended_ff_elem_str, length, ff_elem_str, strlen);
+      strlen = length;
+      sts = ippsGFpSetElementOctString(extended_ff_elem_str, strlen,
+                                       ff_elem->ipp_ff_elem, ff->ipp_ff);
+    } else {
+      sts = ippsGFpSetElementOctString(ff_elem_str, strlen,
+                                       ff_elem->ipp_ff_elem, ff->ipp_ff);
+    }
+    if (ippStsNoErr != sts) {
+      if (ippStsContextMatchErr == sts || ippStsOutOfRangeErr == sts) {
+        result = kEpidBadArgErr;
+      } else {
+        result = kEpidMathErr;
+      }
+      break;
+    }
+  } while (0);
+  SAFE_FREE(extended_ff_elem_str);
+  return result;
+}
+
+EpidStatus ReadFfElement(FiniteField* ff, ConstOctStr ff_elem_str,
                          size_t strlen, FfElement* ff_elem) {
-  IppStatus sts;
   size_t strlen_required = 0;
   int ipp_str_size = 0;
-  uint8_t const* str = (uint8_t const*)ff_elem_str;
+  EpidStatus result = kEpidNoErr;
+  ConstIppOctStr str = (ConstIppOctStr)ff_elem_str;
 
   if (!ff || !ff_elem_str || !ff_elem) {
     return kEpidBadArgErr;
@@ -430,18 +583,17 @@ EpidStatus ReadFfElement(FiniteField* ff, void const* ff_elem_str,
   if (!ff_elem->ipp_ff_elem || !ff->ipp_ff) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != ff_elem->info.elementLen) {
+
+  if (ff->element_len != ff_elem->element_len) {
     return kEpidBadArgErr;
   }
 
-  // ippsGFpSetElementOctString expects serialized value consists
-  // of "degree" number of chunks, where each chunk is of modulus byte size.
-  strlen_required = ff->prime_modulus_size * ff->info.basicGFdegree;
+  strlen_required = ff->element_strlen_required;
 
-  // Remove leading zeros when de-serealizing finite field of degree 1.
+  // Remove leading zeros when de-serializing finite field of degree 1.
   // This takes care of serialization chunk size adjustments when importing
   // a big numbers.
-  if (1 == ff->info.basicGFdegree) {
+  if (1 == ff->basic_degree) {
     while (strlen_required < strlen && 0 == *str) {
       str++;
       strlen--;
@@ -459,24 +611,15 @@ EpidStatus ReadFfElement(FiniteField* ff, void const* ff_elem_str,
     return kEpidBadArgErr;
   }
 
-  sts = ippsGFpSetElementOctString(str, ipp_str_size, ff_elem->ipp_ff_elem,
-                                   ff->ipp_ff);
-  if (ippStsNoErr != sts) {
-    if (ippStsContextMatchErr == sts || ippStsOutOfRangeErr == sts) {
-      return kEpidBadArgErr;
-    } else {
-      return kEpidMathErr;
-    }
-  }
+  result = SetFfElementOctString(str, ipp_str_size, ff_elem, ff);
 
-  return kEpidNoErr;
+  return result;
 }
 
 /// Gets the prime value of a finite field
 /*!
-  This function returns a new bignum containing the field's prime value.
-  A new bignum is returned so that callers do not have to figure out the proper
-  size.
+  This function returns a reference to the bignum containing the field's prime
+  value.
 
   This function only works with non-composite fields.
 
@@ -488,53 +631,25 @@ EpidStatus ReadFfElement(FiniteField* ff, void const* ff_elem_str,
   \returns ::EpidStatus
 */
 EpidStatus GetFiniteFieldPrime(FiniteField* ff, BigNum** bn) {
-  EpidStatus result = kEpidErr;
-  IppStatus sts;
-  BigNum* prime_bn = NULL;
-  Ipp32u* prime_bnu = NULL;
   if (!ff || !bn) {
     return kEpidBadArgErr;
   }
   if (!ff->ipp_ff) {
     return kEpidBadArgErr;
   }
-  if (ff->info.basicGFdegree != 1 || ff->info.groundGFdegree != 1) {
+  if (ff->basic_degree != 1 || ff->ground_degree != 1) {
     return kEpidBadArgErr;
   }
-  do {
-    size_t elem_dword_size = ff->info.elementLen;
-    size_t elem_bytes_size = elem_dword_size * sizeof(Ipp32u);
-    result = NewBigNum(elem_bytes_size, &prime_bn);
-    if (kEpidNoErr != result) {
-      break;
-    }
-    prime_bnu = (Ipp32u*)SAFE_ALLOC(elem_bytes_size);
-    if (NULL == prime_bnu) {
-      result = kEpidMemAllocErr;
-      break;
-    }
-    sts = ippsGFpGetModulus(ff->ipp_ff, prime_bnu);
-    result = InitBigNumFromBnu(prime_bnu, elem_dword_size, prime_bn);
-    if (kEpidNoErr != result) {
-      break;
-    }
-    result = kEpidNoErr;
-  } while (0);
-  SAFE_FREE(prime_bnu);
-  if (kEpidNoErr != result) {
-    DeleteBigNum(&prime_bn);
-  } else {
-    *bn = prime_bn;
-  }
-  return result;
+  *bn = ff->modulus_0;
+  return kEpidNoErr;
 }
 
 EpidStatus InitFfElementFromBn(FiniteField* ff, BigNum* bn,
                                FfElement* ff_elem) {
   EpidStatus result = kEpidErr;
-  BigNum* prime_bn = NULL;
+  BigNum* prime_bn = NULL;  // non-owning reference
   BigNum* mod_bn = NULL;
-  Ipp32u* mod_str = NULL;
+  BNU mod_str = NULL;
 
   if (!ff || !bn || !ff_elem) {
     return kEpidBadArgErr;
@@ -542,14 +657,14 @@ EpidStatus InitFfElementFromBn(FiniteField* ff, BigNum* bn,
   if (!ff_elem->ipp_ff_elem || !ff->ipp_ff) {
     return kEpidBadArgErr;
   }
-  if (ff->info.basicGFdegree != 1 || ff->info.groundGFdegree != 1) {
+  if (ff->basic_degree != 1 || ff->ground_degree != 1) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != ff_elem->info.elementLen) {
+  if (ff->element_len != ff_elem->element_len) {
     return kEpidBadArgErr;
   }
   do {
-    size_t elem_size = ff->info.elementLen * sizeof(Ipp32u);
+    size_t elem_size = ff->element_len * sizeof(Ipp32u);
     result = NewBigNum(elem_size, &mod_bn);
     if (kEpidNoErr != result) {
       break;
@@ -563,7 +678,7 @@ EpidStatus InitFfElementFromBn(FiniteField* ff, BigNum* bn,
     if (kEpidNoErr != result) {
       break;
     }
-    mod_str = (Ipp32u*)SAFE_ALLOC(elem_size);
+    mod_str = (BNU)SAFE_ALLOC(elem_size);
     if (NULL == mod_str) {
       result = kEpidMemAllocErr;
       break;
@@ -579,17 +694,17 @@ EpidStatus InitFfElementFromBn(FiniteField* ff, BigNum* bn,
     result = kEpidNoErr;
   } while (0);
   SAFE_FREE(mod_str);
-  DeleteBigNum(&prime_bn);
+  prime_bn = NULL;
   DeleteBigNum(&mod_bn);
   return result;
 }
 
 EpidStatus WriteFfElement(FiniteField* ff, FfElement const* ff_elem,
-                          void* ff_elem_str, size_t strlen) {
+                          OctStr ff_elem_str, size_t strlen) {
   IppStatus sts;
   size_t strlen_required = 0;
   size_t pad = 0;
-  uint8_t* str = (uint8_t*)ff_elem_str;
+  IppOctStr str = (IppOctStr)ff_elem_str;
 
   if (!ff || !ff_elem_str || !ff_elem) {
     return kEpidBadArgErr;
@@ -600,17 +715,15 @@ EpidStatus WriteFfElement(FiniteField* ff, FfElement const* ff_elem,
   if (INT_MAX < strlen) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != ff_elem->info.elementLen) {
+  if (ff->element_len != ff_elem->element_len) {
     return kEpidBadArgErr;
   }
 
-  // ippsGFpGetElementOctString serialize value into a buffer consists
-  // of "degree" number of chunks, where each chunk is of modulus byte size.
-  strlen_required = ff->prime_modulus_size * ff->info.basicGFdegree;
+  strlen_required = ff->element_strlen_required;
 
   // add zero padding for extension of a degree 1 (a prime field)
   // so it can be deserialized into big number correctly.
-  if (1 == ff->info.basicGFdegree && strlen_required < strlen) {
+  if (1 == ff->basic_degree && strlen_required < strlen) {
     pad = strlen - strlen_required;
     memset(str, 0, pad);
     strlen -= pad;
@@ -641,9 +754,7 @@ EpidStatus FfNeg(FiniteField* ff, FfElement const* a, FfElement* r) {
   } else if (!ff->ipp_ff || !a->ipp_ff_elem || !r->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen ||
-      ff->info.elementLen != r->info.elementLen ||
-      a->info.elementLen != r->info.elementLen) {
+  if (ff->element_len != a->element_len || ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
   sts = ippsGFpNeg(a->ipp_ff_elem, r->ipp_ff_elem, ff->ipp_ff);
@@ -665,9 +776,7 @@ EpidStatus FfInv(FiniteField* ff, FfElement const* a, FfElement* r) {
   } else if (!ff->ipp_ff || !a->ipp_ff_elem || !r->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen ||
-      ff->info.elementLen != r->info.elementLen ||
-      a->info.elementLen != r->info.elementLen) {
+  if (ff->element_len != a->element_len || ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
   // Invert the element
@@ -693,11 +802,8 @@ EpidStatus FfAdd(FiniteField* ff, FfElement const* a, FfElement const* b,
              !r->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen ||
-      ff->info.elementLen != b->info.elementLen ||
-      ff->info.elementLen != r->info.elementLen ||
-      a->info.elementLen != b->info.elementLen ||
-      a->info.elementLen != r->info.elementLen) {
+  if (ff->element_len != a->element_len || ff->element_len != b->element_len ||
+      ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -719,11 +825,9 @@ EpidStatus FfSub(FiniteField* ff, FfElement const* a, FfElement const* b,
              !r->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen ||
-      ff->info.elementLen != b->info.elementLen ||
-      ff->info.elementLen != r->info.elementLen ||
-      a->info.elementLen != b->info.elementLen ||
-      a->info.elementLen != r->info.elementLen) {
+
+  if (ff->element_len != a->element_len || ff->element_len != b->element_len ||
+      ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -747,16 +851,14 @@ EpidStatus FfMul(FiniteField* ff, FfElement const* a, FfElement const* b,
     return kEpidBadArgErr;
   }
   // Multiplies elements
-  if (a->info.elementLen != b->info.elementLen &&
-      a->info.elementLen == a->info.groundGFdegree * b->info.elementLen) {
-    sts = ippsGFpMul_GFpE(a->ipp_ff_elem, b->ipp_ff_elem, r->ipp_ff_elem,
-                          ff->ipp_ff);
+  if (a->element_len != b->element_len &&
+      a->element_len == a->degree * b->element_len) {
+    sts = ippsGFpMul_PE(a->ipp_ff_elem, b->ipp_ff_elem, r->ipp_ff_elem,
+                        ff->ipp_ff);
   } else {
-    if (ff->info.elementLen != a->info.elementLen ||
-        ff->info.elementLen != b->info.elementLen ||
-        ff->info.elementLen != r->info.elementLen ||
-        a->info.elementLen != b->info.elementLen ||
-        a->info.elementLen != r->info.elementLen) {
+    if (ff->element_len != a->element_len ||
+        ff->element_len != b->element_len ||
+        ff->element_len != r->element_len) {
       return kEpidBadArgErr;
     }
     sts =
@@ -781,7 +883,7 @@ EpidStatus FfIsZero(FiniteField* ff, FfElement const* a, bool* is_zero) {
   } else if (!ff->ipp_ff || !a->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen) {
+  if (ff->element_len != a->element_len) {
     return kEpidBadArgErr;
   }
   // Check if the element is zero
@@ -804,7 +906,7 @@ EpidStatus FfIsZero(FiniteField* ff, FfElement const* a, bool* is_zero) {
 EpidStatus FfExp(FiniteField* ff, FfElement const* a, BigNum const* b,
                  FfElement* r) {
   EpidStatus result = kEpidErr;
-  Ipp8u* scratch_buffer = NULL;
+  OctStr scratch_buffer = NULL;
   int exp_bit_size = 0;
   int element_size = 0;
 
@@ -818,9 +920,8 @@ EpidStatus FfExp(FiniteField* ff, FfElement const* a, BigNum const* b,
       result = kEpidBadArgErr;
       break;
     }
-    if (ff->info.elementLen != a->info.elementLen ||
-        ff->info.elementLen != r->info.elementLen ||
-        a->info.elementLen != r->info.elementLen) {
+    if (ff->element_len != a->element_len ||
+        ff->element_len != r->element_len) {
       return kEpidBadArgErr;
     }
 
@@ -836,7 +937,7 @@ EpidStatus FfExp(FiniteField* ff, FfElement const* a, BigNum const* b,
       break;
     }
 
-    scratch_buffer = (Ipp8u*)SAFE_ALLOC(element_size);
+    scratch_buffer = (OctStr)SAFE_ALLOC(element_size);
     if (!scratch_buffer) {
       result = kEpidMemAllocErr;
       break;
@@ -864,7 +965,7 @@ EpidStatus FfMultiExp(FiniteField* ff, FfElement const** p, BigNumStr const** b,
   IppsGFpElement** ipp_p = NULL;
   IppsBigNumState** ipp_b = NULL;
   BigNum** bignums = NULL;
-  Ipp8u* scratch_buffer = NULL;
+  OctStr scratch_buffer = NULL;
   int i = 0;
   int ipp_m = 0;
 
@@ -889,11 +990,11 @@ EpidStatus FfMultiExp(FiniteField* ff, FfElement const** p, BigNumStr const** b,
     if (!p[i]->ipp_ff_elem) {
       return kEpidBadArgErr;
     }
-    if (ff->info.elementLen != p[i]->info.elementLen) {
+    if (ff->element_len != p[i]->element_len) {
       return kEpidBadArgErr;
     }
   }
-  if (ff->info.elementLen != r->info.elementLen) {
+  if (ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -942,7 +1043,7 @@ EpidStatus FfMultiExp(FiniteField* ff, FfElement const** p, BigNumStr const** b,
       break;
     }
     // allocate memory for scratch buffer
-    scratch_buffer = (Ipp8u*)SAFE_ALLOC(scratch_buffer_size);
+    scratch_buffer = (OctStr)SAFE_ALLOC(scratch_buffer_size);
     if (!scratch_buffer) {
       result = kEpidMemAllocErr;
       break;
@@ -978,9 +1079,8 @@ EpidStatus FfMultiExpBn(FiniteField* ff, FfElement const** p, BigNum const** b,
   EpidStatus result = kEpidErr;
   IppsGFpElement** ipp_p = NULL;
   IppsBigNumState** ipp_b = NULL;
-  Ipp8u* scratch_buffer = NULL;
+  OctStr scratch_buffer = NULL;
 
-  size_t s = 0;
   int exp_bit_size = 0;
   size_t i = 0;
   int ipp_m = 0;
@@ -990,15 +1090,9 @@ EpidStatus FfMultiExpBn(FiniteField* ff, FfElement const** p, BigNum const** b,
     return kEpidBadArgErr;
   } else if (!ff->ipp_ff || !r->ipp_ff_elem || m <= 0) {
     return kEpidBadArgErr;
-  } else if (ff->info.elementLen != r->info.elementLen) {
+  } else if (ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
-  for (s = 0; s < m; s++) {
-    if (!p[s] || !b[s]) {
-      return kEpidBadArgErr;
-    }
-  }
-
   // because we use ipp function with number of items parameter
   // defined as "int" we need to verify that input length
   // do not exceed INT_MAX to avoid overflow
@@ -1008,13 +1102,10 @@ EpidStatus FfMultiExpBn(FiniteField* ff, FfElement const** p, BigNum const** b,
   ipp_m = (int)m;
   for (i = 0; i < m; i++) {
     int b_size = 0;
-    if (!p[i]) {
+    if (!p[i] || !p[i]->ipp_ff_elem || !b[i] || !b[i]->ipp_bn) {
       return kEpidBadArgErr;
     }
-    if (!p[i]->ipp_ff_elem) {
-      return kEpidBadArgErr;
-    }
-    if (ff->info.elementLen != p[i]->info.elementLen) {
+    if (ff->element_len != p[i]->element_len) {
       return kEpidBadArgErr;
     }
     sts = ippsGetSize_BN(b[i]->ipp_bn, &b_size);
@@ -1058,7 +1149,7 @@ EpidStatus FfMultiExpBn(FiniteField* ff, FfElement const** p, BigNum const** b,
       break;
     }
     // allocate memory for scratch buffer
-    scratch_buffer = (Ipp8u*)SAFE_ALLOC(scratch_buffer_size);
+    scratch_buffer = (OctStr)SAFE_ALLOC(scratch_buffer_size);
     if (!scratch_buffer) {
       result = kEpidMemAllocErr;
       break;
@@ -1102,9 +1193,7 @@ EpidStatus FfIsEqual(FiniteField* ff, FfElement const* a, FfElement const* b,
   if (!ff->ipp_ff || !a->ipp_ff_elem || !b->ipp_ff_elem) {
     return kEpidBadArgErr;
   }
-  if (ff->info.elementLen != a->info.elementLen ||
-      ff->info.elementLen != b->info.elementLen ||
-      a->info.elementLen != b->info.elementLen) {
+  if (ff->element_len != a->element_len || ff->element_len != b->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -1121,12 +1210,12 @@ EpidStatus FfIsEqual(FiniteField* ff, FfElement const* a, FfElement const* b,
   return kEpidNoErr;
 }
 
-EpidStatus FfHash(FiniteField* ff, void const* msg, size_t msg_len,
+EpidStatus FfHash(FiniteField* ff, ConstOctStr msg, size_t msg_len,
                   HashAlg hash_alg, FfElement* r) {
   EpidStatus result = kEpidErr;
   do {
     IppStatus sts = ippStsNoErr;
-    IppHashID hash_id;
+    IppHashAlgId hash_id;
     int ipp_msg_len = 0;
     if (!ff || !msg || !r) {
       result = kEpidBadArgErr;
@@ -1145,20 +1234,22 @@ EpidStatus FfHash(FiniteField* ff, void const* msg, size_t msg_len,
     ipp_msg_len = (int)msg_len;
 
     if (kSha256 == hash_alg) {
-      hash_id = ippSHA256;
+      hash_id = ippHashAlg_SHA256;
     } else if (kSha384 == hash_alg) {
-      hash_id = ippSHA384;
+      hash_id = ippHashAlg_SHA384;
     } else if (kSha512 == hash_alg) {
-      hash_id = ippSHA512;
+      hash_id = ippHashAlg_SHA512;
+    } else if (kSha512_256 == hash_alg) {
+      hash_id = ippHashAlg_SHA512_256;
     } else {
       result = kEpidHashAlgorithmNotSupported;
       break;
     }
-    if (ff->info.elementLen != r->info.elementLen) {
+    if (ff->element_len != r->element_len) {
       return kEpidBadArgErr;
     }
-    sts = ippsGFpSetElementHash(msg, ipp_msg_len, hash_id, r->ipp_ff_elem,
-                                ff->ipp_ff);
+    sts = ippsGFpSetElementHash(msg, ipp_msg_len, r->ipp_ff_elem, ff->ipp_ff,
+                                hash_id);
     if (ippStsNoErr != sts) {
       if (ippStsContextMatchErr == sts || ippStsBadArgErr == sts ||
           ippStsLengthErr == sts) {
@@ -1177,13 +1268,10 @@ EpidStatus FfHash(FiniteField* ff, void const* msg, size_t msg_len,
 EpidStatus FfGetRandom(FiniteField* ff, BigNumStr const* low_bound,
                        BitSupplier rnd_func, void* rnd_param, FfElement* r) {
   EpidStatus result = kEpidErr;
-  IppsGFpElement* low = NULL;
+  FfElement* low = NULL;
   do {
     IppStatus sts = ippStsNoErr;
-    unsigned int ctxsize = 0;
     unsigned int rngloopCount = RNG_WATCHDOG;
-    Ipp32u bnu_low_bound[sizeof(BigNumStr) / sizeof(Ipp32u)];
-    int bnu_size;
     if (!ff || !low_bound || !rnd_func || !r) {
       result = kEpidBadArgErr;
       break;
@@ -1192,41 +1280,28 @@ EpidStatus FfGetRandom(FiniteField* ff, BigNumStr const* low_bound,
       result = kEpidBadArgErr;
       break;
     }
-    if (ff->info.elementLen != r->info.elementLen) {
+    if (ff->element_len != r->element_len) {
       return kEpidBadArgErr;
     }
     // create a new FfElement to hold low_bound
-    sts = ippsGFpElementGetSize(ff->ipp_ff, (int*)&ctxsize);
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
+    result = NewFfElement(ff, &low);
+    if (kEpidNoErr != result) {
       break;
     }
-    // Allocate space for ipp Ff Element context
-    low = (IppsGFpElement*)SAFE_ALLOC(ctxsize);
-    if (!low) {
-      result = kEpidMemAllocErr;
-      break;
-    }
-    bnu_size = OctStr2Bnu(bnu_low_bound, low_bound, sizeof(*low_bound));
-    if (bnu_size < 0) {
-      result = kEpidMathErr;
-      break;
-    }
-    // initialize state
-    sts = ippsGFpElementInit(bnu_low_bound, bnu_size, low, ff->ipp_ff);
-    if (ippStsNoErr != sts) {
-      result = kEpidMathErr;
+    result = ReadFfElement(ff, low_bound, sizeof(*low_bound), low);
+    if (kEpidNoErr != result) {
       break;
     }
     do {
       int cmpResult = IPP_IS_NE;
-      sts = ippsGFpSetElementRandom((IppBitSupplier)rnd_func, rnd_param,
-                                    r->ipp_ff_elem, ff->ipp_ff);
+      sts = ippsGFpSetElementRandom(r->ipp_ff_elem, ff->ipp_ff,
+                                    (IppBitSupplier)rnd_func, rnd_param);
       if (ippStsNoErr != sts) {
         result = kEpidMathErr;
         break;
       }
-      sts = ippsGFpCmpElement(r->ipp_ff_elem, low, &cmpResult, ff->ipp_ff);
+      sts = ippsGFpCmpElement(r->ipp_ff_elem, low->ipp_ff_elem, &cmpResult,
+                              ff->ipp_ff);
       if (ippStsNoErr != sts) {
         result = kEpidMathErr;
         break;
@@ -1241,20 +1316,12 @@ EpidStatus FfGetRandom(FiniteField* ff, BigNumStr const* low_bound,
       }
     } while (--rngloopCount);
   } while (0);
-  SAFE_FREE(low);
+  DeleteFfElement(&low);
   return result;
 }
 
 EpidStatus FfSqrt(FiniteField* ff, FfElement const* a, FfElement* r) {
   EpidStatus result = kEpidErr;
-  Ipp8u one_str = 1;
-  BigNumStr qm1_str;
-  const BigNumStr zero_str = {0};
-  bool is_equal = false;
-  unsigned int s;
-  bool is_even = false;
-  unsigned int i;
-  BigNum* prime = NULL;
   BigNum* qm1 = NULL;
   BigNum* one = NULL;
   FfElement* qm1_ffe = NULL;
@@ -1281,6 +1348,15 @@ EpidStatus FfSqrt(FiniteField* ff, FfElement const* a, FfElement* r) {
     return kEpidBadArgErr;
   }
   do {
+    BigNum* prime = NULL;  // non-owning reference
+    bool is_equal = false;
+    unsigned int s;
+    bool is_even = false;
+    unsigned int i;
+    Ipp8u one_str = 1;
+    BigNumStr qm1_str;
+    const BigNumStr zero_str = {0};
+
     result = GetFiniteFieldPrime(ff, &prime);
     if (kEpidNoErr != result) {
       break;
@@ -1556,6 +1632,7 @@ EpidStatus FfSqrt(FiniteField* ff, FfElement const* a, FfElement* r) {
       break;
     }
     result = kEpidNoErr;
+    prime = NULL;
   } while (0);
   DeleteFfElement(&dd);
   DeleteFfElement(&gtp1d2);
@@ -1578,6 +1655,5 @@ EpidStatus FfSqrt(FiniteField* ff, FfElement const* a, FfElement* r) {
   DeleteFfElement(&qm1_ffe);
   DeleteBigNum(&one);
   DeleteBigNum(&qm1);
-  DeleteBigNum(&prime);
   return result;
 }

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <vector>
 #include <cstring>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -995,13 +996,21 @@ TEST_F(EpidVerifierTest,
 TEST_F(EpidVerifierTest, SetHashAlgFailsGivenNullPointer) {
   EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetHashAlg(nullptr, kSha256));
 }
-TEST_F(EpidVerifierTest, SetHashAlgCanSetValidAlgoritm) {
+TEST_F(EpidVerifierTest, CanSetHashAlgoToSHA256) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   EXPECT_EQ(kEpidNoErr, EpidVerifierSetHashAlg(verifier, kSha256));
+}
+TEST_F(EpidVerifierTest, CanSetHashAlgoToSHA384) {
+  VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   EXPECT_EQ(kEpidNoErr, EpidVerifierSetHashAlg(verifier, kSha384));
+}
+TEST_F(EpidVerifierTest, CanSetHashAlgoToSHA512) {
+  VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   EXPECT_EQ(kEpidNoErr, EpidVerifierSetHashAlg(verifier, kSha512));
-  // DE2089 - SHA-512/256 Hash Alg is not supported by EpidMemberSetHashAlg
-  // EXPECT_EQ(kEpidNoErr, EpidVerifierSetHashAlg(verifier, kSha512_256));
+}
+TEST_F(EpidVerifierTest, CanSetHashAlgoToSHA512256) {
+  VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
+  EXPECT_EQ(kEpidNoErr, EpidVerifierSetHashAlg(verifier, kSha512_256));
 }
 TEST_F(EpidVerifierTest, SetHashAlgCanFailForNonSupportedAlgoritms) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);

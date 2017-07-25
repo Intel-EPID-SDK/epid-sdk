@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
   # limitations under the License.
   ############################################################################*/
 
-/* 
+/*
 //               Intel(R) Integrated Performance Primitives
 //                   Cryptographic Primitives (ippcp)
-// 
-// 
 */
 
 #ifndef __OWNCP_H__
@@ -32,14 +30,25 @@
   #include "ippcp.h"
 #endif
 
-#if defined(_TXT_ACM_)
-   //#pragma message ("cogifuration: TXT ACM")
-   #include "pcpvariant_txt_acm.h"
-#else
-   //#pragma message ("cogifuration: STANDARD")
-   #include "pcpvariant.h"
+/*
+// modes of the CPU feature
+*/
+#define _FEATURE_OFF_      (0)   /* feature is OFF a priori */
+#define _FEATURE_ON_       (1)   /* feature is ON  a priori */
+#define _FEATURE_TICKTOCK_ (2)   /* dectect is feature OFF/ON */
+
+//#define _ABL_
+#if defined(_ABL_)
+#include "pcpvariant_abl.h"
 #endif
 
+//#define _XMM7560_
+#if defined(_XMM7560_)
+#  include "pcpvariant_xmm7560.h"
+#  pragma message ("standard configuration (pcpvariant.h) will be changed")
+#endif
+
+#include "pcpvariant.h"
 
 #pragma warning( disable : 4996 4324 4206)
 
@@ -108,7 +117,7 @@ typedef int cpSize;
 #define LSL32(x,nBits)  ((x)<<(nBits))
 
 /* Rorate (right and left) of WORD */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined( __ICL )
 #  include <stdlib.h>
 #  define ROR32(x, nBits)  _lrotr((x),(nBits))
 #  define ROL32(x, nBits)  _lrotl((x),(nBits))
@@ -126,7 +135,7 @@ typedef int cpSize;
 #define ROL64(x, nBits) ROR64((x),(64-(nBits)))
 
 /* change endian */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined( __ICL )
 #  define ENDIANNESS(x)   _byteswap_ulong((x))
 #  define ENDIANNESS32(x)  ENDIANNESS((x))
 #  define ENDIANNESS64(x) _byteswap_uint64((x))
@@ -139,11 +148,20 @@ typedef int cpSize;
 #define IPP_MAKE_MULTIPLE_OF_8(x) ((x) = ((x)+7)&(~7))
 #define IPP_MAKE_MULTIPLE_OF_16(x) ((x) = ((x)+15)&(~15))
 
-/* 64-bit constant */
+/* define 64-bit constant */
 #if !defined(__GNUC__)
    #define CONST_64(x)  (x) /*(x##i64)*/
 #else
    #define CONST_64(x)  (x##LL)
+#endif
+
+/* define 64-bit constant or pair of 32-bit dependding on architecture */
+#if ((_IPP_ARCH == _IPP_ARCH_EM64T) || (_IPP_ARCH == _IPP_ARCH_LP64) || (_IPP_ARCH == _IPP_ARCH_LRB) || (_IPP_ARCH == _IPP_ARCH_LRB2))
+#define LL(lo,hi) ((Ipp64u)(((Ipp32u)(lo)) | ((Ipp64u)((Ipp32u)(hi))) << 32))
+#define L_(lo)    ((Ipp64u)(lo))
+#else
+#define LL(lo,hi) (lo),(hi)
+#define L_(lo)    (lo)
 #endif
 
 

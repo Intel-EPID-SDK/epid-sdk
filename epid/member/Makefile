@@ -14,6 +14,7 @@ API_HEADERS_INSTALL = ./api.h
 MEMBER_INCLUDE_DIR = ../../
 
 MEMBER_SRC =  $(wildcard ./src/*.c)
+MEMBER_SRC +=  $(wildcard ./tpm/src/*.c)
 MEMBER_OBJ = $(MEMBER_SRC:.c=.o)
 MEMBER_LIB = ./libmember.a
 
@@ -25,13 +26,12 @@ LIB_VERIFIER_DIR = ../verifier
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
 LIB_COMMON_DIR = ../common
 LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
-LIB_IPPCPEPID_DIR = ../../ext/ipp/sources/ippcpepid/src
 
 #set flags for linker
 LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR)  \
 	-L$(LIB_MEMBER_DIR) -L$(LIB_VERIFIER_DIR) -L$(LIB_COMMON_DIR) \
-	-L$(LIB_IPPCPEPID_DIR) -L$(LIB_IPPCP_DIR) -lgtest -lcommon-testhelper \
-	-lmember -lverifier -lcommon -lippcpepid -lippcp
+	-L$(LIB_IPPCP_DIR) -lgtest -lcommon-testhelper \
+	-lmember -lverifier -lcommon -lippcp
 
 $(MEMBER_OBJ): %.o: %.c
 	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_SRC_INCLUDE_DIR) \
@@ -39,13 +39,13 @@ $(MEMBER_OBJ): %.o: %.c
 
 $(MEMBER_LIB): $(MEMBER_OBJ)
 	$(AR) rc $(MEMBER_LIB) $(MEMBER_OBJ)
-	ranlib $(MEMBER_LIB)
+	$(RANLIB) $(MEMBER_LIB)
 
 $(MEMBER_UTEST_EXE): $(MEMBER_UTEST_OBJ)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(MEMBER_UTEST_OBJ): %.o: %.cc
-	$(CXX) -o $@ $(CXXFLAGS) -I$(MEMBER_INCLUDE_DIR) \
+	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(MEMBER_INCLUDE_DIR) \
 	-I$(GTEST_INCLUDE_DIR) -c $^
 
 build: all
@@ -63,10 +63,12 @@ ifneq (,$(wildcard $(MEMBER_UTEST_EXE)))
 	cp $(MEMBER_UTEST_EXE) '$(TEST_INSTALL_DIR)'
 endif
 
-check: $(MEMBER_UTEST_EXE) run
+utest: $(MEMBER_UTEST_EXE)
 
-run:
+run_utest:
 	$(MEMBER_UTEST_EXE) $(GTEST_FLAGS)
+
+check: utest run_utest
 
 clean:
 	rm -f $(MEMBER_OBJ) \

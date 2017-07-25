@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2012-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -29,16 +29,23 @@
 #include "pcpbnu32arith.h"
 #include "pcpmulbnukara.h"
 
+#define cpAdd_BNU OWNAPI(cpAdd_BNU)
 BNU_CHUNK_T cpAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, cpSize ns);
+#define cpSub_BNU OWNAPI(cpSub_BNU)
 BNU_CHUNK_T cpSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, cpSize ns);
+#define cpInc_BNU OWNAPI(cpInc_BNU)
 BNU_CHUNK_T cpInc_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val);
+#define cpDec_BNU OWNAPI(cpDec_BNU)
 BNU_CHUNK_T cpDec_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val);
 
 #if defined(_USE_KARATSUBA_)
+#define cpAddAdd_BNU OWNAPI(cpAddAdd_BNU)
 BNU_CHUNK_T cpAddAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pC, cpSize size);
+#define cpAddSub_BNU OWNAPI(cpAddSub_BNU)
 BNU_CHUNK_T cpAddSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pC, cpSize size);
 #endif
 
+#define cpAddMulDgt_BNU OWNAPI(cpAddMulDgt_BNU)
 BNU_CHUNK_T cpAddMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val);
 #if 0
 BNU_CHUNK_T cpMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val);
@@ -46,9 +53,11 @@ BNU_CHUNK_T cpSubMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, B
 #endif
 
 
+#define cpMulAdc_BNU_school OWNAPI(cpMulAdc_BNU_school)
 BNU_CHUNK_T cpMulAdc_BNU_school(BNU_CHUNK_T* pR,
                          const BNU_CHUNK_T* pA, cpSize nsA,
                          const BNU_CHUNK_T* pB, cpSize nsB);
+#define cpMulAdx_BNU_school OWNAPI(cpMulAdx_BNU_school)
 BNU_CHUNK_T cpMulAdx_BNU_school(BNU_CHUNK_T* pR,
                          const BNU_CHUNK_T* pA, cpSize nsA,
                          const BNU_CHUNK_T* pB, cpSize nsB);
@@ -67,7 +76,9 @@ __INLINE BNU_CHUNK_T cpMul_BNU_school(BNU_CHUNK_T* pR,
 #endif
 }
 
+#define cpSqrAdc_BNU_school OWNAPI(cpSqrAdc_BNU_school)
 BNU_CHUNK_T cpSqrAdc_BNU_school(BNU_CHUNK_T * pR, const BNU_CHUNK_T * pA, cpSize nsA);
+#define cpSqrAdx_BNU_school OWNAPI(cpSqrAdx_BNU_school)
 BNU_CHUNK_T cpSqrAdx_BNU_school(BNU_CHUNK_T * pR, const BNU_CHUNK_T * pA, cpSize nsA);
 
 __INLINE BNU_CHUNK_T cpSqr_BNU_school(BNU_CHUNK_T * pR, const BNU_CHUNK_T * pA, cpSize nsA)
@@ -83,16 +94,24 @@ __INLINE BNU_CHUNK_T cpSqr_BNU_school(BNU_CHUNK_T * pR, const BNU_CHUNK_T * pA, 
 }
 
 #if(_IPP_ARCH==_IPP_ARCH_EM64T)
+#define gf256_add OWNAPI(gf256_add)
 BNU_CHUNK_T* gf256_add(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pModulus);
+#define gf256_sub OWNAPI(gf256_sub)
 BNU_CHUNK_T* gf256_sub(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pModulus);
+#define gf256_neg OWNAPI(gf256_neg)
 BNU_CHUNK_T* gf256_neg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pModulus);
+#define gf256_mulm OWNAPI(gf256_mulm)
 BNU_CHUNK_T* gf256_mulm(BNU_CHUNK_T* pR,const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pModulus, BNU_CHUNK_T  m0);
+#define gf256_sqrm OWNAPI(gf256_sqrm)
 BNU_CHUNK_T* gf256_sqrm(BNU_CHUNK_T* pR,const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pModulus, BNU_CHUNK_T  m0);
+#define gf256_div2 OWNAPI(gf256_div2)
 BNU_CHUNK_T* gf256_div2(BNU_CHUNK_T* pR,const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pModulus);
 #endif
 
+#define cpGcd_BNU OWNAPI(cpGcd_BNU)
 BNU_CHUNK_T cpGcd_BNU(BNU_CHUNK_T a, BNU_CHUNK_T b);
 
+#define cpModInv_BNU OWNAPI(cpModInv_BNU)
 int cpModInv_BNU(BNU_CHUNK_T* pInv,
            const BNU_CHUNK_T* pA, cpSize nsA,
            const BNU_CHUNK_T* pM, cpSize nsM,

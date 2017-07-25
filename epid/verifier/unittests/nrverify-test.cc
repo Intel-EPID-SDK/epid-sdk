@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  * \brief NrVerify unit tests.
  */
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -177,25 +178,32 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithValidCommitmentDiffHashAlg) {
   //                  Refer to Section 7.1 for hash operation over a
   //                  prime field.
   // result must be kEpidBadArgErr
-  VerifierCtxObj verifier(this->kGrp01Key);
+  VerifierCtxObj verifier(this->kGrpXKey);
   EpidSignature const* epid_signature_sha256 =
       reinterpret_cast<EpidSignature const*>(
-          this->kSigGrp01Member0Sha256RandombaseTest0.data());
+          this->kSigGrpXMember0Sha256RandbaseMsg0.data());
   EpidSignature const* epid_signature_sha384 =
       reinterpret_cast<EpidSignature const*>(
-          this->kSigGrp01Member0Sha384RandombaseTest0.data());
-  SigRl const* sig_rl =
-      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
+          this->kSigGrpXMember0Sha384RandbaseMsg0.data());
+  EpidSignature const* epid_signature_sha512 =
+      reinterpret_cast<EpidSignature const*>(
+          this->kSigGrpXMember0Sha512RandbaseMsg0.data());
+  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha384));
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature_sha256->sigma0,
-                         this->kTest0.data(), this->kTest0.size(),
-                         &sig_rl->bk[0], &epid_signature_sha256->sigma[0]));
+                         this->kMsg0.data(), this->kMsg0.size(), &sig_rl->bk[0],
+                         &epid_signature_sha256->sigma[0]));
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature_sha384->sigma0,
-                         this->kTest0.data(), this->kTest0.size(),
-                         &sig_rl->bk[0], &epid_signature_sha384->sigma[0]));
+                         this->kMsg0.data(), this->kMsg0.size(), &sig_rl->bk[0],
+                         &epid_signature_sha384->sigma[0]));
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512_256));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidNrVerify(verifier, &epid_signature_sha512->sigma0,
+                         this->kMsg0.data(), this->kMsg0.size(), &sig_rl->bk[0],
+                         &epid_signature_sha512->sigma[0]));
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -256,17 +264,15 @@ TEST_F(EpidVerifierTest, NrVerifyAcceptsSigWithRandomBaseNameSha512) {
                          &epid_signature->sigma[0]));
 }
 
-TEST_F(EpidVerifierTest,
-       DISABLED_NrVerifyAcceptsSigWithRandomBaseNameSha512256) {
-  VerifierCtxObj verifier(this->kGrp01Key);
+TEST_F(EpidVerifierTest, NrVerifyAcceptsSigWithRandomBaseNameSha512256) {
+  VerifierCtxObj verifier(this->kGrpXKey);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
-      this->kSigGrp01Member0Sha512256RandombaseTest1.data());
-  SigRl const* sig_rl =
-      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
+      this->kSigGrpXMember0Sha512256RandombaseMsg0.data());
+  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512_256));
   EXPECT_EQ(kEpidSigValid,
-            EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest1.data(),
-                         this->kTest1.size(), &sig_rl->bk[0],
+            EpidNrVerify(verifier, &epid_signature->sigma0, this->kMsg0.data(),
+                         this->kMsg0.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0]));
 }
 

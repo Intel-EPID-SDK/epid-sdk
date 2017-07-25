@@ -5,17 +5,17 @@ SRC_INCLUDE_DIR = ../../sources/include
 LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
 
 PCP_INCLUDE_DIR = ./src
-PCP_SRC = $(wildcard ./src/*.c)
+PCP_SRC = $(wildcard ./src/pcp*.c)
 PCP_OBJ = $(PCP_SRC:.c=.o)
 PCP_LIB = ./src/libippcp.a
 
 
 $(PCP_OBJ): %.o: %.c
-	$(CC) $(CFLAGS) -I$(API_INCLUDE_DIR) -I$(SRC_INCLUDE_DIR) -I$(PCP_INCLUDE_DIR) -c -o $@ $<
+	$(CC) $(CFLAGS) $(IPP_FLAGS) -I$(API_INCLUDE_DIR) -I$(SRC_INCLUDE_DIR) -I$(PCP_INCLUDE_DIR) -c -o $@ $<
 
 $(PCP_LIB): $(PCP_OBJ)
 	$(AR) rc $@ $^
-	ranlib $@
+	$(RANLIB) $@
 
 build: all
 

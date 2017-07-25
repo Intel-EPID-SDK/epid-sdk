@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,12 +26,9 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpeccp.h"
-#include "pcpeccppoint.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpmethodcom.h"
 
 
 /*F*
@@ -59,42 +56,47 @@
 *F*/
 IPPFUN(IppStatus, ippsECCPSetKeyPair, (const IppsBigNumState* pPrivate, const IppsECCPPointState* pPublic,
                                        IppBool regular,
-                                       IppsECCPState* pECC))
+                                       IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   IPP_BAD_PTR1_RET(pEC);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    {
-      IppsBigNumState*  targetPrivate;
-      IppsECCPPointState* targetPublic;
+      BNU_CHUNK_T* targetPrivate;
+      BNU_CHUNK_T* targetPublic;
 
-      if( regular ) {
-         targetPrivate = ECP_PRIVATE(pECC);
-         targetPublic  = ECP_PUBLIC(pECC);
+      if(regular) {
+         targetPrivate = ECP_PRIVAT(pEC);
+         targetPublic  = ECP_PUBLIC(pEC);
       }
       else {
-         targetPrivate = ECP_PRIVATE_E(pECC);
-         targetPublic  = ECP_PUBLIC_E(pECC);
+         targetPrivate = ECP_PRIVAT_E(pEC);
+         targetPublic  = ECP_PUBLIC_E(pEC);
       }
 
       /* set up private key request */
       if( pPrivate ) {
          pPrivate = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrivate, ALIGN_VAL) );
          IPP_BADARG_RET(!BN_VALID_ID(pPrivate), ippStsContextMatchErr);
-         ippsSet_BN(ippBigNumPOS, BN_SIZE32(pPrivate), (Ipp32u*)BN_NUMBER(pPrivate), targetPrivate);
+         {
+            int privateLen = BITS_BNU_CHUNK(ECP_ORDBITSIZE(pEC));
+            cpGFpElementCopyPadd(targetPrivate, privateLen, BN_NUMBER(pPrivate), BN_SIZE(pPrivate));
+         }
       }
 
       /* set up public  key request */
       if( pPublic ) {
-         pPublic = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPublic, ALIGN_VAL) );
-         IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPublic), ippStsContextMatchErr);
+         IPP_BADARG_RET( !ECP_POINT_TEST_ID(pPublic), ippStsContextMatchErr );
+         {
+            BNU_CHUNK_T* targetPublicX = targetPublic;
+            BNU_CHUNK_T* targetPublicY = targetPublic+ECP_POINT_FELEN(pPublic);
+            gfec_GetPoint(targetPublicX, targetPublicY, pPublic, pEC);
+            gfec_SetPoint(targetPublic, targetPublicX, targetPublicY, pEC);
 
-         ECP_METHOD(pECC)->GetPointAffine(ECP_POINT_X(targetPublic), ECP_POINT_Y(targetPublic), pPublic, pECC, ECP_BNCTX(pECC));
-         ECP_METHOD(pECC)->SetPointAffine(ECP_POINT_X(targetPublic), ECP_POINT_Y(targetPublic), targetPublic, pECC);
+            //cpGFpElementCopy(targetPublic, ECP_POINT_DATA(pPublic), publicLen);
+         }
       }
 
       return ippStsNoErr;

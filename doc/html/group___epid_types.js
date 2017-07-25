@@ -134,6 +134,12 @@ var group___epid_types =
       [ "n4", "struct_verifier_rl.html#a1e3f84b873bccc0c882aa6432c42d2f7", null ],
       [ "version", "struct_verifier_rl.html#afa44ab69ffff5a3508366aeb2131fdaa", null ]
     ] ],
+    [ "MemberPrecomp", "struct_member_precomp.html", [
+      [ "e12", "struct_member_precomp.html#a55e5c4b25c8f0f426969a8d745260fe5", null ],
+      [ "e22", "struct_member_precomp.html#a4e7412969bed3964f813b093b948e7b4", null ],
+      [ "e2w", "struct_member_precomp.html#a879d5a7b0c30088b23f6e5c5fc62f834", null ],
+      [ "ea2", "struct_member_precomp.html#a573551f6494e372f44fd3bdf5b02aeda", null ]
+    ] ],
     [ "Fq2ElemStr", "struct_fq2_elem_str.html", [
       [ "a", "struct_fq2_elem_str.html#ab1d253eb24ba30eaf516ac429daab915", null ]
     ] ],
@@ -154,8 +160,10 @@ var group___epid_types =
     [ "EcdsaPrivateKey", "struct_ecdsa_private_key.html", [
       [ "data", "struct_ecdsa_private_key.html#a97efee9b4079f95d94a104f9a6d8c96d", null ]
     ] ],
+    [ "ConstOctStr", "group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2", null ],
     [ "GroupId", "group___epid_types.html#gada666b48d0cbc301985405fde896f1de", null ],
     [ "IssuerNonce", "group___epid_types.html#ga55eb2193045bde31af3f551565126042", null ],
+    [ "OctStr", "group___epid_types.html#ga3315fb24f4c5783b6d6eb107933390b0", null ],
     [ "ReKeySeed", "group___epid_types.html#ga54bd22670f2e348593db7ab631131d10", null ],
     [ "Seed", "group___epid_types.html#ga888541b8148df69c634a92c64ed51317", null ],
     [ "HashAlg", "group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890", [

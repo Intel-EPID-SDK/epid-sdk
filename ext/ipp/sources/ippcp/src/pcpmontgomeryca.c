@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpbn.h"
 #include "pcpmontgomery.h"
@@ -37,6 +37,7 @@
 // Returns:                Reason:
 //      ippStsNullPtrErr    pCtxSize==NULL
 //      ippStsLengthErr     maxLen32 < 1
+//                          maxLen32 > BITS2WORD32_SIZE(BN_MAXBITSIZE)
 //      ippStsNoErr         no errors
 //
 // Parameters:
@@ -50,7 +51,7 @@
 IPPFUN(IppStatus, ippsMontGetSize, (IppsExpMethod method, cpSize maxLen32, cpSize* pCtxSize))
 {
    IPP_BAD_PTR1_RET(pCtxSize);
-   IPP_BADARG_RET(maxLen32< 1, ippStsLengthErr);
+   IPP_BADARG_RET(maxLen32<1 || maxLen32>BITS2WORD32_SIZE(BN_MAXBITSIZE), ippStsLengthErr);
 
    UNREFERENCED_PARAMETER(method);
 
@@ -94,6 +95,7 @@ IPPFUN(IppStatus, ippsMontGetSize, (IppsExpMethod method, cpSize maxLen32, cpSiz
 // Returns:                Reason:
 //      ippStsNullPtrErr    pMont==NULL
 //      ippStsLengthErr     maxLen32 < 1
+//                          maxLen32 > BITS2WORD32_SIZE(BN_MAXBITSIZE)
 //      ippStsNoErr         no errors
 //
 // Parameters:
@@ -103,14 +105,14 @@ IPPFUN(IppStatus, ippsMontGetSize, (IppsExpMethod method, cpSize maxLen32, cpSiz
 *F*/
 IPPFUN(IppStatus, ippsMontInit,(IppsExpMethod method, int maxLen32, IppsMontState* pMont))
 {
-   IPP_BADARG_RET(maxLen32<1, ippStsLengthErr);
+   IPP_BADARG_RET(maxLen32<1 || maxLen32>BITS2WORD32_SIZE(BN_MAXBITSIZE), ippStsLengthErr);
 
    IPP_BAD_PTR1_RET(pMont);
    pMont = (IppsMontState*)( IPP_ALIGNED_PTR(pMont, MONT_ALIGNMENT) );
 
    UNREFERENCED_PARAMETER(method);
 
-   MNT_ID(pMont)     = idCtxMontgomery;
+   MNT_ID(pMont)     = idCtxUnknown;
    MNT_ROOM(pMont)   = INTERNAL_BNU_LENGTH(maxLen32);
    MNT_SIZE(pMont)   = 0;
    MNT_HELPER(pMont) = 0;
@@ -150,6 +152,7 @@ IPPFUN(IppStatus, ippsMontInit,(IppsExpMethod method, int maxLen32, IppsMontStat
       ZEXPAND_BNU(MNT_SQUARE_R(pMont), 0, modSize);
       ZEXPAND_BNU(MNT_CUBE_R(pMont), 0, modSize);
 
+      MNT_ID(pMont) = idCtxMontgomery;
       return ippStsNoErr;
    }
 }

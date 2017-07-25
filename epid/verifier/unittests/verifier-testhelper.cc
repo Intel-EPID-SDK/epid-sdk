@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -489,7 +489,9 @@ const std::vector<uint8_t>
 #include "epid/common-testhelper/testdata/grp01/member0/sig_test0_sha512_sigrl.inc"
 };
 const std::vector<uint8_t>
-    EpidVerifierTest::kSigGrp01Member0Sha512256RandombaseTest1 = {0};
+    EpidVerifierTest::kSigGrpXMember0Sha512256RandombaseMsg0 = {
+#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0.inc"
+};
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha256RandombaseTest1NoSigRl = {
 #include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
@@ -509,6 +511,10 @@ const std::vector<uint8_t>
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha512RandombaseTest1NoSigRl = {
 #include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
+};
+const std::vector<uint8_t>
+    EpidVerifierTest::kSigGrpXMember0Sha512256RandombaseMsg0NoSigRl = {
+#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0_no_sigrl.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kTest0 = {
@@ -568,6 +574,9 @@ const GroupPubKey EpidVerifierTest::kGrpXKey = {
 const std::vector<uint8_t> EpidVerifierTest::kGrpXPrivRl = {
 #include "epid/common-testhelper/testdata/grp_x/privrl.inc"
 };
+const std::vector<uint8_t> EpidVerifierTest::kGrpXCorruptedPrivRl = {
+#include "epid/common-testhelper/testdata/grp_x/corrupted_privrl.inc"
+};
 const std::vector<uint8_t> EpidVerifierTest::kPrivRlIkgf = {
 #include "epid/common-testhelper/testdata/ikgf/groupa/privrl.inc"
 };
@@ -613,7 +622,7 @@ const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha512VerRl = {
 #include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha512256VerRl = {
-    // #include "testdata/grp_x/verrevoked/bsn0/verrl_sha512_256.inc"
+#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512_256.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0VerRlSingleEntry = {
 #include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_1entry.inc"
@@ -717,12 +726,11 @@ EpidVerifierTest::kSigGrpXMember0Sha512RandbaseMsg0 = {
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha512256Bsn0Msg0 = {
-  // #include "testdata/grp_x/member0/sig_sha512256_bsn0_msg0.inc"
+#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
-EpidVerifierTest::kSigGrpXMember0Sha512256RandbaseMsg0 = {
-  // #include "testdata/grp_x/member0/sig_sha512256_rndbase_msg0.inc"
-};
+EpidVerifierTest::kSigGrpXMember0Sha512256RandbaseMsg0 =
+                  kSigGrpXMember0Sha512256RandombaseMsg0;
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember1Sha256Bsn0Msg0 = {
 #include "epid/common-testhelper/testdata/grp_x/member1/sig_sha256_bsn0_msg0.inc"
 };

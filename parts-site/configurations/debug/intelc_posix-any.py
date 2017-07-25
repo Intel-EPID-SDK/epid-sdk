@@ -39,7 +39,7 @@ config.VersionRange("7-*",
                                  '-Wextra',
                                  # pedantic warnings
                                  # '-Wpedantic',
-                                ],
+                                 '-fPIC'],
                         CXXFLAGS=['',
                                   # modern C++ features support
                                   '-std=c++0x',

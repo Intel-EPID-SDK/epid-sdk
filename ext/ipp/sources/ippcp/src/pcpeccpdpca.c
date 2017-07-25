@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -38,36 +38,10 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpeccp.h"
-#include "pcpeccppoint.h"
-#include "pcpbnresource.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpmethodcom.h"
-#include "pcppma.h"
 
-#if (_ECP_128_==_ECP_IMPL_SPECIFIC_)
-#  include "pcpeccpmethod128.h"
-#endif
-#if (_ECP_192_==_ECP_IMPL_SPECIFIC_) || (_ECP_192_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethod192.h"
-#endif
-#if (_ECP_224_==_ECP_IMPL_SPECIFIC_) || (_ECP_224_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethod224.h"
-#endif
-#if (_ECP_256_==_ECP_IMPL_SPECIFIC_) || (_ECP_256_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethod256.h"
-#endif
-#if (_ECP_384_==_ECP_IMPL_SPECIFIC_) || (_ECP_384_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethod384.h"
-#endif
-#if (_ECP_521_==_ECP_IMPL_SPECIFIC_) || (_ECP_521_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethod521.h"
-#endif
-#if (_ECP_SM2_==_ECP_IMPL_SPECIFIC_) || (_ECP_SM2_==_ECP_IMPL_MFM_)
-#  include "pcpeccpmethodsm2.h"
-#endif
 
 /*F*
 //    Name: ippsECCPSet
@@ -111,107 +85,78 @@
 //    pECC     pointer to the ECC context
 //
 *F*/
-static
-void ECCPSetDP(IppECCType flag,
-               int primeSize, const Ipp32u* pPrime,
-               int aSize,     const Ipp32u* pA,
-               int bSize,     const Ipp32u* pB,
-               int gxSize,    const Ipp32u* pGx,
-               int gySize,    const Ipp32u* pGy,
-               int orderSize, const Ipp32u* pOrder,
-               Ipp32u cofactor,
-               IppsECCPState* pECC)
+IppStatus ECCPSetDP(const IppsGFpMethod* method,
+                        int pLen, const BNU_CHUNK_T* pP,
+                        int aLen, const BNU_CHUNK_T* pA,
+                        int bLen, const BNU_CHUNK_T* pB,
+                        int xLen, const BNU_CHUNK_T* pX,
+                        int yLen, const BNU_CHUNK_T* pY,
+                        int rLen, const BNU_CHUNK_T* pR,
+                        BNU_CHUNK_T h,
+                        IppsGFpECState* pEC)
 {
-   ECP_TYPE(pECC) = flag;
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
-   /* reset size (bits) of field element */
-   ECP_GFEBITS(pECC) = cpMSBit_BNU32(pPrime, primeSize) +1;
-   /* reset size (bits) of Base Point order */
-   ECP_ORDBITS(pECC) = cpMSBit_BNU32(pOrder, orderSize) +1;
-
-   /* set up prime */
-   ippsSet_BN(ippBigNumPOS, primeSize, pPrime, ECP_PRIME(pECC));
-   /* set up A */
-   ippsSet_BN(ippBigNumPOS, aSize, pA, ECP_A(pECC));
-   /* test A */
-   BN_Word(ECP_B(pECC), 3);
-   PMA_add(ECP_B(pECC), ECP_A(pECC), ECP_B(pECC), ECP_PRIME(pECC));
-   ECP_AMI3(pECC) = IsZero_BN(ECP_B(pECC));
-   /* set up B */
-   ippsSet_BN(ippBigNumPOS, bSize, pB, ECP_B(pECC));
-
-   /* set up affine coordinates of Base Point and order */
-   ippsSet_BN(ippBigNumPOS, gxSize, pGx, ECP_GX(pECC));
-   ippsSet_BN(ippBigNumPOS, gySize, pGy, ECP_GY(pECC));
-   ippsSet_BN(ippBigNumPOS, orderSize, pOrder, ECP_ORDER(pECC));
-
-   /* set up cofactor */
-   //ippsSet_BN(ippBigNumPOS, 1, &((Ipp32u)cofactor), ECP_COFACTOR(pECC));
-   ippsSet_BN(ippBigNumPOS, 1, &cofactor, ECP_COFACTOR(pECC));
-
-   #if defined(_USE_NN_VERSION_)
-   /* set up randomizer */
-   //gres 05/14/05: ECP_RANDMASK(pECC) = 0xFFFFFFFF >> ((32 -(ECP_ORDBITS(pECC)&0x1F)) &0x1F);
-   ECP_RANDMASK(pECC) = MAKEMASK32(ECP_ORDBITS(pECC));
-   ECP_RANDMASK(pECC) &= ~pOrder[orderSize-1];
-   /* reinit randomizer */
-   ippsPRNGInit(ECP_ORDBITS(pECC), ECP_RAND(pECC));
-   /* default randomizer settings */
    {
-      Ipp32u seed[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-      ippsPRNGSetSeed(seed, ECP_RAND(pECC));
-      ippsSet_BN(ippBigNumPOS, RAND_CONTENT_LEN, seed, ECP_RANDCNT(pECC));
-   }
-   #endif
+      IppsGFpState *   pGF = ECP_GFP(pEC);
 
-   /* montgomery engine (prime) */
-   if( ippStsNoErr == ippsMontSet((Ipp32u*)BN_NUMBER(ECP_PRIME(pECC)), BN_SIZE32(ECP_PRIME(pECC)), ECP_PMONT(pECC)) ) {
-      /* modulo reduction and montgomery form of A and B */
-      PMA_mod(ECP_AENC(pECC), ECP_A(pECC),    ECP_PRIME(pECC));
-      PMA_enc(ECP_AENC(pECC), ECP_AENC(pECC), ECP_PMONT(pECC));
-      PMA_mod(ECP_BENC(pECC), ECP_B(pECC),    ECP_PRIME(pECC));
-      PMA_enc(ECP_BENC(pECC), ECP_BENC(pECC), ECP_PMONT(pECC));
-      /* projective coordinates and montgomery form of of Base Point */
-      if( ( IsZero_BN(ECP_BENC(pECC)) && ECCP_IsPointAtAffineInfinity1(ECP_GX(pECC), ECP_GY(pECC))) ||
-          (!IsZero_BN(ECP_BENC(pECC)) && ECCP_IsPointAtAffineInfinity0(ECP_GX(pECC), ECP_GY(pECC))) )
-         ECCP_SetPointToInfinity(ECP_GENC(pECC));
-      else {
-         ECP_METHOD(pECC)->SetPointProjective(ECP_GX(pECC), ECP_GY(pECC), BN_ONE_REF(), ECP_GENC(pECC), pECC);
+      IppStatus sts;
+      IppsBigNumState P, H;
+      //int primeBitSize = GFP_FEBITLEN(pGF);
+      cpConstructBN(&P, pLen, (BNU_CHUNK_T*)pP, NULL);
+      sts = cpGFpSetGFp(&P, method, pGF);
+
+      if(ippStsNoErr==sts) {
+         do {
+            int elemLen = GFP_FELEN(pGF);
+            IppsGFpElement elmA, elmB;
+
+            /* convert A ans B coeffs into GF elements */
+            cpGFpElementConstruct(&elmA, cpGFpGetPool(1, pGF), elemLen);
+            cpGFpElementConstruct(&elmB, cpGFpGetPool(1, pGF), elemLen);
+            sts = ippsGFpSetElement((Ipp32u*)pA, BITS2WORD32_SIZE(BITSIZE_BNU(pA,aLen)), &elmA, pGF);
+            if(ippStsNoErr!=sts) break;
+            sts = ippsGFpSetElement((Ipp32u*)pB, BITS2WORD32_SIZE(BITSIZE_BNU(pB,bLen)), &elmB, pGF);
+            if(ippStsNoErr!=sts) break;
+            /* and set EC */
+            sts = ippsGFpECSet(&elmA, &elmB, pEC);
+            if(ippStsNoErr!=sts) break;
+
+            /* convert GX ans GY coeffs into GF elements */
+            cpConstructBN(&P, rLen, (BNU_CHUNK_T*)pR, NULL);
+            cpConstructBN(&H, 1, &h, NULL);
+            sts = ippsGFpSetElement((Ipp32u*)pX, BITS2WORD32_SIZE(BITSIZE_BNU(pX,xLen)), &elmA, pGF);
+            if(ippStsNoErr!=sts) break;
+            sts = ippsGFpSetElement((Ipp32u*)pY, BITS2WORD32_SIZE(BITSIZE_BNU(pY,yLen)), &elmB, pGF);
+            if(ippStsNoErr!=sts) break;
+            /* and init EC subgroup */
+            sts = ippsGFpECSetSubgroup(&elmA, &elmB, &P, &H, pEC);
+         } while(0);
+
+         cpGFpReleasePool(2, pGF);
       }
+
+      return sts;
    }
-
-   /* montgomery engine (order) */
-   if( ippStsNoErr == ippsMontSet((Ipp32u*)BN_NUMBER(ECP_ORDER(pECC)), BN_SIZE32(ECP_ORDER(pECC)), ECP_RMONT(pECC)) )
-      PMA_enc(ECP_COFACTOR(pECC), ECP_COFACTOR(pECC), ECP_RMONT(pECC));
-
-   /* set zero private keys */
-   BN_Word(ECP_PRIVATE(pECC), 0);
-   BN_Word(ECP_PRIVATE_E(pECC), 0);
-
-   /* set infinity public keys */
-   ECCP_SetPointToInfinity(ECP_PUBLIC(pECC));
-   ECCP_SetPointToInfinity(ECP_PUBLIC_E(pECC));
 }
-
 
 IPPFUN(IppStatus, ippsECCPSet, (const IppsBigNumState* pPrime,
                                 const IppsBigNumState* pA, const IppsBigNumState* pB,
-                                const IppsBigNumState* pGX,const IppsBigNumState* pGY,const IppsBigNumState* pOrder,
-                                int cofactor,
-                                IppsECCPState* pECC))
+                                const IppsBigNumState* pGX,const IppsBigNumState* pGY,
+                                const IppsBigNumState* pOrder, int cofactor,
+                                IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
+   /* test pEC */
+   IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test pPrime */
    IPP_BAD_PTR1_RET(pPrime);
-   pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, ALIGN_VAL) );
+   pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, BN_ALIGNMENT) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET((cpBN_bitsize(pPrime)>ECP_GFEBITS(pECC)), ippStsRangeErr);
+   IPP_BADARG_RET((cpBN_bitsize(pPrime)>GFP_FEBITLEN(ECP_GFP(pEC))), ippStsRangeErr);
 
    /* test pA and pB */
    IPP_BAD_PTR2_RET(pA,pB);
@@ -219,8 +164,10 @@ IPPFUN(IppStatus, ippsECCPSet, (const IppsBigNumState* pPrime,
    pB = (IppsBigNumState*)( IPP_ALIGNED_PTR(pB, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pA), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pB), ippStsContextMatchErr);
-   IPP_BADARG_RET((cpBN_bitsize(pA)>ECP_GFEBITS(pECC)), ippStsRangeErr);
-   IPP_BADARG_RET((cpBN_bitsize(pB)>ECP_GFEBITS(pECC)), ippStsRangeErr);
+   //IPP_BADARG_RET((cpBN_bitsize(pA)>GFP_FEBITLEN(ECP_GFP(pEC))), ippStsRangeErr);
+   //IPP_BADARG_RET((cpBN_bitsize(pB)>GFP_FEBITLEN(ECP_GFP(pEC))), ippStsRangeErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pA) || 0<=cpBN_cmp(pA,pPrime), ippStsRangeErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pB) || 0<=cpBN_cmp(pB,pPrime), ippStsRangeErr);
 
    /* test pG and pGorder pointers */
    IPP_BAD_PTR3_RET(pGX,pGY, pOrder);
@@ -230,441 +177,25 @@ IPPFUN(IppStatus, ippsECCPSet, (const IppsBigNumState* pPrime,
    IPP_BADARG_RET(!BN_VALID_ID(pGX),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pGY),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pOrder), ippStsContextMatchErr);
-   IPP_BADARG_RET((cpBN_bitsize(pGX)>ECP_GFEBITS(pECC)),    ippStsRangeErr);
-   IPP_BADARG_RET((cpBN_bitsize(pGY)>ECP_GFEBITS(pECC)),    ippStsRangeErr);
-   IPP_BADARG_RET((cpBN_bitsize(pOrder)>ECP_ORDBITS(pECC)), ippStsRangeErr);
+   //IPP_BADARG_RET((cpBN_bitsize(pGX)>GFP_FEBITLEN(ECP_GFP(pEC))),    ippStsRangeErr);
+   //IPP_BADARG_RET((cpBN_bitsize(pGY)>GFP_FEBITLEN(ECP_GFP(pEC))),    ippStsRangeErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pGX) || 0<=cpBN_cmp(pGX,pPrime), ippStsRangeErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pGY) || 0<=cpBN_cmp(pGY,pPrime), ippStsRangeErr);
+   IPP_BADARG_RET((cpBN_bitsize(pOrder)>ECP_ORDBITSIZE(pEC)), ippStsRangeErr);
 
    /* test cofactor */
    IPP_BADARG_RET(!(0<cofactor), ippStsRangeErr);
 
-   /* set general methods */
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());
-
-   /* set domain parameters */
-   ECCPSetDP(IppECCArbitrary,
-             BN_SIZE32(pPrime), (Ipp32u*)BN_NUMBER(pPrime),
-             BN_SIZE32(pA),     (Ipp32u*)BN_NUMBER(pA),
-             BN_SIZE32(pB),     (Ipp32u*)BN_NUMBER(pB),
-             BN_SIZE32(pGX),    (Ipp32u*)BN_NUMBER(pGX),
-             BN_SIZE32(pGY),    (Ipp32u*)BN_NUMBER(pGY),
-             BN_SIZE32(pOrder), (Ipp32u*)BN_NUMBER(pOrder),
-             cofactor,
-             pECC);
-
-   return ippStsNoErr;
+   return ECCPSetDP(ippsGFpMethod_pArb(),
+                        BN_SIZE(pPrime), BN_NUMBER(pPrime),
+                        BN_SIZE(pA), BN_NUMBER(pA),
+                        BN_SIZE(pB), BN_NUMBER(pB),
+                        BN_SIZE(pGX), BN_NUMBER(pGX),
+                        BN_SIZE(pGY), BN_NUMBER(pGY),
+                        BN_SIZE(pOrder), BN_NUMBER(pOrder),
+                        (BNU_CHUNK_T)cofactor,
+                        pEC);
 }
-
-
-/*F*
-//    Name: ippsECCPSetStd
-//
-// Purpose: Set Standard ECC Domain Parameter.
-//
-// Returns:                Reason:
-//    ippStsNullPtrErr        NULL == pECC
-//
-//    ippStsContextMatchErr   illegal pECC->idCtx
-//
-//    ippStsECCInvalidFlagErr invalid flag
-//
-//    ippStsNoErr             no errors
-//
-// Parameters:
-//    flag     specify standard ECC parameter(s) to be setup
-//    pECC     pointer to the ECC context
-//
-*F*/
-IPPFUN(IppStatus, ippsECCPSetStd, (IppECCType flag, IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());//ECCPcom;
-
-   switch(flag) {
-      case IppECCPStd112r1:
-         ECCPSetDP(IppECCPStd112r1,
-            BITS2WORD32_SIZE(112), secp112r1_p,
-            BITS2WORD32_SIZE(112), secp112r1_a,
-            BITS2WORD32_SIZE(112), secp112r1_b,
-            BITS2WORD32_SIZE(112), secp112r1_gx,
-            BITS2WORD32_SIZE(112), secp112r1_gy,
-            BITS2WORD32_SIZE(112), secp112r1_r,
-            secp112r1_h, pECC);
-         break;
-      case IppECCPStd112r2:
-         ECCPSetDP(IppECCPStd112r2,
-            BITS2WORD32_SIZE(112), secp112r2_p,
-            BITS2WORD32_SIZE(112), secp112r2_a,
-            BITS2WORD32_SIZE(112), secp112r2_b,
-            BITS2WORD32_SIZE(112), secp112r2_gx,
-            BITS2WORD32_SIZE(112), secp112r2_gy,
-            BITS2WORD32_SIZE(112), secp112r2_r,
-            secp112r2_h, pECC);
-         break;
-      case IppECCPStd128r1:
-         #if (_ECP_128_==_ECP_IMPL_SPECIFIC_)
-         *(ECP_METHOD(pECC)) = *(ECCP128_Methods());//ECCP128;
-         #endif
-         ECCPSetDP(IppECCPStd128r1,
-            BITS2WORD32_SIZE(128), secp128r1_p,
-            BITS2WORD32_SIZE(128), secp128r1_a,
-            BITS2WORD32_SIZE(128), secp128r1_b,
-            BITS2WORD32_SIZE(128), secp128r1_gx,
-            BITS2WORD32_SIZE(128), secp128r1_gy,
-            BITS2WORD32_SIZE(128), secp128r1_r,
-            secp128r1_h, pECC);
-         break;
-      case IppECCPStd128r2:
-         #if (_ECP_128_==_ECP_IMPL_SPECIFIC_)
-         *(ECP_METHOD(pECC)) = *(ECCP128_Methods());//ECCP128;
-         #endif
-         ECCPSetDP(IppECCPStd128r2,
-            BITS2WORD32_SIZE(128), secp128r2_p,
-            BITS2WORD32_SIZE(128), secp128r2_a,
-            BITS2WORD32_SIZE(128), secp128r2_b,
-            BITS2WORD32_SIZE(128), secp128r2_gx,
-            BITS2WORD32_SIZE(128), secp128r2_gy,
-            BITS2WORD32_SIZE(128), secp128r2_r,
-            secp128r2_h, pECC);
-         break;
-      case IppECCPStd160r1:
-         ECCPSetDP(IppECCPStd160r1,
-            BITS2WORD32_SIZE(160), secp160r1_p,
-            BITS2WORD32_SIZE(160), secp160r1_a,
-            BITS2WORD32_SIZE(160), secp160r1_b,
-            BITS2WORD32_SIZE(160), secp160r1_gx,
-            BITS2WORD32_SIZE(160), secp160r1_gy,
-            BITS2WORD32_SIZE(161), secp160r1_r,
-            secp160r1_h, pECC);
-         break;
-      case IppECCPStd160r2:
-         ECCPSetDP(IppECCPStd160r2,
-            BITS2WORD32_SIZE(160), secp160r2_p,
-            BITS2WORD32_SIZE(160), secp160r2_a,
-            BITS2WORD32_SIZE(160), secp160r2_b,
-            BITS2WORD32_SIZE(160), secp160r2_gx,
-            BITS2WORD32_SIZE(160), secp160r2_gy,
-            BITS2WORD32_SIZE(161), secp160r2_r,
-            secp160r2_h, pECC);
-         break;
-      case IppECCPStd192r1:
-         #if (_ECP_192_==_ECP_IMPL_SPECIFIC_) || (_ECP_192_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP192_Methods());//ECCP192;
-         #endif
-         ECCPSetDP(IppECCPStd192r1,
-            BITS2WORD32_SIZE(192), secp192r1_p,
-            BITS2WORD32_SIZE(192), secp192r1_a,
-            BITS2WORD32_SIZE(192), secp192r1_b,
-            BITS2WORD32_SIZE(192), secp192r1_gx,
-            BITS2WORD32_SIZE(192), secp192r1_gy,
-            BITS2WORD32_SIZE(192), secp192r1_r,
-            secp192r1_h, pECC);
-         break;
-      case IppECCPStd224r1:
-         #if (_ECP_224_==_ECP_IMPL_SPECIFIC_) || (_ECP_224_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP224_Methods());//ECCP224;
-         #endif
-         ECCPSetDP(IppECCPStd224r1,
-            BITS2WORD32_SIZE(224), secp224r1_p,
-            BITS2WORD32_SIZE(224), secp224r1_a,
-            BITS2WORD32_SIZE(224), secp224r1_b,
-            BITS2WORD32_SIZE(224), secp224r1_gx,
-            BITS2WORD32_SIZE(224), secp224r1_gy,
-            BITS2WORD32_SIZE(224), secp224r1_r,
-            secp224r1_h, pECC);
-         break;
-      case IppECCPStd256r1:
-         #if (_ECP_256_==_ECP_IMPL_SPECIFIC_) || (_ECP_256_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP256_Methods());//ECCP256;
-         #endif
-         ECCPSetDP(IppECCPStd256r1,
-            BITS2WORD32_SIZE(256), secp256r1_p,
-            BITS2WORD32_SIZE(256), secp256r1_a,
-            BITS2WORD32_SIZE(256), secp256r1_b,
-            BITS2WORD32_SIZE(256), secp256r1_gx,
-            BITS2WORD32_SIZE(256), secp256r1_gy,
-            BITS2WORD32_SIZE(256), secp256r1_r,
-            secp256r1_h, pECC);
-         break;
-      case IppECCPStd384r1:
-         #if (_ECP_384_==_ECP_IMPL_SPECIFIC_) || (_ECP_384_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP384_Methods());//ECCP384;
-         #endif
-         ECCPSetDP(IppECCPStd384r1,
-            BITS2WORD32_SIZE(384), secp384r1_p,
-            BITS2WORD32_SIZE(384), secp384r1_a,
-            BITS2WORD32_SIZE(384), secp384r1_b,
-            BITS2WORD32_SIZE(384), secp384r1_gx,
-            BITS2WORD32_SIZE(384), secp384r1_gy,
-            BITS2WORD32_SIZE(384), secp384r1_r,
-            secp384r1_h, pECC);
-         break;
-      case IppECCPStd521r1:
-         #if (_ECP_521_==_ECP_IMPL_SPECIFIC_) || (_ECP_521_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP521_Methods());//ECCP521;
-         #endif
-         ECCPSetDP(IppECCPStd521r1,
-            BITS2WORD32_SIZE(521), secp521r1_p,
-            BITS2WORD32_SIZE(521), secp521r1_a,
-            BITS2WORD32_SIZE(521), secp521r1_b,
-            BITS2WORD32_SIZE(521), secp521r1_gx,
-            BITS2WORD32_SIZE(521), secp521r1_gy,
-            BITS2WORD32_SIZE(521), secp521r1_r,
-            secp521r1_h, pECC);
-         break;
-      case ippEC_TPM_BN_P256:
-         ECCPSetDP(ippEC_TPM_BN_P256,
-            BITS2WORD32_SIZE(256), tpmBN_p256p_p,
-            BITS2WORD32_SIZE(32),  tpmBN_p256p_a,
-            BITS2WORD32_SIZE(32),  tpmBN_p256p_b,
-            BITS2WORD32_SIZE(32),  tpmBN_p256p_gx,
-            BITS2WORD32_SIZE(32),  tpmBN_p256p_gy,
-            BITS2WORD32_SIZE(256), tpmBN_p256p_r,
-            tpmBN_p256p_h, pECC);
-         break;
-      case ippECPstdSM2:
-         #if (_ECP_SM2_==_ECP_IMPL_SPECIFIC_) || (_ECP_SM2_==_ECP_IMPL_MFM_)
-         *(ECP_METHOD(pECC)) = *(ECCP_SM2_Methods());
-         #endif
-         ECCPSetDP(ippEC_TPM_SM2_P256,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_p,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_a,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_b,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_gx,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_gy,
-            BITS2WORD32_SIZE(256), tpmSM2_p256_r,
-            tpmSM2_p256_h, pECC);
-         break;
-      default:
-         return ippStsECCInvalidFlagErr;
-   }
-
-   return ippStsNoErr;
-}
-
-/*F*
-//    Name: ippsECCPSetStd128r1
-//          ippsECCPSetStd128r2
-//          ippsECCPSetStd192r1
-//          ippsECCPSetStd224r1
-//          ippsECCPSetStd256r1
-//          ippsECCPSetStd384r1
-//          ippsECCPSetStd521r1
-//          ippsECCPSetStdSM2
-*F*/
-IPPFUN(IppStatus, ippsECCPSetStd128r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_128_==_ECP_IMPL_SPECIFIC_)
-   *(ECP_METHOD(pECC)) = *(ECCP128_Methods());  // ECCP128;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd128r1,
-         BITS2WORD32_SIZE(128), secp128r1_p,
-         BITS2WORD32_SIZE(128), secp128r1_a,
-         BITS2WORD32_SIZE(128), secp128r1_b,
-         BITS2WORD32_SIZE(128), secp128r1_gx,
-         BITS2WORD32_SIZE(128), secp128r1_gy,
-         BITS2WORD32_SIZE(128), secp128r1_r,
-         secp128r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd128r2, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_128_==_ECP_IMPL_SPECIFIC_)
-   *(ECP_METHOD(pECC)) = *(ECCP128_Methods());  // ECCP128;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd128r2,
-         BITS2WORD32_SIZE(128), secp128r2_p,
-         BITS2WORD32_SIZE(128), secp128r2_a,
-         BITS2WORD32_SIZE(128), secp128r2_b,
-         BITS2WORD32_SIZE(128), secp128r2_gx,
-         BITS2WORD32_SIZE(128), secp128r2_gy,
-         BITS2WORD32_SIZE(128), secp128r2_r,
-         secp128r2_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd192r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_192_==_ECP_IMPL_SPECIFIC_)  || (_ECP_192_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP192_Methods());  // ECCP192;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd192r1,
-         BITS2WORD32_SIZE(192), secp192r1_p,
-         BITS2WORD32_SIZE(192), secp192r1_a,
-         BITS2WORD32_SIZE(192), secp192r1_b,
-         BITS2WORD32_SIZE(192), secp192r1_gx,
-         BITS2WORD32_SIZE(192), secp192r1_gy,
-         BITS2WORD32_SIZE(192), secp192r1_r,
-         secp192r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd224r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_224_==_ECP_IMPL_SPECIFIC_)  || (_ECP_224_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP224_Methods());  // ECCP224;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd224r1,
-         BITS2WORD32_SIZE(224), secp224r1_p,
-         BITS2WORD32_SIZE(224), secp224r1_a,
-         BITS2WORD32_SIZE(224), secp224r1_b,
-         BITS2WORD32_SIZE(224), secp224r1_gx,
-         BITS2WORD32_SIZE(224), secp224r1_gy,
-         BITS2WORD32_SIZE(224), secp224r1_r,
-         secp224r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd256r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_256_==_ECP_IMPL_SPECIFIC_) || (_ECP_256_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP256_Methods());  // ECCP256;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd256r1,
-         BITS2WORD32_SIZE(256), secp256r1_p,
-         BITS2WORD32_SIZE(256), secp256r1_a,
-         BITS2WORD32_SIZE(256), secp256r1_b,
-         BITS2WORD32_SIZE(256), secp256r1_gx,
-         BITS2WORD32_SIZE(256), secp256r1_gy,
-         BITS2WORD32_SIZE(256), secp256r1_r,
-         secp256r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd384r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_384_==_ECP_IMPL_SPECIFIC_) || (_ECP_384_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP384_Methods());  // ECCP384;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd384r1,
-         BITS2WORD32_SIZE(384), secp384r1_p,
-         BITS2WORD32_SIZE(384), secp384r1_a,
-         BITS2WORD32_SIZE(384), secp384r1_b,
-         BITS2WORD32_SIZE(384), secp384r1_gx,
-         BITS2WORD32_SIZE(384), secp384r1_gy,
-         BITS2WORD32_SIZE(384), secp384r1_r,
-         secp384r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStd521r1, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_521_==_ECP_IMPL_SPECIFIC_)  || (_ECP_521_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP521_Methods());  // ECCP521;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(IppECCPStd521r1,
-         BITS2WORD32_SIZE(521), secp521r1_p,
-         BITS2WORD32_SIZE(521), secp521r1_a,
-         BITS2WORD32_SIZE(521), secp521r1_b,
-         BITS2WORD32_SIZE(521), secp521r1_gx,
-         BITS2WORD32_SIZE(521), secp521r1_gy,
-         BITS2WORD32_SIZE(521), secp521r1_r,
-         secp521r1_h, pECC);
-
-   return ippStsNoErr;
-}
-
-IPPFUN(IppStatus, ippsECCPSetStdSM2, (IppsECCPState* pECC))
-{
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   #if (_ECP_SM2_==_ECP_IMPL_SPECIFIC_) || (_ECP_SM2_==_ECP_IMPL_MFM_)
-   *(ECP_METHOD(pECC)) = *(ECCP_SM2_Methods()); // ECCSM2;
-   #else
-   *(ECP_METHOD(pECC)) = *(ECCPcom_Methods());  // ECCPcom;
-   #endif
-   ECCPSetDP(ippEC_TPM_SM2_P256,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_p,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_a,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_b,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_gx,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_gy,
-         BITS2WORD32_SIZE(256), tpmSM2_p256_r,
-         tpmSM2_p256_h, pECC);
-
-   return ippStsNoErr;
-}
-
 
 /*F*
 //    Name: ippsECCPGet
@@ -711,20 +242,19 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
                                 IppsBigNumState* pA, IppsBigNumState* pB,
                                 IppsBigNumState* pGX,IppsBigNumState* pGY,IppsBigNumState* pOrder,
                                 int* cofactor,
-                                IppsECCPState* pECC))
+                                IppsECCPState* pEC))
 {
    /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
+   IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test pPrime */
    IPP_BAD_PTR1_RET(pPrime);
    pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET((BN_ROOM(pPrime)*BITSIZE(BNU_CHUNK_T)<ECP_GFEBITS(pECC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pPrime)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
 
    /* test pA and pB */
    IPP_BAD_PTR2_RET(pA,pB);
@@ -732,8 +262,8 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
    pB = (IppsBigNumState*)( IPP_ALIGNED_PTR(pB, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pA), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pB), ippStsContextMatchErr);
-   IPP_BADARG_RET((BN_ROOM(pA)*BITSIZE(BNU_CHUNK_T)<ECP_GFEBITS(pECC)), ippStsRangeErr);
-   IPP_BADARG_RET((BN_ROOM(pB)*BITSIZE(BNU_CHUNK_T)<ECP_GFEBITS(pECC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pA)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pB)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
 
    /* test pG and pGorder pointers */
    IPP_BAD_PTR3_RET(pGX,pGY, pOrder);
@@ -743,25 +273,41 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
    IPP_BADARG_RET(!BN_VALID_ID(pGX),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pGY),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pOrder), ippStsContextMatchErr);
-   IPP_BADARG_RET((BN_ROOM(pGX)*BITSIZE(BNU_CHUNK_T)<ECP_GFEBITS(pECC)),    ippStsRangeErr);
-   IPP_BADARG_RET((BN_ROOM(pGY)*BITSIZE(BNU_CHUNK_T)<ECP_GFEBITS(pECC)),    ippStsRangeErr);
-   IPP_BADARG_RET((BN_ROOM(pOrder)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITS(pECC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pGX)<GFP_FELEN(ECP_GFP(pEC)),    ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pGY)<GFP_FELEN(ECP_GFP(pEC)),    ippStsRangeErr);
+   IPP_BADARG_RET((BN_ROOM(pOrder)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITSIZE(pEC)), ippStsRangeErr);
 
    /* test cofactor */
    IPP_BAD_PTR1_RET(cofactor);
 
-   /* retrieve ECC parameter */
-   PMA_dec(pOrder, ECP_COFACTOR(pECC), ECP_RMONT(pECC));
+   {
+      IppsGFpState* pGF = ECP_GFP(pEC);
+      gfdecode  decode = pGF->decode;  /* gf decode method  */
+      BNU_CHUNK_T* tmp = cpGFpGetPool(1, pGF);
 
-   *cofactor = (int)BN_NUMBER(pOrder)[0];
-   ippsSet_BN(BN_SIGN(ECP_PRIME(pECC)), BN_SIZE32(ECP_PRIME(pECC)), (Ipp32u*)BN_NUMBER(ECP_PRIME(pECC)), pPrime);
-   ippsSet_BN(BN_SIGN(ECP_A(pECC)),     BN_SIZE32(ECP_A(pECC)),     (Ipp32u*)BN_NUMBER(ECP_A(pECC)),     pA);
-   ippsSet_BN(BN_SIGN(ECP_B(pECC)),     BN_SIZE32(ECP_B(pECC)),     (Ipp32u*)BN_NUMBER(ECP_B(pECC)),     pB);
-   ippsSet_BN(BN_SIGN(ECP_GX(pECC)),    BN_SIZE32(ECP_GX(pECC)),    (Ipp32u*)BN_NUMBER(ECP_GX(pECC)),    pGX);
-   ippsSet_BN(BN_SIGN(ECP_GY(pECC)),    BN_SIZE32(ECP_GY(pECC)),    (Ipp32u*)BN_NUMBER(ECP_GY(pECC)),    pGY);
-   ippsSet_BN(BN_SIGN(ECP_ORDER(pECC)), BN_SIZE32(ECP_ORDER(pECC)), (Ipp32u*)BN_NUMBER(ECP_ORDER(pECC)), pOrder);
+      /* retrieve EC parameter */
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)GFP_MODULUS(pGF), pPrime);
 
-   return ippStsNoErr;
+      decode(tmp, ECP_A(pEC), pGF);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pA);
+      decode(tmp, ECP_B(pEC), pGF);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pB);
+
+      decode(tmp, ECP_G(pEC), pGF);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pGX);
+      decode(tmp, ECP_G(pEC)+GFP_FELEN(pGF), pGF);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pGY);
+
+      {
+         IppsMontState* pR = ECP_MONT_R(pEC);
+         ippsSet_BN(ippBigNumPOS, MNT_SIZE(pR)*sizeof(BNU_CHUNK_T)/sizeof(Ipp32u), (Ipp32u*)MNT_MODULUS(pR), pOrder);
+      }
+
+      *cofactor = (int)ECP_COFACTOR(pEC)[0];
+
+      cpGFpReleasePool(1, pGF);
+      return ippStsNoErr;
+   }
 }
 
 
@@ -783,19 +329,17 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
 //    pECC     pointer to the ECC context
 //
 *F*/
-IPPFUN(IppStatus, ippsECCPGetOrderBitSize,(int* pBitSize, IppsECCPState* pECC))
+IPPFUN(IppStatus, ippsECCPGetOrderBitSize,(int* pBitSize, IppsECCPState* pEC))
 {
    /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use 4-byte aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, 4) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   IPP_BAD_PTR1_RET(pEC);
+   /* use aligned EC context */
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test pBitSize*/
    IPP_BAD_PTR1_RET(pBitSize);
 
-   *pBitSize = ECP_ORDBITS(pECC);
-
+   *pBitSize = ECP_ORDBITSIZE(pEC);
    return ippStsNoErr;
 }

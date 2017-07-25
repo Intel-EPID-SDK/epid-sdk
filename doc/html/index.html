@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -62,7 +62,17 @@ $(document).ready(function(){initNavTree('index.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>Intel&reg; EPID is a cryptographic protocol which enables the remote authentication of a trusted platform whilst preserving the user's privacy.</p>
-<p>The Intel&reg; EPID Software Development Kit provides an implementation of the Intel&reg; EPID specification that developers can use when developing their own applications using Intel&reg; EPID technology. </p>
+<p>The Intel&reg; EPID Software Development Kit provides an implementation of the Intel&reg; EPID specification that developers can use when developing their own applications using Intel&reg; EPID technology.</p>
+<h1><a class="anchor" id="mainpage_roadmap"></a>
+Getting Started</h1>
+<p>If you are learning to use the SDK, we recommend the following approach:</p>
+<ol type="1">
+<li><b>Get the Big Picture</b> The <a class="el" href="EpidOverview.html">Introduction to the Intel&reg; EPID Scheme</a> provides a non-implementation-specific overview of the interactions between the issuer, member, and verifier.</li>
+<li><b>Build the SDK</b> For instructions, refer to <a class="el" href="BuildingSdk.html">Building from Source</a>. For help installing the prerequisite build tools, refer to <a class="el" href="BuildToolsInstallation.html">Guide to Installing Build Tools</a>.</li>
+<li><b>Run the SDK Samples with Test Data</b> After you build the SDK, you can follow along with the commands in the implementation specific <a class="el" href="SignVerifyTutorial.html">Signing and Verification Tutorial</a>, using the provided samples and the test data from <a class="el" href="IssuerMaterial.html">Sample Issuer Material</a>.</li>
+<li><b>Check out the Code Examples</b> Refer to <a class="el" href="UserManual_GeneratingAnIntelEpidSignature.html">Generating an Intel&reg; EPID Signature</a> and <a class="el" href="UserManual_VerifyingAnIntelEpidSignature.html">Verifying an Intel&reg; EPID Signature</a> to see how SDK APIs are used by the code examples <code>signmsg</code> and <code>verifysig</code>.</li>
+<li><b>Check out the API Reference</b> The API reference shows you how to use all APIs included in the SDK. </li>
+</ol>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
@@ -70,7 +80,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

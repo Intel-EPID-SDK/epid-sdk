@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,6 +69,11 @@ EpidStatus Epid11PrVerify(Epid11VerifierCtx const* ctx,
   FiniteField* Fp = ctx->epid11_params->Fp;
   bool eq = false;
   do {
+    sts = NewFfElement(Fp, &f);
+    if (kEpidNoErr != sts) {
+      sts = kEpidMathErr;
+      break;
+    }
     sts = NewEcPoint(G3, &B);
     if (kEpidNoErr != sts) {
       sts = kEpidMathErr;
@@ -84,7 +89,8 @@ EpidStatus Epid11PrVerify(Epid11VerifierCtx const* ctx,
       sts = kEpidMathErr;
       break;
     }
-    sts = NewFfElement(Fp, &f);
+    // ReadFfElement checks that the value f_str is in the field
+    sts = ReadFfElement(Fp, f_str, sizeof(BigNumStr), f);
     if (kEpidNoErr != sts) {
       sts = kEpidMathErr;
       break;
@@ -194,7 +200,7 @@ EpidStatus Epid11Verify(Epid11VerifierCtx const* ctx,
     // values in s match with the values in SIG-RL....
     if (0 != memcmp(&ctx->sig_rl->version, &sig->rl_ver,
                     sizeof(ctx->sig_rl->version))) {
-      return kEpidBadArgErr;
+      return kEpidErr;
     }
 
     if (sigrl_count != rl_count) {

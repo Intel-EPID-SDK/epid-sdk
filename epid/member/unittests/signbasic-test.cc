@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  * \brief SignBasic unit tests.
  */
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -84,8 +85,8 @@ TEST_F(EpidMemberTest, BasicSignaturesOfSameMessageAreDifferent) {
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
-  BasicSignature basic_sig1;
-  BasicSignature basic_sig2;
+  BasicSignature basic_sig1 = {0};
+  BasicSignature basic_sig2 = {0};
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                       0, &basic_sig1));
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
@@ -243,7 +244,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512HashAlg) {
   EXPECT_EQ(kEpidSigValid,
             EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
-TEST_F(EpidMemberTest, DISABLED_SignBasicSucceedsUsingSha512256HashAlg) {
+TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512256HashAlg) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
@@ -261,37 +262,11 @@ TEST_F(EpidMemberTest, DISABLED_SignBasicSucceedsUsingSha512256HashAlg) {
             EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 /////////////////////////////////////////////////////////////////////////
-TEST_F(EpidMemberTest, SignBasicFailsForInvalidMemberPrecomp) {
-  Prng my_prng;
-  MemberPrecomp mbr_precomp = this->kMemberPrecomp;
-  mbr_precomp.e12.x[0].data.data[0]++;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
-                      mbr_precomp, &Prng::Generate, &my_prng);
-  auto& msg = this->kMsg0;
-  BasicSignature basic_sig;
-  auto& bsn = this->kBsn0;
-  EXPECT_EQ(kEpidBadArgErr, EpidSignBasic(member, msg.data(), msg.size(),
-                                          bsn.data(), bsn.size(), &basic_sig));
-}
-// Variable precomputed signatures
-TEST_F(EpidMemberTest, SignBasicFailsForInvalidPrecomputedSignature) {
-  Prng my_prng;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
-                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
-  PreComputedSignature precompsig = this->kPrecomputedSignatures[0];
-  precompsig.B.x.data.data[0]++;
-  THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, &precompsig));
-  auto& msg = this->kMsg0;
-  BasicSignature basic_sig;
-  auto& bsn = this->kBsn0;
-  EXPECT_EQ(kEpidBadArgErr, EpidSignBasic(member, msg.data(), msg.size(),
-                                          bsn.data(), bsn.size(), &basic_sig));
-}
 TEST_F(EpidMemberTest, SignBasicConsumesPrecomputedSignatures) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
-  THROW_ON_EPIDERR(EpidAddPreSigs(member, 3, nullptr));
+  THROW_ON_EPIDERR(EpidAddPreSigs(member, 3));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   auto& bsn = this->kBsn0;
@@ -305,7 +280,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithPrecomputedSignatures) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
-  THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, nullptr));
+  THROW_ON_EPIDERR(EpidAddPreSigs(member, 1));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   auto& bsn = this->kBsn0;
@@ -322,7 +297,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithoutPrecomputedSignatures) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
-  THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, nullptr));
+  THROW_ON_EPIDERR(EpidAddPreSigs(member, 1));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   auto& bsn = this->kBsn0;

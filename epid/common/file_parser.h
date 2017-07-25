@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@
   \defgroup FileParser fileparser
   Provides an API for parsing buffers formatted according to the
   various IoT Intel(R) EPID binary file formats.
+
+  To use this module, include the header epid/common/file_parser.h.
 
   \ingroup EpidCommon
   @{
@@ -136,6 +138,9 @@ EpidStatus EpidParseFileHeader(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
+  \b Examples
+
+  \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidParseGroupPubKeyFile(void const* buf, size_t len,
                                     EpidCaCertificate const* cert,
@@ -178,6 +183,9 @@ EpidStatus EpidParseGroupPubKeyFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
+  \b Example
+
+  \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidParsePrivRlFile(void const* buf, size_t len,
                                EpidCaCertificate const* cert, PrivRl* rl,
@@ -220,6 +228,9 @@ EpidStatus EpidParsePrivRlFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
+  \b Examples
+
+  \ref UserManual_GeneratingAnIntelEpidSignature
  */
 EpidStatus EpidParseSigRlFile(void const* buf, size_t len,
                               EpidCaCertificate const* cert, SigRl* rl,
@@ -262,6 +273,9 @@ EpidStatus EpidParseSigRlFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
+  \b Example
+
+  \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidParseGroupRlFile(void const* buf, size_t len,
                                 EpidCaCertificate const* cert, GroupRl* rl,

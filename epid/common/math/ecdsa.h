@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@
 
   \see EcdsaSignBuffer
  */
-EpidStatus EcdsaVerifyBuffer(void const* buf, size_t buf_len,
+EpidStatus EcdsaVerifyBuffer(ConstOctStr buf, size_t buf_len,
                              EcdsaPublicKey const* pubkey,
                              EcdsaSignature const* sig);
 
@@ -103,7 +103,7 @@ EpidStatus EcdsaVerifyBuffer(void const* buf, size_t buf_len,
 
   \see EcdsaSignBuffer
  */
-EpidStatus EcdsaSignBuffer(void const* buf, size_t buf_len,
+EpidStatus EcdsaSignBuffer(ConstOctStr buf, size_t buf_len,
                            EcdsaPrivateKey const* privkey, BitSupplier rnd_func,
                            void* rnd_param, EcdsaSignature* sig);
 

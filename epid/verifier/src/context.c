@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -507,7 +507,8 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg) {
   if (!ctx) {
     return kEpidBadArgErr;
   }
-  if (kSha256 != hash_alg && kSha384 != hash_alg && kSha512 != hash_alg)
+  if (kSha256 != hash_alg && kSha384 != hash_alg && kSha512 != hash_alg &&
+      kSha512_256 != hash_alg)
     return kEpidBadArgErr;
 
   if (ctx->hash_alg != hash_alg) {
@@ -613,22 +614,22 @@ static EpidStatus DoPrecomputation(VerifierCtx* ctx) {
   ps_ctx = params->pairing_state;
   // do precomputation
   // 1. The verifier computes e12 = pairing(h1, g2).
-  result = Pairing(ps_ctx, e12, pub_key->h1, params->g2);
+  result = Pairing(ps_ctx, pub_key->h1, params->g2, e12);
   if (kEpidNoErr != result) {
     return result;
   }
   // 2. The verifier computes e22 = pairing(h2, g2).
-  result = Pairing(ps_ctx, e22, pub_key->h2, params->g2);
+  result = Pairing(ps_ctx, pub_key->h2, params->g2, e22);
   if (kEpidNoErr != result) {
     return result;
   }
   // 3. The verifier computes e2w = pairing(h2, w).
-  result = Pairing(ps_ctx, e2w, pub_key->h2, pub_key->w);
+  result = Pairing(ps_ctx, pub_key->h2, pub_key->w, e2w);
   if (kEpidNoErr != result) {
     return result;
   }
   // 4. The verifier computes eg12 = pairing(g1, g2).
-  result = Pairing(ps_ctx, eg12, params->g1, params->g2);
+  result = Pairing(ps_ctx, params->g1, params->g2, eg12);
   if (kEpidNoErr != result) {
     return result;
   }

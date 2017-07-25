@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,7 +58,6 @@ $(document).ready(function(){initNavTree('member_2api_8h.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -74,15 +73,6 @@ $(document).ready(function(){initNavTree('member_2api_8h.html','');});
 <code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitsupplier_8h.html">epid/common/bitsupplier.h</a>&quot;</code><br />
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_precomp.html">MemberPrecomp</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pre-computed member settings.  <a href="struct_member_precomp.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_pre_computed_signature.html">PreComputedSignature</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pre-computed signature.  <a href="struct_pre_computed_signature.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:gadfb10d5dfdadb0694792c7b06718e817"><td class="memItemLeft" align="right" valign="top">
@@ -104,24 +94,24 @@ Functions</h2></td></tr>
 <tr class="memitem:ga9998eb454838ff5d232ff22ecbab31bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga9998eb454838ff5d232ff22ecbab31bf">EpidMemberSetHashAlg</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg)</td></tr>
 <tr class="memdesc:ga9998eb454838ff5d232ff22ecbab31bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the hash algorithm to be used by a member.  <a href="group___epid_member_module.html#ga9998eb454838ff5d232ff22ecbab31bf">More...</a><br /></td></tr>
 <tr class="separator:ga9998eb454838ff5d232ff22ecbab31bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaae6f21f58c22fce58076f10d68159f4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gaaae6f21f58c22fce58076f10d68159f4">EpidMemberSetSigRl</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, <a class="el" href="struct_sig_rl.html">SigRl</a> const *sig_rl, size_t sig_rl_size)</td></tr>
+<tr class="memdesc:gaaae6f21f58c22fce58076f10d68159f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the signature based revocation list to be used by a member.  <a href="group___epid_member_module.html#gaaae6f21f58c22fce58076f10d68159f4">More...</a><br /></td></tr>
+<tr class="separator:gaaae6f21f58c22fce58076f10d68159f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga76e535722467af7c16809b5b521e0000"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga76e535722467af7c16809b5b521e0000">EpidGetSigSize</a> (<a class="el" href="struct_sig_rl.html">SigRl</a> const *sig_rl)</td></tr>
 <tr class="memdesc:ga76e535722467af7c16809b5b521e0000"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the size in bytes required for an Intel(R) EPID signature.  <a href="group___epid_member_module.html#ga76e535722467af7c16809b5b521e0000">More...</a><br /></td></tr>
 <tr class="separator:ga76e535722467af7c16809b5b521e0000"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga759155a719254f734157722716dac640"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga759155a719254f734157722716dac640">EpidSign</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> const *ctx, void const *msg, size_t msg_len, void const *basename, size_t basename_len, <a class="el" href="struct_sig_rl.html">SigRl</a> const *sig_rl, size_t sig_rl_size, <a class="el" href="struct_epid_signature.html">EpidSignature</a> *sig, size_t sig_len)</td></tr>
-<tr class="memdesc:ga759155a719254f734157722716dac640"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes an Intel(R) EPID signature.  <a href="group___epid_member_module.html#ga759155a719254f734157722716dac640">More...</a><br /></td></tr>
-<tr class="separator:ga759155a719254f734157722716dac640"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74d1409a816cb52633564b793072da5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f">EpidSign</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> const *ctx, void const *msg, size_t msg_len, void const *basename, size_t basename_len, <a class="el" href="struct_epid_signature.html">EpidSignature</a> *sig, size_t sig_len)</td></tr>
+<tr class="memdesc:ga74d1409a816cb52633564b793072da5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes an Intel(R) EPID signature.  <a href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f">More...</a><br /></td></tr>
+<tr class="separator:ga74d1409a816cb52633564b793072da5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad92d3c3266ae1833ffb1dba9ad76035d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gad92d3c3266ae1833ffb1dba9ad76035d">EpidRegisterBaseName</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, void const *basename, size_t basename_len)</td></tr>
 <tr class="memdesc:gad92d3c3266ae1833ffb1dba9ad76035d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a basename with a member.  <a href="group___epid_member_module.html#gad92d3c3266ae1833ffb1dba9ad76035d">More...</a><br /></td></tr>
 <tr class="separator:gad92d3c3266ae1833ffb1dba9ad76035d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad2e3de5c6ce641a318f8a46b61e75236"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gad2e3de5c6ce641a318f8a46b61e75236">EpidAddPreSigs</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, size_t number_presigs, <a class="el" href="struct_pre_computed_signature.html">PreComputedSignature</a> *presigs)</td></tr>
-<tr class="memdesc:gad2e3de5c6ce641a318f8a46b61e75236"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extends the member's pool of pre-computed signatures.  <a href="group___epid_member_module.html#gad2e3de5c6ce641a318f8a46b61e75236">More...</a><br /></td></tr>
-<tr class="separator:gad2e3de5c6ce641a318f8a46b61e75236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb0547ec085a9ed324d323416bce4a78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gacb0547ec085a9ed324d323416bce4a78">EpidAddPreSigs</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, size_t number_presigs)</td></tr>
+<tr class="memdesc:gacb0547ec085a9ed324d323416bce4a78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extends the member's pool of pre-computed signatures.  <a href="group___epid_member_module.html#gacb0547ec085a9ed324d323416bce4a78">More...</a><br /></td></tr>
+<tr class="separator:gacb0547ec085a9ed324d323416bce4a78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad78ca056dfea2565bbacd5734d9dc075"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gad78ca056dfea2565bbacd5734d9dc075">EpidGetNumPreSigs</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> const *ctx)</td></tr>
 <tr class="memdesc:gad78ca056dfea2565bbacd5734d9dc075"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of pre-computed signatures in the member's pool.  <a href="group___epid_member_module.html#gad78ca056dfea2565bbacd5734d9dc075">More...</a><br /></td></tr>
 <tr class="separator:gad78ca056dfea2565bbacd5734d9dc075"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9e12c7cec8d0c4e07b12c0e26a278c9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga9e12c7cec8d0c4e07b12c0e26a278c9d">EpidWritePreSigs</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> *ctx, <a class="el" href="struct_pre_computed_signature.html">PreComputedSignature</a> *presigs, size_t number_presigs)</td></tr>
-<tr class="memdesc:ga9e12c7cec8d0c4e07b12c0e26a278c9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serializes pre-computed signatures from the member's pool.  <a href="group___epid_member_module.html#ga9e12c7cec8d0c4e07b12c0e26a278c9d">More...</a><br /></td></tr>
-<tr class="separator:ga9e12c7cec8d0c4e07b12c0e26a278c9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga13dd0d72be9babf8194d472d7712a361"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga13dd0d72be9babf8194d472d7712a361">EpidRequestJoin</a> (<a class="el" href="struct_group_pub_key.html">GroupPubKey</a> const *pub_key, <a class="el" href="group___epid_types.html#ga55eb2193045bde31af3f551565126042">IssuerNonce</a> const *ni, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> rnd_func, void *rnd_param, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg, <a class="el" href="struct_join_request.html">JoinRequest</a> *join_request)</td></tr>
 <tr class="memdesc:ga13dd0d72be9babf8194d472d7712a361"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a request to join a group.  <a href="group___epid_member_module.html#ga13dd0d72be9babf8194d472d7712a361">More...</a><br /></td></tr>
 <tr class="separator:ga13dd0d72be9babf8194d472d7712a361"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -131,9 +121,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gac8e2c6c1fead8030785a40427905a2cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gac8e2c6c1fead8030785a40427905a2cc">EpidNrProve</a> (<a class="el" href="group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817">MemberCtx</a> const *ctx, void const *msg, size_t msg_len, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, <a class="el" href="struct_sig_rl_entry.html">SigRlEntry</a> const *sigrl_entry, <a class="el" href="struct_nr_proof.html">NrProof</a> *proof)</td></tr>
 <tr class="memdesc:gac8e2c6c1fead8030785a40427905a2cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates a non-revoked proof for a single signature based revocation list entry.  <a href="group___epid_member_module.html#gac8e2c6c1fead8030785a40427905a2cc">More...</a><br /></td></tr>
 <tr class="separator:gac8e2c6c1fead8030785a40427905a2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8e3f201d1e9dc668659e08a3bdf543b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdtypes_8h.html#ad5c9d4ba3dc37783a528b0925dc981a0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga8e3f201d1e9dc668659e08a3bdf543b6">EpidIsPrivKeyInGroup</a> (<a class="el" href="struct_group_pub_key.html">GroupPubKey</a> const *pub_key, <a class="el" href="struct_priv_key.html">PrivKey</a> const *priv_key)</td></tr>
-<tr class="memdesc:ga8e3f201d1e9dc668659e08a3bdf543b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests if a member private key is valid without checking revocation.  <a href="group___epid_member_module.html#ga8e3f201d1e9dc668659e08a3bdf543b6">More...</a><br /></td></tr>
-<tr class="separator:ga8e3f201d1e9dc668659e08a3bdf543b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4ccaa8337931523c77567f5b846ef188"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#ga4ccaa8337931523c77567f5b846ef188">EpidAssemblePrivKey</a> (<a class="el" href="struct_membership_credential.html">MembershipCredential</a> const *credential, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f, <a class="el" href="struct_group_pub_key.html">GroupPubKey</a> const *pub_key, <a class="el" href="struct_priv_key.html">PrivKey</a> *priv_key)</td></tr>
+<tr class="memdesc:ga4ccaa8337931523c77567f5b846ef188"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assembles member private key from membership credential and f value.  <a href="group___epid_member_module.html#ga4ccaa8337931523c77567f5b846ef188">More...</a><br /></td></tr>
+<tr class="separator:ga4ccaa8337931523c77567f5b846ef188"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf8cd05388f017486f14da2ee48d067ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_member_module.html#gaf8cd05388f017486f14da2ee48d067ef">EpidDecompressPrivKey</a> (<a class="el" href="struct_group_pub_key.html">GroupPubKey</a> const *pub_key, <a class="el" href="struct_compressed_priv_key.html">CompressedPrivKey</a> const *compressed_privkey, <a class="el" href="struct_priv_key.html">PrivKey</a> *priv_key)</td></tr>
 <tr class="memdesc:gaf8cd05388f017486f14da2ee48d067ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompresses compressed member private key.  <a href="group___epid_member_module.html#gaf8cd05388f017486f14da2ee48d067ef">More...</a><br /></td></tr>
 <tr class="separator:gaf8cd05388f017486f14da2ee48d067ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -148,7 +138,7 @@ Functions</h2></td></tr>
   <ul>
     <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="member_2api_8h.html">api.h</a></li>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

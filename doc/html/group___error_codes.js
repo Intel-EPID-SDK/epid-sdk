@@ -20,7 +20,8 @@ var group___error_codes =
       [ "kEpidRandMaxIterErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a61234ad9610406da6bf7977afd72a357", null ],
       [ "kEpidDuplicateErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a3706f895a660260033b5b91890516c0f", null ],
       [ "kEpidInconsistentBasenameSetErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a94ae9c9b9337afd2fefd3b4f9c3160df", null ],
-      [ "kEpidMathQuadraticNonResidueError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129", null ]
+      [ "kEpidMathQuadraticNonResidueError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129", null ],
+      [ "kEpidOutOfSequenceError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43", null ]
     ] ],
     [ "EpidStatusToString", "group___error_codes.html#ga59e8680ce52509302fd58a987e45004d", null ]
 ];

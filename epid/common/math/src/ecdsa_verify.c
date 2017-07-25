@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ static EpidStatus ReadCurvePoint(IppsECCPState* ec,
                                  EcdsaPublicKey const* pubkey,
                                  IppsECCPPointState* p);
 
-static EpidStatus CalcHashBn(void const* buf, size_t buf_len,
+static EpidStatus CalcHashBn(ConstOctStr buf, size_t buf_len,
                              BigNum* bn_digest);
 
 static void DeleteCurvePoint(IppsECCPPointState** p);
@@ -55,7 +55,7 @@ static void DeleteCurvePoint(IppsECCPPointState** p);
 static EpidStatus ValidateSignature(BigNum const* bn_sig_x,
                                     BigNum const* bn_sig_y);
 
-EpidStatus EcdsaVerifyBuffer(void const* buf, size_t buf_len,
+EpidStatus EcdsaVerifyBuffer(ConstOctStr buf, size_t buf_len,
                              EcdsaPublicKey const* pubkey,
                              EcdsaSignature const* sig) {
   EpidStatus result = kEpidErr;
@@ -104,7 +104,12 @@ EpidStatus EcdsaVerifyBuffer(void const* buf, size_t buf_len,
     epid_status = NewCurvePoint(ec_state, &ecp_pubkey);
     if (kEpidNoErr != epid_status) break;
     epid_status = ReadCurvePoint(ec_state, pubkey, ecp_pubkey);
-    if (kEpidNoErr != epid_status) break;
+    if (kEpidBadArgErr == epid_status) {
+      result = kEpidBadArgErr;
+      break;
+    } else if (kEpidNoErr != epid_status) {
+      break;
+    }
 
     // check for invalid pubkey
     ipp_status = ippsECCPCheckPoint(ecp_pubkey, &ec_result, ec_state);
@@ -249,7 +254,13 @@ static EpidStatus ReadCurvePoint(IppsECCPState* ec,
 
     ipp_status =
         ippsECCPSetPoint(bn_pubkey_x->ipp_bn, bn_pubkey_y->ipp_bn, p, ec);
-    BREAK_ON_IPP_ERROR(ipp_status, result);
+    if (ipp_status == ippStsOutOfRangeErr) {
+      result = kEpidBadArgErr;
+      break;
+    } else if (ipp_status != ippStsNoErr) {
+      result = kEpidMathErr;
+      break;
+    }
   } while (0);
 
   DeleteBigNum(&bn_pubkey_x);
@@ -258,7 +269,7 @@ static EpidStatus ReadCurvePoint(IppsECCPState* ec,
   return result;
 }
 
-static EpidStatus CalcHashBn(void const* buf, size_t buf_len,
+static EpidStatus CalcHashBn(ConstOctStr buf, size_t buf_len,
                              BigNum* bn_digest) {
   EpidStatus result = kEpidErr;
   BigNum* bn_ec_order = NULL;

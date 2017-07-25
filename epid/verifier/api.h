@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@
 
   Defines the APIs needed by Intel(R) EPID verifiers. Each verifier
   context (::VerifierCtx) represents a verifier for a single group.
+
+  To use this module, include the header epid/verifier/api.h.
 
   \ingroup EpidModule
   @{
@@ -82,6 +84,10 @@ typedef struct VerifierPrecomp {
 
  \see EpidVerifierDelete
  \see EpidVerifierWritePrecomp
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierCreate(GroupPubKey const* pub_key,
                               VerifierPrecomp const* precomp,
@@ -99,6 +105,10 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pub_key,
  The verifier context. Can be NULL.
 
  \see EpidVerifierCreate
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 void EpidVerifierDelete(VerifierCtx** ctx);
 
@@ -112,6 +122,10 @@ void EpidVerifierDelete(VerifierCtx** ctx);
 
  \note
  If the result is not ::kEpidNoErr the content of precomp is undefined.
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
                                     VerifierPrecomp* precomp);
@@ -147,6 +161,10 @@ EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
  pointed to by the verifier is undefined.
 
  \see EpidVerifierCreate
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
                                  size_t priv_rl_size);
@@ -182,6 +200,10 @@ EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
  to by the verifier is undefined.
 
  \see EpidVerifierCreate
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
                                 size_t sig_rl_size);
@@ -217,6 +239,10 @@ EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
  to by the verifier is undefined.
 
  \see EpidVerifierCreate
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
                                   size_t grp_rl_size);
@@ -248,6 +274,10 @@ EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
  \see EpidVerifierCreate
  \see EpidBlacklistSig
  \see EpidWriteVerifierRl
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
                                      size_t ver_rl_size);
@@ -267,6 +297,10 @@ EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
 
  \see EpidVerifierCreate
  \see ::HashAlg
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
 
@@ -288,6 +322,9 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
 
   \see EpidVerifierCreate
 
+  \b Example
+
+  \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
                                    size_t basename_len);
@@ -327,6 +364,10 @@ EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
  \see EpidVerifierCreate
  \see EpidSignBasic
  \see EpidSign
+
+ \b Example
+
+ \ref UserManual_VerifyingAnIntelEpidSignature
  */
 EpidStatus EpidVerify(VerifierCtx const* ctx, EpidSignature const* sig,
                       size_t sig_len, void const* msg, size_t msg_len);

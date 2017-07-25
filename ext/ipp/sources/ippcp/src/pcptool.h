@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@
 #if !defined(_PC_TOOL_H)
 #define _CP_TOOL_H
 
+#define _NEW_COPY16_
+#define _NEW_XOR16_
+
 /* copy data block */
 __INLINE void CopyBlock(const void* pSrc, void* pDst, cpSize numBytes)
 {
@@ -41,12 +44,29 @@ __INLINE void CopyBlock8(const void* pSrc, void* pDst)
    for(k=0; k<8; k++ )
       ((Ipp8u*)pDst)[k] = ((Ipp8u*)pSrc)[k];
 }
+
+#if defined(_NEW_COPY16_)
+__INLINE void CopyBlock16(const void* pSrc, void* pDst)
+{
+#if (_IPP_ARCH ==_IPP_ARCH_EM64T)
+   ((Ipp64u*)pDst)[0] = ((Ipp64u*)pSrc)[0];
+   ((Ipp64u*)pDst)[1] = ((Ipp64u*)pSrc)[1];
+#else
+   ((Ipp32u*)pDst)[0] = ((Ipp32u*)pSrc)[0];
+   ((Ipp32u*)pDst)[1] = ((Ipp32u*)pSrc)[1];
+   ((Ipp32u*)pDst)[2] = ((Ipp32u*)pSrc)[2];
+   ((Ipp32u*)pDst)[3] = ((Ipp32u*)pSrc)[3];
+#endif
+}
+#else
 __INLINE void CopyBlock16(const void* pSrc, void* pDst)
 {
    int k;
    for(k=0; k<16; k++ )
       ((Ipp8u*)pDst)[k] = ((Ipp8u*)pSrc)[k];
 }
+#endif
+
 __INLINE void CopyBlock24(const void* pSrc, void* pDst)
 {
    int k;
@@ -78,6 +98,7 @@ __INLINE void PurgeBlock(void* pDst, int len)
    for(n=0; n<len; n++) ((Ipp8u*)pDst)[n] = 0;
 }
 #else
+#define PurgeBlock OWNAPI(PurgeBlock)
 void PurgeBlock(void* pDst, int len);
 #endif
 
@@ -115,6 +136,21 @@ __INLINE void XorBlock8(const void* pSrc1, const void* pSrc2, void* pDst)
    for(k=0; k<8; k++ )
       d[k] = (Ipp8u)(p1[k] ^p2[k]);
 }
+
+#if defined(_NEW_XOR16_)
+__INLINE void XorBlock16(const void* pSrc1, const void* pSrc2, void* pDst)
+{
+#if (_IPP_ARCH ==_IPP_ARCH_EM64T)
+   ((Ipp64u*)pDst)[0] = ((Ipp64u*)pSrc1)[0] ^ ((Ipp64u*)pSrc2)[0];
+   ((Ipp64u*)pDst)[1] = ((Ipp64u*)pSrc1)[1] ^ ((Ipp64u*)pSrc2)[1];
+#else
+   ((Ipp32u*)pDst)[0] = ((Ipp32u*)pSrc1)[0] ^ ((Ipp32u*)pSrc2)[0];
+   ((Ipp32u*)pDst)[1] = ((Ipp32u*)pSrc1)[1] ^ ((Ipp32u*)pSrc2)[1];
+   ((Ipp32u*)pDst)[2] = ((Ipp32u*)pSrc1)[2] ^ ((Ipp32u*)pSrc2)[2];
+   ((Ipp32u*)pDst)[3] = ((Ipp32u*)pSrc1)[3] ^ ((Ipp32u*)pSrc2)[3];
+#endif
+}
+#else
 __INLINE void XorBlock16(const void* pSrc1, const void* pSrc2, void* pDst)
 {
    const Ipp8u* p1 = (const Ipp8u*)pSrc1;
@@ -124,6 +160,8 @@ __INLINE void XorBlock16(const void* pSrc1, const void* pSrc2, void* pDst)
    for(k=0; k<16; k++ )
       d[k] = (Ipp8u)(p1[k] ^p2[k]);
 }
+#endif
+
 __INLINE void XorBlock24(const void* pSrc1, const void* pSrc2, void* pDst)
 {
    const Ipp8u* p1 = (const Ipp8u*)pSrc1;

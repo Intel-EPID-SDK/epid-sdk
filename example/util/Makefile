@@ -19,7 +19,7 @@ $(UTIL_OBJ): %.o: %.c
 
 $(UTIL_LIB): $(UTIL_OBJ)
 	$(AR) rc $(UTIL_LIB) $(UTIL_OBJ)
-	ranlib $(UTIL_LIB)
+	$(RANLIB) $(UTIL_LIB)
 
 build: all
 

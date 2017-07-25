@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2005-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@
 #elif ((_IPP==_IPP_V8) || \
        (_IPP==_IPP_P8) || \
        (_IPP==_IPP_G9) || \
-       (_IPPLP32==_IPPLP32_S8))
+       (_IPP==_IPP_S8))
    #define CP_KARATSUBA_MUL_THRESHOLD 32
    #define CP_KARATSUBA_SQR_THRESHOLD 32
 #elif ((_IPP>=_IPP_H9))
@@ -53,7 +53,7 @@
        (_IPP32E==_IPP32E_U8) || \
        (_IPP32E==_IPP32E_Y8) || \
        (_IPP32E==_IPP32E_E9) || \
-       (_IPPLP64==_IPPLP64_N8))
+       (_IPP32E==_IPP32E_N8))
    #define CP_KARATSUBA_MUL_THRESHOLD 16
    #define CP_KARATSUBA_SQR_THRESHOLD 40
 #elif ((_IPP32E>=_IPP32E_L9))
@@ -66,11 +66,14 @@
 #endif
 
 
+#define cpKaratsubaBufferSize OWNAPI(cpKaratsubaBufferSize)
 cpSize cpKaratsubaBufferSize(cpSize len);
 
+#define cpMul_BNU_karatsuba OWNAPI(cpMul_BNU_karatsuba)
 BNU_CHUNK_T cpMul_BNU_karatsuba(BNU_CHUNK_T* pR,
                           const BNU_CHUNK_T* pX, const BNU_CHUNK_T* pY, cpSize ns,
                                 BNU_CHUNK_T* pBuffer);
+#define cpSqr_BNU_karatsuba OWNAPI(cpSqr_BNU_karatsuba)
 BNU_CHUNK_T cpSqr_BNU_karatsuba(BNU_CHUNK_T* pR,
                           const BNU_CHUNK_T* pX, cpSize ns,
                                 BNU_CHUNK_T* pBuffer);

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -245,7 +245,7 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
       BREAK_ON_EPID_ERROR(res);
     }
     //   k. The verifier computes R2 = pairing(T, t1).
-    res = Pairing(ctx->epid2_params->pairing_state, R2, T, t1);
+    res = Pairing(ctx->epid2_params->pairing_state, T, t1, R2);
     BREAK_ON_EPID_ERROR(res);
     //   l. The verifier compute t2 = GT.multiExp(e12, sf, e22, sb,
     //      e2w, sa, eg12, c).

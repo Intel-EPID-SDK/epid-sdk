@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -48,19 +48,21 @@
 #include "pcpbnumisc.h"
 
 
-/* Function cpAdd_BNU - addition of 2 BigNumbers  */
+/* Function cpAdd_BNU - addition of 2 BNU */
+
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8) || \
-      (_IPPLRB>=_IPPLRB_B1))
+      (_IPP32E==_IPP32E_N8) || \
+      (_IPPLRB>=_IPPLRB_B1)) || \
+      defined(_USE_C_cpAdd_BNU_)
 BNU_CHUNK_T cpAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, cpSize ns)
 {
    BNU_CHUNK_T carry = 0;
@@ -72,19 +74,21 @@ BNU_CHUNK_T cpAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T*
 }
 #endif
 
-/* Function cpSub_BNU - subtraction of 2 BigNumbers  */
+/* Function cpSub_BNU - subtraction of 2 BNU */
+
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8) || \
-      (_IPPLRB>=_IPPLRB_B1))
+      (_IPP32E==_IPP32E_N8) || \
+      (_IPPLRB>=_IPPLRB_B1)) || \
+      defined(_USE_C_cpSub_BNU_)
 BNU_CHUNK_T cpSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, cpSize ns)
 {
    BNU_CHUNK_T borrow = 0;
@@ -96,18 +100,20 @@ BNU_CHUNK_T cpSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T*
 }
 #endif
 
-/* Function cpInc_BNU - increment BigNumber  */
+/* Function cpInc_BNU - increment BNU */
+
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
+      (_IPP32E==_IPP32E_N8)) || \
+      defined(_USE_C_cpInc_BNU_)
 BNU_CHUNK_T cpInc_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val)
 {
    cpSize i;
@@ -127,7 +133,7 @@ BNU_CHUNK_T cpInc_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHU
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
+      (_IPP32E==_IPP32E_N8))
 BNU_CHUNK_T cpDec_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val)
 {
    cpSize i;
@@ -150,12 +156,12 @@ BNU_CHUNK_T cpDec_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHU
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
+      (_IPP32E==_IPP32E_N8))
 BNU_CHUNK_T cpAddAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pC, cpSize ns)
 {
    BNU_CHUNK_T carry1 = 0;
@@ -178,12 +184,12 @@ BNU_CHUNK_T cpAddAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
+      (_IPP32E==_IPP32E_N8))
 BNU_CHUNK_T cpAddSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, const BNU_CHUNK_T* pC, cpSize ns)
 {
    BNU_CHUNK_T carry = 0;
@@ -199,46 +205,21 @@ BNU_CHUNK_T cpAddSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK
 #endif
 #endif
 
-#if 0
-#if !((_IPP==_IPP_W7) || \
-      (_IPP==_IPP_T7) || \
-      (_IPP==_IPP_V8) || \
-      (_IPP==_IPP_P8) || \
-      (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
-      (_IPP32E==_IPP32E_M7) || \
-      (_IPP32E==_IPP32E_U8) || \
-      (_IPP32E==_IPP32E_Y8) || \
-      (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
-BNU_CHUNK_T cpMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val)
-{
-   BNU_CHUNK_T extension = 0;
-   cpSize i;
-   for(i=0; i<ns; i++) {
-      BNU_CHUNK_T rH, rL;
 
-      MUL_AB(rH, rL, pA[i], val);
-      rL += extension;
-      extension = (rL < extension) + rH;
-      pR[i] = rL;
-   }
-   return extension;
-}
-#endif
-#endif
+/* Function cpAddMulDgt_BNU - multiply-and-add BNU */
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
+      (_IPP32E==_IPP32E_N8)) || \
+      defined(_USE_C_cpAddMulDgt_BNU_)
 BNU_CHUNK_T cpAddMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val)
 {
    BNU_CHUNK_T extension = 0;
@@ -255,18 +236,21 @@ BNU_CHUNK_T cpAddMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, B
 #endif
 
 
+/* Function cpSubMulDgt_BNU - multiply-and-sub BNU */
+
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8) || \
-      (_IPPLRB >= _IPPLRB_B1))
+      (_IPP32E==_IPP32E_N8) || \
+      (_IPPLRB >= _IPPLRB_B1)) || \
+      defined(_USE_C_cpSubMulDgt_BNU_)
 BNU_CHUNK_T cpSubMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, BNU_CHUNK_T val)
 {
    BNU_CHUNK_T extension = 0;
@@ -282,19 +266,19 @@ BNU_CHUNK_T cpSubMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, B
 }
 #endif
 
+
+/* Function cpMulAdc_BNU_school - multiply BNU */
+
 #if !((_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8) )
-// || (_IPPLRB >= _IPPLRB_B1)) //dlaptev: is it renaming?
-//BNU_CHUNK_T cpMul_BNU_school(BNU_CHUNK_T* pR,
-//                       const BNU_CHUNK_T* pA, cpSize nsA,
-//                       const BNU_CHUNK_T* pB, cpSize nsB)
+      (_IPP32E==_IPP32E_N8)) || \
+      defined(_USE_C_cpMulAdc_BNU_school_)
 BNU_CHUNK_T cpMulAdc_BNU_school(BNU_CHUNK_T* pR,
                           const BNU_CHUNK_T* pA, cpSize nsA,
                           const BNU_CHUNK_T* pB, cpSize nsB)
@@ -325,19 +309,20 @@ BNU_CHUNK_T cpMulAdc_BNU_school(BNU_CHUNK_T* pR,
 #endif
 
 
+/* Function cpSqrAdc_BNU_school - sqr BNU */
+
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8) )
-//|| (_IPPLRB >= _IPPLRB_B1)) //dlaptev: is it renaming?
-//BNU_CHUNK_T cpSqr_BNU_school(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA)
+      (_IPP32E==_IPP32E_N8)) || \
+      defined(_USE_C_cpSqrAdc_BNU_school_)
 BNU_CHUNK_T cpSqrAdc_BNU_school(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA)
 {
    cpSize i;

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2014-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -29,20 +29,14 @@
       (_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
       (_IPP>=_IPP_G9) || \
-      (_IPPLP32==_IPPLP32_S8) || \
+      (_IPP==_IPP_S8) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || \
       (_IPP32E==_IPP32E_Y8) || \
       (_IPP32E>=_IPP32E_E9) || \
-      (_IPPLP64==_IPPLP64_N8))
-
-#if 0
-#define MASKED_COPY_BNU(dst, mask, src1, src2, len) { \
-   cpSize i; \
-   for(i=0; i<(len); i++) (dst)[i] = ((mask) & (src1)[i]) | (~(mask) & (src2)[i]); \
-}
-#endif
-
+      (_IPP32E==_IPP32E_N8)) || \
+      defined(_USE_C_cpMontRedAdc_BNU_)
+#define cpMontRedAdc_BNU OWNAPI(cpMontRedAdc_BNU)
 void cpMontRedAdc_BNU(BNU_CHUNK_T* pR,
                       BNU_CHUNK_T* pProduct,
                 const BNU_CHUNK_T* pModulus, cpSize nsM, BNU_CHUNK_T m0)

@@ -1,5 +1,5 @@
 var group___ecdsa_primitives =
 [
-    [ "EcdsaSignBuffer", "group___ecdsa_primitives.html#ga67091ecae643c1b8a0b0a4946eda7afe", null ],
-    [ "EcdsaVerifyBuffer", "group___ecdsa_primitives.html#gaab68de7291db6e42a01e99c2fa40057f", null ]
+    [ "EcdsaSignBuffer", "group___ecdsa_primitives.html#gaef0e8a31e830fe9285b43a0969e6611a", null ],
+    [ "EcdsaVerifyBuffer", "group___ecdsa_primitives.html#ga07e4ebd3423e1f6f9ae35f0608dde7c0", null ]
 ];

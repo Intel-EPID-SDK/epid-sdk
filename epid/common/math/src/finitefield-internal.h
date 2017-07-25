@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,27 +22,43 @@
 #ifndef EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 
-#include "ext/ipp/include/ippcpepid.h"
+#include "ext/ipp/include/ippcp.h"
+#include "epid/common/math/bignum.h"
+#include "epid/common/math/src/bignum-internal.h"
 
 /// Finite Field
 struct FiniteField {
   /// Internal implementation of finite field
   IppsGFpState* ipp_ff;
-  /// Information about finite field created
-  IppsGFpInfo info;
-  /// Prime modulus size in bytes
-  size_t prime_modulus_size;
+  /// Previous finitefield
+  struct FiniteField* ground_ff;
+  /// Degree of basic field
+  int basic_degree;
+  /// Degree of current field
+  int ground_degree;
+  /// Size of element in BNU units
+  int element_len;
+  /// Minimum number of bytes needed to serialize an element
+  size_t element_strlen_required;
+  /*!
+  Galois field prime or free standing coefficient of
+  irreducible polynomial of finite field extension.
+  */
+  BigNum* modulus_0;
 };
 
 /// Finite Field Element
 struct FfElement {
   /// Internal implementation of finite field element
   IppsGFpElement* ipp_ff_elem;
-  /// Information about finite field element was created for
-  IppsGFpInfo info;
+  /// Element size of Finite Field element
+  int element_len;
+  /// Degree of Finite Field element
+  int degree;
 };
 
-/// Initialize FiniteField structure
-EpidStatus InitFiniteFieldFromIpp(IppsGFpState* ipp_ff, FiniteField* ff);
+EpidStatus SetFfElementOctString(ConstOctStr ff_elem_str, int strlen,
+                                 struct FfElement* ff_elem,
+                                 struct FiniteField* ff);
 
 #endif  // EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_

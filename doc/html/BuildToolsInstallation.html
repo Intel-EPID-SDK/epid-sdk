@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -70,13 +70,13 @@ $(document).ready(function(){initNavTree('BuildToolsInstallation.html','');});
 <div class="textblock"><p>Building SDK code out of the box requires a number of tools. This section explains how to install the following tools:</p>
 <table class="doxtable">
 <tr>
-<th>Prerequisite </th><th>Download Link  </th></tr>
+<th>Prerequisite </th><th>URL </th><th>Downloads  </th></tr>
 <tr>
-<td><a href="https://www.python.org/downloads">Python</a> </td><td><a href="https://www.python.org/downloads/release/python-2712/">python 2.7.12 installers</a> </td></tr>
+<td>Python 2.7 </td><td><a href="https://www.python.org">https://www.python.org</a> </td><td><a href="https://www.python.org/downloads/release/python-2712/">python 2.7.12 installers</a> </td></tr>
 <tr>
-<td><a href="http://www.scons.org">SCons</a> </td><td><a href="http://prdownloads.sourceforge.net/scons/scons-2.4.1.zip">scons-2.4.1.zip</a> </td></tr>
+<td>SCons 2.4 </td><td><a href="http://www.scons.org">http://www.scons.org</a> </td><td><a href="http://prdownloads.sourceforge.net/scons/scons-2.4.1.zip">scons-2.4.1.zip</a> </td></tr>
 <tr>
-<td><a href="https://bitbucket.org/sconsparts/parts/downloads">Parts</a> </td><td><a href="https://bitbucket.org/sconsparts/parts/downloads/parts-0.11.0.zip">parts-0.11.0.zip</a> </td></tr>
+<td>Parts 0.11 </td><td><a href="https://bitbucket.org/sconsparts/parts/downloads">https://bitbucket.org/sconsparts/parts/downloads</a> </td><td><a href="https://bitbucket.org/sconsparts/parts/downloads/parts-0.11.0.zip">parts-0.11.0.zip</a> </td></tr>
 </table>
 <p><br />
  </p>
@@ -112,6 +112,8 @@ Installing Parts</h1>
 </ol>
 <dl class="section note"><dt>Note</dt><dd>You may need administrative privileges to execute this command.</dd></dl>
 <p><br />
+ To verify that Parts installed correctly, run: </p><pre class="fragment">    &gt; python -c "import pkgutil; print 'Parts is installed' if 'parts' in [str(n) for _, n, _ in pkgutil.iter_modules()] else 'Parts module is not found'"
+</pre><p><br />
 </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
@@ -120,7 +122,7 @@ Installing Parts</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

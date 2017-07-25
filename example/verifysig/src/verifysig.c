@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,19 +23,8 @@
 
 #include <stdlib.h>
 
-#include "util/buffutil.h"
-#include "util/envutil.h"
 #include "epid/verifier/api.h"
 #include "epid/common/file_parser.h"
-
-bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
-  // Implementation of this function is out of scope of the sample.
-  // In an actual implementation Issuing CA certificate must be validated
-  // with CA Root certificate before using it in parse functions.
-  (void)data;
-  (void)size;
-  return true;
-}
 
 EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   size_t msg_len, void const* basename, size_t basename_len,
@@ -45,8 +34,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   VerifierRl const* ver_rl, size_t ver_rl_size,
                   void const* signed_pub_key, size_t signed_pub_key_size,
                   EpidCaCertificate const* cacert, HashAlg hash_alg,
-                  VerifierPrecomp* verifier_precomp,
-                  bool verifier_precomp_is_input) {
+                  void** verifier_precomp, size_t* verifier_precomp_size) {
   EpidStatus result = kEpidErr;
   VerifierCtx* ctx = NULL;
   PrivRl* priv_rl = NULL;
@@ -61,16 +49,25 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
     if (kEpidNoErr != result) {
       break;
     }
+    // ensure the pre-computation blob is not in a legacy format
+    if (*verifier_precomp &&
+        *verifier_precomp_size != sizeof(VerifierPrecomp)) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    *verifier_precomp_size = sizeof(VerifierPrecomp);
 
     // create verifier
-    result = EpidVerifierCreate(
-        &pub_key, verifier_precomp_is_input ? verifier_precomp : NULL, &ctx);
+    result = EpidVerifierCreate(&pub_key, *verifier_precomp, &ctx);
     if (kEpidNoErr != result) {
       break;
     }
 
     // serialize verifier pre-computation blob
-    result = EpidVerifierWritePrecomp(ctx, verifier_precomp);
+    if (!*verifier_precomp) {
+      *verifier_precomp = calloc(1, *verifier_precomp_size);
+    }
+    result = EpidVerifierWritePrecomp(ctx, *verifier_precomp);
     if (kEpidNoErr != result) {
       break;
     }
@@ -92,15 +89,11 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
       size_t priv_rl_size = 0;
       result = EpidParsePrivRlFile(signed_priv_rl, signed_priv_rl_size, cacert,
                                    NULL, &priv_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      priv_rl = AllocBuffer(priv_rl_size);
+      priv_rl = calloc(1, priv_rl_size);
       if (!priv_rl) {
         result = kEpidMemAllocErr;
         break;
@@ -125,15 +118,11 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
       size_t sig_rl_size = 0;
       result = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
                                   NULL, &sig_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      sig_rl = AllocBuffer(sig_rl_size);
+      sig_rl = calloc(1, sig_rl_size);
       if (!sig_rl) {
         result = kEpidMemAllocErr;
         break;
@@ -158,15 +147,11 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
       size_t grp_rl_size = 0;
       result = EpidParseGroupRlFile(signed_grp_rl, signed_grp_rl_size, cacert,
                                     NULL, &grp_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      grp_rl = AllocBuffer(grp_rl_size);
+      grp_rl = calloc(1, grp_rl_size);
       if (!grp_rl) {
         result = kEpidMemAllocErr;
         break;

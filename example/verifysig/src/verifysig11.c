@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@
 
 #include <stdlib.h>
 
-#include "util/buffutil.h"
-#include "util/envutil.h"
 #include "epid/verifier/1.1/api.h"
 #include "epid/common/1.1/file_parser.h"
 
@@ -34,9 +32,8 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
                     void const* signed_sig_rl, size_t signed_sig_rl_size,
                     void const* signed_grp_rl, size_t signed_grp_rl_size,
                     void const* signed_pub_key, size_t signed_pub_key_size,
-                    EpidCaCertificate const* cacert,
-                    Epid11VerifierPrecomp* verifier_precomp,
-                    bool verifier_precomp_is_input) {
+                    EpidCaCertificate const* cacert, void** verifier_precomp,
+                    size_t* verifier_precomp_size) {
   EpidStatus result = kEpidErr;
   Epid11VerifierCtx* ctx = NULL;
   Epid11PrivRl* priv_rl = NULL;
@@ -52,15 +49,24 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
       break;
     }
 
+    if (*verifier_precomp &&
+        *verifier_precomp_size != sizeof(Epid11VerifierPrecomp)) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    *verifier_precomp_size = sizeof(Epid11VerifierPrecomp);
+
     // create verifier
-    result = Epid11VerifierCreate(
-        &pub_key, verifier_precomp_is_input ? verifier_precomp : NULL, &ctx);
+    result = Epid11VerifierCreate(&pub_key, *verifier_precomp, &ctx);
     if (kEpidNoErr != result) {
       break;
     }
 
     // serialize verifier pre-computation blob
-    result = Epid11VerifierWritePrecomp(ctx, verifier_precomp);
+    if (!*verifier_precomp) {
+      *verifier_precomp = calloc(1, *verifier_precomp_size);
+    }
+    result = Epid11VerifierWritePrecomp(ctx, *verifier_precomp);
     if (kEpidNoErr != result) {
       break;
     }
@@ -76,15 +82,11 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
       size_t priv_rl_size = 0;
       result = Epid11ParsePrivRlFile(signed_priv_rl, signed_priv_rl_size,
                                      cacert, NULL, &priv_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      priv_rl = AllocBuffer(priv_rl_size);
+      priv_rl = calloc(1, priv_rl_size);
       if (!priv_rl) {
         result = kEpidMemAllocErr;
         break;
@@ -109,15 +111,11 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
       size_t sig_rl_size = 0;
       result = Epid11ParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
                                     NULL, &sig_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      sig_rl = AllocBuffer(sig_rl_size);
+      sig_rl = calloc(1, sig_rl_size);
       if (!sig_rl) {
         result = kEpidMemAllocErr;
         break;
@@ -142,15 +140,11 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
       size_t grp_rl_size = 0;
       result = Epid11ParseGroupRlFile(signed_grp_rl, signed_grp_rl_size, cacert,
                                       NULL, &grp_rl_size);
-      if (kEpidSigInvalid == result) {
-        // authentication failure
-        break;
-      }
       if (kEpidNoErr != result) {
         break;
       }
 
-      grp_rl = AllocBuffer(grp_rl_size);
+      grp_rl = calloc(1, grp_rl_size);
       if (!grp_rl) {
         result = kEpidMemAllocErr;
         break;

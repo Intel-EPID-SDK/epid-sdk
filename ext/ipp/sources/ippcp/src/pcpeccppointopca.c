@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -35,11 +35,9 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
-#include "pcpeccppoint.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpmethodcom.h"
+#include "pcpeccp.h"
 
 
 /*F*
@@ -77,16 +75,15 @@
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPSetPoint,(const IppsBigNumState* pX,
-                                    const IppsBigNumState* pY,
-                                    IppsECCPPointState* pPoint,
-                                    IppsECCPState* pECC))
+                                        const IppsBigNumState* pY,
+                                        IppsECCPPointState* pPoint,
+                                        IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
+   /* test pEC */
+   IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test pX and pY */
    IPP_BAD_PTR2_RET(pX,pY);
@@ -95,21 +92,30 @@ IPPFUN(IppStatus, ippsECCPSetPoint,(const IppsBigNumState* pX,
    IPP_BADARG_RET(!BN_VALID_ID(pX), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pY), ippStsContextMatchErr);
 
-   /* test pPoint */
-   IPP_BAD_PTR1_RET(pPoint);
-   pPoint = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPoint, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPoint), ippStsContextMatchErr);
+   {
+      IppStatus sts;
 
-   /* set affine coordinates at Infinity */
-   if( ( IsZero_BN(ECP_BENC(pECC)) && ECCP_IsPointAtAffineInfinity1(pX,pY)) ||
-       (!IsZero_BN(ECP_BENC(pECC)) && ECCP_IsPointAtAffineInfinity0(pX,pY)) )
-      ECCP_SetPointToInfinity(pPoint);
-   /* set point */
-   else {
-      ECP_METHOD(pECC)->SetPointProjective(pX, pY, BN_ONE_REF(), pPoint, pECC);
+      IppsGFpState* pGF = ECP_GFP(pEC);
+      int elemLen = GFP_FELEN(pGF);
+      IppsGFpElement elmX, elmY;
+
+      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGF), elemLen);
+      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGF), elemLen);
+      do {
+         BNU_CHUNK_T* pData = BN_NUMBER(pX);
+         int ns = BN_SIZE(pX);
+         sts = ippsGFpSetElement((Ipp32u*)pData, BITS2WORD32_SIZE(BITSIZE_BNU(pData, ns)), &elmX, pGF);
+         if(ippStsNoErr!=sts) break;
+         pData = BN_NUMBER(pY);
+         ns = BN_SIZE(pY);
+         sts = ippsGFpSetElement((Ipp32u*)pData, BITS2WORD32_SIZE(BITSIZE_BNU(pData, ns)), &elmY, pGF);
+         if(ippStsNoErr!=sts) break;
+         sts = ippsGFpECSetPoint(&elmX, &elmY, pPoint, pEC);
+      } while(0);
+
+      cpGFpReleasePool(2, pGF);
+      return sts;
    }
-
-   return ippStsNoErr;
 }
 
 
@@ -132,23 +138,9 @@ IPPFUN(IppStatus, ippsECCPSetPoint,(const IppsBigNumState* pX,
 //    pECC        pointer to the ECCP context
 //
 *F*/
-IPPFUN(IppStatus, ippsECCPSetPointAtInfinity,(IppsECCPPointState* pPoint,
-                                              IppsECCPState* pECC))
+IPPFUN(IppStatus, ippsECCPSetPointAtInfinity,(IppsECCPPointState* pPoint, IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test pPoint */
-   IPP_BAD_PTR1_RET(pPoint);
-   pPoint = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPoint, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPoint), ippStsContextMatchErr);
-
-   ECCP_SetPointToInfinity(pPoint);
-   return ippStsNoErr;
+   return ippsGFpECSetPointAtInfinity(pPoint, pEC);
 }
 
 
@@ -177,22 +169,15 @@ IPPFUN(IppStatus, ippsECCPSetPointAtInfinity,(IppsECCPPointState* pPoint,
 //    pECC        pointer to the ECCP context
 //
 *F*/
-IPPFUN(IppStatus, ippsECCPGetPoint,(IppsBigNumState* pX,
-                                    IppsBigNumState* pY,
-                                    const IppsECCPPointState* pPoint,
-                                    IppsECCPState* pECC))
+IPPFUN(IppStatus, ippsECCPGetPoint,(IppsBigNumState* pX, IppsBigNumState* pY,
+                                  const IppsECCPPointState* pPoint,
+                                  IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
+   /* test pEC */
+   IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test source point */
-   IPP_BAD_PTR1_RET(pPoint);
-   pPoint = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPoint, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPoint), ippStsContextMatchErr);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test pX and pY */
    if(pX) {
@@ -204,15 +189,35 @@ IPPFUN(IppStatus, ippsECCPGetPoint,(IppsBigNumState* pX,
       IPP_BADARG_RET(!BN_VALID_ID(pY), ippStsContextMatchErr);
    }
 
-   if( ECCP_IsPointAtInfinity(pPoint) ) {
-      if( IsZero_BN(ECP_BENC(pECC)) )
-         ECCP_SetPointToAffineInfinity1(pX, pY);
-      else
-         ECCP_SetPointToAffineInfinity0(pX, pY);
+   {
+      IppStatus sts;
+
+      IppsGFpState* pGF = ECP_GFP(pEC);
+      gfdecode  decode = pGF->decode;  /* gf decode method  */
+      int elemLen = GFP_FELEN(pGF);
+      IppsGFpElement elmX, elmY;
+
+      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGF), elemLen);
+      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGF), elemLen);
+      do {
+         sts = ippsGFpECGetPoint(pPoint, pX? &elmX:NULL, pY? &elmY:NULL, pEC);
+         if(ippStsNoErr!=sts) break;
+
+         if(pX) {
+            decode(elmX.pData, elmX.pData, pGF);
+            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)elmX.pData, pX);
+            if(ippStsNoErr!=sts) break;
+         }
+         if(pY) {
+            decode(elmY.pData, elmY.pData, pGF);
+            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)elmY.pData, pY);
+            if(ippStsNoErr!=sts) break;
+         }
+      } while(0);
+
+      cpGFpReleasePool(2, pGF);
+      return sts;
    }
-   else
-      ECP_METHOD(pECC)->GetPointAffine(pX, pY, pPoint, pECC, ECP_BNCTX(pECC));
-   return ippStsNoErr;
 }
 
 
@@ -243,32 +248,10 @@ IPPFUN(IppStatus, ippsECCPGetPoint,(IppsBigNumState* pX,
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPCheckPoint,(const IppsECCPPointState* pP,
-                                      IppECResult* pResult,
-                                      IppsECCPState* pECC))
+                                          IppECResult* pResult,
+                                          IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test point */
-   IPP_BAD_PTR1_RET(pP);
-   pP = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pP, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pP), ippStsContextMatchErr);
-
-   /* test pResult */
-   IPP_BAD_PTR1_RET(pResult);
-
-   if( ECCP_IsPointAtInfinity(pP) )
-      *pResult = ippECPointIsAtInfinite;
-   else if( ECP_METHOD(pECC)->IsPointOnCurve(pP, pECC, ECP_BNCTX(pECC)) )
-      *pResult = ippECValid;
-   else
-      *pResult = ippECPointIsNotValid;
-
-   return ippStsNoErr;
+   return ippsGFpECTstPoint(pP, pResult, pEC);
 }
 
 
@@ -299,30 +282,11 @@ IPPFUN(IppStatus, ippsECCPCheckPoint,(const IppsECCPPointState* pP,
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPComparePoint,(const IppsECCPPointState* pP,
-                                        const IppsECCPPointState* pQ,
-                                        IppECResult* pResult,
-                                        IppsECCPState* pECC))
+                                            const IppsECCPPointState* pQ,
+                                            IppECResult* pResult,
+                                            IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test points */
-   IPP_BAD_PTR2_RET(pP,pQ);
-   pP = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pP, ALIGN_VAL) );
-   pQ = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pQ, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pP), ippStsContextMatchErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pQ), ippStsContextMatchErr);
-
-   /* test pResult */
-   IPP_BAD_PTR1_RET(pResult);
-
-   *pResult = ECP_METHOD(pECC)->ComparePoint(pP, pQ, pECC, ECP_BNCTX(pECC))? ippECPointIsNotEqual : ippECPointIsEqual;
-
-   return ippStsNoErr;
+   return ippsGFpECCmpPoint(pP, pQ, pResult, pEC);
 }
 
 
@@ -349,26 +313,10 @@ IPPFUN(IppStatus, ippsECCPComparePoint,(const IppsECCPPointState* pP,
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPNegativePoint, (const IppsECCPPointState* pP,
-                                          IppsECCPPointState* pR,
-                                          IppsECCPState* pECC))
+                                              IppsECCPPointState* pR,
+                                              IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test points */
-   IPP_BAD_PTR2_RET(pP,pR);
-   pP = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pP, ALIGN_VAL) );
-   pR = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pR, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pP), ippStsContextMatchErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pR), ippStsContextMatchErr);
-
-   ECP_METHOD(pECC)->NegPoint(pP, pR, pECC);
-
-   return ippStsNoErr;
+   return ippsGFpECNegPoint(pP, pR, pEC);
 }
 
 
@@ -398,32 +346,11 @@ IPPFUN(IppStatus, ippsECCPNegativePoint, (const IppsECCPPointState* pP,
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPAddPoint,(const IppsECCPPointState* pP,
-                                    const IppsECCPPointState* pQ,
-                                    IppsECCPPointState* pR,
-                                    IppsECCPState* pECC))
+                                        const IppsECCPPointState* pQ,
+                                        IppsECCPPointState* pR,
+                                        IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
-   /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
-
-   /* test points */
-   IPP_BAD_PTR3_RET(pP,pQ,pR);
-   pP = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pP, ALIGN_VAL) );
-   pQ = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pQ, ALIGN_VAL) );
-   pR = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pR, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pP), ippStsContextMatchErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pQ), ippStsContextMatchErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pR), ippStsContextMatchErr);
-
-   if(pP==pQ)
-      ECP_METHOD(pECC)->DblPoint(pP, pR, pECC, ECP_BNCTX(pECC));
-   else
-      ECP_METHOD(pECC)->AddPoint(pP, pQ, pR, pECC, ECP_BNCTX(pECC));
-
-   return ippStsNoErr;
+   return ippsGFpECAddPoint(pP, pQ, pR, pEC);
 }
 
 
@@ -453,30 +380,14 @@ IPPFUN(IppStatus, ippsECCPAddPoint,(const IppsECCPPointState* pP,
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPMulPointScalar,(const IppsECCPPointState* pP,
-                                          const IppsBigNumState* pK,
-                                          IppsECCPPointState* pR,
-                                          IppsECCPState* pECC))
+                                              const IppsBigNumState* pK,
+                                              IppsECCPPointState* pR,
+                                              IppsECCPState* pEC))
 {
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   IPP_BAD_PTR1_RET(pEC);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
-   /* test points */
-   IPP_BAD_PTR2_RET(pP,pR);
-   pP = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pP, ALIGN_VAL) );
-   pR = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pR, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pP), ippStsContextMatchErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pR), ippStsContextMatchErr);
-
-   /* test scalar */
-   IPP_BAD_PTR1_RET(pK);
-   pK = (IppsBigNumState*)( IPP_ALIGNED_PTR(pK, ALIGN_VAL) );
-   IPP_BADARG_RET(!BN_VALID_ID(pK), ippStsContextMatchErr);
-
-   ECP_METHOD(pECC)->MulPoint(pP, pK, pR, pECC, ECP_BNCTX(pECC));
-
-   return ippStsNoErr;
+   return ippsGFpECMulPoint(pP, pK, pR, pEC, (Ipp8u*)ECP_SBUFFER(pEC));
 }

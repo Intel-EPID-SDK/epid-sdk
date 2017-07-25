@@ -134,7 +134,7 @@ In addition, **groupb** contain the following revocation lists:
 - `privrl.bin` - private key based revocation list with 1 entry -
   **privrevokedmember0**
 
-- `sigrl.bin` - signature based revocation list with 1 entries -
+- `sigrl.bin` - signature based revocation list with 1 entry -
   **sigrevokedmember0**
 
 - `privrl_empty.bin` - private key based revocation list with 0 entries
@@ -167,7 +167,7 @@ In addition, **groupb** contain the following revocation lists:
 
 There are 2 group revocation lists:
 
-- `grprl.bin` - group revocation list with 1 entry - **groupb**
+- `grprl.bin` - group revocation list with 50 entries
 
 - `grprl_empty.bin` - group revocation list with 0 entries
 

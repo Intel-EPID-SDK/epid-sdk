@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -44,14 +44,9 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpeccp.h"
-#include "pcpeccppoint.h"
-#include "pcpbnresource.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpsscm.h"
-#include "pcptool.h"
 
 
 /*F*
@@ -77,93 +72,27 @@ IPPFUN(IppStatus, ippsECCPGetSize, (int feBitSize, int *pSize))
    IPP_BAD_PTR1_RET(pSize);
 
    /* test size of field element */
-   IPP_BADARG_RET((2>feBitSize), ippStsSizeErr);
+   IPP_BADARG_RET((2>feBitSize || feBitSize>EC_GFP_MAXBITSIZE), ippStsSizeErr);
 
    {
-      int bn1Size;
-      int bn2Size;
-      int pointSize;
-      int mont1Size;
-      int mont2Size;
-      #if defined(_USE_NN_VERSION_)
-      int randSize;
-      int randCntSize;
-      #endif
-      int primeSize;
-      int listSize;
+      /* size of GF context */
+      int gfCtxSize = cpGFpGetSize(feBitSize);
+      /* size of EC context */
+      int ecCtxSize = cpGFpECGetSize(1, feBitSize);
 
-      /* size of field element */
-      int gfeSize = BITS2WORD32_SIZE(feBitSize);
-      /* size of order */
-      int ordSize = BITS2WORD32_SIZE(feBitSize+1);
+      /* size of EC scratch buffer: 16 points of BITS_BNU_CHUNK(feBitSize)*3 length each */
+      int ecScratchBufferSize = 16*(BITS_BNU_CHUNK(feBitSize)*3)*sizeof(BNU_CHUNK_T);
 
-      #if defined (_USE_ECCP_SSCM_)
-      /* size of sscm buffer */
-      int w = cpECCP_OptimalWinSize(feBitSize+1);
-      int nPrecomputed = 1<<w;
-      int sscmBuffSize = nPrecomputed*(BITS_BNU_CHUNK(feBitSize)*3*sizeof(BNU_CHUNK_T)) +(CACHE_LINE_SIZE-1);
-      #endif
+      *pSize = ecCtxSize            /* EC context */
+              +ECGFP_ALIGNMENT
+              +gfCtxSize            /* GF context */
+              +GFP_ALIGNMENT
+              +ecScratchBufferSize  /* *scratch buffer */
+              +ecScratchBufferSize  /* should be enough for 2 tables */
+              +CACHE_LINE_SIZE;
 
-      /* size of BigNum over GF(p) */
-      ippsBigNumGetSize(gfeSize, &bn1Size);
-
-      /* size of BigNum over GF(r) */
-      ippsBigNumGetSize(ordSize, &bn2Size);
-
-      /* size of EC point over GF(p) */
-      ippsECCPPointGetSize(feBitSize, &pointSize);
-
-      /* size of montgomery engine over GF(p) */
-      ippsMontGetSize(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize), &mont1Size);
-
-      /* size of montgomery engine over GF(r) */
-      ippsMontGetSize(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize+1), &mont2Size);
-
-      /* size of prime engine */
-      ippsPrimeGetSize(feBitSize+1, &primeSize);
-
-      /* size of big num list (big num in the list preserve 32 bit word) */
-      listSize = cpBigNumListGetSize(feBitSize+1, BNLISTSIZE);
-
-      *pSize = sizeof(IppsECCPState)
-              +sizeof(ECCP_METHOD)  /* methods       */
-
-              +bn1Size              /* prime         */
-              +bn1Size              /* A             */
-              +bn1Size              /* B             */
-
-              +bn1Size              /* GX            */
-              +bn1Size              /* GY            */
-              +bn2Size              /* order         */
-
-              +bn1Size              /* Aenc          */
-              +bn1Size              /* Benc          */
-              +mont1Size            /* montgomery(p) */
-
-              +pointSize            /* Genc          */
-              +bn2Size              /* cofactor      */
-              +mont2Size            /* montgomery(r) */
-
-              +bn2Size              /* private       */
-              +pointSize            /* public        */
-
-              +bn2Size              /* eph private   */
-              +pointSize            /* eph public    */
-
-              #if defined(_USE_NN_VERSION_)
-              +randSize             /* randomizer eng*/
-              +randCntSize          /* randomizer bit*/
-              #endif
-
-              +primeSize            /* prime engine  */
-              #if defined (_USE_ECCP_SSCM_)
-              +sscmBuffSize         /* sscm buffer   */
-              #endif
-              +listSize             /* temp big num  */
-              +(ALIGN_VAL-1);
+      return ippStsNoErr;
    }
-
-   return ippStsNoErr;
 }
 
 /*F*
@@ -195,6 +124,7 @@ IPPFUN(IppStatus, ippsECCPGetSizeStd224r1, (int *pSize))
 {
    return ippsECCPGetSize(224, pSize);
 }
+
 
 IPPFUN(IppStatus, ippsECCPGetSizeStd256r1, (int *pSize))
 {
@@ -234,173 +164,38 @@ IPPFUN(IppStatus, ippsECCPGetSizeStdSM2, (int *pSize))
 //    pECC        pointer to the ECC context
 //
 *F*/
-IPPFUN(IppStatus, ippsECCPInit, (int feBitSize, IppsECCPState* pECC))
+IPPFUN(IppStatus, ippsECCPInit, (int feBitSize, IppsECCPState* pEC))
 {
-   /* test pECC pointer */
-   IPP_BAD_PTR1_RET(pECC);
+   /* test pEC pointer */
+   IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
+   pEC = (IppsECCPState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
 
    /* test size of field element */
-   IPP_BADARG_RET((2>feBitSize), ippStsSizeErr);
+   IPP_BADARG_RET((2>feBitSize || feBitSize>EC_GFP_MAXBITSIZE), ippStsSizeErr);
 
-   /* clear context */
-   PaddBlock(0, pECC, sizeof(IppsECCPState));
-
-   /* context ID */
-   ECP_ID(pECC) = idCtxECCP;
-
-   /* generic EC */
-   ECP_TYPE(pECC) = IppECCArbitrary;
-
-   /* size of field element & BP order */
-   ECP_GFEBITS(pECC) = feBitSize;
-   ECP_ORDBITS(pECC) = feBitSize+1;
-
-   /*
-   // init other context fields
-   */
    {
-      int bn1Size;
-      int bn2Size;
-      int pointSize;
-      int mont1Size;
-      int mont2Size;
-      #if defined(_USE_NN_VERSION_)
-      int randSize;
-      int randCntSize;
-      #endif
-      int primeSize;
-    //int listSize;
+      /* size of GF context */
+      int gfCtxSize = cpGFpGetSize(feBitSize);
+      /* size of EC context */
+      int ecCtxSize = cpGFpECGetSize(1, feBitSize);
 
-      /* size of field element */
-      int gfeSize = BITS2WORD32_SIZE(feBitSize);
-      /* size of order */
-      int ordSize = BITS2WORD32_SIZE(feBitSize+1);
+      IppsGFpState* pGF = (IppsGFpState*)(IPP_ALIGNED_PTR((Ipp8u*)pEC+ecCtxSize, GFP_ALIGNMENT));
+      BNU_CHUNK_T* pScratchBuffer = (BNU_CHUNK_T*)IPP_ALIGNED_PTR((Ipp8u*)pGF+gfCtxSize, CACHE_LINE_SIZE);
 
-      #if defined (_USE_ECCP_SSCM_)
-      /* size of sscm buffer */
-      int w = cpECCP_OptimalWinSize(feBitSize+1);
-      int nPrecomputed = 1<<w;
-      int sscmBuffSize = nPrecomputed*(BITS_BNU_CHUNK(feBitSize)*3*sizeof(BNU_CHUNK_T)) +(CACHE_LINE_SIZE-1);
-      #endif
+      /* set up contexts */
+      IppStatus sts;
+      do {
+         sts = cpGFpInitGFp(feBitSize, pGF);
+         if(ippStsNoErr!=sts) break;
+         sts = ippsGFpECInit(pGF, NULL, NULL, pEC);
+      } while (0);
 
-      Ipp8u* ptr = (Ipp8u*)pECC;
+      /* save scratch buffer pointer */
+      ECP_SBUFFER(pEC) = pScratchBuffer;
 
-      /* size of BigNum over GF(p) */
-      ippsBigNumGetSize(gfeSize, &bn1Size);
-
-      /* size of BigNum over GF(r) */
-      ippsBigNumGetSize(ordSize, &bn2Size);
-
-      /* size of EC point over GF(p) */
-      ippsECCPPointGetSize(feBitSize, &pointSize);
-
-      /* size of montgomery engine over GF(p) */
-      ippsMontGetSize(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize), &mont1Size);
-
-      /* size of montgomery engine over GF(r) */
-      ippsMontGetSize(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize+1), &mont2Size);
-
-      /* size of prime engine */
-      ippsPrimeGetSize(feBitSize+1, &primeSize);
-
-      /* size of big num list */
-    //listSize = cpBigNumListGetSize(feBitSize+1+32, BNLISTSIZE);
-
-      /* allocate buffers */
-      ptr += sizeof(IppsECCPState);
-
-      ECP_METHOD(pECC)  = (ECCP_METHOD*)  (ptr);
-      ptr += sizeof(ECCP_METHOD);
-
-      ECP_PRIME(pECC)   = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_A(pECC)       = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_B(pECC)       = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += bn1Size;
-      ECP_GX(pECC)      = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_GY(pECC)      = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_ORDER(pECC)   = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += bn2Size;
-      ECP_AENC(pECC)    = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_BENC(pECC)    = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn1Size;
-      ECP_PMONT(pECC)   = (IppsMontState*)     ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += mont1Size;
-      ECP_GENC(pECC)    = (IppsECCPPointState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += pointSize;
-      ECP_COFACTOR(pECC)= (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn2Size;
-      ECP_RMONT(pECC)   = (IppsMontState*)     ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += mont2Size;
-      ECP_PRIVATE(pECC) = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn2Size;
-      ECP_PUBLIC(pECC)  = (IppsECCPPointState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += pointSize;
-      ECP_PRIVATE_E(pECC) = (IppsBigNumState*) ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bn2Size;
-      ECP_PUBLIC_E(pECC) =(IppsECCPPointState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += pointSize;
-      #if defined(_USE_NN_VERSION_)
-      ECP_RAND(pECC)    = (IppsPRNGState*)     ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += randSize;
-      ECP_RANDCNT(pECC) = (IppsBigNumState*)   ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      ptr += randCntSize;
-      #endif
-      ECP_PRIMARY(pECC) = (IppsPrimeState*)    ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += primeSize;
-
-      #if defined (_USE_ECCP_SSCM_)
-      ECP_SCCMBUFF(pECC) = (Ipp8u*)            ( IPP_ALIGNED_PTR(ptr,CACHE_LINE_SIZE) );
-      ptr += sscmBuffSize;
-      #endif
-
-      ECP_BNCTX(pECC)   = (BigNumNode*)        ( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-
-      /* init buffers */
-      ippsBigNumInit(gfeSize,  ECP_PRIME(pECC));
-      ippsBigNumInit(gfeSize,  ECP_A(pECC));
-      ippsBigNumInit(gfeSize,  ECP_B(pECC));
-
-      ippsBigNumInit(gfeSize,  ECP_GX(pECC));
-      ippsBigNumInit(gfeSize,  ECP_GY(pECC));
-      ippsBigNumInit(ordSize,  ECP_ORDER(pECC));
-
-      ippsBigNumInit(gfeSize,  ECP_AENC(pECC));
-      ippsBigNumInit(gfeSize,  ECP_BENC(pECC));
-      ippsMontInit(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize), ECP_PMONT(pECC));
-
-      ippsECCPPointInit(feBitSize, ECP_GENC(pECC));
-      ippsBigNumInit(ordSize,    ECP_COFACTOR(pECC));
-      ippsMontInit(ippBinaryMethod, BITS2WORD32_SIZE(feBitSize+1), ECP_RMONT(pECC));
-
-      ippsBigNumInit(ordSize,   ECP_PRIVATE(pECC));
-      ippsECCPPointInit(feBitSize,ECP_PUBLIC(pECC));
-
-      ippsBigNumInit(ordSize,   ECP_PRIVATE_E(pECC));
-      ippsECCPPointInit(feBitSize,ECP_PUBLIC_E(pECC));
-
-      #if defined(_USE_NN_VERSION_)
-      ippsPRNGInit(feBitSize+1, ECP_RAND(pECC));
-      ippsBigNumInit(RAND_CONTENT_LEN, ECP_RANDCNT(pECC));
-      #endif
-
-      cpBigNumListInit(feBitSize+1, BNLISTSIZE, ECP_BNCTX(pECC));
+      return sts;
    }
-
-   return ippStsNoErr;
 }
 
 /*F*

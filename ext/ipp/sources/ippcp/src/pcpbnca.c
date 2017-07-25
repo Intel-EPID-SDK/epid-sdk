@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpbn.h"
 #include "pcptool.h"
@@ -60,6 +60,8 @@ static IppsBigNumStateChunk cpChunk_BN1 = {
    },
    1,0
 };
+
+#define cpBN_OneRef OWNAPI(cpBN_OneRef)
 IppsBigNumState* cpBN_OneRef(void)
 { return &cpChunk_BN1.bn; };
 
@@ -73,6 +75,7 @@ static IppsBigNumStateChunk cpChunk_BN2 = {
    },
    2,0
 };
+#define cpBN_TwoRef OWNAPI(cpBN_TwoRef)
 IppsBigNumState* cpBN_TwoRef(void)
 { return &cpChunk_BN2.bn; };
 
@@ -86,6 +89,7 @@ static IppsBigNumStateChunk cpChunk_BN3 = {
    },
    3,0
 };
+#define cpBN_ThreeRef OWNAPI(cpBN_ThreeRef)
 IppsBigNumState* cpBN_ThreeRef(void)
 { return &cpChunk_BN3.bn; };
 
@@ -99,6 +103,7 @@ IppsBigNumState* cpBN_ThreeRef(void)
 // Returns:                Reason:
 //    ippStsNullPtrErr        pCtxSize == NULL
 //    ippStsLengthErr         len32 < 1
+//                            len32 > BITS2WORD32_SIZE(BN_MAXBITSIZE)
 //    ippStsNoErr             no errors
 //
 // Parameters:
@@ -108,12 +113,14 @@ IppsBigNumState* cpBN_ThreeRef(void)
 IPPFUN(IppStatus, ippsBigNumGetSize, (cpSize len32, cpSize *pCtxSize))
 {
    IPP_BAD_PTR1_RET(pCtxSize);
-   IPP_BADARG_RET(len32<1, ippStsLengthErr);
+   IPP_BADARG_RET(len32<1 || len32>BITS2WORD32_SIZE(BN_MAXBITSIZE), ippStsLengthErr);
 
    {
       /* convert length to the number of BNU_CHUNK_T */
       cpSize len = INTERNAL_BNU_LENGTH(len32);
-      /* reserve one BNU_CHUNK_T above for cpDiv_BNU, multiplication, mont exponentiation */
+
+      /* reserve one BNU_CHUNK_T more for cpDiv_BNU,
+         mul, mont exp operations */
       len++;
 
       *pCtxSize = sizeof(IppsBigNumState)
@@ -134,6 +141,7 @@ IPPFUN(IppStatus, ippsBigNumGetSize, (cpSize len32, cpSize *pCtxSize))
 // Returns:                Reason:
 //    ippStsNullPtrErr        pBN == NULL
 //    ippStsLengthErr         len32<1
+//                            len32 > BITS2WORD32_SIZE(BN_MAXBITSIZE)
 //    ippStsNoErr             no errors
 //
 // Parameters:
@@ -143,7 +151,7 @@ IPPFUN(IppStatus, ippsBigNumGetSize, (cpSize len32, cpSize *pCtxSize))
 *F*/
 IPPFUN(IppStatus, ippsBigNumInit, (cpSize len32, IppsBigNumState* pBN))
 {
-   IPP_BADARG_RET(len32<1, ippStsLengthErr);
+   IPP_BADARG_RET(len32<1 || len32>BITS2WORD32_SIZE(BN_MAXBITSIZE), ippStsLengthErr);
    IPP_BAD_PTR1_RET(pBN);
    pBN = (IppsBigNumState*)( IPP_ALIGNED_PTR(pBN, BN_ALIGNMENT) );
 
@@ -153,21 +161,24 @@ IPPFUN(IppStatus, ippsBigNumInit, (cpSize len32, IppsBigNumState* pBN))
       /* convert length to the number of BNU_CHUNK_T */
       cpSize len = INTERNAL_BNU_LENGTH(len32);
 
-      BN_ID(pBN) = idCtxBigNum;
+      BN_ID(pBN) = idCtxUnknown;
       BN_SIGN(pBN) = ippBigNumPOS;
       BN_SIZE(pBN) = 1;     /* initial valie is zero */
       BN_ROOM(pBN) = len;   /* close to what has been passed by user */
 
-      /* reserve one BNU_CHUNK_T above for cpDiv_BNU, multiplication, mont exponentiation */
+      /* reserve one BNU_CHUNK_T more for cpDiv_BNU,
+         mul, mont exp operations */
       len++;
 
       /* allocate buffers */
       BN_NUMBER(pBN) = (BNU_CHUNK_T*)(ptr += sizeof(IppsBigNumState));
       BN_BUFFER(pBN) = (BNU_CHUNK_T*)(ptr += len*sizeof(BNU_CHUNK_T)); /* use expanded length here */
 
-      /* set BN zero */
+      /* set BN value and buffer to zero */
       ZEXPAND_BNU(BN_NUMBER(pBN), 0, len);
+      ZEXPAND_BNU(BN_BUFFER(pBN), 0, len);
 
+      BN_ID(pBN) = idCtxBigNum;
       return ippStsNoErr;
    }
 }
@@ -446,12 +457,14 @@ IPPFUN(IppStatus, ippsExtGet_BN, (IppsBigNumSGN* pSgn, cpSize* pBitSize, Ipp32u*
 
    {
       cpSize bitSize = BITSIZE_BNU(BN_NUMBER(pBN), BN_SIZE(pBN));
+      if(0==bitSize)
+         bitSize = 1;
       if(pData)
          COPY_BNU(pData, (Ipp32u*)BN_NUMBER(pBN), BITS2WORD32_SIZE(bitSize));
       if(pSgn)
          *pSgn = BN_SIGN(pBN);
       if(pBitSize)
-         *pBitSize = bitSize? bitSize : 1;
+         *pBitSize = bitSize;
 
       return ippStsNoErr;
    }
@@ -785,7 +798,8 @@ IPPFUN(IppStatus, ippsMAC_BN_I, (IppsBigNumState* pA, IppsBigNumState* pB, IppsB
       cpSize nsP = BITS_BNU_CHUNK(bitSizeA+bitSizeB);
 
       /* test if multiplicant/multiplier is zero */
-      if(!nsP) return ippStsNoErr;
+      //gres: mistaken condition: if(!nsP) return ippStsNoErr;
+      if(!bitSizeA || !bitSizeB) return ippStsNoErr;
       /* test if product can't fit to the result */
       IPP_BADARG_RET(BN_ROOM(pR)<nsP, ippStsOutOfRangeErr);
 
@@ -897,12 +911,12 @@ IPPFUN(IppStatus, ippsDiv_BN, (IppsBigNumState* pA, IppsBigNumState* pB, IppsBig
       COPY_BNU(pDataR, pDataA, nsR);
 
       BN_SIGN(pQ) = BN_SIGN(pA)==BN_SIGN(pB)? ippBigNumPOS : ippBigNumNEG;
-      FIX_BNU(pDataQ, nsQ);
+      //gres: leading zeros are removed by cpDiv_BNU: FIX_BNU(pDataQ, nsQ);
       BN_SIZE(pQ) = nsQ;
       if(nsQ==1 && pDataQ[0]==0) BN_SIGN(pQ) = ippBigNumPOS;
 
       BN_SIGN(pR) = BN_SIGN(pA);
-      FIX_BNU(pDataR, nsR);
+      //gres: leading zeros are removed by cpDiv_BNU: FIX_BNU(pDataR, nsR);
       BN_SIZE(pR) = nsR;
       if(nsR==1 && pDataR[0]==0) BN_SIGN(pR) = ippBigNumPOS;
 
@@ -1083,8 +1097,10 @@ IPPFUN(IppStatus, ippsGcd_BN, (IppsBigNumState* pA, IppsBigNumState* pB, IppsBig
          FIX_BNU(yData, nsY);
 
          /* init buffers */
-         ZEXPAND_COPY_BNU(xBuffer, nsX, xData, nsXmax);
-         ZEXPAND_COPY_BNU(yBuffer, nsY, yData, nsYmax);
+         //gres: seems length parameters mistaken exchaged: ZEXPAND_COPY_BNU(xBuffer, nsX, xData, nsXmax);
+         //gres: seems length parameters mistaken exchaged: ZEXPAND_COPY_BNU(yBuffer, nsY, yData, nsYmax);
+         ZEXPAND_COPY_BNU(xBuffer, nsXmax, xData, nsX);
+         ZEXPAND_COPY_BNU(yBuffer, nsYmax, yData, nsY);
 
          T = gBuffer;
          u = gData;

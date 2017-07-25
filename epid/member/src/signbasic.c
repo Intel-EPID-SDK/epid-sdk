@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,9 +21,15 @@
 
 #include <string.h>  // memset
 
-#include "epid/common/src/stack.h"
 #include "epid/member/api.h"
 #include "epid/member/src/context.h"
+#include "epid/member/tpm/sign.h"
+#include "epid/common/math/ecgroup.h"
+#include "epid/common/math/finitefield.h"
+#include "epid/common/src/epid2params.h"
+#include "epid/member/src/hash_basename.h"
+#include "epid/member/src/sign_commitment.h"
+#include "epid/member/src/allowed_basenames.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -34,29 +40,8 @@
 EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
                          void const* basename, size_t basename_len,
                          BasicSignature* sig) {
-  EpidStatus result = kEpidErr;
-  // Values to be affected by basename
-  EcPoint* B = NULL;
-  EcPoint* K = NULL;
-  EcPoint* R1 = NULL;
-  // data from presig
-  EcPoint* T = NULL;
-  FfElement* a = NULL;
-  FfElement* b = NULL;
-  FfElement* rx = NULL;
-  FfElement* rf = NULL;
-  FfElement* ra = NULL;
-  FfElement* rb = NULL;
-  FfElement* R2 = NULL;
+  EpidStatus sts = kEpidErr;
 
-  // final calculatoin data
-  FfElement* sx = NULL;
-  FfElement* sf = NULL;
-  FfElement* sa = NULL;
-  FfElement* sb = NULL;
-  FfElement* c_hash = NULL;
-  // priv key data, need to clear after use
-  BigNumStr f_str = {0};
   if (!ctx || !sig) {
     return kEpidBadArgErr;
   }
@@ -68,205 +53,44 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
     // if basename is non-empty it must have both length and content
     return kEpidBadArgErr;
   }
-  if (!ctx->epid2_params || !ctx->priv_key || !ctx->epid2_params->G1 ||
-      !ctx->epid2_params->GT || !ctx->epid2_params->Fp || !ctx->priv_key->f) {
+  if (!ctx->epid2_params) {
     return kEpidBadArgErr;
   }
 
   do {
-    PreComputedSignature curr_presig;
+    FiniteField* Fp = ctx->epid2_params->Fp;
+    EcGroup* G1 = ctx->epid2_params->G1;
     G1ElemStr B_str = {0};
-    G1ElemStr K_str = {0};
-    CommitValues commit_values = ctx->commit_values;
-
-    // create all required elemnts
-    result = NewEcPoint(ctx->epid2_params->G1, &B);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewEcPoint(ctx->epid2_params->G1, &K);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewEcPoint(ctx->epid2_params->G1, &R1);
-    BREAK_ON_EPID_ERROR(result);
-
-    result = NewEcPoint(ctx->epid2_params->G1, &T);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->GT, &R2);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &sx);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &sf);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &sa);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &sb);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &c_hash);
-    BREAK_ON_EPID_ERROR(result);
-
-    result = NewFfElement(ctx->epid2_params->Fp, &a);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &b);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &rx);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &rf);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &ra);
-    BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(ctx->epid2_params->Fp, &rb);
-    BREAK_ON_EPID_ERROR(result);
-
-    if (StackGetSize(ctx->presigs)) {
-      // Use existing pre-computed signature
-      if (!StackPopN(ctx->presigs, 1, &curr_presig)) {
-        result = kEpidErr;
-        break;
-      }
-    } else {
-      // generate a new pre-computed signature
-      result = EpidComputePreSig(ctx, &curr_presig);
-      BREAK_ON_EPID_ERROR(result);
-    }
-    // 3.  If the pre-computed signature pre-sigma exists, the member
-    //     loads (B, K, T, a, b, rx, rf, ra, rb, R1, R2) from
-    //     pre-sigma. Refer to Section 4.4 for the computation of
-    //     these values.
-    result = ReadEcPoint(ctx->epid2_params->G1, &curr_presig.B,
-                         sizeof(curr_presig.B), B);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadEcPoint(ctx->epid2_params->G1, &curr_presig.K,
-                         sizeof(curr_presig.K), K);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadEcPoint(ctx->epid2_params->G1, &curr_presig.T,
-                         sizeof(curr_presig.T), T);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.a,
-                           sizeof(curr_presig.a), a);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.b,
-                           sizeof(curr_presig.b), b);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.rx,
-                           sizeof(curr_presig.rx), rx);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.rf,
-                           sizeof(curr_presig.rf), rf);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.ra,
-                           sizeof(curr_presig.ra), ra);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->Fp, &curr_presig.rb,
-                           sizeof(curr_presig.rb), rb);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadEcPoint(ctx->epid2_params->G1, &curr_presig.R1,
-                         sizeof(curr_presig.R1), R1);
-    BREAK_ON_EPID_ERROR(result);
-    result = ReadFfElement(ctx->epid2_params->GT, &curr_presig.R2,
-                           sizeof(curr_presig.R2), R2);
-    BREAK_ON_EPID_ERROR(result);
+    SignCommitOutput commit_out = {0};
+    FpElemStr c_str = {0};
 
     if (basename) {
-      // If basename is provided, the member does the following:
-      // make sure basename is registered/allowed
-      if (!ContainsBasename(ctx->allowed_basenames, basename, basename_len)) {
-        result = kEpidBadArgErr;
-        break;
-      } else {
-        // basename valid, can modify parameters
-        //   a. The member computes B = G1.hash(bsn).
-        result = EcHash(ctx->epid2_params->G1, basename, basename_len,
-                        ctx->hash_alg, B);
-        BREAK_ON_EPID_ERROR(result);
-        //   b. The member computes K = G1.sscmExp(B, f), where B comes
-        //      from step a.
-        result = WriteFfElement(ctx->epid2_params->Fp, ctx->priv_key->f, &f_str,
-                                sizeof(f_str));
-        BREAK_ON_EPID_ERROR(result);
-        result = EcSscmExp(ctx->epid2_params->G1, B, &f_str, K);
-        BREAK_ON_EPID_ERROR(result);
-        //   c. The member computes R1 = G1.sscmExp(B, rf), where B comes
-        //      from step a.
-        result = EcSscmExp(ctx->epid2_params->G1, B,
-                           (const BigNumStr*)&curr_presig.rf, R1);
-        BREAK_ON_EPID_ERROR(result);
-        //   d. The member over-writes the B, K, and R1 values.
+      if (!IsBasenameAllowed(ctx->allowed_basenames, basename, basename_len)) {
+        sts = kEpidBadArgErr;
+        BREAK_ON_EPID_ERROR(sts);
       }
+      sts = HashBaseName(G1, ctx->hash_alg, basename, basename_len, &B_str);
+      BREAK_ON_EPID_ERROR(sts);
+      sts = TpmSignCommit(ctx->tpm_ctx, &B_str, &commit_out);
+    } else {
+      sts = TpmSignCommit(ctx->tpm_ctx, NULL, &commit_out);
     }
-    // 5.  The member computes t3 = Fp.hash(p || g1 || g2 || h1 || h2
-    //     || w || B || K || T || R1 || R2). Refer to Section 7.1 for
-    //     hash operation over a prime field.
-    // 6.  The member computes c = Fp.hash(t3 || m).
-    result = WriteEcPoint(ctx->epid2_params->G1, B, &B_str, sizeof(B_str));
-    BREAK_ON_EPID_ERROR(result);
-    result = WriteEcPoint(ctx->epid2_params->G1, K, &K_str, sizeof(K_str));
-    BREAK_ON_EPID_ERROR(result);
-    result = SetCalculatedCommitValues(&B_str, &K_str, &curr_presig.T, R1,
-                                       ctx->epid2_params->G1, R2,
-                                       ctx->epid2_params->GT, &commit_values);
-    BREAK_ON_EPID_ERROR(result);
-    result = CalculateCommitmentHash(&commit_values, ctx->epid2_params->Fp,
-                                     ctx->hash_alg, msg, msg_len, c_hash);
-    BREAK_ON_EPID_ERROR(result);
-    // 7.  The member computes sx = (rx + c * x) mod p.
-    result = FfMul(ctx->epid2_params->Fp, c_hash, ctx->priv_key->x, sx);
-    BREAK_ON_EPID_ERROR(result);
-    result = FfAdd(ctx->epid2_params->Fp, rx, sx, sx);
-    // 8.  The member computes sf = (rf + c * f) mod p.
-    result = FfMul(ctx->epid2_params->Fp, c_hash, ctx->priv_key->f, sf);
-    BREAK_ON_EPID_ERROR(result);
-    result = FfAdd(ctx->epid2_params->Fp, rf, sf, sf);
-    BREAK_ON_EPID_ERROR(result);
-    // 9.  The member computes sa = (ra + c * a) mod p.
-    result = FfMul(ctx->epid2_params->Fp, c_hash, a, sa);
-    BREAK_ON_EPID_ERROR(result);
-    result = FfAdd(ctx->epid2_params->Fp, ra, sa, sa);
-    BREAK_ON_EPID_ERROR(result);
-    // 10. The member computes sb = (rb + c * b) mod p.
-    result = FfMul(ctx->epid2_params->Fp, c_hash, b, sb);
-    BREAK_ON_EPID_ERROR(result);
-    result = FfAdd(ctx->epid2_params->Fp, rb, sb, sb);
-    BREAK_ON_EPID_ERROR(result);
-    // 11. The member sets sigma0 = (B, K, T, c, sx, sf, sa, sb).
-    result = WriteEcPoint(ctx->epid2_params->G1, B, &sig->B, sizeof(sig->B));
-    BREAK_ON_EPID_ERROR(result);
-    result = WriteEcPoint(ctx->epid2_params->G1, K, &sig->K, sizeof(sig->K));
-    BREAK_ON_EPID_ERROR(result);
-    result = WriteEcPoint(ctx->epid2_params->G1, T, &sig->T, sizeof(sig->T));
-    BREAK_ON_EPID_ERROR(result);
-    result =
-        WriteFfElement(ctx->epid2_params->Fp, c_hash, &sig->c, sizeof(sig->c));
-    BREAK_ON_EPID_ERROR(result);
-    result =
-        WriteFfElement(ctx->epid2_params->Fp, sx, &sig->sx, sizeof(sig->sx));
-    BREAK_ON_EPID_ERROR(result);
-    result =
-        WriteFfElement(ctx->epid2_params->Fp, sf, &sig->sf, sizeof(sig->sf));
-    BREAK_ON_EPID_ERROR(result);
-    result =
-        WriteFfElement(ctx->epid2_params->Fp, sa, &sig->sa, sizeof(sig->sa));
-    BREAK_ON_EPID_ERROR(result);
-    result =
-        WriteFfElement(ctx->epid2_params->Fp, sb, &sig->sb, sizeof(sig->sb));
-    BREAK_ON_EPID_ERROR(result);
-    result = kEpidNoErr;
+    BREAK_ON_EPID_ERROR(sts);
+
+    sts = HashSignCommitment(Fp, ctx->hash_alg, &ctx->pub_key, &commit_out, msg,
+                             msg_len, &c_str);
+    BREAK_ON_EPID_ERROR(sts);
+
+    sts = TpmSign(ctx->tpm_ctx, &c_str, &sig->sx, &sig->sf, &sig->sa, &sig->sb);
+    BREAK_ON_EPID_ERROR(sts);
+
+    sig->B = commit_out.B;
+    sig->K = commit_out.K;
+    sig->T = commit_out.T;
+    sig->c = c_str;
+
+    sts = kEpidNoErr;
   } while (0);
-  // remove all data
-  DeleteEcPoint(&B);
-  DeleteEcPoint(&K);
-  DeleteEcPoint(&R1);
 
-  DeleteEcPoint(&T);
-  DeleteFfElement(&R2);
-  DeleteFfElement(&sx);
-  DeleteFfElement(&sf);
-  DeleteFfElement(&sa);
-  DeleteFfElement(&sb);
-  DeleteFfElement(&c_hash);
-  DeleteFfElement(&a);
-  DeleteFfElement(&b);
-  DeleteFfElement(&rx);
-  DeleteFfElement(&rf);
-  DeleteFfElement(&ra);
-  DeleteFfElement(&rb);
-
-  return result;
+  return sts;
 }

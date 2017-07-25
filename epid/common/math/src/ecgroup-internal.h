@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,23 +22,24 @@
 #ifndef EPID_COMMON_MATH_SRC_ECGROUP_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_ECGROUP_INTERNAL_H_
 
-#include "ext/ipp/include/ippcpepid.h"
+#include "ext/ipp/include/ippcp.h"
+#include "epid/common/math/src/finitefield-internal.h"
 
 /// Elpitic Curve Group
 struct EcGroup {
   /// Internal implementation of elliptic curve group
   IppsGFpECState* ipp_ec;
   /// Scratch buffer for operations over elliptic curve group
-  Ipp8u* scratch_buffer;
-  /// Information about finite field of elliptic curve group created
-  IppsGFpInfo info;
+  OctStr scratch_buffer;
+  /// Information about finite field of elliptic curve group
+  struct FiniteField* ff;
 };
 
 /// Elpitic Curve Point
 struct EcPoint {
   /// Internal implementation of elliptic curve point
   IppsGFpECPoint* ipp_ec_pt;
-  /// Information about finite field element of elliptic curve group created
-  IppsGFpInfo info;
+  /// length of the finite field element of elliptic curve group
+  int element_len;
 };
 #endif  // EPID_COMMON_MATH_SRC_ECGROUP_INTERNAL_H_

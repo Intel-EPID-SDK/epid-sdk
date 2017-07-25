@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2004-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 
 #include "owncp.h"
 #include "pcpbn.h"
@@ -51,23 +51,13 @@ static
 void SHA1_G(Ipp32u* xBNU, const Ipp32u* T, Ipp8u* pHexStr, int hexStrLen)
 {
    /* select processing function */
-#if 0
-   cpHashProc updateFunc = UpdateSHA1;
-   #if (_IPP>=_IPP_P8) || (_IPP32E>=_IPP32E_Y8)
-   if( IsFeatureEnabled(SHA_NI_ENABLED) )
-      updateFunc = UpdateSHA1ni;
-   #endif
-#endif
    cpHashProc updateFunc;
    #if (_SHA_NI_ENABLING_==_FEATURE_ON_)
    updateFunc = UpdateSHA1ni;
+   #elif (_SHA_NI_ENABLING_==_FEATURE_TICKTOCK_)
+   updateFunc = IsFeatureEnabled(SHA_NI_ENABLED)? UpdateSHA1ni : UpdateSHA1;
    #else
-      #if (_SHA_NI_ENABLING_==_FEATURE_TICKTOCK_)
-      if( IsFeatureEnabled(SHA_NI_ENABLED) )
-         updateFunc = UpdateSHA1ni;
-      else
-      #endif
-         updateFunc = UpdateSHA1;
+   updateFunc = UpdateSHA1;
    #endif
 
    /* pad HexString zeros */

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,20 +26,8 @@
 #include <string.h>
 #include "src/signmsg.h"
 #include "src/prng.h"
-#include "util/envutil.h"
-#include "util/stdtypes.h"
-#include "util/buffutil.h"
 #include "epid/member/api.h"
 #include "epid/common/file_parser.h"
-
-bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
-  // Implementation of this function is out of scope of the sample.
-  // In an actual implementation Issuing CA certificate must be validated
-  // with CA Root certificate before using it in parse functions.
-  (void)data;
-  (void)size;
-  return true;
-}
 
 EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
                    size_t basename_len, unsigned char const* signed_sig_rl,
@@ -72,35 +60,6 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
 
-    if (signed_sig_rl) {
-      // authenticate and determine space needed for SigRl
-      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert, NULL,
-                               &sig_rl_size);
-      if (kEpidSigInvalid == sts) {
-        // authentication failure
-        break;
-      }
-      if (kEpidNoErr != sts) {
-        break;
-      }
-      sig_rl = AllocBuffer(sig_rl_size);
-      if (!sig_rl) {
-        sts = kEpidMemAllocErr;
-        break;
-      }
-
-      // fill the SigRl
-      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
-                               sig_rl, &sig_rl_size);
-      if (kEpidSigInvalid == sts) {
-        // authentication failure
-        break;
-      }
-      if (kEpidNoErr != sts) {
-        break;
-      }
-    }  // if (signed_sig_rl)
-
     // decompress private key
     if (privkey_size == sizeof(PrivKey)) {
       priv_key = *(PrivKey*)priv_key_ptr;
@@ -129,10 +88,12 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
 
-    // return member pre-computation blob if requested
-    sts = EpidMemberWritePrecomp(member, member_precomp);
-    if (kEpidNoErr != sts) {
-      break;
+    if (!member_precomp_is_input && member_precomp) {
+      // return member pre-computation blob if requested
+      sts = EpidMemberWritePrecomp(member, member_precomp);
+      if (kEpidNoErr != sts) {
+        break;
+      }
     }
 
     // register any provided basename as allowed
@@ -143,6 +104,40 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       }
     }
 
+    if (signed_sig_rl) {
+      // authenticate and determine space needed for SigRl
+      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert, NULL,
+                               &sig_rl_size);
+      if (kEpidSigInvalid == sts) {
+        // authentication failure
+        break;
+      }
+      if (kEpidNoErr != sts) {
+        break;
+      }
+      sig_rl = calloc(1, sig_rl_size);
+      if (!sig_rl) {
+        sts = kEpidMemAllocErr;
+        break;
+      }
+
+      // fill the SigRl
+      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
+                               sig_rl, &sig_rl_size);
+      if (kEpidSigInvalid == sts) {
+        // authentication failure
+        break;
+      }
+      if (kEpidNoErr != sts) {
+        break;
+      }
+
+      sts = EpidMemberSetSigRl(member, sig_rl, sig_rl_size);
+      if (kEpidNoErr != sts) {
+        break;
+      }
+    }  // if (signed_sig_rl)
+
     sts = EpidMemberSetHashAlg(member, hash_alg);
     if (kEpidNoErr != sts) {
       break;
@@ -152,15 +147,15 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
     // Note: Signature size must be computed after sig_rl is loaded.
     *sig_len = EpidGetSigSize(sig_rl);
 
-    *sig = AllocBuffer(*sig_len);
+    *sig = calloc(1, *sig_len);
     if (!*sig) {
       sts = kEpidMemAllocErr;
       break;
     }
 
     // sign message
-    sts = EpidSign(member, msg, msg_len, basename, basename_len, sig_rl,
-                   sig_rl_size, *sig, *sig_len);
+    sts =
+        EpidSign(member, msg, msg_len, basename, basename_len, *sig, *sig_len);
     if (kEpidNoErr != sts) {
       break;
     }

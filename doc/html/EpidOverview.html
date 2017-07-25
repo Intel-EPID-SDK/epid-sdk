@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -82,7 +82,7 @@ Roles</h1>
 <p>In the Intel&reg; EPID scheme, there are three roles: issuers, members, and verifiers.</p>
 <p>The entities in these roles interact with each other in such a way that a member can prove to a verifier that it is a trusted member of a group without disclosing the identity of the member. Groups are created and managed by the issuer.</p>
 <div class="image">
-<img src="epid_diagram_high_level_use_case.png" alt="epid_diagram_high_level_use_case.png"/>
+<img src="epid_diagram_roles_summary.png" alt="epid_diagram_roles_summary.png"/>
 </div>
 <h2><a class="anchor" id="EpidOverview_Issuers"></a>
 Issuers</h2>
@@ -92,12 +92,12 @@ Issuers</h2>
 <li>Creates groups by generating one issuing private key and one group certificate for each group. The group certificate contains the group public key.</li>
 <li>Creates group members by generating unique Intel&reg; EPID member private keys through bulk provisioning. Member private keys are created from the issuing private key for the group.</li>
 <li>Manages requests from prospective members to join existing groups by using the join protocol.</li>
-<li>Creates and maintains signature based revocation lists and private key based revocation lists. These lists of members no longer in good standing allow members to be dropped from a group.</li>
+<li>Creates and maintains signature revocation lists and member private key revocation lists. These lists of members no longer in good standing allow members to be dropped from a group.</li>
 <li>Creates and maintains group revocation lists.</li>
 <li>Makes group public keys and revocation lists available to verifiers.</li>
 </ul>
 <div class="image">
-<img src="epid_diagram_issuer_high_level.png" alt="epid_diagram_issuer_high_level.png"/>
+<img src="epid_diagram_issuer_functionality.png" alt="epid_diagram_issuer_functionality.png"/>
 </div>
 <h2><a class="anchor" id="EpidOverview_Members"></a>
 Members</h2>
@@ -108,7 +108,7 @@ Members</h2>
 <li>The member uses its member private key to sign a message to prove group membership to the verifier without revealing the identity of the member.</li>
 </ul>
 <div class="image">
-<img src="epid_diagram_member_high_level.png" alt="epid_diagram_member_high_level.png"/>
+<img src="epid_diagram_member_functionality.png" alt="epid_diagram_member_functionality.png"/>
 </div>
 <h2><a class="anchor" id="EpidOverview_Verifiers"></a>
 Verifiers</h2>
@@ -122,7 +122,7 @@ Verifiers</h2>
 <li>Manage a private list of revoked members, also called the verifier blacklist.</li>
 </ul>
 <div class="image">
-<img src="epid_diagram_verifier_high_level.png" alt="epid_diagram_verifier_high_level.png"/>
+<img src="epid_diagram_verifier_functionality.png" alt="epid_diagram_verifier_functionality.png"/>
 </div>
 <h1><a class="anchor" id="EpidOverview_Groups"></a>
 Groups</h1>
@@ -130,11 +130,14 @@ Groups</h1>
 <p>All groups have the following:</p>
 <ul>
 <li>Group public key, which corresponds to the issuing private key kept by the issuer</li>
-<li>Signature based revocation list</li>
-<li>Private key based revocation list</li>
+<li>Signature revocation list</li>
+<li>Member private key revocation list</li>
 <li>Member private keys, generated from the issuing private key</li>
 </ul>
-<p>If a signature based revocation list or private key based revocation list does not exist, it is assumed to be empty.</p>
+<p>If a signature revocation list or member private key revocation list does not exist, it is assumed to be empty.</p>
+<div class="image">
+<img src="epid_diagram_group.png" alt="epid_diagram_group.png"/>
+</div>
 <h1><a class="anchor" id="EpidOverview_Keys"></a>
 Keys</h1>
 <p>The Intel&reg; EPID scheme works with three types of keys: the group public key, the issuing private key, and the member private key. A group public key corresponds to the unique member private keys that are part of the group. Member private keys are generated from the issuing private key.</p>
@@ -156,7 +159,7 @@ Member and Verifier Interaction</h1>
 <p>The Intel&reg; EPID verifier uses the group public key to verify the correctness of an Intel&reg; EPID signature, i.e., to verify that the signature was indeed created by a member with a valid Intel&reg; EPID private key.</p>
 <p>However, the Intel&reg; EPID signature does not convey any information about which unique private key was used to create the signature.</p>
 <div class="image">
-<img src="epid_diagram_high_level_interaction.png" alt="epid_diagram_high_level_interaction.png"/>
+<img src="epid_diagram_basic_interaction.png" alt="epid_diagram_basic_interaction.png"/>
 </div>
  </div></div><!-- contents -->
 </div><!-- doc-content -->
@@ -165,7 +168,7 @@ Member and Verifier Interaction</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

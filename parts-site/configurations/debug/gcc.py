@@ -48,5 +48,5 @@ config.VersionRange("3-*",
                                  '-Wno-unused-but-set-variable',
                                  # do not warn about multiline comments
                                  '-Wno-comment',
-                                ],
+                                 '-fPIC'],
                     ))

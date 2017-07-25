@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ struct Epid11PairingState {
   BigNum* final_exp_constant;    ///< (q^2 - q + 1)/p
   FfElement* fq3_inv_constant;   ///< (inverse(qnr), 0) in Fq3
   FfElement* fq3_inv2_constant;  ///< (inverse(qnr)^2, 0) in Fq3
-  FiniteField Fq;                ///< Fq
-  FiniteField Fq3;               ///< Fq3
+  FiniteField* Fq;               ///< Fq
+  FiniteField* Fq3;              ///< Fq3
   FfElement* alpha_q[3];         ///< {t^(0*q), t^(1*q), t^(2*q)}
 };
 

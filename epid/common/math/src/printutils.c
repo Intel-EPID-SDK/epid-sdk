@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@
 /// Print to specified stream
 #define PRINT(...) fprintf(stdout, __VA_ARGS__)
 
-static int PrintBuf(void const* buf, size_t size) {
+static int PrintBuf(ConstOctStr buf, size_t size) {
   size_t curr_column = 0;
   size_t i = 0;
   if (!buf || size == 0) {
@@ -117,14 +117,14 @@ void PrintBigNum(BigNum const* big_num, char const* var_name) {
       PRINT("<invalid>\n");
       break;
     }
-    sts = ippsGetOctString_BN((Ipp8u*)buf, ipp_word_buf_size * sizeof(Ipp32u),
+    sts = ippsGetOctString_BN((OctStr)buf, ipp_word_buf_size * sizeof(Ipp32u),
                               big_num->ipp_bn);
     if (ippStsNoErr != sts) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       break;
     }
-    if (0 != PrintBuf((const void*)buf, ipp_word_buf_size * sizeof(Ipp32u))) {
+    if (0 != PrintBuf((ConstOctStr)buf, ipp_word_buf_size * sizeof(Ipp32u))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       break;
@@ -157,9 +157,9 @@ void PrintFfElement(FiniteField const* ff, FfElement const* ff_element,
   }
 
   // get the data
-  ipp_ff_element_size = ff_element->info.elementLen * sizeof(Ipp32u);
+  ipp_ff_element_size = ff_element->element_len * sizeof(Ipp32u);
   sts = ippsGFpGetElementOctString(ff_element->ipp_ff_elem,
-                                   (Ipp8u*)&ff_element_str, ipp_ff_element_size,
+                                   (OctStr)&ff_element_str, ipp_ff_element_size,
                                    ff->ipp_ff);
   if (ippStsNoErr != sts) {
     PRINT("%s (FfElement):\n", var_name);
@@ -189,7 +189,7 @@ void PrintFfElement(FiniteField const* ff, FfElement const* ff_element,
 
 void PrintEcPoint(EcGroup const* g, EcPoint const* ec_point,
                   char const* var_name, PrintUtilFormat format) {
-  FiniteField fp;
+  FiniteField* fp = NULL;
   FfElement* fp_x = NULL;
   FfElement* fp_y = NULL;
   uint8_t ec_point_str[sizeof(G2ElemStr)];
@@ -202,7 +202,7 @@ void PrintEcPoint(EcGroup const* g, EcPoint const* ec_point,
     PRINT("<null>\n");
     return;
   }
-  if (!ec_point->ipp_ec_pt || !g->ipp_ec) {
+  if (!ec_point->ipp_ec_pt || !g->ff || !g->ipp_ec) {
     PRINT("%s (EcPoint):\n", var_name);
     MAKE_INDENT();
     PRINT("<invalid>\n");
@@ -212,31 +212,24 @@ void PrintEcPoint(EcGroup const* g, EcPoint const* ec_point,
     IppStatus sts = ippStsNoErr;
     int ipp_half_strlen;
     // get finite field
-    sts = ippsGFpECGet(g->ipp_ec, (const IppsGFpState**)&(fp.ipp_ff), 0, 0, 0,
-                       0, 0, 0, 0, 0);
-    if (ippStsNoErr != sts) {
-      PRINT("%s (EcPoint):\n", var_name);
-      MAKE_INDENT();
-      PRINT("<invalid>\n");
-      break;
-    }
+    fp = g->ff;
 
     // create element X
-    if (kEpidNoErr != NewFfElement(&fp, &fp_x)) {
+    if (kEpidNoErr != NewFfElement(fp, &fp_x)) {
       PRINT("%s (EcPoint):\n", var_name);
       MAKE_INDENT();
       PRINT("<invalid>\n");
       break;
     }
     // create element Y
-    if (kEpidNoErr != NewFfElement(&fp, &fp_y)) {
+    if (kEpidNoErr != NewFfElement(fp, &fp_y)) {
       PRINT("%s (EcPoint):\n", var_name);
       MAKE_INDENT();
       PRINT("<invalid>\n");
       break;
     }
 
-    ipp_half_strlen = fp_x->info.elementLen * sizeof(Ipp32u);
+    ipp_half_strlen = fp_x->element_len * sizeof(Ipp32u);
 
     // get elements from point
     sts = ippsGFpECGetPoint(ec_point->ipp_ec_pt, fp_x->ipp_ff_elem,
@@ -250,8 +243,9 @@ void PrintEcPoint(EcGroup const* g, EcPoint const* ec_point,
     }
 
     // get element X data
-    sts = ippsGFpGetElementOctString(fp_x->ipp_ff_elem, (Ipp8u*)&ec_point_str,
-                                     ipp_half_strlen, fp.ipp_ff);
+    sts =
+        ippsGFpGetElementOctString(fp_x->ipp_ff_elem, (IppOctStr)&ec_point_str,
+                                   ipp_half_strlen, fp->ipp_ff);
     // check return codes
     if (ippStsNoErr != sts) {
       PRINT("%s (EcPoint):\n", var_name);
@@ -261,8 +255,8 @@ void PrintEcPoint(EcGroup const* g, EcPoint const* ec_point,
     }
     // get element Y data
     sts = ippsGFpGetElementOctString(fp_y->ipp_ff_elem,
-                                     (Ipp8u*)&ec_point_str + ipp_half_strlen,
-                                     ipp_half_strlen, fp.ipp_ff);
+                                     (IppOctStr)&ec_point_str + ipp_half_strlen,
+                                     ipp_half_strlen, fp->ipp_ff);
     // check return codes
     if (ippStsNoErr != sts) {
       PRINT("%s (EcPoint):\n", var_name);
@@ -297,7 +291,7 @@ void PrintBigNumStr(BigNumStr const* big_num_str, char const* var_name) {
     PRINT("<null>\n");
     return;
   }
-  if (0 != PrintBuf((const void*)big_num_str, sizeof(*big_num_str))) {
+  if (0 != PrintBuf((ConstOctStr)big_num_str, sizeof(*big_num_str))) {
     MAKE_INDENT();
     PRINT("<invalid>\n");
     return;
@@ -314,7 +308,7 @@ void PrintFpElemStr(FpElemStr const* fp_elem_str, char const* var_name) {
     PRINT("<null>\n");
     return;
   }
-  if (0 != PrintBuf((const void*)fp_elem_str, sizeof(*fp_elem_str))) {
+  if (0 != PrintBuf((ConstOctStr)fp_elem_str, sizeof(*fp_elem_str))) {
     MAKE_INDENT();
     PRINT("<invalid>\n");
     return;
@@ -331,7 +325,7 @@ void PrintFqElemStr(FqElemStr const* fq_elem_str, char const* var_name) {
     PRINT("<null>\n");
     return;
   }
-  if (0 != PrintBuf((const void*)fq_elem_str, sizeof(*fq_elem_str))) {
+  if (0 != PrintBuf((ConstOctStr)fq_elem_str, sizeof(*fq_elem_str))) {
     MAKE_INDENT();
     PRINT("<invalid>\n");
     return;
@@ -352,7 +346,7 @@ void PrintFq2ElemStr(Fq2ElemStr const* fq2_elem_str, char const* var_name,
   if (format == kPrintUtilAnnotated) {
     MAKE_INDENT();
     PRINT("a0:\n");
-    if (0 != PrintBuf((const void*)&fq2_elem_str->a[0],
+    if (0 != PrintBuf((ConstOctStr)&fq2_elem_str->a[0],
                       sizeof(fq2_elem_str->a[0]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
@@ -360,14 +354,14 @@ void PrintFq2ElemStr(Fq2ElemStr const* fq2_elem_str, char const* var_name,
     }
     MAKE_INDENT();
     PRINT("a1:\n");
-    if (0 != PrintBuf((const void*)&fq2_elem_str->a[1],
+    if (0 != PrintBuf((ConstOctStr)&fq2_elem_str->a[1],
                       sizeof(fq2_elem_str->a[1]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)fq2_elem_str, sizeof(*fq2_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)fq2_elem_str, sizeof(*fq2_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -399,7 +393,7 @@ void PrintFq6ElemStr(Fq6ElemStr const* fq6_elem_str, char const* var_name,
            j++) {
         MAKE_INDENT();
         PRINT("a%u.%u:\n", i, j);
-        if (0 != PrintBuf((const void*)&fq6_elem_str->a[i].a[j],
+        if (0 != PrintBuf((ConstOctStr)&fq6_elem_str->a[i].a[j],
                           sizeof(fq6_elem_str->a[i].a[j]))) {
           MAKE_INDENT();
           PRINT("<invalid>\n");
@@ -408,7 +402,7 @@ void PrintFq6ElemStr(Fq6ElemStr const* fq6_elem_str, char const* var_name,
       }
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)fq6_elem_str, sizeof(*fq6_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)fq6_elem_str, sizeof(*fq6_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -445,7 +439,7 @@ void PrintFq12ElemStr(Fq12ElemStr const* fq12_elem_str, char const* var_name,
              k++) {
           MAKE_INDENT();
           PRINT("a%u.%u.%u:\n", i, j, k);
-          if (0 != PrintBuf((const void*)&fq12_elem_str->a[i].a[j].a[k],
+          if (0 != PrintBuf((ConstOctStr)&fq12_elem_str->a[i].a[j].a[k],
                             sizeof(fq12_elem_str->a[i].a[j].a[k]))) {
             MAKE_INDENT();
             PRINT("<invalid>\n");
@@ -455,7 +449,7 @@ void PrintFq12ElemStr(Fq12ElemStr const* fq12_elem_str, char const* var_name,
       }
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)fq12_elem_str, sizeof(*fq12_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)fq12_elem_str, sizeof(*fq12_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -481,20 +475,20 @@ void PrintG1ElemStr(G1ElemStr const* g1_elem_str, char const* var_name,
   if (format == kPrintUtilAnnotated) {
     MAKE_INDENT();
     PRINT("x:\n");
-    if (0 != PrintBuf((const void*)&g1_elem_str->x, sizeof(g1_elem_str->x))) {
+    if (0 != PrintBuf((ConstOctStr)&g1_elem_str->x, sizeof(g1_elem_str->x))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
     }
     MAKE_INDENT();
     PRINT("y:\n");
-    if (0 != PrintBuf((const void*)&g1_elem_str->y, sizeof(g1_elem_str->y))) {
+    if (0 != PrintBuf((ConstOctStr)&g1_elem_str->y, sizeof(g1_elem_str->y))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)g1_elem_str, sizeof(*g1_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)g1_elem_str, sizeof(*g1_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -521,7 +515,7 @@ void PrintG2ElemStr(G2ElemStr const* g2_elem_str, char const* var_name,
     MAKE_INDENT();
     PRINT("x0:\n");
     if (0 !=
-        PrintBuf((const void*)&g2_elem_str->x[0], sizeof(g2_elem_str->x[0]))) {
+        PrintBuf((ConstOctStr)&g2_elem_str->x[0], sizeof(g2_elem_str->x[0]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -529,7 +523,7 @@ void PrintG2ElemStr(G2ElemStr const* g2_elem_str, char const* var_name,
     MAKE_INDENT();
     PRINT("x1:\n");
     if (0 !=
-        PrintBuf((const void*)&g2_elem_str->x[1], sizeof(g2_elem_str->x[1]))) {
+        PrintBuf((ConstOctStr)&g2_elem_str->x[1], sizeof(g2_elem_str->x[1]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -537,7 +531,7 @@ void PrintG2ElemStr(G2ElemStr const* g2_elem_str, char const* var_name,
     MAKE_INDENT();
     PRINT("y0:\n");
     if (0 !=
-        PrintBuf((const void*)&g2_elem_str->y[0], sizeof(g2_elem_str->y[0]))) {
+        PrintBuf((ConstOctStr)&g2_elem_str->y[0], sizeof(g2_elem_str->y[0]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -545,13 +539,13 @@ void PrintG2ElemStr(G2ElemStr const* g2_elem_str, char const* var_name,
     MAKE_INDENT();
     PRINT("y1:\n");
     if (0 !=
-        PrintBuf((const void*)&g2_elem_str->y[1], sizeof(g2_elem_str->y[1]))) {
+        PrintBuf((ConstOctStr)&g2_elem_str->y[1], sizeof(g2_elem_str->y[1]))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)g2_elem_str, sizeof(*g2_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)g2_elem_str, sizeof(*g2_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;
@@ -579,7 +573,7 @@ void PrintGtElemStr(GtElemStr const* gt_elem_str, char const* var_name,
     for (i = 0; i < sizeof(gt_elem_str->x) / sizeof(gt_elem_str->x[0]); i++) {
       MAKE_INDENT();
       PRINT("x%u:\n", i);
-      if (0 != PrintBuf((const void*)&gt_elem_str->x[i],
+      if (0 != PrintBuf((ConstOctStr)&gt_elem_str->x[i],
                         sizeof(gt_elem_str->x[i]))) {
         MAKE_INDENT();
         PRINT("<invalid>\n");
@@ -587,7 +581,7 @@ void PrintGtElemStr(GtElemStr const* gt_elem_str, char const* var_name,
       }
     }
   } else if (format == kPrintUtilUnannotated) {
-    if (0 != PrintBuf((const void*)gt_elem_str, sizeof(*gt_elem_str))) {
+    if (0 != PrintBuf((ConstOctStr)gt_elem_str, sizeof(*gt_elem_str))) {
       MAKE_INDENT();
       PRINT("<invalid>\n");
       return;

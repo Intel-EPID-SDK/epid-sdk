@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,17 +19,13 @@
  * \brief Verifysig example implementation.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <dropt.h>
-#include "epid/common/errors.h"
-#include "epid/common/types.h"
+
 #include "epid/common/file_parser.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/1.1/api.h"
-
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
@@ -49,6 +45,15 @@
 #define UNPARSED_HASHALG (kInvalidHashAlg)
 #define VPRECMPI_DEFAULT NULL
 #define VPRECMPO_DEFAULT NULL
+
+bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
+  // Implementation of this function is out of scope of the sample.
+  // In an actual implementation Issuing CA certificate must be validated
+  // with CA Root certificate before using it in parse functions.
+  (void)data;
+  (void)size;
+  return true;
+}
 
 /// parses string to a hashalg type
 static dropt_error HandleHashalg(dropt_context* context,
@@ -85,10 +90,14 @@ int main(int argc, char* argv[]) {
   // Message string parameter
   static char* msg_str = NULL;
   size_t msg_size = 0;
+  static char* msg_file = NULL;
+  char* msg_buf = NULL;  // message loaded from msg_file
 
   // Basename string parameter
   static char* basename_str = NULL;
   size_t basename_size = 0;
+  static char* basename_file = NULL;
+  char* basename_buf = NULL;  // basename loaded from basename_file
 
   // PrivRl file name parameter
   static char* privrl_file = NULL;
@@ -148,11 +157,7 @@ int main(int argc, char* argv[]) {
 
   // Verifier pre-computed settings
   void* verifier_precmp = NULL;
-  size_t verifier_precmp_size = 0;
   size_t vprecmpi_file_size = 0;
-
-  // Flag that Verifier pre-computed settings input is valid
-  bool use_precmp_in;
 
   // CA certificate
   EpidCaCertificate cacert = {0};
@@ -164,8 +169,12 @@ int main(int argc, char* argv[]) {
        "FILE", dropt_handle_string, &sig_file},
       {'\0', "msg", "MESSAGE that was signed (default: empty)", "MESSAGE",
        dropt_handle_string, &msg_str},
+      {'\0', "msgfile", "FILE containing message that was signed", "FILE",
+       dropt_handle_string, &msg_file},
       {'\0', "bsn", "BASENAME used in signature (default: random)", "BASENAME",
        dropt_handle_string, &basename_str},
+      {'\0', "bsnfile", "FILE containing basename used in signature", "FILE",
+       dropt_handle_string, &basename_file},
       {'\0', "privrl", "load private key revocation list from FILE", "FILE",
        dropt_handle_string, &privrl_file},
       {'\0', "sigrl", "load signature based revocation list from FILE", "FILE",
@@ -189,7 +198,7 @@ int main(int argc, char* argv[]) {
       {'\0', "hashalg",
        "use specified hash algorithm for 2.0 groups "
        "(default: " HASHALG_DEFAULT ")",
-       "{SHA-256 | SHA-384 | SHA-512}", HandleHashalg, &hashalg},
+       "{SHA-256 | SHA-384 | SHA-512 | SHA512/256}", HandleHashalg, &hashalg},
       {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
        &show_help, dropt_attr_halt},
       {'v', "verbose", "print status messages to stdout", NULL,
@@ -250,8 +259,41 @@ int main(int argc, char* argv[]) {
         if (!grprl_file) grprl_file = GRPRL_DEFAULT;
         if (!pubkey_file) pubkey_file = PUBKEYFILE_DEFAULT;
         if (!cacert_file_name) cacert_file_name = CACERT_DEFAULT;
-        if (msg_str) msg_size = strlen(msg_str);
-        if (basename_str) basename_size = strlen(basename_str);
+
+        if (msg_str && msg_file) {
+          log_error("options --msg and --msgfile cannot be used together");
+          ret_value = EXIT_FAILURE;
+          break;
+        } else if (msg_str) {
+          msg_size = strlen(msg_str);
+        } else if (msg_file) {
+          msg_buf = NewBufferFromFile(msg_file, &msg_size);
+          if (!msg_buf) {
+            ret_value = EXIT_FAILURE;
+            break;
+          }
+          msg_str = msg_buf;
+        } else {
+          msg_size = 0;
+        }
+
+        if (basename_str && basename_file) {
+          log_error("options --bsn and --bsnfile cannot be used together");
+          ret_value = EXIT_FAILURE;
+          break;
+        } else if (basename_str) {
+          basename_size = strlen(basename_str);
+        } else if (basename_file) {
+          basename_buf = NewBufferFromFile(basename_file, &basename_size);
+          if (!basename_buf) {
+            log_error("Failed in reading basename from %s", basename_file);
+            ret_value = EXIT_FAILURE;
+            break;
+          }
+          basename_str = basename_buf;
+        } else {
+          basename_size = 0;
+        }
 
         if (verbose) {
           log_msg("\nOption values:");
@@ -361,35 +403,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Load Verifier pre-computed settings
-    if (kEpid1x == epid_version) {
-      verifier_precmp_size = sizeof(Epid11VerifierPrecomp);
-    } else if (kEpid2x == epid_version) {
-      verifier_precmp_size = sizeof(VerifierPrecomp);
-    } else {
-      log_error("EPID version %s is not supported",
-                EpidVersionToString(epid_version));
-      ret_value = EXIT_FAILURE;
-      break;
-    }
-    verifier_precmp = AllocBuffer(verifier_precmp_size);
-    use_precmp_in = false;
-    if (vprecmpi_file) {
-      vprecmpi_file_size = GetFileSize(vprecmpi_file);
-      if (verifier_precmp_size != vprecmpi_file_size) {
-        if (kEpid2x == epid_version &&
-            vprecmpi_file_size == verifier_precmp_size - sizeof(GroupId)) {
-          log_error(
-              "incorrect input precomp size: precomp format may have changed, "
-              "try regenerating it");
-        } else {
-          log_error("incorrect input precomp size");
-        }
-        ret_value = EXIT_FAILURE;
-        break;
-      }
-      use_precmp_in = true;
 
-      if (0 != ReadLoud(vprecmpi_file, verifier_precmp, verifier_precmp_size)) {
+    if (vprecmpi_file) {
+      vprecmpi_file_size = GetFileSize_S(vprecmpi_file, SIZE_MAX);
+      verifier_precmp = AllocBuffer(vprecmpi_file_size);
+
+      if (0 != ReadLoud(vprecmpi_file, verifier_precmp, vprecmpi_file_size)) {
         ret_value = EXIT_FAILURE;
         break;
       }
@@ -434,29 +453,45 @@ int main(int argc, char* argv[]) {
       PrintBuffer(signed_pubkey, sizeof(signed_pubkey_size));
       log_msg("");
       log_msg(" [in]  Hash Algorithm: %s", HashAlgToString(hashalg));
-      if (use_precmp_in) {
+      if (vprecmpi_file) {
         log_msg("");
         log_msg(" [in]  Verifier PreComp: ");
-        PrintBuffer(verifier_precmp, verifier_precmp_size);
+        PrintBuffer(verifier_precmp, vprecmpi_file_size);
       }
       log_msg("==============================================");
     }
 
     // Verify
     if (kEpid2x == epid_version) {
+      if (verifier_precmp && vprecmpi_file_size != sizeof(VerifierPrecomp)) {
+        if (vprecmpi_file_size == sizeof(VerifierPrecomp) - sizeof(GroupId)) {
+          log_error(
+              "incorrect input precomp size: precomp format may have changed, "
+              "try regenerating it");
+        } else {
+          log_error("incorrect input precomp size");
+        }
+        ret_value = EXIT_FAILURE;
+        break;
+      }
       result =
           Verify(sig, sig_size, msg_str, msg_size, basename_str, basename_size,
                  signed_priv_rl, signed_priv_rl_size, signed_sig_rl,
                  signed_sig_rl_size, signed_grp_rl, signed_grp_rl_size, ver_rl,
                  ver_rl_size, signed_pubkey, signed_pubkey_size, &cacert,
-                 hashalg, (VerifierPrecomp*)verifier_precmp, use_precmp_in);
+                 hashalg, &verifier_precmp, &vprecmpi_file_size);
     } else if (kEpid1x == epid_version) {
+      if (verifier_precmp &&
+          vprecmpi_file_size != sizeof(Epid11VerifierPrecomp)) {
+        log_error("incorrect input precomp size");
+        ret_value = EXIT_FAILURE;
+        break;
+      }
       result = Verify11(sig, sig_size, msg_str, msg_size, basename_str,
                         basename_size, signed_priv_rl, signed_priv_rl_size,
                         signed_sig_rl, signed_sig_rl_size, signed_grp_rl,
                         signed_grp_rl_size, signed_pubkey, signed_pubkey_size,
-                        &cacert, (Epid11VerifierPrecomp*)verifier_precmp,
-                        use_precmp_in);
+                        &cacert, &verifier_precmp, &vprecmpi_file_size);
     } else {
       log_error("EPID version %s is not supported",
                 EpidVersionToString(epid_version));
@@ -466,6 +501,12 @@ int main(int argc, char* argv[]) {
     // Report Result
     if (kEpidNoErr == result) {
       log_msg("signature verified successfully");
+    } else if (kEpidErr == result) {
+      log_error(
+          "signature verification failed: "
+          "member did not prove it was not revoked");
+      ret_value = result;
+      break;
     } else {
       log_error("signature verification failed: %s",
                 EpidStatusToString(result));
@@ -475,8 +516,7 @@ int main(int argc, char* argv[]) {
 
     // Store Verifier pre-computed settings
     if (vprecmpo_file) {
-      if (0 !=
-          WriteLoud(verifier_precmp, verifier_precmp_size, vprecmpo_file)) {
+      if (0 != WriteLoud(verifier_precmp, vprecmpi_file_size, vprecmpo_file)) {
         ret_value = EXIT_FAILURE;
         break;
       }
@@ -488,6 +528,8 @@ int main(int argc, char* argv[]) {
 
   // Free allocated buffers
   if (sig) free(sig);
+  if (msg_buf) free(msg_buf);
+  if (basename_buf) free(basename_buf);
   if (signed_priv_rl) free(signed_priv_rl);
   if (signed_sig_rl) free(signed_sig_rl);
   if (signed_grp_rl) free(signed_grp_rl);

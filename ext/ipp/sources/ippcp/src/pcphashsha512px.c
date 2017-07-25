@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2014-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,24 +26,21 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcphash.h"
 #include "pcptool.h"
 
 #if !defined(_ENABLE_ALG_SHA512_) && !defined(_ENABLE_ALG_SHA_SHA384_) && !defined(_ENABLE_ALG_SHA512_224_) && !defined(_ENABLE_ALG_SHA512_256_)
-#pragma message("IPP_ALG_HASH_SHA512 disabled")
 
 #else
-#pragma message("IPP_ALG_HASH_SHA512 enabled")
 
-#if !((_IPPXSC==_IPPXSC_S1) || (_IPPXSC==_IPPXSC_S2) || (_IPPXSC==_IPPXSC_C2) || \
-      (_IPP==_IPP_W7) || (_IPP==_IPP_T7) || \
+#if !((_IPP==_IPP_W7) || (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || (_IPP==_IPP_P8) || \
-      (_IPPLP32==_IPPLP32_S8) || (_IPP>=_IPP_G9) || \
+      (_IPP==_IPP_S8) || (_IPP>=_IPP_G9) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || (_IPP32E==_IPP32E_Y8) || \
-      (_IPPLP64==_IPPLP64_N8) || (_IPP32E>=_IPP32E_E9) || \
+      (_IPP32E==_IPP32E_N8) || (_IPP32E>=_IPP32E_E9) || \
       (_IPP64==_IPP64_I7) )
 
 /*
@@ -97,7 +94,6 @@
 //
 *F*/
 #if defined(_ALG_SHA512_COMPACT_)
-#pragma message("SHA512 compact")
 
 void UpdateSHA512(void* uniHash, const Ipp8u* mblk, int mlen, const void* uniPraram)
 {

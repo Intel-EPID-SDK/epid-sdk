@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -163,6 +164,7 @@ class EcGroupTest : public ::testing::Test {
   static const G1ElemStr efq_r_sha256_str;
   static const G1ElemStr efq_r_sha384_str;
   static const G1ElemStr efq_r_sha512_str;
+  static const G1ElemStr efq_r_sha512256_str;
   static const uint8_t sha_msg[];
 
   static const G2ElemStr efq2_a_str;
@@ -398,6 +400,14 @@ const G1ElemStr EcGroupTest::efq_r_sha512_str = {
     {{{0x4C, 0x0E, 0xA7, 0x62, 0x17, 0xB9, 0xFB, 0xE5, 0x21, 0x7D, 0x54, 0x24,
        0xE0, 0x2B, 0x87, 0xF7, 0x69, 0x54, 0x0C, 0xC6, 0xAD, 0xF2, 0xF2, 0x7B,
        0xE6, 0x91, 0xD8, 0xF3, 0x40, 0x6C, 0x8F, 0x03}}}};
+
+const G1ElemStr EcGroupTest::efq_r_sha512256_str = {
+    {{{0x63, 0x28, 0x40, 0x14, 0x73, 0xd5, 0x91, 0xc4, 0xa2, 0xa4, 0xb6, 0xd8,
+       0xa8, 0x75, 0x21, 0xd1, 0x26, 0x4e, 0x42, 0x13, 0x1f, 0xfa, 0xed, 0x90,
+       0x8d, 0x56, 0x34, 0x57, 0x8a, 0x3a, 0x47, 0xa0}}},
+    {{{0x30, 0xbe, 0x3f, 0x12, 0x00, 0x74, 0x48, 0xaa, 0x91, 0x90, 0x84, 0x12,
+       0x4d, 0x58, 0x54, 0xe7, 0x04, 0x65, 0x37, 0x97, 0x88, 0xcf, 0x67, 0xa0,
+       0x8c, 0x56, 0x93, 0xa7, 0x7f, 0xe8, 0x74, 0xfc}}}};
 
 const G2ElemStr EcGroupTest::efq2_a_str = {
     {
@@ -941,11 +951,6 @@ TEST_F(EcGroupTest, ExpResultIsCorrect) {
       WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
   EXPECT_EQ(this->efq_exp_ax_str, efq_r_str);
 }
-TEST_F(EcGroupTest, ExpFailsGivenOutOfRangeExponent) {
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr,
-            EcExp(this->efq, this->efq_a, &this->p, this->efq_r));
-}
 TEST_F(EcGroupTest, ExpSucceedsGivenG2ZeroExponent) {
   G2ElemStr efq2_r_str;
   BigNumStr zero_bn_str = {0};
@@ -1001,11 +1006,6 @@ TEST_F(EcGroupTest, SscmExpResultIsCorrect) {
   THROW_ON_EPIDERR(
       WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
   EXPECT_EQ(this->efq_exp_ax_str, efq_r_str);
-}
-TEST_F(EcGroupTest, SscmExpFailsGivenOutOfRangeExponent) {
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr,
-            EcSscmExp(this->efq, this->efq_a, &this->p, this->efq_r));
 }
 TEST_F(EcGroupTest, SscmExpSucceedsGivenG2ZeroExponent) {
   G2ElemStr efq2_r_str;
@@ -1071,42 +1071,6 @@ TEST_F(EcGroupTest, MultiExpFailsGivenNullPointer) {
             EcMultiExp(this->efq, pts_withnull, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
             EcMultiExp(this->efq, pts, b_withnull, m, this->efq_r));
-}
-TEST_F(EcGroupTest, MultiExpFailsGivenIncorrectMLen) {
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
-                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
-                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
-                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
-                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
-                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
-                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
-  BigNumStr const* b[] = {&bnm0, &bnm1};
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExp(this->efq, pts, b, 0, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExp(this->efq, pts, b, std::numeric_limits<size_t>::max(),
-                       this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExp(this->efq, pts, b, (size_t)INT_MAX + 1, this->efq_r));
-}
-TEST_F(EcGroupTest, MultiExpFailsGivenOutOfRangeExponent) {
-  EcPoint const* pts[] = {this->efq_a};
-  BigNumStr const* b_1[] = {&this->p};
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExp(this->efq, pts, b_1, 1, this->efq_r));
-}
-TEST_F(EcGroupTest, MultiExpFailsGivenOutOfRangeExponents) {
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm_1 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
-                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
-                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
-                            0xF2, 0x6A, 0xFF, 0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  BigNumStr const* b_1[] = {&bnm_1, &this->p};
-  BigNumStr const* b_2[] = {&this->p, &bnm_1};
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExp(this->efq, pts, b_1, 2, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExp(this->efq, pts, b_2, 2, this->efq_r));
 }
 TEST_F(EcGroupTest, MultiExpWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;
@@ -1218,6 +1182,21 @@ TEST_F(EcGroupTest, MultiExpWorksGivenTwoG2Exponents) {
       WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
   EXPECT_EQ(this->efq2_multiexp_abxy_str, efq2_r_str);
 }
+TEST_F(EcGroupTest, MultiExpWorksTwiceGivenSameOutputBuf) {
+  G2ElemStr efq2_r_str;
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_b};
+  BigNumStr const* b[] = {&this->x_str, &this->y_str};
+  size_t m = 2;
+  EcPointObj temp(&this->efq2);
+  G2ElemStr temp_str;
+  EXPECT_EQ(kEpidNoErr, EcMultiExp(this->efq2, pts, b, m, this->efq2_r));
+  temp = this->efq2_r;
+  EXPECT_EQ(kEpidNoErr, EcMultiExp(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  THROW_ON_EPIDERR(WriteEcPoint(this->efq2, temp, &temp_str, sizeof(temp_str)));
+  EXPECT_EQ(temp_str, efq2_r_str);
+}
 ///////////////////////////////////////////////////////////////////////
 // EcMultiExpBn
 TEST_F(EcGroupTest, MultiExpBnFailsGivenArgumentsMismatch) {
@@ -1271,42 +1250,6 @@ TEST_F(EcGroupTest, MultiExpBnFailsGivenNullPointer) {
             EcMultiExpBn(this->efq, pts_withnull, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
             EcMultiExpBn(this->efq, pts, b_withnull, m, this->efq_r));
-}
-TEST_F(EcGroupTest, MultiExpBnFailsGivenIncorrectMLen) {
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
-                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
-                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
-                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
-                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
-                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
-                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
-  BigNumObj bno0(bnm0);
-  BigNumObj bno1(bnm1);
-  BigNum const* b[] = {bno0, bno1};
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b, 0, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExpBn(this->efq, pts, b, std::numeric_limits<size_t>::max(),
-                         this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExpBn(this->efq, pts, b, (size_t)INT_MAX + 1, this->efq_r));
-}
-TEST_F(EcGroupTest, MultiExpBnFailsGivenOutOfRangeExponent) {
-  EcPoint const* pt[] = {this->efq_a};
-  BigNumObj bno_p(this->p);
-  BigNum const* b[] = {bno_p};
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm_1 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
-                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
-                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
-                            0xF2, 0x6A, 0xFF, 0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  BigNumObj bno_1(bnm_1);
-  BigNum const* b_1[] = {bno_1, bno_p};
-  BigNum const* b_2[] = {bno_p, bno_1};
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pt, b, 1, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b_1, 2, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b_2, 2, this->efq_r));
 }
 TEST_F(EcGroupTest, MultiExpBnWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;
@@ -1442,6 +1385,23 @@ TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoG2Exponents) {
       WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
   EXPECT_EQ(this->efq2_multiexp_abxy_str, efq2_r_str);
 }
+TEST_F(EcGroupTest, MultiExpBnWorksTwiceGivenSameOutputBuf) {
+  G2ElemStr efq2_r_str;
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_b};
+  BigNumObj bno_x(this->x_str);
+  BigNumObj bno_y(this->y_str);
+  BigNum const* b[] = {bno_x, bno_y};
+  size_t m = 2;
+  EcPointObj temp(&this->efq2);
+  G2ElemStr temp_str;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  temp = this->efq2_r;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  THROW_ON_EPIDERR(WriteEcPoint(this->efq2, temp, &temp_str, sizeof(temp_str)));
+  EXPECT_EQ(temp_str, efq2_r_str);
+}
 TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoDifferentSizeG3Exponents) {
   const G1ElemStr g3_b_str = {
       {{{
@@ -1556,45 +1516,6 @@ TEST_F(EcGroupTest, SscmMultiExpFailsGivenNullPointer) {
   EXPECT_EQ(kEpidBadArgErr,
             EcSscmMultiExp(this->efq, pts, b_withnull, m, this->efq_r));
 }
-TEST_F(EcGroupTest, SscmMultiExpFailsGivenIncorrectMLen) {
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
-                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
-                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
-                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
-                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
-                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
-                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
-  BigNumStr const* b[] = {&bnm0, &bnm1};
-  EXPECT_EQ(kEpidBadArgErr, EcSscmMultiExp(this->efq, pts, b, 0, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts, b,
-                           std::numeric_limits<size_t>::max(), this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr, EcSscmMultiExp(this->efq, pts, b,
-                                           (size_t)INT_MAX + 1, this->efq_r));
-}
-TEST_F(EcGroupTest, SscmMultiExpFailsGivenOutOfRangeExponent) {
-  EcPoint const* pts[] = {this->efq_a};
-  BigNumStr const* b_1[] = {&this->p};
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts, b_1, 1, this->efq_r));
-}
-TEST_F(EcGroupTest, SscmMultiExpFailsGivenOutOfRangeExponents) {
-  EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  const BigNumStr bnm_1 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
-                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
-                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
-                            0xF2, 0x6A, 0xFF, 0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
-  BigNumStr const* b_1[] = {&bnm_1, &this->p};
-  BigNumStr const* b_2[] = {&this->p, &bnm_1};
-  // The exponent should be less than elliptic curve group order
-  EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts, b_1, 2, this->efq_r));
-  EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts, b_2, 2, this->efq_r));
-}
 TEST_F(EcGroupTest, SscmMultiExpWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;
   BigNumStr zero_bn_str = {0};
@@ -1704,6 +1625,21 @@ TEST_F(EcGroupTest, SscmMultiExpWorksGivenTwoG2Exponents) {
   THROW_ON_EPIDERR(
       WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
   EXPECT_EQ(this->efq2_multiexp_abxy_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, SscmMultiExpWorksTwiceGivenSameOutputBuf) {
+  G2ElemStr efq2_r_str;
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_b};
+  BigNumStr const* b[] = {&this->x_str, &this->y_str};
+  size_t m = 2;
+  EcPointObj temp(&this->efq2);
+  G2ElemStr temp_str;
+  EXPECT_EQ(kEpidNoErr, EcSscmMultiExp(this->efq2, pts, b, m, this->efq2_r));
+  temp = this->efq2_r;
+  EXPECT_EQ(kEpidNoErr, EcSscmMultiExp(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  THROW_ON_EPIDERR(WriteEcPoint(this->efq2, temp, &temp_str, sizeof(temp_str)));
+  EXPECT_EQ(temp_str, efq2_r_str);
 }
 ///////////////////////////////////////////////////////////////////////
 // EcGetRandom
@@ -1816,8 +1752,6 @@ TEST_F(EcGroupTest, HashFailsGivenNullPointer) {
 TEST_F(EcGroupTest, HashFailsGivenUnsupportedHashAlg) {
   uint8_t const msg[] = {0};
   EXPECT_EQ(kEpidHashAlgorithmNotSupported,
-            EcHash(this->efq, msg, sizeof(msg), kSha512_256, this->efq_r));
-  EXPECT_EQ(kEpidHashAlgorithmNotSupported,
             EcHash(this->efq, msg, sizeof(msg), kSha3_256, this->efq_r));
   EXPECT_EQ(kEpidHashAlgorithmNotSupported,
             EcHash(this->efq, msg, sizeof(msg), kSha3_384, this->efq_r));
@@ -1864,6 +1798,14 @@ TEST_F(EcGroupTest, HashWorksGivenSHA512HashAlg) {
   THROW_ON_EPIDERR(
       WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
   EXPECT_EQ(this->efq_r_sha512_str, efq_r_str);
+}
+TEST_F(EcGroupTest, HashWorksGivenSHA512256HashAlg) {
+  G1ElemStr efq_r_str;
+  EXPECT_EQ(kEpidNoErr, EcHash(this->efq, sha_msg, sizeof(sha_msg), kSha512_256,
+                               this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_r_sha512256_str, efq_r_str);
 }
 ///////////////////////////////////////////////////////////////////////
 // 1.1 EcHash

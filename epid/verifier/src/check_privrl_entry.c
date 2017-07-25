@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
   EcPoint* k = NULL;
   EcPoint* t4 = NULL;
   EcGroup* G1 = NULL;
+  FfElement* ff_elem = NULL;
   if (!ctx || !sig || !f) {
     return kEpidBadArgErr;
   }
@@ -38,7 +39,12 @@ EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
     // Section 4.1.2 Step 4.b For i = 0, ... , n1-1, the verifier computes t4
     // =G1.exp(B, f[i]) and verifies that G1.isEqual(t4, K) = false.
     bool compare_result = false;
+    FiniteField* Fp = ctx->epid2_params->Fp;
     G1 = ctx->epid2_params->G1;
+    result = NewFfElement(Fp, &ff_elem);
+    if (kEpidNoErr != result) {
+      break;
+    }
     result = NewEcPoint(G1, &b);
     if (kEpidNoErr != result) {
       break;
@@ -48,6 +54,11 @@ EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
       break;
     }
     result = NewEcPoint(G1, &t4);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    // ReadFfElement checks that the value f is in the field
+    result = ReadFfElement(Fp, (BigNumStr const*)f, sizeof(BigNumStr), ff_elem);
     if (kEpidNoErr != result) {
       break;
     }
@@ -74,7 +85,7 @@ EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
       result = kEpidNoErr;
     }
   } while (0);
-
+  DeleteFfElement(&ff_elem);
   DeleteEcPoint(&t4);
   DeleteEcPoint(&k);
   DeleteEcPoint(&b);

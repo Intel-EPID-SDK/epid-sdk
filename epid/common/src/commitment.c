@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
  * \file
  * \brief Commitment hash implementation.
  */
-#include <limits.h>
 #include "epid/common/src/commitment.h"
+
+#include <limits.h>
+#include "epid/common/math/ecgroup.h"
 #include "epid/common/src/memory.h"
 
 EpidStatus SetKeySpecificCommitValues(GroupPubKey const* pub_key,

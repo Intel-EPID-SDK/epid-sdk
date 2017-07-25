@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
  */
 
 #include <memory>
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -211,110 +212,164 @@ TEST_F(EpidMemberTest, GeneratesDiffJoinRequestsGivenDiffHashAlgs) {
   EXPECT_NE(0, memcmp(&join_request1, &join_request2, sizeof(join_request1)));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationFailsGivenNullParameters) {
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, nullptr));
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(nullptr, &this->kGrpXMember9PrivKey));
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyFailsGivenNullParameters) {
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  PrivKey new_priv_key;
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(nullptr, &this->kGrpXMember9PrivKey.f,
+                                &this->kGrpXKey, &new_priv_key));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, nullptr, &this->kGrpXKey,
+                                &new_priv_key));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &this->kGrpXMember9PrivKey.f,
+                                nullptr, &new_priv_key));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &this->kGrpXMember9PrivKey.f,
+                                &this->kGrpXKey, nullptr));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationFailsGivenGroupIDMissmatch) {
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyFailsGivenGroupIdMissmatch) {
   // Check wrong gid for GroupPubKey
+  PrivKey new_priv_key;
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  FpElemStr f = this->kGrpXMember9PrivKey.f;
   GroupPubKey group_pub_key = this->kGrpXKey;
   group_pub_key.gid.data[0] = group_pub_key.gid.data[0] ^ 0xFF;
-  EXPECT_FALSE(
-      EpidIsPrivKeyInGroup(&group_pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr, EpidAssemblePrivKey(&credential, &f, &group_pub_key,
+                                                &new_priv_key));
   // Check wrong gid for PrivKey
-  PrivKey priv_key = this->kGrpXMember9PrivKey;
-  priv_key.gid.data[sizeof(priv_key.gid.data) - 1] =
-      priv_key.gid.data[sizeof(priv_key.gid.data) - 1] ^ 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, &priv_key));
+  credential.gid.data[sizeof(credential.gid.data) - 1] =
+      credential.gid.data[sizeof(credential.gid.data) - 1] ^ 0xFF;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &f, &this->kGrpXKey, &new_priv_key));
   // Check wrong gid for both GroupPubKey and PrivKey
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&group_pub_key, &priv_key));
+  EXPECT_EQ(kEpidBadArgErr, EpidAssemblePrivKey(&credential, &f, &group_pub_key,
+                                                &new_priv_key));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationRejectsInvalidPrivKey) {
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyRejectsInvalidPrivKey) {
   // test for invalid key components values (eg. out of range, not in EC group)
-  PrivKey priv_key = this->kGrpXMember9PrivKey;
-  priv_key.A.x.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, &priv_key));
+  PrivKey new_priv_key;
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  FpElemStr f = this->kGrpXMember9PrivKey.f;
+  credential.A.x.data.data[0] = 0xFF;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &f, &this->kGrpXKey, &new_priv_key));
+  credential.A = this->kGrpXMember9PrivKey.A;
 
-  priv_key = this->kGrpXMember9PrivKey;
-  priv_key.A.y.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, &priv_key));
+  credential.A.y.data.data[0] = 0xFF;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &f, &this->kGrpXKey, &new_priv_key));
+  credential.A = this->kGrpXMember9PrivKey.A;
 
-  priv_key = this->kGrpXMember9PrivKey;
   FpElemStr inv_f = {
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
   };
-  priv_key.f = inv_f;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, &priv_key));
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &inv_f, &this->kGrpXKey, &new_priv_key));
 
-  priv_key = this->kGrpXMember9PrivKey;
-  priv_key.x.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&this->kGrpXKey, &priv_key));
+  credential.x.data.data[0] = 0xFF;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &f, &this->kGrpXKey, &new_priv_key));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationRejectsInvalidGroupKey) {
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyRejectsInvalidGroupKey) {
   // test for invalid key components values (eg. out of range, not in EC group)
+  PrivKey new_priv_key;
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  FpElemStr f = this->kGrpXMember9PrivKey.f;
   GroupPubKey pub_key = this->kGrpXKey;
   pub_key.h1.x.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.h1.y.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.h2.x.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.h2.y.data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.w.x[0].data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.w.x[1].data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.w.y[0].data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 
   pub_key = this->kGrpXKey;
   pub_key.w.y[1].data.data[0] = 0xFF;
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(&pub_key, &this->kGrpXMember9PrivKey));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidAssemblePrivKey(&credential, &f, &pub_key, &new_priv_key));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationRejectsKeyNotInGroup) {
-  EXPECT_FALSE(
-      EpidIsPrivKeyInGroup(&this->kGrpYKey, &this->kGrpXMember9PrivKey));
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyRejectsKeyNotInGroup) {
+  PrivKey new_priv_key;
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  FpElemStr f = this->kGrpXMember9PrivKey.f;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidAssemblePrivKey(&credential, &f, &this->kGrpYKey, &new_priv_key));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationRejectsKeyNotInGroupUsingIKGFData) {
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyRejectsKeyNotInGroupUsingIKGFData) {
   const GroupPubKey* grp_public_key = reinterpret_cast<const GroupPubKey*>(
       this->kGroupPublicKeyDataIkgf.data());
   const PrivKey mbr_private_key = {
 #include "epid/common-testhelper/testdata/ikgf/groupb/member0/mprivkey.inc"
   };
-  EXPECT_FALSE(EpidIsPrivKeyInGroup(grp_public_key, &mbr_private_key));
+  PrivKey new_priv_key;
+  MembershipCredential credential = {mbr_private_key.gid, mbr_private_key.A,
+                                     mbr_private_key.x};
+  FpElemStr f = mbr_private_key.f;
+  EXPECT_EQ(kEpidBadArgErr, EpidAssemblePrivKey(&credential, &f, grp_public_key,
+                                                &new_priv_key));
 }
 
-TEST_F(EpidMemberTest, PrivateKeyValidationAcceptsKeyInGroup) {
-  EXPECT_TRUE(
-      EpidIsPrivKeyInGroup(&this->kGrpXKey, &this->kGrpXMember9PrivKey));
-}
-
-TEST_F(EpidMemberTest, PrivateKeyValidationAcceptsKeyInGroupUsingIKGFData) {
-  const GroupPubKey* grp_public_key = reinterpret_cast<const GroupPubKey*>(
-      this->kGroupPublicKeyDataIkgf.data());
-  const PrivKey* mbr_private_key =
-      reinterpret_cast<const PrivKey*>(this->kMemberPrivateKeyDataIkgf.data());
-  EXPECT_TRUE(EpidIsPrivKeyInGroup(grp_public_key, mbr_private_key));
+TEST_F(EpidMemberTest, EpidAssemblePrivKeyAssemblesKeyInGroup) {
+  MembershipCredential credential = {this->kGrpXMember9PrivKey.gid,
+                                     this->kGrpXMember9PrivKey.A,
+                                     this->kGrpXMember9PrivKey.x};
+  PrivKey new_priv_key;
+  EXPECT_EQ(kEpidNoErr,
+            EpidAssemblePrivKey(&credential, &this->kGrpXMember9PrivKey.f,
+                                &this->kGrpXKey, &new_priv_key));
+  EXPECT_EQ(0, memcmp(&this->kGrpXMember9PrivKey, &new_priv_key,
+                      sizeof(new_priv_key)));
 }
 
 }  // namespace

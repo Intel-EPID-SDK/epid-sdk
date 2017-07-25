@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #define BITSIZE_BNU32(p,ns)  ((ns)*BNU_CHUNK_32BIT-cpNLZ_BNU32((p)[(ns)-1]))
 
 /* number of leading/trailing zeros */
+#define cpNLZ_BNU32 OWNAPI(cpNLZ_BNU32)
 cpSize cpNLZ_BNU32(Ipp32u x);
 #if 0
 cpSize cpNTZ_BNU32(Ipp32u x);
@@ -65,7 +66,9 @@ cpSize cpLSR_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, cpSize nBits);
 #endif
 
 /* to/from oct string conversion */
+#define cpToOctStr_BNU32 OWNAPI(cpToOctStr_BNU32)
 cpSize cpToOctStr_BNU32(Ipp8u* pStr, cpSize strLen, const Ipp32u* pBNU, cpSize bnuSize);
+#define cpFromOctStr_BNU32 OWNAPI(cpFromOctStr_BNU32)
 cpSize cpFromOctStr_BNU32(Ipp32u* pBNU, const Ipp8u* pOctStr, cpSize strLen);
 
 #endif /* _CP_BNU32_MISC_H */

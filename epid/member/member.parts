@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,23 @@ internal_headers = Pattern(src_dir='src',
                            includes=['*.h'],
                            recursive=False).files()
 
+tpm_src_files = Pattern(src_dir='tpm/src',
+                        includes=['*.c'],
+                        recursive=False).files()
+tpm_internal_headers = Pattern(src_dir='tpm/src',
+                               includes=['*.h'],
+                               recursive=False).files()
+tpm_headers = Pattern(src_dir='tpm',
+                      includes=['*.h'],
+                      recursive=False).files()
+tpm_utest_files = Pattern(src_dir='tpm/unittests',
+                          includes=['*-test.cc',
+                                '*-testhelper.cc',],
+                          recursive=False).files()
+tpm_utest_headers = Pattern(src_dir='tpm/unittests',
+                        includes=['*-testhelper.h',],
+                        recursive=False).files()
+
 utest_files = Pattern(src_dir='unittests',
                       includes=['*-test.cc',
                                 '*-testhelper.cc',],
@@ -45,6 +62,12 @@ if 'install_package' in env['MODE']:
                         sub_dir='epid/${PART_SHORT_NAME}/src')
     env.InstallTopLevel(utest_files + utest_headers,
                         sub_dir='epid/${PART_SHORT_NAME}/unittests')
+    env.InstallTopLevel(tpm_headers,
+                        sub_dir='epid/${PART_SHORT_NAME}/tpm')
+    env.InstallTopLevel(tpm_src_files + tpm_internal_headers,
+                        sub_dir='epid/${PART_SHORT_NAME}/tpm/src')
+    env.InstallTopLevel(tpm_utest_files + tpm_utest_headers,
+                        sub_dir='epid/${PART_SHORT_NAME}/tpm/unittests')
 
     env.InstallTopLevel(build_files, sub_dir='epid/${PART_SHORT_NAME}')
 
@@ -57,7 +80,7 @@ else:
 
     testenv = env.Clone()
 
-    outputs = env.Library('${PART_NAME}', src_files)
+    outputs = env.Library('${PART_NAME}', src_files + tpm_src_files)
     env.Sdk(outputs)
     env.SdkInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
 
@@ -68,7 +91,7 @@ else:
     #unit tests
     testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
     testenv.UnitTest("utest",
-                     utest_files,
+                     utest_files + tpm_utest_files,
                      command_args=[
                          '--gtest_color=yes',
                          '--gtest_print_time=1',

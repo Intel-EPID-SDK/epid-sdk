@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -69,13 +69,14 @@ $(document).ready(function(){initNavTree('ImplementationNotes.html','');});
 <li class="level1"><a href="#ImplementationNotes_FlexibleArrays">Flexible Arrays</a></li>
 </ul>
 </div>
-<div class="textblock"><h1><a class="anchor" id="ImplementationNotes_Prng"></a>
+<div class="textblock"><p>This section is intended to provide additional guidance for users who want to modify the underlying code of the SDK. If you only want to call the SDK APIs without modifying them, you can safely ignore this section.</p>
+<h1><a class="anchor" id="ImplementationNotes_Prng"></a>
 Random Number Generation</h1>
 <p>Some SDK APIs require a random number data source. A <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c" title="Generates random data. ">BitSupplier</a> provides a source of random data. This function should be a cryptographically secure random number generator.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The pseudo-random number generator provided with the examples is for sample use only and is not suitable for cryptographically secure applications.</dd></dl>
 <h1><a class="anchor" id="ImplementationNotes_ProtectingSecrets"></a>
 Protecting Secrets</h1>
-<p>Member code works with private keys, so member code must be run in a trusted environment.</p>
+<p>Member code works with private keys, so member code must be run in a trusted environment. The member component contains a TPM subcomponent which contains the most sensitive operations performed by the member.</p>
 <dl class="section warning"><dt>Warning</dt><dd>If member memory is available to an untrusted source, the member private key could be exposed.</dd></dl>
 <p>The <code>EpidZeroMemory</code> function is used by the memory allocation routines <code>EpidAlloc</code>, <code>EpidRealloc</code> and <code>EpidFree</code> to wipe the memory as memory is freed.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The <code>EpidZeroMemory</code> function may be optimized away by some compilers. If it is, you should consider using a compiler or operating system specific memory sanitization function (e.g. <code>memcpy_s</code> or <code>SecureZeroMemory</code>).</dd></dl>
@@ -102,7 +103,7 @@ Flexible Arrays</h1>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

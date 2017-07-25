@@ -134,7 +134,7 @@ EpidStatus Epid11ParseGroupPubKeyFile(void const* buf, size_t len,
     return kEpidBadArgErr;
   }
 
-  if (sizeof(Epid11GroupPubKeyCertificate) > len) {
+  if (len == 0 || len % sizeof(Epid11GroupPubKeyCertificate) != 0) {
     return kEpidBadArgErr;
   }
 

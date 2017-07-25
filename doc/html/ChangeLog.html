@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -61,10 +61,38 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 <div class="title">What's New </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>[3.0.0]</h2>
-<h3>New in This Release</h3>
+<div class="textblock"><h2>[4.0.0] - 2017-04-25</h2>
+<h3>Added</h3>
 <ul>
-<li>Support for verification of EPID 1.1 members.</li>
+<li>The member implementation now provides an internal interface that gives guidance on partitioning member operations between highly sensitive ones that use f value of the private key, and less sensitive operations that can be performed in a host environment.</li>
+<li>New member API <code>EpidAssemblePrivKey</code> was added to help assemble and validate the new member private key that is created when a member either joins a group (using the join protocol) or switches to a new group (as the result of a performance rekey).</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Updated Intel(R) IPP Cryptography library to version 2017 (Update 2).</li>
+<li>The mechanism to set the signature based revocation list (SigRL) used for signing was changed. <code>EpidMemberSetSigRl</code> must be used to set the SigRL. The SigRL is no longer a parameter to <code>EpidSign</code>. This better models typical use case where a device stores a revocation list and updates it independently of signing operations.</li>
+</ul>
+<h3>Removed</h3>
+<ul>
+<li>Removed <code>EpidWritePreSigs</code> API. Serialization of pre-computed signatures is a risky capability to provide, and simply expanding the internal pool via <code>EpidAddPreSigs</code> still provides most of the optimization benefits.</li>
+<li>The <code>EpidIsPrivKeyInGroup</code> API is no longer exposed to clients. It is no longer needed because the new member API <code>EpidAssemblePrivKey</code> performs this check.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>When building with commercial version of the Intel(R) IPP Cryptography library, optimized functions are now properly invoked, making signing and verification operations ~2 times faster</li>
+<li>SHA-512/256 hash algorithm is now supported.</li>
+<li>README for compressed data now correctly documents the number of entries in revocation lists.</li>
+<li>The <code>verifysig</code> sample now reports a more clear error message for mismatched SigRLs.</li>
+<li>The default scons build will now build for a 32-bit target on a 32-bit platform.</li>
+</ul>
+<h3>Known Issues</h3>
+<ul>
+<li>Scons build will not work natively on ARM. You can still build using <code>make</code> or cross compile.</li>
+</ul>
+<h2>[3.0.0] - 2016-11-22</h2>
+<h3>Added</h3>
+<ul>
+<li>Support for verification of Intel(R) EPID 1.1 members.</li>
 <li>Make-based build system support.</li>
 <li>Sample material includes compressed keys.</li>
 <li>Enhanced documentation, including step-by-step walkthroughs of example applications.</li>
@@ -76,8 +104,8 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 </ul>
 <h3>Changes</h3>
 <ul>
-<li>A new verifier API has been added to set the basename to be used for verification. Verifier APIs that used to accept basenames now use the basename set via EpidVerifierSetBasename.</li>
-<li>The verifier pre-computation structure has been changed to include the group ID to allow detection of errors that result from providing a pre-computation blob from a different group to EpidVerifierCreate.</li>
+<li>A new verifier API has been added to set the basename to be used for verification. Verifier APIs that used to accept basenames now use the basename set via <code>EpidVerifierSetBasename</code>.</li>
+<li>The verifier pre-computation structure has been changed to include the group ID to allow detection of errors that result from providing a pre-computation blob from a different group to <code>EpidVerifierCreate</code>.</li>
 </ul>
 <h3>Fixes</h3>
 <ul>
@@ -88,7 +116,7 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 <li>SHA-512/256 hash algorithm is not supported.</li>
 </ul>
 <h2>[2.0.0] - 2016-07-20</h2>
-<h3>New in This Release</h3>
+<h3>Added</h3>
 <ul>
 <li>Signed binary issuer material support.<ul>
 <li>Binary issuer material validation APIs.</li>
@@ -103,17 +131,17 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 </ul>
 </li>
 </ul>
-<h3>Changes</h3>
+<h3>Changed</h3>
 <ul>
 <li>The default hash algorithm has changed. It is now SHA-512.</li>
 <li>Functions that returned <code>EpidNullPtrErr</code> now return <code>EpidBadArgErr</code> instead.</li>
 </ul>
-<h3>Fixes</h3>
+<h3>Fixed</h3>
 <ul>
 <li>Updated build flags to work around GCC 4.8.5 defect.</li>
 </ul>
 <h2>[1.0.0] - 2016-03-03</h2>
-<h3>New in This Release</h3>
+<h3>Added</h3>
 <ul>
 <li>Basic sign and verify functionality</li>
 <li>Dynamic join support for member</li>
@@ -126,7 +154,7 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

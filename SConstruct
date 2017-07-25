@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,40 +20,119 @@ import string
 import sys
 import SCons.Script
 import os.path
+import subprocess
+from subprocess import Popen, PIPE
 from parts import *
+import re
+import tempfile
+import shutil
+from collections import OrderedDict
 
-print "**************** TOOLS ****************"
-print '* Python Version:', string.split(sys.version, " ", 1)[0]
-print '* SCons  Version:', SCons.__version__
-print '* Parts  Version:', PartsExtensionVersion()
-print "***************************************"
 
-def PrintCompilerVersion(env):
-    """
-    Function to print version of compilers used for build
-    Args:
-      env: Environment to get compilers version
-    """
-    res = ''
-    if 'INTELC_VERSION' in env:
-        res += 'ICC ' +  env['INTELC_VERSION'] + ';'
+def get_parts_versions(env):
+    """Get Parts related versions given SCons environment env"""
+    return OrderedDict({'python': string.split(sys.version, " ", 1)[0],
+                        'scons': str(SCons.__version__),
+                        'parts': str(PartsExtensionVersion())})
+
+
+def get_toolchain_versions(env):
+    """Get version of compilation toolchain given SCons environment env"""
+    versions = OrderedDict()
     if 'MSVC_VERSION' in env:
-        res += 'MS ' + env['MSVC_VERSION'] + ';'
-    if 'GXX_VERSION' in env:
-        res += 'GXX ' + env['GXX_VERSION'] + ';'
-    if 'GCC_VERSION' in env:
-        res += 'GCC ' + env['GCC_VERSION'] + ';'
-    print 'Compiler Version: ', res
+        versions['compiler'] = 'MSVC ' + env['MSVC_VERSION']
+        cmd = env.subst('echo int main(){return 0;} > a.cpp'
+                        ' | $CXX $CCFLAGS a.cpp /link /verbose')
+        defaultlib_regexp = r'.*Searching (.*\.lib).*'
+    elif 'GCC_VERSION' in env:
+        versions['compiler'] = 'GCC ' + env['GCC_VERSION']
+        if 'GXX_VERSION' in env:
+            versions['compiler'] += ' and GXX ' + env['GXX_VERSION']
+            cmd = env.subst('echo "int main(){return 0;}"'
+                            ' | $CXX $CCFLAGS -xc++ -Wl,--verbose -')
+        else:
+            cmd = env.subst('echo "int main(){return 0;}"'
+                            ' | $CC  $CCFLAGS -xc   -Wl,--verbose -')
+        defaultlib_regexp = r'[\n(](/.*\.so[-.\da-fA-F]*).*'
+
+    # Intel C compiler always depends from base toolchain
+    if 'INTELC_VERSION' in env:
+        versions['compiler'] = 'INTELC {0} with {1}'.format(env['INTELC_VERSION'],
+                                                            versions['compiler'])
+
+    temp_dir = tempfile.mkdtemp()
+    try:
+        proc = subprocess.Popen(cmd,
+                                cwd=temp_dir,
+                                env=env['ENV'], shell=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, _ = proc.communicate()
+        if proc.returncode != 0:
+            versions['default_libs'] = 'failure executing: "{0}"'.format(cmd)
+        else:
+            default_libs = list(
+                set(re.findall(defaultlib_regexp, stdout, re.M)))
+            if 'MSVC_VERSION' in env:
+                # for windows additionally report versions of Windows Kit used
+                runtime_version_set = set()
+                for lib_path in default_libs:
+                    path_components = os.path.realpath(lib_path).split(os.sep)
+                    if 'Windows Kits' in path_components:
+                        i = path_components.index('Windows Kits')
+                        runtime_version_set.add(
+                            'Windows Kits {0} {1}'.format(path_components[i + 1],
+                                                          path_components[i + 3]))
+                versions['sdk_or_libc'] = '; '.join(list(runtime_version_set))
+            else:
+                # for posix additionally report versions of libc used
+                versions['sdk_or_libc'] = os.path.split(os.path.realpath(
+                    next((lib for lib in default_libs if
+                          'libc' in lib.lower() and 'libcilk' not in lib.lower()), None)))[1]
+            versions['default_libs'] = default_libs
+    finally:
+        shutil.rmtree(temp_dir)
+
+    return versions
+
+
+def log_versions(env, include_toolchain=True):
+    """Log tools and libraries versions given SCons environment env
+
+    Args:
+        env: Scons environment.
+        include_toolchain: Log version of compilation toolchain if True.
+    """
+
+    versions = get_parts_versions(env)
+    if include_toolchain:
+        versions.update(get_toolchain_versions(env))
+
+    print "**************** VERSIONS *************"
+    long_names = {
+        'python': 'Python Version',
+        'scons': 'SCons  Version',
+        'parts': 'Parts  Version',
+        'compiler': 'Compiler Version',
+        'sdk_or_libc': 'Libc/SDK',
+        'default_libs': 'Default Libs'
+    }
+    for name, value in versions.iteritems():
+        if not isinstance(value, list):
+            print '* {0}: {1}'.format(long_names.get(name, name), value)
+        else:
+            print '* {0}:\n* \t{1}'.format(long_names.get(name, name),
+                                           '\n* \t'.join(sorted(value)))
+    print "***************************************"
+
 
 def include_parts(part_list, **kwargs):
     for parts_file in part_list:
         if os.path.isfile(DefaultEnvironment().subst(parts_file)):
             Part(parts_file=parts_file, **kwargs)
 
+
 ######## Part groups ####################################################
-ipp_parts = ['ext/ipp/ippcp.parts',
-             'ext/ipp/ippcpepid.parts',
-             'ext/ipp/ippcommon.parts']
+ipp_parts = ['ext/ipp/ippcp.parts']
 utest_parts = ['ext/gtest/gtest.parts',
                'epid/common-testhelper/common-testhelper.parts']
 common_parts = ['epid/common/common.parts']
@@ -65,6 +144,11 @@ example_parts = ['ext/dropt/dropt.parts',
                  'example/signmsg/signmsg.parts',
                  'example/data/data.parts',
                  'example/compressed_data/compressed_data.parts']
+sizing_parts = ['example/signmsg/signmsg_shared.parts',
+                'example/verifysig/verifysig_shared.parts',
+                'example/verifysig/verifysig11_shared.parts']
+example_static_parts = ['example/signmsg/signmsg_static.parts',
+                        'example/verifysig/verifysig_static.parts']
 tools_parts = ['tools/revokegrp/revokegrp.parts',
                'tools/revokekey/revokekey.parts',
                'tools/revokesig/revokesig.parts',
@@ -79,39 +163,59 @@ testbot_test_parts = ['test/testbot/testbot.parts',
                       'test/testbot/revokekey/revokekey_testbot.parts',
                       'test/testbot/revokesig/revokesig_testbot.parts',
                       'test/testbot/extractkeys/extractkeys_testbot.parts',
-                      'test/testbot/extractgrps/extractgrps_testbot.parts']
+                      'test/testbot/extractgrps/extractgrps_testbot.parts',
+                      'tools/reports/reports.parts']
 package_parts = ['ext/gtest/gtest.parts',
-                 'ext/ipp/ippcommon.parts',
                  'ext/ipp/ippcp.parts',
-                 'ext/ipp/ippcpepid.parts',
                  'package.parts']
+memory_profiler_parts = ['tools/memory_profiler/memory_profiler.parts']
 internal_tools_parts = ['ext/dropt/dropt.parts',
                         'tools/ikgfwrapper/ikgfwrapper.parts']
+epid_data = ['test/epid_data/epid_data.parts']
+perf_benchmark_parts = ['ext/google_benchmark/google_benchmark.parts',
+                        'test/performance/performance.parts']
+memory_benchmark_parts = ['test/dynamic_memory/dynamic_memory.parts']
 ######## End Part groups ###############################################
 ######## Commandline option setup #######################################
 product_variants = [
     'production',
     'internal-test',
     'package-epid-sdk',
-    'internal-tools'
+    'internal-tools',
+    'benchmark'
 ]
 
 default_variant = 'production'
 
+
 def is_production():
     return GetOption("product-variant") == 'production'
+
 
 def is_internal_test():
     return GetOption("product-variant") == 'internal-test'
 
+
 def is_internal_tools():
     return GetOption("product-variant") == 'internal-tools'
+
 
 def is_package():
     return GetOption("product-variant") == 'package-epid-sdk'
 
+
+def is_benchmark():
+    return GetOption("product-variant") == 'benchmark'
+
+
 def use_commercial_ipp():
     return GetOption("use-commercial-ipp")
+
+
+def config_has_instrumentation():
+    return any(DefaultEnvironment().isConfigBasedOn(config_name)
+               for config_name in ['instr_release', 'instr_size_optimized_release'])
+
 
 def variant_dirname():
     s = GetOption("product-variant")
@@ -121,6 +225,7 @@ def variant_dirname():
         return 'epid-sdk'
     else:
         return s
+
 
 AddOption("--product-variant", "--prod-var", nargs=1,
           help=("Select product variant to build. Possible "
@@ -136,6 +241,11 @@ AddOption("--use-commercial-ipp",
           action='store_true', dest='use-commercial-ipp',
           default=False)
 
+AddOption("--ipp-shared",
+          help=("Build /ext/ipp as shared library."),
+          action='store_true', dest='ipp-shared',
+          default=False)
+
 SetOptionDefault("PRODUCT_VARIANT", variant_dirname())
 
 ######## End Commandline option setup ###################################
@@ -144,8 +254,8 @@ SetOptionDefault("PRODUCT_VARIANT", variant_dirname())
 # fix for parts 0.10.8 until we get better logic to extract ${CC}
 SetOptionDefault('PARTS_USE_SHORT_TOOL_NAMES', 1)
 
+
 def set_default_production_options():
-    SetOptionDefault('TARGET_PLATFORM', 'x86_64')
     SetOptionDefault('CONFIG', 'release')
 
     SetOptionDefault('TARGET_VARIANT', '${TARGET_OS}-${TARGET_ARCH}')
@@ -189,11 +299,14 @@ def set_default_production_options():
     SetOptionDefault('PACKAGE_NAME',
                      '{PRODUCT_VARIANT}')
 
+
 if is_production():
     set_default_production_options()
     ipp_mode = ['install_lib']
     if use_commercial_ipp():
         ipp_mode.append('use_commercial_ipp')
+    if GetOption('ipp-shared'):
+        ipp_mode.append('build_ipp_shared')
     include_parts(ipp_parts, mode=ipp_mode,
                   INSTALL_INCLUDE='${INSTALL_IPP_INCLUDE}')
     include_parts(utest_parts + common_parts +
@@ -207,7 +320,6 @@ if is_production():
     include_parts(tools_parts,
                   INSTALL_BIN='${INSTALL_TOOLS_BIN}',
                   INSTALL_DATA='${INSTALL_TOOLS_DATA}')
-    PrintCompilerVersion(DefaultEnvironment())
     Default('all')
     Default('run_utest::')
 
@@ -219,6 +331,8 @@ if is_internal_test():
     include_parts(util_parts + example_parts,
                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
                   INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
+    include_parts(sizing_parts,
+                  INSTALL_BIN='${INSTALL_SAMPLE_BIN}')
     include_parts(tools_parts, INSTALL_BIN='${INSTALL_TOOLS_BIN}')
     include_parts(testbot_test_parts)
     Default('all')
@@ -226,8 +340,39 @@ if is_internal_test():
 if is_internal_tools():
     set_default_production_options()
     include_parts(ipp_parts + utest_parts + common_parts + util_parts)
-    include_parts(internal_tools_parts, INSTALL_BIN='${INSTALL_TOOLS_BIN}')
-    Default('ikgfwrapper')
+    include_parts(internal_tools_parts + memory_profiler_parts,
+                  INSTALL_BIN='${INSTALL_TOOLS_BIN}')
+    Default('ikgfwrapper', 'memory_profiler')
+    Default('run_utest::memory_profiler::')
+
+if is_benchmark():
+    set_default_production_options()
+    MODE = []
+    if config_has_instrumentation():
+        MODE.append('use_memory_profiler')
+    ipp_mode = []
+    if use_commercial_ipp():
+        ipp_mode.append('use_commercial_ipp')
+
+    # install ipp static and ipp shared builds into separate locations
+    if GetOption('ipp-shared'):
+        ipp_mode.append('build_ipp_shared')
+        SetOptionDefault('INSTALL_TEST_BIN',
+                         '$INSTALL_ROOT/test_ipp_shared')
+    # do not allow file links to keep previous builds intact
+    SetOptionDefault('CCOPY_LOGIC', 'copy')
+
+    include_parts(ipp_parts, mode=MODE+ipp_mode, INSTALL_BIN='${INSTALL_TEST_BIN}')
+    include_parts(example_static_parts + utest_parts + perf_benchmark_parts +
+                  common_parts + member_parts + verifier_parts +
+                  sizing_parts + epid_data,
+                  mode=MODE,
+                  INSTALL_BIN='${INSTALL_TEST_BIN}')
+    if 'use_memory_profiler' in MODE:
+        include_parts(memory_benchmark_parts + memory_profiler_parts,
+                      mode=MODE,
+                      INSTALL_BIN='${INSTALL_TEST_BIN}')
+    Default('build::')
 
 if is_package():
     set_default_production_options()
@@ -235,3 +380,5 @@ if is_package():
                   mode=['install_package'],
                   INSTALL_TOP_LEVEL='${PACKAGE_ROOT}')
     Default('package')
+
+log_versions(DefaultEnvironment(), not is_package())

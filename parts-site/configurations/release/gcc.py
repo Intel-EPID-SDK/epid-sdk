@@ -48,7 +48,16 @@ config.VersionRange("3-*",
                                  '-Wno-unused-but-set-variable',
                                  # do not warn about multiline comments
                                  '-Wno-comment',
-                                ],
-                        CPPDEFINES=['NDEBUG'],
+                                 '-Wformat',
+                                 '-Wformat-security',
+                                 '-fstack-protector',
+                                 '-fPIC'],
+                        CPPDEFINES=['NDEBUG',
+                                    '_FORTIFY_SOURCE=2'],
+                        LINKFLAGS=['-fstack-protector',
+                                   '-znoexecstack',
+                                   '-zrelro',
+                                   '-znow',
+                                   '-pie'],
                     )
                    )

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <cstring>
 #include <vector>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -92,6 +93,17 @@ TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA512) {
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
+  EXPECT_EQ(kEpidNoErr,
+            EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
+}
+
+TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA512256) {
+  VerifierCtxObj verifier(this->kGrpXKey);
+  auto const& sig = (EpidSignature const*)this
+                        ->kSigGrpXMember0Sha512256RandombaseMsg0NoSigRl.data();
+  const BasicSignature basic_sig = sig->sigma0;
+  auto& msg = this->kMsg0;
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512_256));
   EXPECT_EQ(kEpidNoErr,
             EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }

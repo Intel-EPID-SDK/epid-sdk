@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #include <vector>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -73,8 +74,6 @@ class EpidMemberTest : public ::testing::Test {
   /// test data
   static const MemberPrecomp kMemberPrecomp;
   /// test data
-  static const PreComputedSignature kPrecomputedSignatures[2];
-  /// test data
   static const std::vector<uint8_t> kGrp01Member0SigTest1Sha256;
   /// test data
   static const std::vector<uint8_t> kGrp01Member0SigTest1Sha384;
@@ -97,6 +96,14 @@ class EpidMemberTest : public ::testing::Test {
 
   /// a group key in group X
   static const GroupPubKey kGrpXKey;
+  /// a member 0 private key in group X
+  static const PrivKey kGrpXMember0PrivKey;
+  /// a member private key in group X revoked in SigRl
+  static const PrivKey kGrpXSigrevokedMember0PrivKey;
+  /// a SigRl of group X
+  static const std::vector<uint8_t> kGrpXSigRl;
+  /// a SigRl with single entry of group X
+  static const std::vector<uint8_t> kGrpXSigRlSingleEntry;
   /// a compressed private key in group X
   static const CompressedPrivKey kGrpXMember9CompressedKey;
   /// a private key in group X
@@ -106,6 +113,9 @@ class EpidMemberTest : public ::testing::Test {
   static const GroupPubKey kGrpYKey;
   /// a compressed private key in group Y
   static const CompressedPrivKey kGrpYMember9CompressedKey;
+
+  /// value "1" represented as an octstr constant
+  static const OctStr32 kOctStr32_1;
 
   /// setup called before each TEST_F starts
   virtual void SetUp() {}

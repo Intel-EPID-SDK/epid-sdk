@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -72,6 +72,9 @@ typedef struct EcGroup EcGroup;
 
  \returns ::EpidStatus
 
+ \attention It is the responsibility of the caller to ensure that ff exists
+ for the entire lifetime of the new EcGroup.
+
  \see DeleteEcGroup
 */
 EpidStatus NewEcGroup(FiniteField const* ff, FfElement const* a,
@@ -106,6 +109,9 @@ typedef struct EcPoint EcPoint;
 
  \returns ::EpidStatus
 
+ \attention It is the responsibility of the caller to ensure that g exists
+ for the entire lifetime of the new EcPoint.
+
  \see NewEcGroup
  \see DeleteEcPoint
 */
@@ -138,7 +144,7 @@ void DeleteEcPoint(EcPoint** p);
 
  \see NewEcPoint
 */
-EpidStatus ReadEcPoint(EcGroup* g, void const* p_str, size_t strlen,
+EpidStatus ReadEcPoint(EcGroup* g, ConstOctStr p_str, size_t strlen,
                        EcPoint* p);
 
 /// Serializes an EcPoint to a string.
@@ -156,7 +162,7 @@ EpidStatus ReadEcPoint(EcGroup* g, void const* p_str, size_t strlen,
 
  \see NewEcPoint
 */
-EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
+EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, OctStr p_str,
                         size_t strlen);
 
 /// Multiplies two elements in an elliptic curve group.
@@ -355,7 +361,7 @@ EpidStatus EcGetRandom(EcGroup* g, BitSupplier rnd_func, void* rnd_func_param,
 
  \see NewEcPoint
 */
-EpidStatus EcInGroup(EcGroup* g, void const* p_str, size_t strlen,
+EpidStatus EcInGroup(EcGroup* g, ConstOctStr p_str, size_t strlen,
                      bool* in_group);
 
 /// Hashes an arbitrary message to an Intel(R) EPID 1.1 element in an elliptic
@@ -375,7 +381,7 @@ The hashed value.
 \see NewEcGroup
 \see NewEcPoint
 */
-EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
+EpidStatus Epid11EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len,
                         EcPoint* r);
 
 /// Hashes an arbitrary message to an element in an elliptic curve group.
@@ -396,7 +402,7 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
  \see NewEcGroup
  \see NewEcPoint
 */
-EpidStatus EcHash(EcGroup* g, void const* msg, size_t msg_len, HashAlg hash_alg,
+EpidStatus EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len, HashAlg hash_alg,
                   EcPoint* r);
 
 /// Sets an EcPoint variable to a point on a curve.

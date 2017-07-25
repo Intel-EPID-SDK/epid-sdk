@@ -21,8 +21,12 @@
 #ifndef EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_
 #define EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_
 
-#include "epid/verifier/api.h"
-#include "epid/common/file_parser.h"
+#include <stddef.h>
+#include "epid/common/stdtypes.h"
+#include "epid/common/errors.h"
+#include "epid/common/types.h"
+
+struct EpidCaCertificate;
 
 /// Check if opaque data blob containing CA certificate is authorized
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size);
@@ -35,8 +39,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   void const* signed_grp_rl, size_t signed_grp_rl_size,
                   VerifierRl const* ver_rl, size_t ver_rl_size,
                   void const* signed_pub_key, size_t signed_pub_key_size,
-                  EpidCaCertificate const* cacert, HashAlg hash_alg,
-                  VerifierPrecomp* verifier_precomp,
-                  bool verifier_precomp_is_input);
+                  struct EpidCaCertificate const* cacert, HashAlg hash_alg,
+                  void** verifier_precomp, size_t* verifier_precomp_size);
 
 #endif  // EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_

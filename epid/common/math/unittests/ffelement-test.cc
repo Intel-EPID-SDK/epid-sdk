@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <limits>
 #include <algorithm>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 #include "epid/common-testhelper/errors-testhelper.h"
@@ -286,6 +287,7 @@ class FfElementTest : public ::testing::Test {
   static const FqElemStr fq_abc_sha256_str;
   static const FqElemStr fq_abc_sha384_str;
   static const FqElemStr fq_abc_sha512_str;
+  static const FqElemStr fq_abc_sha512256_str;
 
   // arbitrary Fq12 constant a (unrelated to a above)
   static const Fq12ElemStr fq12_g_str;
@@ -651,6 +653,13 @@ const FqElemStr FfElementTest::fq_abc_sha512_str = {
     0x50, 0xD1, 0x3B, 0xF2, 0x35, 0xF7, 0x97, 0x91, 0x05, 0x3D, 0x64,
     0xC0, 0x06, 0x45, 0x9F, 0xEC, 0xD8, 0xDB, 0x53, 0x3E, 0xC3,
 };
+
+const FqElemStr FfElementTest::fq_abc_sha512256_str = {
+    0x53, 0x04, 0x8E, 0x26, 0x81, 0x94, 0x1E, 0xF9, 0x9B, 0x2E, 0x29,
+    0xB7, 0x6B, 0x4C, 0x7D, 0xAB, 0xE4, 0xC2, 0xD0, 0xC6, 0x34, 0xFC,
+    0x6D, 0x46, 0xE0, 0xE2, 0xF1, 0x31, 0x07, 0xE7, 0xAF, 0x23,
+};
+
 const Fq12ElemStr FfElementTest::fq12_g_str = {
     {{{{{{0xBA, 0x10, 0x1F, 0xF6, 0x46, 0x8B, 0xE9, 0x32, 0x4F, 0xC0, 0xA5,
           0x01, 0xAD, 0x5E, 0xE2, 0x31, 0x16, 0x29, 0x96, 0xED, 0xA7, 0xDE,
@@ -1468,11 +1477,10 @@ TEST_F(FfElementTest, ReadFailsGivenNullPointer) {
 }
 
 TEST_F(FfElementTest, ReadFailsGivenInvalidBufferSize) {
-  FqElemStr ff_elem_str;
   EXPECT_EQ(kEpidBadArgErr,
-            ReadFfElement(this->fq, &ff_elem_str, 0, this->fq_a));
+            ReadFfElement(this->fq, &this->fq_qm1_str, 0, this->fq_a));
   EXPECT_EQ(kEpidBadArgErr,
-            ReadFfElement(this->fq, &ff_elem_str,
+            ReadFfElement(this->fq, &this->fq_qm1_str,
                           std::numeric_limits<size_t>::max(), this->fq_a));
 }
 
@@ -2135,8 +2143,6 @@ TEST_F(FfElementTest, FfHashFailsGivenNullPointer) {
 TEST_F(FfElementTest, FfHashFailsGivenUnsupportedHashAlg) {
   uint8_t const msg[] = {0};
   EXPECT_EQ(kEpidHashAlgorithmNotSupported,
-            FfHash(this->fq, msg, sizeof(msg), kSha512_256, this->fq_result));
-  EXPECT_EQ(kEpidHashAlgorithmNotSupported,
             FfHash(this->fq, msg, sizeof(msg), kSha3_256, this->fq_result));
   EXPECT_EQ(kEpidHashAlgorithmNotSupported,
             FfHash(this->fq, msg, sizeof(msg), kSha3_384, this->fq_result));
@@ -2184,7 +2190,15 @@ TEST_F(FfElementTest, FfHashWorksGivenSHA512HashAlg) {
   EXPECT_EQ(this->fq_abc_sha512_str, fq_r_str)
       << "FfHash: Hash element does not match to reference value";
 }
-
+TEST_F(FfElementTest, FfHashWorksGivenSHA512256HashAlg) {
+  FqElemStr fq_r_str;
+  EXPECT_EQ(kEpidNoErr, FfHash(this->fq, sha_msg, sizeof(sha_msg), kSha512_256,
+                               this->fq_result));
+  THROW_ON_EPIDERR(
+      WriteFfElement(this->fq, this->fq_result, &fq_r_str, sizeof(fq_r_str)));
+  EXPECT_EQ(this->fq_abc_sha512256_str, fq_r_str)
+      << "FfHash: Hash element does not match to reference value";
+}
 ////////////////////////////////////////////////
 // FfMultiExp
 

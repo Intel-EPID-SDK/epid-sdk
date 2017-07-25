@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,66 +20,31 @@
  * \brief Member context interface.
  */
 
-#include <stddef.h>
-#include "epid/member/api.h"
-#include "epid/common/errors.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/grouppubkey.h"
-#include "epid/common/src/stack.h"
-#include "epid/common/src/commitment.h"
-#include "epid/member/src/privkey.h"
+#include <epid/member/api.h>
 
-/// Internal implementation of base name
-typedef struct AllowedBasename {
-  struct AllowedBasename* next;  ///< pointer to the next base name
-  size_t length;                 ///< size of base name
-  uint8_t name[1];               ///< base name (flexible array)
-} AllowedBasename;
+#include <stddef.h>
+
+#include "epid/common/errors.h"
+#include "epid/common/types.h"
+#include "epid/common/bitsupplier.h"
+
+/// \cond
+typedef struct TpmCtx TpmCtx;
+typedef struct Epid2Params_ Epid2Params_;
+typedef struct AllowedBasenames AllowedBasenames;
+/// \endcond
 
 /// Member context definition
 struct MemberCtx {
-  GroupPubKey_* pub_key;       ///< group public key
-  FfElement* e12;              ///< an element in GT
-  FfElement* e22;              ///< an element in GT
-  FfElement* e2w;              ///< an element in GT
-  FfElement* ea2;              ///< an element in GT
   Epid2Params_* epid2_params;  ///< Intel(R) EPID 2.0 params
-  PrivKey_* priv_key;          ///< Member private key
-
-  BitSupplier rnd_func;  ///< Pseudo random number generation function
-  void* rnd_param;       ///< Pointer to user context for rnd_func
-  HashAlg hash_alg;      ///< Hash algorithm to use
-  AllowedBasename* allowed_basenames;  ///< Base name list
-  Stack* presigs;                      ///< Pre-computed signatures pool
-  CommitValues commit_values;  ///< Values that are hashed to create commitment
+  TpmCtx* tpm_ctx;             ///< TPM context
+  GroupPubKey pub_key;         ///< group public key
+  MemberPrecomp precomp;       ///< Member pre-computed data
+  BitSupplier rnd_func;        ///< Pseudo random number generation function
+  void* rnd_param;             ///< Pointer to user context for rnd_func
+  SigRl const* sig_rl;         ///< Signature based revocation list - not owned
+  AllowedBasenames* allowed_basenames;  ///< Base name list
+  HashAlg hash_alg;                     ///< Hash algorithm to use
 };
-
-/// Delete base name list
-void DeleteBasenames(AllowedBasename** rootnode);
-
-/// Add new base name to list
-EpidStatus AddBasename(AllowedBasename** rootnode, void const* basename,
-                       size_t length);
-
-/// Check if given base name exist in the list
-bool ContainsBasename(AllowedBasename const* rootnode, void const* basename,
-                      size_t length);
-
-/// Performs Pre-computation that can be used to speed up signing
-/*!
- \warning
- Do not re-use the same pre-computed signature to generate more than
- one signature. If a pre-computed signature is used for computing
- two signatures, an attacker could learn the Intel(R) EPID private key.
-
- \param[in] ctx
- The member context.
- \param[out] precompsig
- The pre-computed signature.
-
- \returns ::EpidStatus
- */
-EpidStatus EpidComputePreSig(MemberCtx const* ctx,
-                             PreComputedSignature* precompsig);
 
 #endif  // EPID_MEMBER_SRC_CONTEXT_H_

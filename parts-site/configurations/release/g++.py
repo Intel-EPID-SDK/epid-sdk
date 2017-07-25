@@ -37,11 +37,19 @@ config.VersionRange("3-*",
                                  '-Wextra',
                                  # pedantic warnings
                                  # '-Wpedantic',
-                                ],
+                                 '-Wformat',
+                                 '-Wformat-security',
+                                 '-fstack-protector',
+                                 '-fPIC'],
                         CXXFLAGS=['',
                                   # modern C++ features support
-                                  '-std=c++0x',
-                                 ],
-                        CPPDEFINES=['NDEBUG']
+                                  '-std=c++0x'],
+                        CPPDEFINES=['NDEBUG',
+                                    '_FORTIFY_SOURCE=2'],
+                        LINKFLAGS=['-fstack-protector',
+                                   '-znoexecstack',
+                                   '-zrelro',
+                                   '-znow',
+                                   '-pie'],
                     )
                    )

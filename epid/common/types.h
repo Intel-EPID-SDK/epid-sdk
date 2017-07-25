@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -39,6 +39,12 @@
   \ingroup EpidCommon
   @{
 */
+
+/// Generic Octet String Style Number
+typedef void* OctStr;
+
+/// Generic Const Octet String Style Number
+typedef void const* ConstOctStr;
 
 /// Recognized hash algorithms
 typedef enum {
@@ -301,6 +307,20 @@ typedef struct VerifierRl {
   OctStr32 n4;       ///< number of entries in VerifierRL
   G1ElemStr K[1];    ///< elements in G1 (flexible array)
 } VerifierRl;
+
+/// Pre-computed member settings.
+/*!
+ * Serialized form of the information about a member that remains
+ * stable for a given set of keys.
+ *
+ * \note e12 = 0 implies that this data is not valid
+ */
+typedef struct MemberPrecomp {
+  GtElemStr e12;  ///< an element in GT
+  GtElemStr e22;  ///< an element in GT
+  GtElemStr e2w;  ///< an element in GT
+  GtElemStr ea2;  ///< an element in GT
+} MemberPrecomp;
 
 /// element to store seed values for later rekey
 typedef G1ElemStr ReKeySeed;

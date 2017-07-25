@@ -282,7 +282,7 @@ EpidStatus EpidParseGroupPubKeyFile(void const* buf, size_t len,
     return kEpidBadArgErr;
   }
 
-  if (sizeof(EpidGroupPubKeyCertificate) > len) {
+  if (len == 0 || len % sizeof(EpidGroupPubKeyCertificate) != 0) {
     return kEpidBadArgErr;
   }
 

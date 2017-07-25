@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,6 +64,9 @@ const Epid11Params Epid11VerifierTest::kParamsStr = {
 };
 const std::vector<uint8_t> Epid11VerifierTest::kGrpXPrivRl = {
 #include "epid/common-testhelper/1.1/testdata/grp_x/privrl.inc"
+};
+const std::vector<uint8_t> Epid11VerifierTest::kGrpXCorruptedPrivRl = {
+#include "epid/common-testhelper/1.1/testdata/grp_x/corrupted_privrl.inc"
 };
 const std::vector<uint8_t> Epid11VerifierTest::kGrpXPrivRlSingleEntry = {
 #include "epid/common-testhelper/1.1/testdata/grp_x/privrl_single_entry.inc"

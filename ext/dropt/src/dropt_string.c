@@ -25,7 +25,8 @@
   *
   * 3. This notice may not be removed or altered from any source distribution.
   */
-
+// This file has been altered to convert a call to the unsafe memcpy to a
+// local loop.
 #ifdef _MSC_VER
     #include <tchar.h>
 #endif
@@ -193,6 +194,7 @@ dropt_strndup(const dropt_char* s, size_t n)
 {
     dropt_char* copy;
     size_t len = 0;
+    size_t i = 0;
 
     assert(s != NULL);
 
@@ -214,7 +216,9 @@ dropt_strndup(const dropt_char* s, size_t n)
     copy = dropt_safe_malloc(len + 1 /* NUL */, sizeof *copy);
     if (copy != NULL)
     {
-        memcpy(copy, s, len * sizeof *copy);
+        for(i = 0; i < len; i+=1){
+            copy[i] = s[i];
+        }
         copy[len] = DROPT_TEXT_LITERAL('\0');
     }
 

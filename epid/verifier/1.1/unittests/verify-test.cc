@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 * \brief Epid11Verify unit tests.
 */
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -213,15 +214,14 @@ TEST_F(Epid11VerifierTest, VerifyFailsOnSigRlverNotMatchSigRlRlver) {
   auto bsn = this->kBsn0;
   auto sig_rl = this->kGrpXSigRlMember0Bsn0Msg0SingleEntry;
   auto sig_rl_size = sig_rl.size();
-  auto sig = this->kGrpXSigRlMember0Bsn0Msg0FirstEntry;
+  auto sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   Epid11SigRl sig_rl_wrong_ver = *(Epid11SigRl const*)sig_rl.data();
   sig_rl_wrong_ver.version.data[0]++;
   THROW_ON_EPIDERR(
       Epid11VerifierSetSigRl(verifier, &sig_rl_wrong_ver, sig_rl_size));
   THROW_ON_EPIDERR(Epid11VerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
-            Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
-                         sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidErr, Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
+                                   sig.size(), msg.data(), msg.size()));
 }
 
 TEST_F(Epid11VerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
@@ -230,14 +230,16 @@ TEST_F(Epid11VerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
   Epid11VerifierCtxObj verifier(this->kPubKeyStr);
   auto msg = this->kMsg0;
   auto bsn = this->kBsn0;
-  auto sig_rl = this->kGrpXSigRlMember0Bsn0Msg0MiddleEntry;
-  auto sig = this->kSigGrpXMember0Sha256Bsn0Msg0SingleEntry;
-  THROW_ON_EPIDERR(Epid11VerifierSetSigRl(
-      verifier, (Epid11SigRl const*)sig_rl.data(), sig_rl.size()));
+  auto* sig_rl =
+      (Epid11SigRl const*)this->kGrpXSigRlMember0Bsn0Msg0MiddleEntry.data();
+  size_t sig_rl_size = this->kGrpXSigRlMember0Bsn0Msg0MiddleEntry.size();
+  auto sig_raw = this->kSigGrpXMember0Sha256Bsn0Msg0SingleEntry;
+  Epid11Signature* sig = (Epid11Signature*)sig_raw.data();
+  sig->rl_ver = sig_rl->version;
+  THROW_ON_EPIDERR(Epid11VerifierSetSigRl(verifier, sig_rl, sig_rl_size));
   THROW_ON_EPIDERR(Epid11VerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
-            Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
-                         sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadArgErr, Epid11Verify(verifier, sig, sig_raw.size(),
+                                         msg.data(), msg.size()));
 }
 
 TEST_F(Epid11VerifierTest, VerifyFailsSigIsNotBasicAndSigRlIsNotProvided) {
@@ -571,6 +573,21 @@ TEST_F(Epid11VerifierTest, VerifyRejectsSigFromPrivRlLastEntry) {
   auto& bsn = this->kBsn0;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig = this->kSigGrpXRevokedPrivKey002Sha256Bsn0Msg0;
+  Epid11VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(Epid11VerifierSetPrivRl(
+      verifier, (Epid11PrivRl const*)priv_rl.data(), priv_rl.size()));
+  THROW_ON_EPIDERR(Epid11VerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
+            Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
+                         sig.size(), msg.data(), msg.size()));
+}
+
+TEST_F(Epid11VerifierTest, VerifyRejectsSigUsingCorruptedPrivRlEntry) {
+  auto& pub_key = this->kPubKeyStr;
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  auto& priv_rl = this->kGrpXCorruptedPrivRl;
+  auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   Epid11VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(Epid11VerifierSetPrivRl(
       verifier, (Epid11PrivRl const*)priv_rl.data(), priv_rl.size()));

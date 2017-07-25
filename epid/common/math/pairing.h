@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -62,6 +62,9 @@ typedef struct PairingState PairingState;
 
  \returns ::EpidStatus
 
+ \attention It is the responsibility of the caller to ensure that ga, gb, and
+ ff exist for the entire lifetime of the new PairingState.
+
  \see DeletePairingState
 */
 EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
@@ -83,17 +86,17 @@ void DeletePairingState(PairingState** ps);
 /*!
  \param[in] ps
  The pairing state.
- \param[out] d
- The result of the pairing. Will be in ff used to create the pairing state.
  \param[in] a
  The first value to pair. Must be in ga used to create ps.
  \param[in] b
  The second value to pair. Must be in gb used to create ps
+ \param[out] d
+ The result of the pairing. Will be in ff used to create the pairing state.
 
  \returns ::EpidStatus
 */
-EpidStatus Pairing(PairingState* ps, FfElement* d, EcPoint const* a,
-                   EcPoint const* b);
+EpidStatus Pairing(PairingState* ps, EcPoint const* a, EcPoint const* b,
+                   FfElement* d);
 
 /*!
   @}

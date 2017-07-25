@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 #include "epid/common/src/memory.h"
 #include "epid/common/src/endian_convert.h"
 #include "ext/ipp/include/ippcp.h"
-#include "ext/ipp/include/ippcpepid.h"
+#include "ext/ipp/include/ippcpdefs.h"
 #include "epid/common/1.1/types.h"
 
 /// Handle SDK Error with Break
@@ -55,14 +55,14 @@ EpidStatus NewEcGroup(FiniteField const* ff, FfElement const* a,
                       BigNum const* cofactor, EcGroup** g) {
   EpidStatus result = kEpidNoErr;
   IppsGFpECState* state = NULL;
-  Ipp8u* scratch_buffer = NULL;
+  OctStr scratch_buffer = NULL;
   EcGroup* grp = NULL;
   do {
     IppStatus ipp_status;
     int stateSize = 0;
     int scratch_size = 0;
-    Ipp32u* order_bnu;
-    Ipp32u* cofactor_bnu;
+    IppBNU order_bnu;
+    IppBNU cofactor_bnu;
     int order_bnu_size;
     int cofactor_bnu_size;
     IppsBigNumSGN sgn;
@@ -71,16 +71,10 @@ EpidStatus NewEcGroup(FiniteField const* ff, FfElement const* a,
       result = kEpidBadArgErr;
       break;
     }
-    if (ff->info.elementLen != a->info.elementLen ||
-        ff->info.elementLen != b->info.elementLen ||
-        ff->info.elementLen != x->info.elementLen ||
-        ff->info.elementLen != y->info.elementLen ||
-        a->info.elementLen != b->info.elementLen ||
-        a->info.elementLen != x->info.elementLen ||
-        a->info.elementLen != y->info.elementLen ||
-        b->info.elementLen != x->info.elementLen ||
-        b->info.elementLen != y->info.elementLen ||
-        x->info.elementLen != y->info.elementLen) {
+    if (ff->element_len != a->element_len ||
+        ff->element_len != b->element_len ||
+        ff->element_len != x->element_len ||
+        ff->element_len != y->element_len) {
       result = kEpidBadArgErr;
       break;
     }
@@ -124,9 +118,13 @@ EpidStatus NewEcGroup(FiniteField const* ff, FfElement const* a,
     }
 
     ipp_status =
-        ippsGFpECInit(a->ipp_ff_elem, b->ipp_ff_elem, x->ipp_ff_elem,
-                      y->ipp_ff_elem, order_bnu, order_bnu_size, cofactor_bnu,
-                      cofactor_bnu_size, ff->ipp_ff, state);
+        ippsGFpECInit(ff->ipp_ff, a->ipp_ff_elem, b->ipp_ff_elem, state);
+    if (ippStsNoErr != ipp_status) {
+      result = kEpidMathErr;
+      break;
+    }
+    ipp_status = ippsGFpECSetSubgroup(x->ipp_ff_elem, y->ipp_ff_elem,
+                                      order->ipp_bn, cofactor->ipp_bn, state);
     if (ippStsNoErr != ipp_status) {
       result = kEpidMathErr;
       break;
@@ -136,21 +134,23 @@ EpidStatus NewEcGroup(FiniteField const* ff, FfElement const* a,
     ipp_status = ippsGFpECScratchBufferSize(1, state, &scratch_size);
     // check return codes
     if (ippStsNoErr != ipp_status) {
-      if (ippStsContextMatchErr == ipp_status)
-        result = kEpidBadArgErr;
-      else
-        result = kEpidMathErr;
+      // ippStsContextMatchErr not possible since we create the state
+      // in this function
+      result = kEpidMathErr;
       break;
     }
 
     // allocate scratch buffer
-    scratch_buffer = (Ipp8u*)SAFE_ALLOC(scratch_size);
+    scratch_buffer = (OctStr)SAFE_ALLOC(scratch_size);
     if (!scratch_buffer) {
       result = kEpidMemAllocErr;
       break;
     }
-
-    grp->info = ff->info;
+    // Warning: once assigned ground field must never be modified. this was not
+    // made const
+    // to allow the FiniteField structure to be used in context when we want to
+    // modify the parameters.
+    grp->ff = (FiniteField*)ff;
     grp->ipp_ec = state;
     grp->scratch_buffer = scratch_buffer;
     *g = grp;
@@ -225,7 +225,11 @@ EpidStatus NewEcPoint(EcGroup const* g, EcPoint** p) {
       result = kEpidMemAllocErr;
       break;
     }
-    ecpoint->info = g->info;
+    if (!g->ff) {
+      result = kEpidBadArgErr;
+      break;
+    }
+    ecpoint->element_len = g->ff->element_len;
     ecpoint->ipp_ec_pt = ec_pt_context;
     *p = ecpoint;
     result = kEpidNoErr;
@@ -271,21 +275,21 @@ void DeleteEcPoint(EcPoint** p) {
 
   \see NewEcPoint
 */
-EpidStatus eccontains(EcGroup* g, void const* p_str, size_t strlen, EcPoint* p,
+EpidStatus eccontains(EcGroup* g, ConstOctStr p_str, size_t strlen, EcPoint* p,
                       bool* in_group) {
   EpidStatus result = kEpidErr;
   IppStatus sts = ippStsNoErr;
-  FiniteField fp;
+  FiniteField* fp = NULL;
   FfElement* fp_x = NULL;
   FfElement* fp_y = NULL;
-  Ipp8u const* byte_str = (Ipp8u const*)p_str;
+  ConstIppOctStr byte_str = (ConstIppOctStr)p_str;
   IppECResult ec_result = ippECPointIsNotValid;
   int ipp_half_strlen = (int)strlen / 2;
 
   if (!g || !p_str || !p || !in_group) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !p->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !p->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
 
@@ -317,51 +321,29 @@ EpidStatus eccontains(EcGroup* g, void const* p_str, size_t strlen, EcPoint* p,
       break;
     }
     // get finite field
-    sts = ippsGFpECGet(g->ipp_ec, (const IppsGFpState**)&(fp.ipp_ff), 0, 0, 0,
-                       0, 0, 0, 0, 0);
-    // check return codes
-    if (ippStsNoErr != sts) {
-      if (ippStsContextMatchErr == sts)
-        result = kEpidBadArgErr;
-      else
-        result = kEpidMathErr;
-      break;
-    }
-
+    fp = g->ff;
     // create element X
-    result = NewFfElement(&fp, &fp_x);
+    result = NewFfElement(fp, &fp_x);
     if (kEpidNoErr != result) {
       break;
     }
 
     // create element Y
-    result = NewFfElement(&fp, &fp_y);
+    result = NewFfElement(fp, &fp_y);
     if (kEpidNoErr != result) {
       break;
     }
 
     // set element X data
-    sts = ippsGFpSetElementOctString(byte_str, ipp_half_strlen,
-                                     fp_x->ipp_ff_elem, fp.ipp_ff);
-    // check return codes
-    if (ippStsNoErr != sts) {
-      if (ippStsContextMatchErr == sts || ippStsOutOfRangeErr == sts)
-        result = kEpidBadArgErr;
-      else
-        result = kEpidMathErr;
+    result = SetFfElementOctString(byte_str, ipp_half_strlen, fp_x, fp);
+    if (kEpidNoErr != result) {
       break;
     }
 
     // set element Y data
-    sts =
-        ippsGFpSetElementOctString(byte_str + ipp_half_strlen, ipp_half_strlen,
-                                   fp_y->ipp_ff_elem, fp.ipp_ff);
-    // check return codes
-    if (ippStsNoErr != sts) {
-      if (ippStsContextMatchErr == sts || ippStsOutOfRangeErr == sts)
-        result = kEpidBadArgErr;
-      else
-        result = kEpidMathErr;
+    result = SetFfElementOctString(byte_str + ipp_half_strlen, ipp_half_strlen,
+                                   fp_y, fp);
+    if (kEpidNoErr != result) {
       break;
     }
 
@@ -378,8 +360,7 @@ EpidStatus eccontains(EcGroup* g, void const* p_str, size_t strlen, EcPoint* p,
     }
 
     // verify the point is actually on the curve
-    sts = ippsGFpECTstPoint(p->ipp_ec_pt, &ec_result, g->ipp_ec,
-                            g->scratch_buffer);
+    sts = ippsGFpECTstPoint(p->ipp_ec_pt, &ec_result, g->ipp_ec);
     // check return codes
     if (ippStsNoErr != sts) {
       if (ippStsContextMatchErr == sts)
@@ -388,7 +369,6 @@ EpidStatus eccontains(EcGroup* g, void const* p_str, size_t strlen, EcPoint* p,
         result = kEpidMathErr;
       break;
     }
-
     *in_group = (ippECValid == ec_result);
     result = kEpidNoErr;
   } while (0);
@@ -398,7 +378,7 @@ EpidStatus eccontains(EcGroup* g, void const* p_str, size_t strlen, EcPoint* p,
   return result;
 }
 
-EpidStatus ReadEcPoint(EcGroup* g, void const* p_str, size_t strlen,
+EpidStatus ReadEcPoint(EcGroup* g, ConstOctStr p_str, size_t strlen,
                        EcPoint* p) {
   EpidStatus result;
   bool in_group = false;
@@ -426,20 +406,20 @@ EpidStatus ReadEcPoint(EcGroup* g, void const* p_str, size_t strlen,
   return kEpidNoErr;
 }
 
-EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
+EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, OctStr p_str,
                         size_t strlen) {
   EpidStatus result = kEpidErr;
-  FiniteField fp;
+  FiniteField* fp = NULL;
   FfElement* fp_x = NULL;
   FfElement* fp_y = NULL;
-  Ipp8u* byte_str = (Ipp8u*)p_str;
+  IppOctStr byte_str = (IppOctStr)p_str;
   IppStatus sts = ippStsNoErr;
   int ipp_half_strlen = (int)strlen / 2;
 
   if (!g || !p || !p_str) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !p->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !p->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
   if (INT_MAX < strlen) {
@@ -452,25 +432,16 @@ EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
 
   do {
     // get finite field
-    sts = ippsGFpECGet(g->ipp_ec, (const IppsGFpState**)&(fp.ipp_ff), 0, 0, 0,
-                       0, 0, 0, 0, 0);
-    // check return codes
-    if (ippStsNoErr != sts) {
-      if (ippStsContextMatchErr == sts)
-        result = kEpidBadArgErr;
-      else
-        result = kEpidMathErr;
-      break;
-    }
+    fp = g->ff;
 
     // create element X
-    result = NewFfElement(&fp, &fp_x);
+    result = NewFfElement(fp, &fp_x);
     if (kEpidNoErr != result) {
       break;
     }
 
     // create element Y
-    result = NewFfElement(&fp, &fp_y);
+    result = NewFfElement(fp, &fp_y);
     if (kEpidNoErr != result) {
       break;
     }
@@ -483,7 +454,7 @@ EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
       if (ippStsPointAtInfinity == sts) {
         memset(p_str, 0, strlen);
         result = kEpidNoErr;
-      } else if (ippStsContextMatchErr == sts) {
+      } else if (ippStsContextMatchErr == sts || ippStsOutOfRangeErr == sts) {
         result = kEpidBadArgErr;
       } else {
         result = kEpidMathErr;
@@ -493,7 +464,7 @@ EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
 
     // get element X data
     sts = ippsGFpGetElementOctString(fp_x->ipp_ff_elem, byte_str,
-                                     ipp_half_strlen, fp.ipp_ff);
+                                     ipp_half_strlen, fp->ipp_ff);
     // check return codes
     if (ippStsNoErr != sts) {
       if (ippStsContextMatchErr == sts)
@@ -506,7 +477,7 @@ EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
     // get element Y data
     sts = ippsGFpGetElementOctString(fp_y->ipp_ff_elem,
                                      byte_str + ipp_half_strlen,
-                                     ipp_half_strlen, fp.ipp_ff);
+                                     ipp_half_strlen, fp->ipp_ff);
     // check return codes
     if (ippStsNoErr != sts) {
       if (ippStsContextMatchErr == sts)
@@ -528,15 +499,13 @@ EpidStatus EcMul(EcGroup* g, EcPoint const* a, EcPoint const* b, EcPoint* r) {
   IppStatus sts = ippStsNoErr;
   if (!g || !a || !b || !r) {
     return kEpidBadArgErr;
-  } else if (!g->ipp_ec || !a->ipp_ec_pt || !b->ipp_ec_pt || !r->ipp_ec_pt) {
+  } else if (!g->ff || !g->ipp_ec || !a->ipp_ec_pt || !b->ipp_ec_pt ||
+             !r->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != a->info.elementLen ||
-      g->info.elementLen != b->info.elementLen ||
-      g->info.elementLen != r->info.elementLen ||
-      a->info.elementLen != b->info.elementLen ||
-      a->info.elementLen != r->info.elementLen ||
-      b->info.elementLen != r->info.elementLen) {
+  if (g->ff->element_len != a->element_len ||
+      g->ff->element_len != b->element_len ||
+      g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
   // Multiplies elliptic curve points
@@ -561,13 +530,12 @@ EpidStatus EcExp(EcGroup* g, EcPoint const* a, BigNumStr const* b, EcPoint* r) {
     if (!g || !a || !b || !r) {
       result = kEpidBadArgErr;
       break;
-    } else if (!g->ipp_ec || !a->ipp_ec_pt || !r->ipp_ec_pt) {
+    } else if (!g->ff || !g->ipp_ec || !a->ipp_ec_pt || !r->ipp_ec_pt) {
       result = kEpidBadArgErr;
       break;
     }
-    if (g->info.elementLen != a->info.elementLen ||
-        g->info.elementLen != r->info.elementLen ||
-        a->info.elementLen != r->info.elementLen) {
+    if (g->ff->element_len != a->element_len ||
+        g->ff->element_len != r->element_len) {
       result = kEpidBadArgErr;
       break;
     }
@@ -577,7 +545,6 @@ EpidStatus EcExp(EcGroup* g, EcPoint const* a, BigNumStr const* b, EcPoint* r) {
     if (kEpidNoErr != result) break;
     result = ReadBigNum(b, sizeof(*b), b_bn);
     if (kEpidNoErr != result) break;
-
     sts = ippsGFpECMulPoint(a->ipp_ec_pt, b_bn->ipp_bn, r->ipp_ec_pt, g->ipp_ec,
                             g->scratch_buffer);
     if (ippStsNoErr != sts) {
@@ -606,41 +573,35 @@ EpidStatus EcMultiExp(EcGroup* g, EcPoint const** a, BigNumStr const** b,
   EpidStatus result = kEpidErr;
   BigNum* b_bn = NULL;
   EcPoint* ecp_t = NULL;
-  int i = 0;
-  int ii = 0;
-  int ipp_m = 0;
+  size_t i = 0;
+  size_t ii = 0;
 
   if (!g || !a || !b || !r) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || m <= 0) {
+  if (!g->ff || !g->ipp_ec || m <= 0) {
     return kEpidBadArgErr;
   }
-  // because we use ipp function with number of items parameter
-  // defined as "int" we need to verify that input length
-  // do not exceed INT_MAX to avoid overflow
-  if (m > INT_MAX) {
-    return kEpidBadArgErr;
-  }
-  ipp_m = (int)m;
+
   // Verify that ec points are not NULL
-  for (i = 0; i < ipp_m; i++) {
+  for (i = 0; i < m; i++) {
     if (!a[i]) {
       return kEpidBadArgErr;
     }
     if (!a[i]->ipp_ec_pt) {
       return kEpidBadArgErr;
     }
-    if (g->info.elementLen != a[i]->info.elementLen) {
+    if (g->ff->element_len != a[i]->element_len) {
       return kEpidBadArgErr;
     }
-    for (ii = i + 1; ii < ipp_m; ii++) {
-      if (a[i]->info.elementLen != a[ii]->info.elementLen) {
+    for (ii = 0; ii < i; ii++) {
+      if (a[i]->element_len != a[ii]->element_len) {
         return kEpidBadArgErr;
       }
     }
   }
-  if (g->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -654,11 +615,10 @@ EpidStatus EcMultiExp(EcGroup* g, EcPoint const** a, BigNumStr const** b,
     result = NewEcPoint(g, &ecp_t);
     if (kEpidNoErr != result) break;
 
-    for (i = 0; i < ipp_m; i++) {
+    for (i = 0; i < m; i++) {
       // Initialize big number element for ipp call
       result = ReadBigNum(b[i], sizeof(BigNumStr), b_bn);
       if (kEpidNoErr != result) break;
-
       sts = ippsGFpECMulPoint(a[i]->ipp_ec_pt, b_bn->ipp_bn, ecp_t->ipp_ec_pt,
                               g->ipp_ec, g->scratch_buffer);
       if (ippStsNoErr != sts) {
@@ -669,7 +629,7 @@ EpidStatus EcMultiExp(EcGroup* g, EcPoint const** a, BigNumStr const** b,
           result = kEpidMathErr;
         break;
       }
-      if (1 == m) {
+      if (i == 0) {
         sts = ippsGFpECCpyPoint(ecp_t->ipp_ec_pt, r->ipp_ec_pt, g->ipp_ec);
         if (ippStsNoErr != sts) {
           result = kEpidMathErr;
@@ -698,25 +658,18 @@ EpidStatus EcMultiExpBn(EcGroup* g, EcPoint const** a, BigNum const** b,
                         size_t m, EcPoint* r) {
   EpidStatus result = kEpidErr;
   EcPoint* ecp_t = NULL;
-  int i = 0;
-  int ii = 0;
-  int ipp_m = 0;
+  size_t i = 0;
+  size_t ii = 0;
 
   if (!g || !a || !b || !r) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || m <= 0) {
+  if (!g->ff || !g->ipp_ec || m <= 0) {
     return kEpidBadArgErr;
   }
-  // because we use ipp function with number of items parameter
-  // defined as "int" we need to verify that input length
-  // do not exceed INT_MAX to avoid overflow
-  if (m > INT_MAX) {
-    return kEpidBadArgErr;
-  }
-  ipp_m = (int)m;
+
   // Verify that ec points are not NULL
-  for (i = 0; i < ipp_m; i++) {
+  for (i = 0; i < m; i++) {
     if (!a[i]) {
       return kEpidBadArgErr;
     }
@@ -729,27 +682,28 @@ EpidStatus EcMultiExpBn(EcGroup* g, EcPoint const** a, BigNum const** b,
     if (!b[i]->ipp_bn) {
       return kEpidBadArgErr;
     }
-    if (g->info.elementLen != a[i]->info.elementLen) {
+
+    if (g->ff->element_len != a[i]->element_len) {
       return kEpidBadArgErr;
     }
-    for (ii = i + 1; ii < ipp_m; ii++) {
-      if (a[i]->info.elementLen != a[ii]->info.elementLen) {
+    for (ii = 0; ii < i; ii++) {
+      if (a[i]->element_len != a[ii]->element_len) {
         return kEpidBadArgErr;
       }
     }
   }
-  if (g->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
   do {
     IppStatus sts = ippStsNoErr;
-
     // Create temporal EcPoint element
     result = NewEcPoint(g, &ecp_t);
     if (kEpidNoErr != result) break;
 
-    for (i = 0; i < ipp_m; i++) {
+    for (i = 0; i < m; i++) {
       sts = ippsGFpECMulPoint(a[i]->ipp_ec_pt, b[i]->ipp_bn, ecp_t->ipp_ec_pt,
                               g->ipp_ec, g->scratch_buffer);
       if (ippStsNoErr != sts) {
@@ -760,7 +714,7 @@ EpidStatus EcMultiExpBn(EcGroup* g, EcPoint const** a, BigNum const** b,
           result = kEpidMathErr;
         break;
       }
-      if (1 == m) {
+      if (i == 0) {
         sts = ippsGFpECCpyPoint(ecp_t->ipp_ec_pt, r->ipp_ec_pt, g->ipp_ec);
         if (ippStsNoErr != sts) {
           result = kEpidMathErr;
@@ -797,15 +751,17 @@ EpidStatus EcGetRandom(EcGroup* g, BitSupplier rnd_func, void* rnd_func_param,
   if (!g || !rnd_func || !r) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !g->scratch_buffer) {
-    return kEpidBadArgErr;
-  }
-  if (g->info.elementLen != r->info.elementLen) {
+  if (!g->ff || !g->ipp_ec || !g->scratch_buffer) {
     return kEpidBadArgErr;
   }
 
-  sts = ippsGFpECSetPointRandom((IppBitSupplier)rnd_func, rnd_func_param,
-                                r->ipp_ec_pt, g->ipp_ec, g->scratch_buffer);
+  if (g->ff->element_len != r->element_len) {
+    return kEpidBadArgErr;
+  }
+
+  sts =
+      ippsGFpECSetPointRandom(r->ipp_ec_pt, g->ipp_ec, (IppBitSupplier)rnd_func,
+                              rnd_func_param, g->scratch_buffer);
   if (ippStsNoErr != sts) {
     if (ippStsContextMatchErr == sts) {
       return kEpidBadArgErr;
@@ -816,12 +772,15 @@ EpidStatus EcGetRandom(EcGroup* g, BitSupplier rnd_func, void* rnd_func_param,
   return kEpidNoErr;
 }
 
-EpidStatus EcInGroup(EcGroup* g, void const* p_str, size_t strlen,
+EpidStatus EcInGroup(EcGroup* g, ConstOctStr p_str, size_t strlen,
                      bool* in_group) {
   EpidStatus result = kEpidErr;
   EcPoint* p = NULL;
 
   if (!g || !p_str || !in_group) {
+    return kEpidBadArgErr;
+  }
+  if (!g->ff) {
     return kEpidBadArgErr;
   }
   if (0 == strlen) {
@@ -833,15 +792,15 @@ EpidStatus EcInGroup(EcGroup* g, void const* p_str, size_t strlen,
     return kEpidBadArgErr;
   } else {
     if (strlen == sizeof(G1ElemStr)) {
-      // check info.elementlen with strlen
+      // check finitefield.elementlen with strlen
       // multiply by 2 for x,y and 4 multiply to convert dword to bytes
-      size_t info_elementLen_in_byte = (g->info.elementLen) * 2 * 4;
+      size_t info_elementLen_in_byte = (g->ff->element_len) * 2 * 4;
       if (info_elementLen_in_byte != strlen) {
         *in_group = false;
         return kEpidBadArgErr;
       }
       // check Fq basic and ground degree
-      if (g->info.basicGFdegree != 1 || g->info.groundGFdegree != 1) {
+      if (g->ff->basic_degree != 1 || g->ff->ground_degree != 1) {
         *in_group = false;
         return kEpidBadArgErr;
       }
@@ -849,31 +808,25 @@ EpidStatus EcInGroup(EcGroup* g, void const* p_str, size_t strlen,
     if (strlen == sizeof(G2ElemStr)) {
       // check info.elementlen with strlen
       // multiply by 2 for x,y and 4 multiply to convert dword to bytes
-      size_t info_elementLen_in_byte = (g->info.elementLen) * 2 * 4;
-      IppStatus sts = ippStsNoErr;
-      IppsGFpInfo ground_info = {0};
+      size_t info_elementLen_in_byte = (g->ff->element_len) * 2 * 4;
+      FiniteField* ground_ff = NULL;
       if (info_elementLen_in_byte != strlen) {
         *in_group = false;
         return kEpidBadArgErr;
       }
       // check Fq2 basic and ground degree
-      if (g->info.basicGFdegree != 2 || g->info.groundGFdegree != 2) {
+      if (g->ff->basic_degree != 2 || g->ff->ground_degree != 2) {
         *in_group = false;
         return kEpidBadArgErr;
       }
       // check Fq basic and ground degree
-      sts = ippsGFpGetInfo(g->info.pGroundGF, &ground_info);
-      if (ippStsNoErr != sts) {
-        if (ippStsContextMatchErr == sts) {
-          *in_group = false;
-          return kEpidMathErr;
-        } else {
-          *in_group = false;
-          return kEpidBadArgErr;
-        }
+      ground_ff = g->ff->ground_ff;
+      if (ground_ff == NULL) {
+        *in_group = false;
+        return kEpidBadArgErr;
       }
 
-      if (ground_info.basicGFdegree != 1 || ground_info.groundGFdegree != 1) {
+      if (ground_ff->basic_degree != 1 || ground_ff->ground_degree != 1) {
         *in_group = false;
         return kEpidBadArgErr;
       }
@@ -916,30 +869,30 @@ Returns the first bit and the next 336 bits of str in octet string.
 
 \returns ::EpidStatus
 */
-static EpidStatus SplitHashBits(void const* str, size_t str_len,
+static EpidStatus SplitHashBits(ConstOctStr str, size_t str_len,
                                 uint32_t* first_bit, OctStr336* t) {
   // this is 336bits /8 bits per byte = 42 bytes
   OctStr336 next336 = {0};
   size_t i = 0;
+  ConstIppOctStr data = (ConstIppOctStr)str;
   if (!str || !first_bit || !t) return kEpidBadArgErr;
   if (str_len < sizeof(next336) + 1) {
     // we need at least 337 bits!
     return kEpidBadArgErr;
   }
-
   for (i = 0; i < sizeof(next336); i++) {
     // This is not overflowing since str length was assured to
     // be at least one byte greater than needed for 336 bits. We are
     // carrying in the first bit of that byte.
-    uint8_t carry = ((((uint8_t const*)str)[i + 1] & 0x80) >> 7);
-    next336.data[i] = (((((uint8_t const*)str)[i] << 1) & 0xFF) | carry) & 0xFF;
+    uint8_t carry = ((data[i + 1] & 0x80) >> 7);
+    next336.data[i] = (((data[i] << 1) & 0xFF) | carry) & 0xFF;
   }
-  *first_bit = ((((uint8_t const*)str)[0] & 0x80) >> 7);
+  *first_bit = ((data[0] & 0x80) >> 7);
   *t = next336;
   return kEpidNoErr;
 }
 
-EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
+EpidStatus Epid11EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len,
                         EcPoint* r) {
   EpidStatus result = kEpidErr;
 
@@ -962,16 +915,17 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
   BigNum* t_bn = NULL;
   BigNum* h_bn = NULL;
 
-  FiniteField ff = {0};
+  FiniteField* ff = NULL;
 
   // check parameters
   if ((!msg && msg_len > 0) || !r || !g) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !r->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !r->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -987,8 +941,6 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
     uint32_t high_bit = 0;
 
     IppsGFpState* ipp_ff = NULL;
-    uint32_t const* h = NULL;  // cofactor
-    int h_len = 0;
 
     int sqrt_loop_count = 2 * EPID_ECHASH_WATCHDOG;
     Sha256Digest message_digest[2] = {0};
@@ -1001,33 +953,29 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
       break;
     }
 
-    sts = ippsGFpECGet(g->ipp_ec, (const IppsGFpState**)&ipp_ff, 0, 0, 0, 0, 0,
-                       0, &h, &h_len);
+    result = NewBigNum(sizeof(BigNumStr), &h_bn);
+    BREAK_ON_EPID_ERROR(result);
+    sts = ippsGFpECGet(&ipp_ff, 0, 0, g->ipp_ec);
     BREAK_ON_IPP_ERROR(sts, result);
-    result = InitFiniteFieldFromIpp(ipp_ff, &ff);
-    BREAK_ON_EPID_ERROR(result);
+    sts = ippsGFpECGetSubgroup(&ipp_ff, 0, 0, 0, h_bn->ipp_bn, g->ipp_ec);
+    BREAK_ON_IPP_ERROR(sts, result);
+    ff = g->ff;
 
-    result = NewFfElement(&ff, &a);
+    result = NewFfElement(ff, &a);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ff, &b);
+    result = NewFfElement(ff, &b);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ff, &rx);
+    result = NewFfElement(ff, &rx);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ff, &t1);
+    result = NewFfElement(ff, &t1);
     BREAK_ON_EPID_ERROR(result);
-    result = NewFfElement(&ff, &t2);
+    result = NewFfElement(ff, &t2);
     BREAK_ON_EPID_ERROR(result);
     result = NewBigNum(sizeof(t), &t_bn);
     BREAK_ON_EPID_ERROR(result);
-    result = NewBigNum(h_len, &h_bn);
-    BREAK_ON_EPID_ERROR(result);
 
-    sts = ippsGFpECGet(g->ipp_ec, 0, a->ipp_ff_elem, b->ipp_ff_elem, 0, 0, 0, 0,
-                       0, 0);
+    sts = ippsGFpECGet(0, a->ipp_ff_elem, b->ipp_ff_elem, g->ipp_ec);
     BREAK_ON_IPP_ERROR(sts, result);
-
-    result = InitBigNumFromBnu(h, h_len, h_bn);
-    BREAK_ON_EPID_ERROR(result);
 
     // compute H = hash (i || m) || Hash (i+1 || m) where (i =ipp32u)
     // copy variable length message to the buffer to hash
@@ -1058,23 +1006,23 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
       result = ReadBigNum(&t, sizeof(t), t_bn);
       BREAK_ON_EPID_ERROR(result);
       // compute rx = t mod q (aka prime field based on q)
-      result = InitFfElementFromBn(&ff, t_bn, rx);
+      result = InitFfElementFromBn(ff, t_bn, rx);
       BREAK_ON_EPID_ERROR(result);
 
       // t1 = (rx^3 + a*rx + b) mod q
-      result = FfMul(&ff, rx, rx, t1);
+      result = FfMul(ff, rx, rx, t1);
       BREAK_ON_EPID_ERROR(result);
-      result = FfMul(&ff, t1, rx, t1);
+      result = FfMul(ff, t1, rx, t1);
       BREAK_ON_EPID_ERROR(result);
-      result = FfMul(&ff, a, rx, t2);
+      result = FfMul(ff, a, rx, t2);
       BREAK_ON_EPID_ERROR(result);
-      result = FfAdd(&ff, t1, t2, t1);
+      result = FfAdd(ff, t1, t2, t1);
       BREAK_ON_EPID_ERROR(result);
-      result = FfAdd(&ff, t1, b, t1);
+      result = FfAdd(ff, t1, b, t1);
       BREAK_ON_EPID_ERROR(result);
 
       // t2 = &ff.sqrt(t1)
-      result = FfSqrt(&ff, t1, t2);
+      result = FfSqrt(ff, t1, t2);
       if (kEpidMathQuadraticNonResidueError == result) {
         // if sqrt fail set i = i+ 2 and repeat from top
         i += 2;
@@ -1092,7 +1040,7 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
     // y[0] = min (t2, q-t2), y[1] = max(t2, q-t2)
     if (0 == high_bit) {
       // q-t2 = &ff.neg(t2)
-      result = FfNeg(&ff, t2, t2);
+      result = FfNeg(ff, t2, t2);
       BREAK_ON_EPID_ERROR(result);
     }
 
@@ -1121,15 +1069,15 @@ EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
   return result;
 }
 
-EpidStatus EcHash(EcGroup* g, void const* msg, size_t msg_len, HashAlg hash_alg,
+EpidStatus EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len, HashAlg hash_alg,
                   EcPoint* r) {
   IppStatus sts = ippStsNoErr;
-  IppHashID hash_id;
+  IppHashAlgId hash_id;
   int ipp_msg_len = 0;
   Ipp32u i = 0;
   if (!g || (!msg && msg_len > 0) || !r) {
     return kEpidBadArgErr;
-  } else if (!g->ipp_ec || !r->ipp_ec_pt) {
+  } else if (!g->ff || !g->ipp_ec || !r->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
   // because we use ipp function with message length parameter
@@ -1140,21 +1088,24 @@ EpidStatus EcHash(EcGroup* g, void const* msg, size_t msg_len, HashAlg hash_alg,
   }
   ipp_msg_len = (int)msg_len;
   if (kSha256 == hash_alg) {
-    hash_id = ippSHA256;
+    hash_id = ippHashAlg_SHA256;
   } else if (kSha384 == hash_alg) {
-    hash_id = ippSHA384;
+    hash_id = ippHashAlg_SHA384;
   } else if (kSha512 == hash_alg) {
-    hash_id = ippSHA512;
+    hash_id = ippHashAlg_SHA512;
+  } else if (kSha512_256 == hash_alg) {
+    hash_id = ippHashAlg_SHA512_256;
   } else {
     return kEpidHashAlgorithmNotSupported;
   }
-  if (g->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
 
   do {
-    sts = ippsGFpECSetPointHash(i, msg, ipp_msg_len, hash_id, r->ipp_ec_pt,
-                                g->ipp_ec, g->scratch_buffer);
+    sts = ippsGFpECSetPointHash(i, msg, ipp_msg_len, r->ipp_ec_pt, g->ipp_ec,
+                                hash_id, g->scratch_buffer);
   } while (ippStsQuadraticNonResidueErr == sts && i++ < EPID_ECHASH_WATCHDOG);
 
   if (ippStsContextMatchErr == sts || ippStsBadArgErr == sts ||
@@ -1173,12 +1124,12 @@ EpidStatus EcMakePoint(EcGroup* g, FfElement const* x, EcPoint* r) {
   if (!g || !x || !r) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !x->ipp_ff_elem || !r->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !x->ipp_ff_elem || !r->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != x->info.elementLen ||
-      g->info.elementLen != r->info.elementLen ||
-      x->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != x->element_len ||
+      g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
   sts = ippsGFpECMakePoint(x->ipp_ff_elem, r->ipp_ec_pt, g->ipp_ec);
@@ -1196,12 +1147,12 @@ EpidStatus EcInverse(EcGroup* g, EcPoint const* p, EcPoint* r) {
   IppStatus sts = ippStsNoErr;
   if (!g || !p || !r) {
     return kEpidBadArgErr;
-  } else if (!g->ipp_ec || !p->ipp_ec_pt || !r->ipp_ec_pt) {
+  } else if (!g->ff || !g->ipp_ec || !p->ipp_ec_pt || !r->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != p->info.elementLen ||
-      g->info.elementLen != r->info.elementLen ||
-      p->info.elementLen != r->info.elementLen) {
+
+  if (g->ff->element_len != p->element_len ||
+      g->ff->element_len != r->element_len) {
     return kEpidBadArgErr;
   }
   // Inverses elliptic curve point
@@ -1224,12 +1175,11 @@ EpidStatus EcIsEqual(EcGroup* g, EcPoint const* a, EcPoint const* b,
   if (!g || !a || !b || !is_equal) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !a->ipp_ec_pt || !b->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !a->ipp_ec_pt || !b->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != a->info.elementLen ||
-      g->info.elementLen != b->info.elementLen ||
-      a->info.elementLen != b->info.elementLen) {
+  if (g->ff->element_len != a->element_len ||
+      g->ff->element_len != b->element_len) {
     return kEpidBadArgErr;
   }
 
@@ -1253,14 +1203,23 @@ EpidStatus EcIsIdentity(EcGroup* g, EcPoint const* p, bool* is_identity) {
   if (!g || !p || !is_identity) {
     return kEpidBadArgErr;
   }
-  if (!g->ipp_ec || !p->ipp_ec_pt) {
+  if (!g->ff || !g->ipp_ec || !p->ipp_ec_pt) {
     return kEpidBadArgErr;
   }
-  if (g->info.elementLen != p->info.elementLen) {
+  if (g->ff->element_len != p->element_len) {
     return kEpidBadArgErr;
   }
 
-  sts = ippsGFpECTstPoint(p->ipp_ec_pt, &result, g->ipp_ec, g->scratch_buffer);
+  sts = ippsGFpECTstPoint(p->ipp_ec_pt, &result, g->ipp_ec);
+  if (ippStsNoErr != sts) {
+    if (ippStsContextMatchErr == sts) {
+      return kEpidBadArgErr;
+    } else {
+      return kEpidMathErr;
+    }
+  }
+  sts = ippsGFpECTstPointInSubgroup(p->ipp_ec_pt, &result, g->ipp_ec,
+                                    g->scratch_buffer);
   if (ippStsNoErr != sts) {
     if (ippStsContextMatchErr == sts) {
       return kEpidBadArgErr;

@@ -117,7 +117,7 @@ int OpenKey(char const* privkey_file, char const* gpubkey_file,
   return retval;
 }
 
-int MakeRequest(PrivKey priv_key, char const* req_file, bool verbose) {
+int MakeRequest(PrivKey const* priv_key, char const* req_file, bool verbose) {
   // Request buffer
   uint8_t* req_buf = NULL;
   size_t req_size = 0;
@@ -144,11 +144,11 @@ int MakeRequest(PrivKey priv_key, char const* req_file, bool verbose) {
       log_msg("Input settings:");
       log_msg("");
       log_msg(" [in]  Group ID: ");
-      PrintBuffer(&(priv_key.gid), sizeof(priv_key.gid));
+      PrintBuffer(&(priv_key->gid), sizeof(priv_key->gid));
       log_msg("");
       log_msg(" [in]  Private Key Len: %d", sizeof(PrivKey));
       log_msg(" [in]  Private Key: ");
-      PrintBuffer(&(priv_key), sizeof(PrivKey));
+      PrintBuffer(priv_key, sizeof(PrivKey));
       log_msg("");
       log_msg("==============================================");
     }
@@ -189,7 +189,7 @@ int MakeRequest(PrivKey priv_key, char const* req_file, bool verbose) {
 
       for (i = 0; i < req_file_size / entry_size; i++) {
         if (0 == memcmp(req_buf + entry_size * i + sizeof(EpidFileHeader),
-                        &(priv_key), sizeof(PrivKey))) {
+                        priv_key, sizeof(PrivKey))) {
           duplicate = true;
           break;
         }
@@ -205,7 +205,7 @@ int MakeRequest(PrivKey priv_key, char const* req_file, bool verbose) {
     req_top = (PrivRlRequestTop*)(req_buf + req_file_size);
     req_top->header.epid_version = kEpidFileVersion;
     req_top->header.file_type = kEpidFileTypeCode[kPrivRlRequestFile];
-    req_top->privkey = priv_key;
+    req_top->privkey = *priv_key;
 
     // Report Settings
     if (verbose) {
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
     if (EXIT_SUCCESS != retval) {
       break;
     }
-    retval = MakeRequest(priv_key, req_file, verbose);
+    retval = MakeRequest(&priv_key, req_file, verbose);
   } while (0);
 
   dropt_free_context(dropt_ctx);

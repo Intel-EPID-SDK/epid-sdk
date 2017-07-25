@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,25 +21,30 @@
  * \addtogroup EpidCommon
  * @{
  */
+#include <stddef.h>
+
 #include "epid/common/errors.h"
 #include "epid/common/types.h"
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
+
+typedef struct FiniteField FiniteField;
+typedef struct EcPoint EcPoint;
+typedef struct EcGroup EcGroup;
+typedef struct FfElement FfElement;
 
 #pragma pack(1)
 /// Storage for values to create commitment in Sign and Verify algorithms
 typedef struct CommitValues {
-  BigNumStr p;     ///< Intel(R) EPID2.0 parameter p
-  G1ElemStr g1;    ///< Intel(R) EPID2.0 parameter g1
-  G2ElemStr g2;    ///< Intel(R) EPID2.0 parameter g2
-  G1ElemStr h1;    ///< Group public key value h1
-  G1ElemStr h2;    ///< Group public key value h2
-  G2ElemStr w;     ///< Group public key value w
-  G1ElemStr B;     ///< Variable B computed in algorithm
-  G1ElemStr K;     ///< Variable K computed in algorithm
-  G1ElemStr T;     ///< Variable T computed in algorithm
-  G1ElemStr R1;    ///< Variable R1 computed in algorithm
-  Fq12ElemStr R2;  ///< Variable R2 computed in algorithm
+  BigNumStr p;   ///< Intel(R) EPID2.0 parameter p
+  G1ElemStr g1;  ///< Intel(R) EPID2.0 parameter g1
+  G2ElemStr g2;  ///< Intel(R) EPID2.0 parameter g2
+  G1ElemStr h1;  ///< Group public key value h1
+  G1ElemStr h2;  ///< Group public key value h2
+  G2ElemStr w;   ///< Group public key value w
+  G1ElemStr B;   ///< Variable B computed in algorithm
+  G1ElemStr K;   ///< Variable K computed in algorithm
+  G1ElemStr T;   ///< Variable T computed in algorithm
+  G1ElemStr R1;  ///< Variable R1 computed in algorithm
+  GtElemStr R2;  ///< Variable R2 computed in algorithm
 } CommitValues;
 #pragma pack()
 

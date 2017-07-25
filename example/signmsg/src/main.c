@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,20 +16,16 @@
 
 /*!
  * \file
- *
  * \brief Signmsg example implementation.
- *
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <dropt.h>
+
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
-#include "util/stdtypes.h"
 #include "src/signmsg.h"
 
 // Defaults
@@ -39,6 +35,15 @@
 #define SIG_DEFAULT "sig.dat"
 #define CACERT_DEFAULT "cacert.bin"
 #define HASHALG_DEFAULT "SHA-512"
+
+bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
+  // Implementation of this function is out of scope of the sample.
+  // In an actual implementation Issuing CA certificate must be validated
+  // with CA Root certificate before using it in parse functions.
+  (void)data;
+  (void)size;
+  return true;
+}
 
 /// parses string to a hashalg type
 static dropt_error HandleHashalg(dropt_context* context,
@@ -76,10 +81,14 @@ int main(int argc, char* argv[]) {
   // Message string parameter
   static char* msg_str = NULL;
   size_t msg_size = 0;
+  static char* msg_file = NULL;
+  char* msg_buf = NULL;  // message loaded from msg_file
 
   // Basename string parameter
   static char* basename_str = NULL;
   size_t basename_size = 0;
+  static char* basename_file = NULL;
+  char* basename_buf = NULL;  // basename loaded from basename_file
 
   // SigRl file name parameter
   static char* sigrl_file = NULL;
@@ -140,8 +149,12 @@ int main(int argc, char* argv[]) {
        "FILE", dropt_handle_string, &sig_file},
       {'\0', "msg", "MESSAGE to sign", "MESSAGE", dropt_handle_string,
        &msg_str},
+      {'\0', "msgfile", "FILE containing message to sign", "FILE",
+       dropt_handle_string, &msg_file},
       {'\0', "bsn", "BASENAME to sign with (default: random)", "BASENAME",
        dropt_handle_string, &basename_str},
+      {'\0', "bsnfile", "FILE containing basename to sign with", "FILE",
+       dropt_handle_string, &basename_file},
 
       {'\0', "sigrl", "load signature based revocation list from FILE", "FILE",
        dropt_handle_string, &sigrl_file},
@@ -162,7 +175,7 @@ int main(int argc, char* argv[]) {
 
       {'\0', "hashalg",
        "use specified hash algorithm (default: " HASHALG_DEFAULT ")",
-       "{SHA-256 | SHA-384 | SHA-512}", HandleHashalg, &hashalg},
+       "{SHA-256 | SHA-384 | SHA-512 | SHA-512/256}", HandleHashalg, &hashalg},
       {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
        &show_help, dropt_attr_halt},
       {'v', "verbose", "print status messages to stdout", NULL,
@@ -228,11 +241,39 @@ int main(int argc, char* argv[]) {
           cacert_file = CACERT_DEFAULT;
         }
 
-        if (msg_str) {
+        if (msg_str && msg_file) {
+          log_error("options --msg and --msgfile cannot be used together");
+          ret_value = EXIT_FAILURE;
+          break;
+        } else if (msg_str) {
           msg_size = strlen(msg_str);
+        } else if (msg_file) {
+          msg_buf = NewBufferFromFile(msg_file, &msg_size);
+          if (!msg_buf) {
+            ret_value = EXIT_FAILURE;
+            break;
+          }
+          msg_str = msg_buf;
+        } else {
+          msg_size = 0;
         }
-        if (basename_str) {
+
+        if (basename_str && basename_file) {
+          log_error("options --bsn and --bsnfile cannot be used together");
+          ret_value = EXIT_FAILURE;
+          break;
+        } else if (basename_str) {
           basename_size = strlen(basename_str);
+        } else if (basename_file) {
+          basename_buf = NewBufferFromFile(basename_file, &basename_size);
+          if (!basename_buf) {
+            log_error("Failed in reading basename from %s", basename_file);
+            ret_value = EXIT_FAILURE;
+            break;
+          }
+          basename_str = basename_buf;
+        } else {
+          basename_size = 0;
         }
         if (verbose) {
           log_msg("\nOption values:");
@@ -400,6 +441,8 @@ int main(int argc, char* argv[]) {
 
   // Free allocated buffers
   if (sig) free(sig);
+  if (msg_buf) free(msg_buf);
+  if (basename_buf) free(basename_buf);
   if (signed_sig_rl) free(signed_sig_rl);
   if (signed_pubkey) free(signed_pubkey);
   if (mprivkey) free(mprivkey);

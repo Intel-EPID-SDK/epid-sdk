@@ -6,14 +6,12 @@ GTEST_OBJ = $(GTEST_SRC:.cc=.o)
 
 GTEST_LIB = libgtest.a
 
-CXXFLAGS += -DGTEST_HAS_PTHREAD=0
-
 $(GTEST_OBJ): %.o: %.cc
-	$(CXX) -o $@ -c $(CXXFLAGS) -I$(GTEST_INCLUDE_DIR) $<
+	$(CXX) -o $@ -c $(CXXFLAGS) $(GTEST_DEFINES) -I$(GTEST_INCLUDE_DIR) $<
 
 $(GTEST_LIB): $(GTEST_OBJ)
 	$(AR) rc $@ $^
-	ranlib $@
+	$(RANLIB) $@
 
 build: all
 

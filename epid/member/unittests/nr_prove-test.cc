@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  * \brief NrProve unit tests.
  */
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -263,7 +264,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512HashAlg) {
                                      &sig_rl->bk[0], &proof));
 }
 
-TEST_F(EpidMemberTest, DISABLED_GeneratesNrProofUsingSha512256HashAlg) {
+TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512256HashAlg) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);

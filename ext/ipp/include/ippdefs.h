@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 1999-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
   # limitations under the License.
   ############################################################################*/
 
-/* 
-//              Intel(R) Integrated Performance Primitives
+/*
+//              Intel(R) Integrated Performance Primitives (Intel(R) IPP)
 //              Common Types and Macro Definitions
-// 
-// 
+//
+//
 */
 
 
@@ -31,7 +31,7 @@ extern "C" {
 
 
 #if defined( _IPP_PARALLEL_STATIC ) || defined( _IPP_PARALLEL_DYNAMIC )
-  #pragma message("Threaded versions of IPP libraries are deprecated and will be removed in one of the future IPP releases. Use the following link for details: https://software.intel.com/sites/products/ipp-deprecated-features-feedback/")
+  #pragma message("Threaded versions of Intel(R) IPP libraries are deprecated and will be removed in one of the future Intel(R) IPP releases. Use the following link for details: https://software.intel.com/sites/products/ipp-deprecated-features-feedback/")
 #endif
 
 #if defined (_WIN64)
@@ -107,17 +107,12 @@ extern "C" {
 
 #if !defined( _IPP_NO_DEFAULT_LIB )
   #if defined( _IPP_PARALLEL_STATIC )
-    #pragma comment( lib, "libircmt" )
-    #pragma comment( lib, "libmmt" )
-    #pragma comment( lib, "svml_dispmt" )
     #pragma comment( lib, "libiomp5md" )
   #endif
 #endif
 
 #include "ippbase.h"
 #include "ipptypes.h"
-
-extern const IppiRect ippRectInfinite;
 
 #ifdef __cplusplus
 }

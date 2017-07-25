@@ -11,7 +11,7 @@ $(DROPT_OBJ): %.o: %.c
 
 $(DROPT_LIB): $(DROPT_OBJ)
 	$(AR) rc $@ $^
-	ranlib $@
+	$(RANLIB) $@
 
 build: all
 

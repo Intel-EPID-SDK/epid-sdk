@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ EpidStatus EpidVerify(VerifierCtx const* ctx, EpidSignature const* sig,
     // mismatch, abort and output "operation failed".
     if (0 != memcmp(&ctx->sig_rl->version, &sig->rl_ver,
                     sizeof(ctx->sig_rl->version))) {
-      return kEpidBadArgErr;
+      return kEpidErr;
     }
 
     // c. The verifier verifies that n2 in Sigma and in SigRL match. If

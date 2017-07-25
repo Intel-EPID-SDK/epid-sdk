@@ -33,7 +33,6 @@ EXAMPLE_DIR = $(EPID_SDK_ROOT_DIR)/example
 LIB_DROPT_DIR = $(EPID_SDK_ROOT_DIR)/ext/dropt/src
 LIB_UTIL_DIR = $(EPID_SDK_ROOT_DIR)/example/util/src
 LIB_IPPCP_DIR = $(EPID_SDK_ROOT_DIR)/ext/ipp/sources/ippcp/src
-LIB_IPPCPEPID_DIR = $(EPID_SDK_ROOT_DIR)/ext/ipp/sources/ippcpepid/src
 LIB_MEMBER_DIR = $(EPID_SDK_ROOT_DIR)/epid/member
 LIB_COMMON_DIR = $(EPID_SDK_ROOT_DIR)/epid/common
 
@@ -42,12 +41,11 @@ LDFLAGS += -L$(LIB_UTIL_DIR) \
 	-L$(LIB_DROPT_DIR) \
 	-L$(LIB_IPPCP_DIR) \
 	-L$(LIB_COMMON_DIR) \
-	-L$(LIB_IPPCPEPID_DIR) \
-	-lcommon -lippcpepid \
+	-lcommon \
 	-lippcp -lutil -ldropt
 
 $(EXTRACTGRPS_EXE): $(EXTRACTGRPS_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(EXTRACTGRPS_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
@@ -56,7 +54,7 @@ $(EXTRACTGRPS_OBJ): %.o: %.c
 			-c $^
 
 $(EXTRACTKEYS_EXE): $(EXTRACTKEYS_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(EXTRACTKEYS_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
@@ -65,7 +63,7 @@ $(EXTRACTKEYS_OBJ): %.o: %.c
 			-c $^
 
 $(REVOKEGRP_EXE): $(REVOKEGRP_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(REVOKEGRP_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
@@ -74,7 +72,7 @@ $(REVOKEGRP_OBJ): %.o: %.c
 			-c $^
 
 $(REVOKEKEY_EXE): $(REVOKEKEY_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
 
 $(REVOKEKEY_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
@@ -84,7 +82,7 @@ $(REVOKEKEY_OBJ): %.o: %.c
 			-c $^
 
 $(REVOKESIG_EXE): $(REVOKESIG_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(REVOKESIG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \

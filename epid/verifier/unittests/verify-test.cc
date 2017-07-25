@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  * \brief Verify unit tests.
  */
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -595,6 +596,24 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlLastEntry) {
                        msg.data(), msg.size()));
 }
 
+TEST_F(EpidVerifierTest, VerifyRejectsSigUsingCorruptedPrivRlEntry) {
+  auto& pub_key = this->kGrpXKey;
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  auto& priv_rl = this->kGrpXCorruptedPrivRl;
+  auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
+
+  VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
+      verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
+
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
+            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
+                       msg.data(), msg.size()));
+}
+
 TEST_F(EpidVerifierTest, VerifyAcceptsSigFromEmptyPrivRlUsingIkgfData) {
   auto& pub_key = this->kPubKeyIkgfStr;
   auto& msg = this->kMsg0;
@@ -640,9 +659,8 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigRlverNotMatchSigRlRlver) {
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size()));
+  EXPECT_EQ(kEpidErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
+                                 sig.size(), msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
@@ -652,17 +670,19 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  auto& sig_rl = this->kGrpXSigRlMember0Sha256Bsn0Msg0OnlyEntry;
-  auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
+  auto* sig_rl =
+      (SigRl const*)this->kGrpXSigRlMember0Sha256Bsn0Msg0OnlyEntry.data();
+  size_t sig_rl_size = this->kGrpXSigRlMember0Sha256Bsn0Msg0OnlyEntry.size();
+  auto sig_raw = this->kSigGrpXMember0Sha256Bsn0Msg0;
+  EpidSignature* sig = (EpidSignature*)sig_raw.data();
+  sig->rl_ver = sig_rl->version;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
-                                        sig_rl.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, sig_rl, sig_rl_size));
 
   EXPECT_EQ(kEpidBadArgErr,
-            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size()));
+            EpidVerify(verifier, sig, sig_raw.size(), msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlSingleEntry) {
@@ -779,9 +799,8 @@ TEST_F(EpidVerifierTest,
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size()));
+  EXPECT_EQ(kEpidErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
+                                 sig.size(), msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigFromEmptySigRlUsingIkgfData) {
@@ -1143,7 +1162,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha512) {
                        msg.data(), msg.size()));
 }
 
-TEST_F(EpidVerifierTest, DISABLED_VerifyAcceptsSigWithBaseNameAllRlSha512256) {
+TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha512256) {
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -1170,8 +1189,7 @@ TEST_F(EpidVerifierTest, DISABLED_VerifyAcceptsSigWithBaseNameAllRlSha512256) {
                        msg.data(), msg.size()));
 }
 
-TEST_F(EpidVerifierTest,
-       DISABLED_VerifyAcceptsSigWithRandomBaseNameAllRlSha512256) {
+TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha512256) {
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& grp_rl = this->kGrpRl;

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ struct _cpPRNG {
 
 #define RAND_VALID_ID(ctx)  (RAND_ID((ctx))==idCtxPRNG)
 
+#define cpPRNGen OWNAPI(cpPRNGen)
 int cpPRNGen(Ipp32u* pBuffer, cpSize bitLen, IppsPRNGState* pCtx);
 
 #endif /* _CP_PRNG_H */

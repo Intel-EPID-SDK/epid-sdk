@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 1999-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ############################################################################*/
 
 /* 
-//              Intel(R) Integrated Performance Primitives
+//              Intel(R) Integrated Performance Primitives (Intel(R) IPP)
 //              Basic Types and Macro Definitions
 // 
 // 

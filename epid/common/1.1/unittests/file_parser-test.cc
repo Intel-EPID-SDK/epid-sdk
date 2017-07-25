@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 extern "C" {
 #include "epid/common/1.1/file_parser.h"
@@ -606,6 +607,14 @@ TEST_F(Epid11FileParser, RejectsGroupPubKeyFileWithInvalidSize) {
             Epid11ParseGroupPubKeyFile((void*)this->kGroupPublicKeyFile.data(),
                                        this->kGroupPublicKeyFile.size() - 1,
                                        &this->kCert, &pubkey));
+  EXPECT_EQ(kEpidBadArgErr, Epid11ParseGroupPubKeyFile(
+                                (void*)this->kGroupMultiPublicKeyFile.data(),
+                                this->kGroupMultiPublicKeyFile.size() - 1,
+                                &this->kCert, &pubkey));
+  EXPECT_EQ(kEpidBadArgErr, Epid11ParseGroupPubKeyFile(
+                                (void*)this->kGroupMultiPublicKeyFile.data(),
+                                this->kGroupMultiPublicKeyFile.size() + 1,
+                                &this->kCert, &pubkey));
 }
 
 TEST_F(Epid11FileParser, RejectsInvalidGroupPubKeyFileType) {

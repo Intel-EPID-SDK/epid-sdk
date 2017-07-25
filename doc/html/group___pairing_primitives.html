@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -90,9 +90,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gad54aebdc331d39b73000fdca9e04f94d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___pairing_primitives.html#gad54aebdc331d39b73000fdca9e04f94d">DeletePairingState</a> (<a class="el" href="group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607">PairingState</a> **ps)</td></tr>
 <tr class="memdesc:gad54aebdc331d39b73000fdca9e04f94d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frees a previously allocated by PairingState.  <a href="#gad54aebdc331d39b73000fdca9e04f94d">More...</a><br /></td></tr>
 <tr class="separator:gad54aebdc331d39b73000fdca9e04f94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5dd07d13536e27c37eaeee285297066c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___pairing_primitives.html#ga5dd07d13536e27c37eaeee285297066c">Pairing</a> (<a class="el" href="group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607">PairingState</a> *ps, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *d, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *a, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *b)</td></tr>
-<tr class="memdesc:ga5dd07d13536e27c37eaeee285297066c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes an Optimal Ate Pairing for two parameters.  <a href="#ga5dd07d13536e27c37eaeee285297066c">More...</a><br /></td></tr>
-<tr class="separator:ga5dd07d13536e27c37eaeee285297066c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga58a9d3cb6129274a04c72a35a52f768d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___pairing_primitives.html#ga58a9d3cb6129274a04c72a35a52f768d">Pairing</a> (<a class="el" href="group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607">PairingState</a> *ps, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *a, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *b, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *d)</td></tr>
+<tr class="memdesc:ga58a9d3cb6129274a04c72a35a52f768d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes an Optimal Ate Pairing for two parameters.  <a href="#ga58a9d3cb6129274a04c72a35a52f768d">More...</a><br /></td></tr>
+<tr class="separator:ga58a9d3cb6129274a04c72a35a52f768d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Pairing operations. </p>
@@ -187,11 +187,12 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
+<dl class="section attention"><dt>Attention</dt><dd>It is the responsibility of the caller to ensure that ga, gb, and ff exist for the entire lifetime of the new PairingState.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group___pairing_primitives.html#gad54aebdc331d39b73000fdca9e04f94d" title="Frees a previously allocated by PairingState. ">DeletePairingState</a> </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga5dd07d13536e27c37eaeee285297066c"></a>
+<a class="anchor" id="ga58a9d3cb6129274a04c72a35a52f768d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -204,12 +205,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *&#160;</td>
-          <td class="paramname"><em>d</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype"><a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *&#160;</td>
           <td class="paramname"><em>a</em>, </td>
         </tr>
@@ -217,7 +212,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *&#160;</td>
-          <td class="paramname"><em>b</em>&#160;</td>
+          <td class="paramname"><em>b</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *&#160;</td>
+          <td class="paramname"><em>d</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -231,9 +232,9 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ps</td><td>The pairing state. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">d</td><td>The result of the pairing. Will be in ff used to create the pairing state. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>The first value to pair. Must be in ga used to create ps. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">b</td><td>The second value to pair. Must be in gb used to create ps</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">b</td><td>The second value to pair. Must be in gb used to create ps </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">d</td><td>The result of the pairing. Will be in ff used to create the pairing state.</td></tr>
   </table>
   </dd>
 </dl>
@@ -248,7 +249,7 @@ Functions</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

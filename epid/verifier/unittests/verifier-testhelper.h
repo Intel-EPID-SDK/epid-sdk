@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #include <vector>
 
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -80,8 +81,8 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kSigGrp01Member0Sha384RandombaseTest0;
   /// Signature of Test1 with RandomBase by Grp01 Member0 using Sha512
   static const std::vector<uint8_t> kSigGrp01Member0Sha512RandombaseTest0;
-  /// Signature of Test1 with RandomBase by Grp01 Member0 using Sha512_256
-  static const std::vector<uint8_t> kSigGrp01Member0Sha512256RandombaseTest1;
+  /// Signature of msg0 with RandomBase by GrpX Member0 using Sha512/256
+  static const std::vector<uint8_t> kSigGrpXMember0Sha512256RandombaseMsg0;
   /// Sig of Test1 with RandomBase by Grp01(no SigRl)  Member0 using Sha256
   static const std::vector<uint8_t>
       kSigGrp01Member0Sha256RandombaseTest1NoSigRl;
@@ -95,6 +96,9 @@ class EpidVerifierTest : public ::testing::Test {
   /// Sig of Test1 with RandomBase by Grp01(no SigRl) Member0 using Sha512
   static const std::vector<uint8_t>
       kSigGrp01Member0Sha512RandombaseTest1NoSigRl;
+  /// Sig of msg0 with RandomBase by GrpX(no SigRl) Member0 using Sha512/256
+  static const std::vector<uint8_t>
+      kSigGrpXMember0Sha512256RandombaseMsg0NoSigRl;
   /// group based rl test data (empty rl)
   static const std::vector<uint8_t> kGroupRlEmptyBuf;
   /// group based rl test data (v=3, n=3, 3 revoked gid)
@@ -135,7 +139,8 @@ class EpidVerifierTest : public ::testing::Test {
   static const GroupPubKey kGrpXKey;
   /// the privrl of group X
   static const std::vector<uint8_t> kGrpXPrivRl;
-
+  /// currpted privrl of group X
+  static const std::vector<uint8_t> kGrpXCorruptedPrivRl;
   /// the privrl of group X with single entry PrivKey000 revoked
   static const std::vector<uint8_t> kGrpXPrivRlRevokedPrivKey000OnlyEntry;
   /// the sigrl of group X

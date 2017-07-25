@@ -19,7 +19,6 @@ VERIFYSIG_EXE = ./verifysig/src/verifysig
 LIB_UTIL_DIR = ./util/src
 LIB_DROPT_DIR = ../ext/dropt/src
 LIB_IPPCP_DIR = ../ext/ipp/sources/ippcp/src
-LIB_IPPCPEPID_DIR = ../ext/ipp/sources/ippcpepid/src
 LIB_MEMBER_DIR = ../epid/member
 LIB_VERIFIER_DIR = ../epid/verifier
 LIB_COMMON_DIR = ../epid/common
@@ -29,12 +28,11 @@ LDFLAGS += -L$(LIB_UTIL_DIR) \
 	-L$(LIB_DROPT_DIR) \
 	-L$(LIB_IPPCP_DIR) \
 	-L$(LIB_COMMON_DIR) \
-	-L$(LIB_IPPCPEPID_DIR) \
-	-lcommon -lippcpepid \
+	-lcommon \
 	-lippcp -lutil -ldropt
 
 $(VERIFYSIG_EXE): $(VERIFYSIG_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) -L$(LIB_VERIFIER_DIR) -lverifier $(LDFLAGS)
+	$(CC) -o $@ $^ -L$(LIB_VERIFIER_DIR) -lverifier $(LDFLAGS)
 
 $(VERIFYSIG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \
@@ -45,7 +43,7 @@ $(VERIFYSIG_OBJ): %.o: %.c
 
 
 $(SIGNMSG_EXE): $(SIGNMSG_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
 
 $(SIGNMSG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \

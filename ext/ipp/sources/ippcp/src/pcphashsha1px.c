@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2014-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcphash.h"
 #include "pcptool.h"
@@ -37,14 +37,13 @@
 //#else
 //#pragma message("IPP_ALG_HASH_SHA1 enabled")
 
-#if !((_IPPXSC==_IPPXSC_S1) || (_IPPXSC==_IPPXSC_S2) || (_IPPXSC==_IPPXSC_C2) || \
-      (_IPP==_IPP_M5) || \
+#if !((_IPP==_IPP_M5) || \
       (_IPP==_IPP_W7) || (_IPP==_IPP_T7) || \
       (_IPP==_IPP_V8) || (_IPP==_IPP_P8) || \
-      (_IPPLP32==_IPPLP32_S8) || (_IPP>=_IPP_G9) || \
+      (_IPP==_IPP_S8) || (_IPP>=_IPP_G9) || \
       (_IPP32E==_IPP32E_M7) || \
       (_IPP32E==_IPP32E_U8) || (_IPP32E==_IPP32E_Y8) || \
-      (_IPPLP64==_IPPLP64_N8) || (_IPP32E>=_IPP32E_E9) || \
+      (_IPP32E==_IPP32E_N8) || (_IPP32E>=_IPP32E_E9) || \
       (_IPP64==_IPP64_I7) )
 
 /*
@@ -93,9 +92,6 @@ __INLINE Ipp32u MagicFun(int s, Ipp32u b, Ipp32u c, Ipp32u d)
 //    uniParam pointer to the optional parameter
 //
 *F*/
-#if defined(_ALG_SHA1_COMPACT_)
-#pragma message("SHA1 compact")
-#endif
 
 void UpdateSHA1(void* uinHash, const Ipp8u* mblk, int mlen, const void *uniParam)
 {

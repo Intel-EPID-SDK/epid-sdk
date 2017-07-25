@@ -8,7 +8,7 @@ corresponding uncompressed groups and members._
 
 ## Directory Structure
 
-    data
+    compressed_data
     |__ groupa
     |   |__ member0
     |   |   |__ mprivkey.dat
@@ -134,7 +134,7 @@ In addition, **groupb** contain the following revocation lists:
 - `privrl.bin` - private key based revocation list with 1 entry -
   **privrevokedmember0**
 
-- `sigrl.bin` - signature based revocation list with 1 entries -
+- `sigrl.bin` - signature based revocation list with 1 entry -
   **sigrevokedmember0**
 
 - `privrl_empty.bin` - private key based revocation list with 0 entries
@@ -144,36 +144,36 @@ In addition, **groupb** contain the following revocation lists:
 
 ### Default files
 
-- `/data/cacert.bin` - CA certificate used as default input to signmsg
+- `cacert.bin` - CA certificate used as default input to signmsg
   and `verifysig`
 
-- `/data/grprl.bin` - group revocation list with one entry **groupb** used
+- `grprl.bin` - group revocation list with one entry **groupb** used
   as default input to `verifysig`
 
-- `/data/pubkey.bin` - public key in **groupa** used as default input
+- `pubkey.bin` - public key in **groupa** used as default input
   to signmsg and `verifysig`
 
-- `/data/mprivkey.dat` - private key of a **member0** in the
+- `mprivkey.dat` - private key of a **member0** in the
   **groupa** used as default input to `signmsg`
 
-- `/data/privrl.bin` - private key based revocation list in the
-  **groupa** with 0 entries used as default input to `verifysig`
+- `privrl.bin` - private key based revocation list in the
+  **groupa** with 3 entries used as default input to `verifysig`
 
-- `/data/sigrl.bin` - signature based revocation list in the
-  **groupa** with 0 entries used as default input to `signmsg`
+- `sigrl.bin` - signature based revocation list in the
+  **groupa** with 3 entries used as default input to `signmsg`
   and `verifysig`
 
 ### Group revocation lists
 
 There are 2 group revocation lists:
 
-- `grprl.bin` - group revocation list with 1 entry - **groupb**
+- `grprl.bin` - group revocation list with 100 entries
 
 - `grprl_empty.bin` - group revocation list with 0 entries
 
 
 ### IoT EPID Issuing CA certificate
 
-- `/data/cacert.bin` - CA certificate used to check that revocation
+- `cacert.bin` - CA certificate used to check that revocation
   lists and group public keys are authorized by the issuer, e.g.,
   signed by the issuer

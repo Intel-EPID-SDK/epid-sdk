@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 1999-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ############################################################################*/
 
 /* 
-//              Intel(R) Integrated Performance Primitives
+//              Intel(R) Integrated Performance Primitives (Intel(R) IPP)
 //              Derivative Types and Macro Definitions
 // 
 //              The main purpose of this header file is 
@@ -64,6 +64,8 @@ extern "C" {
 #define   ippCPUID_AVX512BW   0x01000000   /* AVX-512 Byte & Word instructions             */
 #define   ippCPUID_AVX512DQ   0x02000000   /* AVX-512 DWord & QWord instructions           */
 #define   ippCPUID_AVX512VL   0x04000000   /* AVX-512 Vector Length extensions             */
+#define   ippCPUID_AVX512VBMI 0x08000000   /* AVX-512 Vector Length extensions             */
+#define   ippCPUID_MPX        0x10000000   /* Intel MPX (Memory Protection Extensions)     */
 #define   ippCPUID_KNC        0x80000000   /* Intel(R) Xeon Phi(TM) Coprocessor            */
 #if defined( _WIN32 ) || defined ( _WIN64 )
   #define   ippCPUID_NOCHECK    0x8000000000000000L   /* Force ippSetCpuFeatures to set CPU features without check */
@@ -79,10 +81,15 @@ extern "C" {
 
 #define IPP_COUNT_OF( obj )  (sizeof(obj)/sizeof(obj[0]))
 
+typedef struct {
+    int type;
+    int level;
+    int size;
+} IppCache;
+
 /*****************************************************************************/
 /*                   Below are ippSP domain specific definitions             */
 /*****************************************************************************/
-
 typedef enum {
     ippRndZero,
     ippRndNear,
@@ -272,17 +279,23 @@ typedef enum {
 } IppChannels;
 
 typedef enum _IppiBorderType {
-    ippBorderConst     =  0,
-    ippBorderRepl      =  1,
-    ippBorderWrap      =  2,
-    ippBorderMirror    =  3, /* left border: 012... -> 21012... */
-    ippBorderMirrorR   =  4, /* left border: 012... -> 210012... */
-    ippBorderInMem     =  6,
-    ippBorderTransp    =  7,
+    ippBorderRepl         =  1,
+    ippBorderWrap         =  2,
+    ippBorderMirror       =  3, /* left border: 012... -> 21012... */
+    ippBorderMirrorR      =  4, /* left border: 012... -> 210012... */
+    ippBorderDefault      =  5,
+    ippBorderConst        =  6,
+    ippBorderTransp       =  7,
+
+    /* Flags to use source image memory pixels from outside of the border in particular directions */
     ippBorderInMemTop     =  0x0010,
     ippBorderInMemBottom  =  0x0020,
     ippBorderInMemLeft    =  0x0040,
-    ippBorderInMemRight   =  0x0080
+    ippBorderInMemRight   =  0x0080,
+    ippBorderInMem        =  ippBorderInMemLeft|ippBorderInMemTop|ippBorderInMemRight|ippBorderInMemBottom,
+
+    /* Flags to use source image memory pixels from outside of the border for first stage only in multi-stage filters */
+    ippBorderFirstStageInMem = 0x0F00
 } IppiBorderType;
 
 typedef enum {
@@ -411,13 +424,13 @@ typedef struct {
 
 typedef enum {
     ippWarpForward,
-    ippWarpBackward,
+    ippWarpBackward
 } IppiWarpDirection;
 
 typedef enum {
     ippWarpAffine,
     ippWarpPerspective,
-    ippWarpBilinear,
+    ippWarpBilinear
 } IppiWarpTransformType;
 
 
@@ -511,7 +524,7 @@ typedef enum _IppiDifferentialKernel
     ippFilterScharr,
     ippFilterCentralDiffVert,
     ippFilterCentralDiffHoriz,
-    ippFilterCentralDiff,
+    ippFilterCentralDiff
 }IppiDifferentialKernel;
 
 #if !defined( _OWN_BLDPCS )
@@ -530,9 +543,13 @@ typedef enum _IppiNorm {
 } IppiNorm;
 
 typedef struct ipcvMorphState IppiMorphState;
+typedef struct ipcvMorphStateL IppiMorphStateL;
 typedef struct ipcvMorphAdvState IppiMorphAdvState;
+typedef struct ipcvMorphAdvStateL IppiMorphAdvStateL;
 typedef struct ipcvMorphGrayState_8u IppiMorphGrayState_8u;
+typedef struct ipcvMorphGrayState_8uL IppiMorphGrayState_8uL;
 typedef struct ipcvMorphGrayState_32f IppiMorphGrayState_32f;
+typedef struct ipcvMorphGrayState_32fL IppiMorphGrayState_32fL;
 
 typedef struct ipcvConvState IppiConvState;
 
@@ -780,7 +797,7 @@ typedef struct LZOState_8u IppLZOState_8u;
 #endif /* _OWN_BLDPCS */
 
 /* /////////////////////////////////////////////////////////////////////////////
-//        The following enumerator defines a status of IPP operations
+//        The following enumerator defines a status of Intel(R) IPP operations
 //                     negative value means error
 */
 typedef enum {
@@ -788,7 +805,27 @@ typedef enum {
     ippStsNotSupportedModeErr    = -9999,/* The requested mode is currently not supported.  */
     ippStsCpuNotSupportedErr     = -9998,/* The target CPU is not supported. */
     ippStsInplaceModeNotSupportedErr = -9997,/* The inplace operation is currently not supported. */
-
+#if (defined( _WIN32 ) || defined( _WIN64 ))&&(defined( _OWN_CHECK_X64_ABI ))
+    ippStsABIErrRBX              = -8000, /* RBX is not saved by Intel(R) IPP function */
+    ippStsABIErrRDI              = -8001, /* RDI is not saved by Intel(R) IPP function */
+    ippStsABIErrRSI              = -8002, /* RSI is not saved by Intel(R) IPP function */
+    ippStsABIErrRBP              = -8003, /* RBP is not saved by Intel(R) IPP function */
+    ippStsABIErrR12              = -8004, /* R12 is not saved by Intel(R) IPP function */
+    ippStsABIErrR13              = -8005, /* R13 is not saved by Intel(R) IPP function */
+    ippStsABIErrR14              = -8006, /* R14 is not saved by Intel(R) IPP function */
+    ippStsABIErrR15              = -8007, /* R15 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM6             = -8008, /* XMM6 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM7             = -8009, /* XMM7 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM8             = -8010, /* XMM8 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM9             = -8011, /* XMM9 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM10            = -8012, /* XMM10 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM11            = -8013, /* XMM11 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM12            = -8014, /* XMM12 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM13            = -8015, /* XMM13 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM14            = -8016, /* XMM14 is not saved by Intel(R) IPP function */
+    ippStsABIErrXMM15            = -8017, /* XMM15 is not saved by Intel(R) IPP function */
+#endif
+    ippStsIIRIIRLengthErr        = -234, /* Vector length for IIRIIR function is less than 3*(IIR order) */
     ippStsWarpTransformTypeErr   = -233, /* The warp transform type is illegal */
     ippStsExceededSizeErr        = -232, /* Requested size exceeded the maximum supported ROI size */
     ippStsWarpDirectionErr       = -231, /* The warp transform direction is illegal */
@@ -1056,8 +1093,8 @@ typedef enum {
     ippStsDomain            =   19,      /* Argument is out of the function domain.                                      */
     ippStsNonIntelCpu       =   20,      /* The target CPU is not Genuine Intel.                                         */
     ippStsCpuMismatch       =   21,      /* Cannot set the library for the given CPU.                                     */
-    ippStsNoIppFunctionFound =  22,      /* Application does not contain Intel IPP function calls.                            */
-    ippStsDllNotFoundBestUsed = 23,      /* Dispatcher cannot find the newest version of the Intel IPP dll.                  */
+    ippStsNoIppFunctionFound =  22,      /* Application does not contain Intel(R) IPP function calls.                            */
+    ippStsDllNotFoundBestUsed = 23,      /* Dispatcher cannot find the newest version of the Intel(R) IPP dll.                  */
     ippStsNoOperationInDll  =   24,      /* The function does nothing in the dynamic version of the library.             */
     ippStsInsufficientEntropy=  25,      /* Generation of the prime/key failed due to insufficient entropy in the random seed and stimulus bit string. */
     ippStsOvermuchStrings   =   26,      /* Number of destination strings is more than expected.                         */
@@ -1092,6 +1129,8 @@ typedef enum {
 #define ippStsOk ippStsNoErr
 
 #endif
+
+#define ippRectInfinite ippiWarpGetRectInfinite()
 
 #ifdef __cplusplus
 }

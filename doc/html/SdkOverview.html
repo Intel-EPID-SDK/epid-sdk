@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">3.0.0</span>
+&#160;<span id="projectnumber">4.0.0</span>
 </div>
   </td>
  </tr>
@@ -105,7 +105,7 @@ SDK Components</h1>
 <tr>
 <td>Sample Issuer Material </td><td>Sample keys and revocation lists </td></tr>
 </table>
-<p>Tools implement utility code to interact with Intel&reg; EPID related services such as <a class="el" href="ChoosingiKGF.html">the Intel&reg; Key Generation</a>Facility (iKGF)".</p>
+<p>Tools to interact with Intel&reg; EPID related services such those offered by the <a class="el" href="ChoosingiKGF.html">Intel&reg; Key Generation Facility</a>.</p>
 <table class="doxtable">
 <tr>
 <th>Component </th><th>Description  </th></tr>
@@ -128,6 +128,8 @@ SDK Components</h1>
 <td>gtest </td><td>gtest unit test framework </td></tr>
 <tr>
 <td>Build Scripts </td><td>Scripts to configure and build the SDK </td></tr>
+<tr>
+<td>dropt </td><td>Library for parsing command line </td></tr>
 </table>
 <p>Math primitives are implemented in the <em>math</em> sub-component of <em>common</em>. The reference math primitive implementation is based on a non-optimized Vanilla C subset of the Intel&reg; Performance Primitives. <em>Math</em> is designed so that you can replace its implementation to call custom hardware IP blocks or optimized libraries.</p>
 <h2>Intel&reg; EPID 1.1 Compatibility</h2>
@@ -166,18 +168,19 @@ Source Layout</h2>
 |   |__ verifysig/          Source for signature validation signing example
 |
 |__ ext/
-|   |__ gtest/             Third party gtest library
-|   |__ ipp/               IPP library
+|   |__ dropt/              Third party library for parsing command-line options
+|   |__ gtest/              Third party gtest library
+|   |__ ipp/                IPP library
 |
-|__ parts-site/            Parts platform config scripts
+|__ parts-site/             Parts platform config scripts
 |
 |__ tools/
-    |__ extractgrps/       Tool to extract groups
-    |__ extractkeys/       Tool to extract keys
-    |__ revokegrp/         Tool to create group revocation request
-    |__ revokekey/         Tool to create a member key revocation request
-    |__ revokesig/         Tool to create a signature based revocation
-                           request
+    |__ extractgrps/        Tool to extract groups
+    |__ extractkeys/        Tool to extract keys
+    |__ revokegrp/          Tool to create group revocation request
+    |__ revokekey/          Tool to create a member key revocation request
+    |__ revokesig/          Tool to create a signature based revocation
+                            request
 </pre><h2><a class="anchor" id="SdkOverview_Files_InstallLayout"></a>
 Install Layout</h2>
 <p>The Install Layout contains the data developers need to develop and build their applications using the Intel&reg; EPID SDK. Once built, the Install Layout has no dependency on the Source Layout, allowing developers to build the SDK once and reuse the built files in other locations or on other computers. </p><pre class="fragment">_install/
@@ -195,7 +198,7 @@ Install Layout</h2>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="footer">
-      &copy; 2016 Intel Corporation
+      &copy; 2016-2017 Intel Corporation
     </li>
   </ul>
 </div>

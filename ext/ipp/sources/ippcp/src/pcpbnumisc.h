@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -31,9 +31,13 @@
 /* bit operations */
 #define BITSIZE_BNU(p,ns)  ((ns)*BNU_CHUNK_BITS-cpNLZ_BNU((p)[(ns)-1]))
 #define BIT_BNU(bnu, ns,nbit) ((((nbit)>>BNU_CHUNK_LOG2) < (ns))? ((((bnu))[(nbit)>>BNU_CHUNK_LOG2] >>((nbit)&(BNU_CHUNK_BITS))) &1) : 0)
-#define TST_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) &  ((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
-#define SET_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) |= ((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
-#define CLR_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) &=~((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
+//#define TST_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) &  ((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
+//#define SET_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) |= ((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
+//#define CLR_BIT(bnu, nbit)    ((((bnu))[(nbit)>>BNU_CHUNK_LOG2]) &=~((BNU_CHUNK_T)1<<((nbit)&(BNU_CHUNK_BITS-1))))
+/**/
+#define TST_BIT(bnu, nbit)    (((Ipp8u*)(bnu))[(nbit)/8] &  ((1<<((nbit)%8)) &0xFF))
+#define SET_BIT(bnu, nbit)    (((Ipp8u*)(bnu))[(nbit)/8] |= ((1<<((nbit)%8)) &0xFF))
+#define CLR_BIT(bnu, nbit)    (((Ipp8u*)(bnu))[(nbit)/8] &=~((1<<((nbit)%8)) &0xFF))
 
 /* convert bitsize nbits into  the number of BNU_CHUNK_T */
 #define BITS_BNU_CHUNK(nbits) (((nbits)+BNU_CHUNK_BITS-1)/BNU_CHUNK_BITS)
@@ -138,10 +142,13 @@ __INLINE int cpTst_BNU(const BNU_CHUNK_T* pA, int nsA)
 }
 
 /* number of leading/trailing zeros */
+#define cpNLZ_BNU OWNAPI(cpNLZ_BNU)
 cpSize cpNLZ_BNU(BNU_CHUNK_T x);
+#define cpNTZ_BNU OWNAPI(cpNTZ_BNU)
 cpSize cpNTZ_BNU(BNU_CHUNK_T x);
 
 /* logical shift left/right */
+#define cpLSR_BNU OWNAPI(cpLSR_BNU)
 int cpLSR_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA, cpSize nBits);
 #if 0
 int cpLSL_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA, cpSize nBits);
@@ -151,10 +158,13 @@ int cpLSL_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA, cpSize nBits);
 #if 0
 int cpLSBit_BNU(const BNU_CHUNK_T* pA, cpSize nsA);
 #endif
+#define cpMSBit_BNU OWNAPI(cpMSBit_BNU)
 int cpMSBit_BNU(const BNU_CHUNK_T* pA, cpSize nsA);
 
 /* BNU <-> hex-string conversion */
+#define cpToOctStr_BNU OWNAPI(cpToOctStr_BNU)
 int cpToOctStr_BNU(Ipp8u* pStr, cpSize strLen, const BNU_CHUNK_T* pA, cpSize nsA);
+#define cpFromOctStr_BNU OWNAPI(cpFromOctStr_BNU)
 int cpFromOctStr_BNU(BNU_CHUNK_T* pA, const Ipp8u* pStr, cpSize strLen);
 
 #endif /* _PCP_BNUMISC_H */

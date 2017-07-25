@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ void DeleteBigNum(BigNum** bignum) {
   }
 }
 
-EpidStatus ReadBigNum(void const* bn_str, size_t strlen, BigNum* bn) {
+EpidStatus ReadBigNum(ConstOctStr bn_str, size_t strlen, BigNum* bn) {
   IppStatus sts;
   size_t i;
   bool is_zero = true;
@@ -156,8 +156,7 @@ EpidStatus ReadBigNum(void const* bn_str, size_t strlen, BigNum* bn) {
   \note This is re-documented here because doxygen does not pull in the
   internal headers
 */
-EpidStatus InitBigNumFromBnu(uint32_t const* bnu, size_t bnu_len,
-                             struct BigNum* bn) {
+EpidStatus InitBigNumFromBnu(ConstBNU bnu, size_t bnu_len, struct BigNum* bn) {
   IppStatus sts;
   if (!bn || !bnu) return kEpidBadArgErr;
 
@@ -177,14 +176,14 @@ EpidStatus InitBigNumFromBnu(uint32_t const* bnu, size_t bnu_len,
   return kEpidNoErr;
 }
 
-EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, void* bn_str) {
+EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, OctStr bn_str) {
   IppStatus sts;
   int ipp_strlen = (int)strlen;
   if (!bn || !bn_str) return kEpidBadArgErr;
 
   if (!bn->ipp_bn) return kEpidBadArgErr;
 
-  sts = ippsGetOctString_BN((Ipp8u*)bn_str, ipp_strlen, bn->ipp_bn);
+  sts = ippsGetOctString_BN((OctStr)bn_str, ipp_strlen, bn->ipp_bn);
   if (ippStsNoErr != sts) {
     if (ippStsContextMatchErr == sts || ippStsRangeErr == sts ||
         ippStsLengthErr == sts)
@@ -197,36 +196,37 @@ EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, void* bn_str) {
 }
 
 /// convert octet string into "big number unsigned" representation
-int OctStr2Bnu(uint32_t* bnu_ptr, void const* octstr_ptr, int octstr_len) {
+int OctStr2Bnu(BNU bnu_ptr, ConstOctStr octstr_ptr, int octstr_len) {
   int bnusize = 0;
-  uint8_t const* byte_str = (uint8_t const*)octstr_ptr;
+  ConstIppOctStr byte_str = (ConstIppOctStr)octstr_ptr;
+  IppBNU bnu = (IppBNU)bnu_ptr;
   if (!bnu_ptr || !octstr_ptr) {
     return -1;
   }
   if (octstr_len < 4 || octstr_len % 4 != 0) return -1;
 
-  *bnu_ptr = 0;
+  *bnu = 0;
   /* start from the end of string */
   for (; octstr_len >= 4; bnusize++, octstr_len -= 4) {
     /* pack 4 bytes into single Ipp32u value*/
-    *bnu_ptr++ = (byte_str[octstr_len - 4] << (8 * 3)) +
-                 (byte_str[octstr_len - 3] << (8 * 2)) +
-                 (byte_str[octstr_len - 2] << (8 * 1)) +
-                 byte_str[octstr_len - 1];
+    *bnu++ = (byte_str[octstr_len - 4] << (8 * 3)) +
+             (byte_str[octstr_len - 3] << (8 * 2)) +
+             (byte_str[octstr_len - 2] << (8 * 1)) + byte_str[octstr_len - 1];
   }
   return bnusize ? bnusize : -1;
 }
 
 /// Get octet string size in bits
-size_t OctStrBitSize(uint8_t const* octstr_ptr, size_t octstr_len) {
+size_t OctStrBitSize(ConstOctStr octstr_ptr, size_t octstr_len) {
   uint8_t byte;
   size_t bitsize = 0;
+  ConstIppOctStr octstr = (ConstIppOctStr)octstr_ptr;
 
   // find highest non zero byte
   size_t i = 0;
-  while (i < octstr_len && !octstr_ptr[i]) i++;
+  while (i < octstr_len && !octstr[i]) i++;
   if (i == octstr_len) return 0;
-  byte = octstr_ptr[i];
+  byte = octstr[i];
 
   // refine bit size
   if (0 == byte) return 0;
@@ -358,7 +358,7 @@ EpidStatus BigNumIsEven(BigNum const* a, bool* is_even) {
   IppStatus sts = ippStsNoErr;
   IppsBigNumSGN sgn;
   int bit_size;
-  Ipp32u* data;
+  IppBNU data;
   // Check required parameters
   if (!a || !is_even) {
     return kEpidBadArgErr;

@@ -2,7 +2,9 @@ var NAVTREE =
 [
   [ "Intel® Enhanced Privacy ID SDK", "index.html", [
     [ " ", "user", null ],
-    [ "Introducing the Intel® EPID SDK", "index.html", null ],
+    [ "Introducing the Intel® EPID SDK", "index.html", [
+      [ "Getting Started", "index.html#mainpage_roadmap", null ]
+    ] ],
     [ "Legal Information", "LegalInformation.html", null ],
     [ "What's New", "ChangeLog.html", null ],
     [ "Introduction to the Intel® EPID Scheme", "EpidOverview.html", [
@@ -31,14 +33,25 @@ var NAVTREE =
       [ "Building SDK with SCons", "BuildingSdk.html#BuildingSdk_Building_SCons", null ],
       [ "Alternate Makefile/Autoconf Based Build Approach", "BuildingSdk.html#BuildingSdk_Building_Makefile", null ],
       [ "Improving Performance with Commercial IPP", "BuildingSdk.html#BuildingSdk_CommercialIpp", null ],
+      [ "Optimizing Code Size over Performance", "BuildingSdk.html#BuildingSdk_SizeOptimizedBuild", null ],
       [ "Example Programs", "BuildingSdk.html#BuildingSdk_Examples", null ],
       [ "Building with Other Build Systems", "BuildingSdk.html#BuildingSdk_PortingBuildSystem", null ]
     ] ],
     [ "Signing and Verification Tutorial", "SignVerifyTutorial.html", [
-      [ "Creating an Intel® EPID Signature of a Given Message", "SignVerifyTutorial.html#SignVerifyTutorial_Signmmsg", null ],
-      [ "Verifying an Intel® EPID Signature", "SignVerifyTutorial.html#SignVerifyTutorial_Verifysig", null ],
-      [ "Linking Intel® EPID Signatures from the Same Member", "SignVerifyTutorial.html#SignVerifyTutorial_Basename", null ],
-      [ "Expected Failures", "SignVerifyTutorial.html#SignVerifyTutorial_VerificationFailures", null ],
+      [ "Creating an Intel® EPID Signature of a Given Message", "SignVerifyTutorial.html#tutorial_signmmsgOverview", [
+        [ "What Do You Need to Create a Signature?", "SignVerifyTutorial.html#tutorial_signmsgList", null ],
+        [ "Signing Example", "SignVerifyTutorial.html#tutorial_signmsgExample", null ]
+      ] ],
+      [ "Verifying an Intel® EPID Signature", "SignVerifyTutorial.html#tutorial_verifysigOverview", [
+        [ "What Do You Need to Verify a Signature?", "SignVerifyTutorial.html#tutorial_verifyList", null ],
+        [ "Verification Example", "SignVerifyTutorial.html#tutorial_verifyExample", null ]
+      ] ],
+      [ "Parameter Matching Requirements", "SignVerifyTutorial.html#SignVerifyTutorial_requirements", [
+        [ "Message", "SignVerifyTutorial.html#SignVerifyTutorial_message", null ],
+        [ "Hash Algorithm", "SignVerifyTutorial.html#SignVerifyTutorial_hashalg", null ],
+        [ "Signature Revocation List", "SignVerifyTutorial.html#SignVerifyTutorial_SigRL", null ],
+        [ "Basenames", "SignVerifyTutorial.html#SignVerifyTutorial_basenames", null ]
+      ] ],
       [ "Revocation", "SignVerifyTutorial.html#SignVerifyTutorial_Revocation_Group", [
         [ "Detecting Revoked Group from Group Revocation List", "SignVerifyTutorial.html#SignVerifyTutorial_GroupRevocation", null ],
         [ "Detecting Revoked Member from Private Key Based Revocation List", "SignVerifyTutorial.html#SignVerifyTutorial_KeyRevocation", null ],
@@ -51,7 +64,7 @@ var NAVTREE =
         [ "Sample Group B", "IssuerMaterial.html#IssuerMaterial_Groups_groupb", null ]
       ] ],
       [ "Group Based Revocation Lists", "IssuerMaterial.html#IssuerMaterial_GroupRls", null ],
-      [ "Compressed Member Private Key", "IssuerMaterial.html#IssuerMaterial_CmpGroups", [
+      [ "Compressed Sample Groups", "IssuerMaterial.html#IssuerMaterial_CmpGroups", [
         [ "Compressed Sample Group A", "IssuerMaterial.html#IssuerMaterial_CmpGroups_groupa", null ],
         [ "Compressed Sample Group B", "IssuerMaterial.html#IssuerMaterial_CmpGroups_groupb", null ]
       ] ],
@@ -121,6 +134,9 @@ var NAVTREE =
       [ "Installing SCons", "BuildToolsInstallation.html#build_tools_windows_scons", null ],
       [ "Installing Parts", "BuildToolsInstallation.html#build_tools_windows_parts", null ]
     ] ],
+    [ "Tested Libraries and Compilers", "HowValidated.html", [
+      [ "Tested Libraries and Compilers", "HowValidated.html#validated_supported_compilers", null ]
+    ] ],
     [ "Walkthroughs of Examples Showing API Usage", "Examples.html", "Examples" ],
     [ "API Reference", "modules.html", "modules" ]
   ] ]
@@ -129,8 +145,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Basenames.html",
-"group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9",
-"struct_oct_str32.html#a5588a7e70f3d73f6ce58b567a9f5c5c8"
+"group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea",
+"struct_group_rl.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

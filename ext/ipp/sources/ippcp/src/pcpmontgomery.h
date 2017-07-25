@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2002-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -70,7 +70,9 @@ struct _cpMontgomery
 /*
 // Pacp/unpack Montgomery context
 */
+#define cpPackMontCtx OWNAPI(cpPackMontCtx)
 void cpPackMontCtx(const IppsMontState* pCtx, Ipp8u* pBuffer);
+#define cpUnpackMontCtx OWNAPI(cpUnpackMontCtx)
 void cpUnpackMontCtx(const Ipp8u* pBuffer, IppsMontState* pCtx);
 
 
@@ -80,9 +82,11 @@ void cpUnpackMontCtx(const Ipp8u* pBuffer, IppsMontState* pCtx);
 //void cpMontRed_BNU(BNU_CHUNK_T* pR,
 //                   BNU_CHUNK_T* pProduct,
 //             const BNU_CHUNK_T* pModulus, cpSize nsM, BNU_CHUNK_T m0);
+#define cpMontRedAdc_BNU OWNAPI(cpMontRedAdc_BNU)
 void cpMontRedAdc_BNU(BNU_CHUNK_T* pR,
                       BNU_CHUNK_T* pProduct,
                 const BNU_CHUNK_T* pModulus, cpSize nsM, BNU_CHUNK_T m0);
+#define cpMontRedAdx_BNU OWNAPI(cpMontRedAdx_BNU)
 void cpMontRedAdx_BNU(BNU_CHUNK_T* pR,
                       BNU_CHUNK_T* pProduct,
                 const BNU_CHUNK_T* pModulus, cpSize nsM, BNU_CHUNK_T m0);
@@ -101,11 +105,13 @@ __INLINE void cpMontRed_BNU(BNU_CHUNK_T* pR,
 #endif
 
 #if(_ADCOX_NI_ENABLING_==_FEATURE_ON_)
+#define cpMontRedAdx_BNU OWNAPI(cpMontRedAdx_BNU)
    cpMontRedAdx_BNU(pR, pProduct, pModulus, nsM, m0);
 #elif(_ADCOX_NI_ENABLING_==_FEATURE_TICKTOCK_)
    IsFeatureEnabled(ADCOX_ENABLED)? cpMontRedAdx_BNU(pR, pProduct, pModulus, nsM, m0)
                                   : cpMontRedAdc_BNU(pR, pProduct, pModulus, nsM, m0);
 #else
+#define cpMontRedAdc_BNU OWNAPI(cpMontRedAdc_BNU)
    cpMontRedAdc_BNU(pR, pProduct, pModulus, nsM, m0);
 #endif
 }
@@ -205,11 +211,13 @@ cpSize cpMontExpScratchBufferSize(cpSize modulusBitSize,
 /*
 // Montgomery exponentiation (binary) "fast" and "safe" versions
 */
+#define cpMontExpBin_BNU_sscm OWNAPI(cpMontExpBin_BNU_sscm)
 cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* pY,
                        const BNU_CHUNK_T* pX, cpSize nsX,
                        const BNU_CHUNK_T* pE, cpSize nsE,
                        IppsMontState* pMont);
 
+#define cpMontExpBin_BNU OWNAPI(cpMontExpBin_BNU)
 cpSize cpMontExpBin_BNU(BNU_CHUNK_T* pY,
                   const BNU_CHUNK_T* pX, cpSize nsX,
                   const BNU_CHUNK_T* pE, cpSize nsE,
@@ -251,14 +259,17 @@ __INLINE void cpMontExpBin_BN(IppsBigNumState* pYbn,
 /*
 // Montgomery exponentiation (fixed window)
 */
+#define cpMontExp_WinSize OWNAPI(cpMontExp_WinSize)
 cpSize cpMontExp_WinSize(int bitsize);
 
 #if defined(_USE_WINDOW_EXP_)
+#define cpMontExpWin_BN_sscm OWNAPI(cpMontExpWin_BN_sscm)
 void cpMontExpWin_BN_sscm(IppsBigNumState* pY,
                     const IppsBigNumState* pX, const IppsBigNumState* pE,
                           IppsMontState* pMont,
                           BNU_CHUNK_T* pPrecompResource);
 
+#define cpMontExpWin_BN OWNAPI(cpMontExpWin_BN)
 void cpMontExpWin_BN(IppsBigNumState* pY,
                const IppsBigNumState* pX, const IppsBigNumState* pE,
                      IppsMontState* pMont,
@@ -269,11 +280,13 @@ void cpMontExpWin_BN(IppsBigNumState* pY,
 // Montgomery multi-exponentiation
 */
 /* precompute table for multi-exponentiation */
+#define cpMontMultiExpInitArray OWNAPI(cpMontMultiExpInitArray)
 void cpMontMultiExpInitArray(BNU_CHUNK_T* pPrecomTbl,
               const BNU_CHUNK_T** ppX, cpSize xItemBitSize, cpSize numItems,
               IppsMontState* pMont);
 
 /* multi-exponentiation */
+#define cpFastMontMultiExp OWNAPI(cpFastMontMultiExp)
 void cpFastMontMultiExp(BNU_CHUNK_T* pY,
                   const BNU_CHUNK_T* pPrecomTbl,
                   const Ipp8u** ppE, cpSize eItemBitSize, cpSize numItems,

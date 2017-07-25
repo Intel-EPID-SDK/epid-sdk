@@ -1,10 +1,72 @@
 # Intel(R) EPID SDK ChangeLog                                   {#ChangeLog}
 
-## [3.0.0]
+## [4.0.0] - 2017-04-25
 
-### New in This Release
+### Added
 
-* Support for verification of EPID 1.1 members.
+* The member implementation now provides an internal interface that
+  gives guidance on partitioning member operations between highly
+  sensitive ones that use f value of the private key, and less
+  sensitive operations that can be performed in a host environment.
+
+* New member API `EpidAssemblePrivKey` was added to help assemble and
+  validate the new member private key that is created when a member
+  either joins a group (using the join protocol) or switches to a new
+  group (as the result of a performance rekey).
+
+
+### Changed
+
+* Updated Intel(R) IPP Cryptography library to version 2017 (Update 2).
+
+* The mechanism to set the signature based revocation list (SigRL)
+  used for signing was changed. `EpidMemberSetSigRl` must be used to
+  set the SigRL. The SigRL is no longer a parameter to `EpidSign`.
+  This better models typical use case where a device stores a
+  revocation list and updates it independently of signing operations.
+
+
+### Removed
+
+* Removed `EpidWritePreSigs` API. Serialization of pre-computed
+  signatures is a risky capability to provide, and simply expanding
+  the internal pool via `EpidAddPreSigs` still provides most of the
+  optimization benefits.
+
+* The `EpidIsPrivKeyInGroup` API is no longer exposed to clients. It
+  is no longer needed because the new member API `EpidAssemblePrivKey`
+  performs this check.
+
+
+### Fixed
+
+* When building with commercial version of the Intel(R) IPP
+  Cryptography library, optimized functions are now properly invoked,
+  making signing and verification operations ~2 times faster
+
+* SHA-512/256 hash algorithm is now supported.
+
+* README for compressed data now correctly documents the number of
+  entries in revocation lists.
+
+* The `verifysig` sample now reports a more clear error message for
+  mismatched SigRLs.
+
+* The default scons build will now build for a 32-bit target on a
+  32-bit platform.
+
+
+### Known Issues
+
+* Scons build will not work natively on ARM. You can still build using
+  `make` or cross compile.
+
+
+## [3.0.0] - 2016-11-22
+
+### Added
+
+* Support for verification of Intel(R) EPID 1.1 members.
 
 * Make-based build system support.
 
@@ -23,12 +85,13 @@
 ### Changes
 
 * A new verifier API has been added to set the basename to be used for
-  verification.  Verifier APIs that used to accept basenames now use
-  the basename set via EpidVerifierSetBasename.
+  verification. Verifier APIs that used to accept basenames now use
+  the basename set via `EpidVerifierSetBasename`.
 
 * The verifier pre-computation structure has been changed to include
   the group ID to allow detection of errors that result from providing
-  a pre-computation blob from a different group to EpidVerifierCreate.
+  a pre-computation blob from a different group to
+  `EpidVerifierCreate`.
 
 
 ### Fixes
@@ -44,7 +107,7 @@
 
 ## [2.0.0] - 2016-07-20
 
-### New in This Release
+### Added
 
 * Signed binary issuer material support.
 
@@ -63,7 +126,7 @@
   - WindRiver IDP
 
 
-### Changes
+### Changed
 
 * The default hash algorithm has changed. It is now SHA-512.
 
@@ -71,14 +134,14 @@
   instead.
 
 
-### Fixes
+### Fixed
 
 * Updated build flags to work around GCC 4.8.5 defect.
 
 
 ## [1.0.0] - 2016-03-03
 
-### New in This Release
+### Added
 
 * Basic sign and verify functionality
 

@@ -21,8 +21,11 @@
 #ifndef EXAMPLE_VERIFYSIG_SRC_VERIFYSIG11_H_
 #define EXAMPLE_VERIFYSIG_SRC_VERIFYSIG11_H_
 
-#include "epid/verifier/1.1/api.h"
-#include "epid/common/1.1/file_parser.h"
+#include <stddef.h>
+#include "epid/common/errors.h"
+#include "epid/common/1.1/types.h"
+
+struct EpidCaCertificate;
 
 /// verify EPID 1.x signature
 EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
@@ -31,8 +34,7 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
                     void const* signed_sig_rl, size_t signed_sig_rl_size,
                     void const* signed_grp_rl, size_t signed_grp_rl_size,
                     void const* signed_pub_key, size_t signed_pub_key_size,
-                    EpidCaCertificate const* cacert,
-                    Epid11VerifierPrecomp* verifier_precomp,
-                    bool verifier_precomp_is_input);
+                    struct EpidCaCertificate const* cacert,
+                    void** verifier_precomp, size_t* verifier_precomp_size);
 
 #endif  // EXAMPLE_VERIFYSIG_SRC_VERIFYSIG11_H_

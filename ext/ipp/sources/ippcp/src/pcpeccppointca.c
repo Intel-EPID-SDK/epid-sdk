@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
-#include "pcpeccppoint.h"
+#include "pcpeccp.h"
 
 
 /*F*
@@ -56,13 +56,11 @@ IPPFUN(IppStatus, ippsECCPPointGetSize, (int feBitSize, int* pSize))
    IPP_BADARG_RET((2>feBitSize), ippStsSizeErr);
 
    {
-      int bnSize;
-      ippsBigNumGetSize(BITS2WORD32_SIZE(feBitSize), &bnSize);
-      *pSize = sizeof(IppsECCPPointState)
-              + bnSize              /* X coodinate */
-              + bnSize              /* Y coodinate */
-              + bnSize              /* Z coodinate */
-              +(ALIGN_VAL-1);
+      int elemLen = BITS_BNU_CHUNK(feBitSize);
+      *pSize= sizeof(IppsGFpECPoint)
+             +elemLen*sizeof(BNU_CHUNK_T) /* X */
+             +elemLen*sizeof(BNU_CHUNK_T) /* Y */
+             +elemLen*sizeof(BNU_CHUNK_T);/* Z */
    }
    return ippStsNoErr;
 }
@@ -88,39 +86,20 @@ IPPFUN(IppStatus, ippsECCPPointInit, (int feBitSize, IppsECCPPointState* pPoint)
    /* test pEC pointer */
    IPP_BAD_PTR1_RET(pPoint);
 
-   /* use aligned context */
-   pPoint = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPoint, ALIGN_VAL) );
-
    /* test size of field element */
    IPP_BADARG_RET((2>feBitSize), ippStsSizeErr);
 
-   /* context ID */
-   ECP_POINT_ID(pPoint) = idCtxECCPPoint;
-
-   /* meaning: point was not set */
-   ECP_POINT_AFFINE(pPoint) =-1;
-
-   /*
-   // init other context fields
-   */
    {
+      int elemLen = BITS_BNU_CHUNK(feBitSize);
       Ipp8u* ptr = (Ipp8u*)pPoint;
-      int bnLen  = BITS2WORD32_SIZE(feBitSize);
-      int bnSize;
-      ippsBigNumGetSize(bnLen, &bnSize);
 
-      /* allocate coordinate buffers */
-      ptr += sizeof(IppsECCPPointState);
-      ECP_POINT_X(pPoint) = (IppsBigNumState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bnSize;
-      ECP_POINT_Y(pPoint) = (IppsBigNumState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
-      ptr += bnSize;
-      ECP_POINT_Z(pPoint) = (IppsBigNumState*)( IPP_ALIGNED_PTR(ptr,ALIGN_VAL) );
+      ECP_POINT_ID(pPoint) = idCtxGFPPoint;
+      ECP_POINT_FLAGS(pPoint) = 0;
+      ECP_POINT_FELEN(pPoint) = elemLen;
+      ptr += sizeof(IppsGFpECPoint);
+      ECP_POINT_DATA(pPoint) = (BNU_CHUNK_T*)(ptr);
 
-      /* init coordinate buffers */
-      ippsBigNumInit(bnLen, ECP_POINT_X(pPoint));
-      ippsBigNumInit(bnLen, ECP_POINT_Y(pPoint));
-      ippsBigNumInit(bnLen, ECP_POINT_Z(pPoint));
+      gfec_SetPointAtInfinity(pPoint);
+      return ippStsNoErr;
    }
-   return ippStsNoErr;
 }

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
   # limitations under the License.
   ############################################################################*/
 
-/* 
-// 
+/*
 //  Purpose:
 //     Cryptography Primitive.
 //     EC over Prime Finite Field (Verify Signature, DSA version)
-// 
+//
 //  Contents:
 //     ippsECCPVerifyDSA()
-// 
-// 
+//
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
 #include "pcpeccp.h"
-#include "pcpeccppoint.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpmethodcom.h"
 
 
 /*F*
@@ -69,105 +64,110 @@
 IPPFUN(IppStatus, ippsECCPVerifyDSA,(const IppsBigNumState* pMsgDigest,
                                      const IppsBigNumState* pSignX, const IppsBigNumState* pSignY,
                                      IppECResult* pResult,
-                                     IppsECCPState* pECC))
+                                     IppsECCPState* pEC))
 {
-   IppsMontState* rMont;
-
-   /* test pECC */
-   IPP_BAD_PTR1_RET(pECC);
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   IPP_BAD_PTR1_RET(pEC);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test message representative */
    IPP_BAD_PTR1_RET(pMsgDigest);
-   pMsgDigest = (IppsBigNumState*)( IPP_ALIGNED_PTR(pMsgDigest, ALIGN_VAL) );
+   pMsgDigest = (IppsBigNumState*)( IPP_ALIGNED_PTR(pMsgDigest, BN_ALIGNMENT) );
    IPP_BADARG_RET(!BN_VALID_ID(pMsgDigest), ippStsContextMatchErr);
-   rMont = ECP_RMONT(pECC);
-   IPP_BADARG_RET((0<=cpBN_cmp(pMsgDigest, ECP_ORDER(pECC))), ippStsMessageErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pMsgDigest), ippStsMessageErr);
 
    /* test result */
    IPP_BAD_PTR1_RET(pResult);
 
    /* test signature */
    IPP_BAD_PTR2_RET(pSignX,pSignY);
-   pSignX = (IppsBigNumState*)( IPP_ALIGNED_PTR(pSignX, ALIGN_VAL) );
-   pSignY = (IppsBigNumState*)( IPP_ALIGNED_PTR(pSignY, ALIGN_VAL) );
+   pSignX = (IppsBigNumState*)( IPP_ALIGNED_PTR(pSignX, BN_ALIGNMENT) );
+   pSignY = (IppsBigNumState*)( IPP_ALIGNED_PTR(pSignY, BN_ALIGNMENT) );
    IPP_BADARG_RET(!BN_VALID_ID(pSignX), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pSignY), ippStsContextMatchErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pSignX), ippStsRangeErr);
+   IPP_BADARG_RET(BN_NEGATIVE(pSignY), ippStsRangeErr);
 
-   /* test signature value */
-   if( (0>cpBN_tst(pSignX)) || (0>cpBN_tst(pSignY)) ||
-       (0<=cpBN_cmp(pSignX, ECP_ORDER(pECC))) ||
-       (0<=cpBN_cmp(pSignY, ECP_ORDER(pECC))) ) {
-      *pResult = ippECInvalidSignature;
-      return ippStsNoErr;
-   }
+   {
+      IppECResult vResult = ippECInvalidSignature;
 
-   /* validate signature */
-   else {
-      IppsECCPPointState P1;
+      IppsMontState* pMontR = ECP_MONT_R(pEC);
+      BNU_CHUNK_T* pOrder = MNT_MODULUS(pMontR);
+      int orderLen = MNT_SIZE(pMontR);
 
-      BigNumNode* pList = ECP_BNCTX(pECC);
-      IppsBigNumState* pH1 = cpBigNumListGet(&pList);
-      IppsBigNumState* pH2 = cpBigNumListGet(&pList);
-      IppsBigNumState* pOrder = cpBigNumListGet(&pList);
-      BN_Set(MNT_MODULUS(rMont), MNT_SIZE(rMont), pOrder);
+      /* test input message value */
+      IPP_BADARG_RET(0<=cpCmp_BNU(BN_NUMBER(pMsgDigest), BN_SIZE(pMsgDigest), pOrder, orderLen), ippStsMessageErr);
 
-      ECP_POINT_X(&P1) = cpBigNumListGet(&pList);
-      ECP_POINT_Y(&P1) = cpBigNumListGet(&pList);
-      ECP_POINT_Z(&P1) = cpBigNumListGet(&pList);
+      /* test signature value */
+      if(!cpEqu_BNU_CHUNK(BN_NUMBER(pSignX), BN_SIZE(pSignX), 0) &&
+         !cpEqu_BNU_CHUNK(BN_NUMBER(pSignY), BN_SIZE(pSignY), 0) &&
+         0>cpCmp_BNU(BN_NUMBER(pSignX), BN_SIZE(pSignX), pOrder, orderLen) &&
+         0>cpCmp_BNU(BN_NUMBER(pSignY), BN_SIZE(pSignY), pOrder, orderLen)) {
 
-      PMA_inv(pH1, (IppsBigNumState*)pSignY, pOrder);/* h = 1/signY (mod order) */
-      PMA_enc(pH1, pH1, rMont);
-      PMA_mule(pH2, (IppsBigNumState*)pSignX,     pH1, rMont);   /* h2 = pSignX     * h (mod order) */
-      PMA_mule(pH1, (IppsBigNumState*)pMsgDigest, pH1, rMont);   /* h1 = pMsgDigest * h (mod order) */
-#if 0
-      /* compute h1*BasePoint + h2*publicKey */
-      if(ippEC_TPM_SM2_P256 == ECP_TYPE(pECC)) {
-         IppsECCPPointState P0;
-         ECP_POINT_X(&P0) = cpBigNumListGet(&pList);
-         ECP_POINT_Y(&P0) = cpBigNumListGet(&pList);
-         ECP_POINT_Z(&P0) = cpBigNumListGet(&pList);
-         ECP_METHOD(pECC)->MulBasePoint(pH1, &P0, pECC, pList);
-         ECP_METHOD(pECC)->MulPoint(ECP_PUBLIC(pECC), pH2, &P1, pECC, pList);
-         ECP_METHOD(pECC)->AddPoint(&P1, &P0, &P1, pECC, pList);
+         IppsGFpState* pGF = ECP_GFP(pEC);
+         int elmLen = GFP_FELEN(pGF);
+         int pelmLen = GFP_PELEN(pGF);
+         BNU_CHUNK_T* h1 = cpGFpGetPool(2, pGF);
+         BNU_CHUNK_T* h2 = h1+pelmLen;
+
+         IppsGFpECPoint P, G, Public;
+
+         /* Y = 1/signY mod order */
+         __ALIGN8 IppsBigNumState Y;
+         __ALIGN8 IppsBigNumState R;
+         BNU_CHUNK_T* buffer = ECP_SBUFFER(pEC);
+         BN_Make(buffer,                buffer+orderLen+1,     orderLen, &Y);
+         BN_Make(buffer+(orderLen+1)*2, buffer+(orderLen+1)*3, orderLen, &R);
+         /* BN(order) */
+         BN_Set(pOrder, orderLen, &R);
+         ippsModInv_BN((IppsBigNumState*)pSignY, &R, &Y);
+         /* h1 = 1/signY mod order */
+         cpGFpElementCopyPadd(h1, orderLen, BN_NUMBER(&Y), BN_SIZE(&Y));
+         cpMontEnc_BNU(h1, h1, orderLen, pMontR);
+
+         /* validate signature */
+         cpEcGFpInitPoint(&P, cpEcGFpGetPool(1, pEC),0, pEC);
+         cpEcGFpInitPoint(&G, ECP_G(pEC), ECP_AFFINE_POINT|ECP_FINITE_POINT, pEC);
+         cpEcGFpInitPoint(&Public, ECP_PUBLIC(pEC), ECP_FINITE_POINT, pEC);
+
+         /* h2 = pSignX * h1 (mod order) */
+         cpMontMul_BNU(h2,
+                       h1,orderLen, BN_NUMBER(pSignX), BN_SIZE(pSignX),
+                       pOrder,orderLen,
+                       MNT_HELPER(pMontR), MNT_PRODUCT(pMontR), NULL);
+         /* h1 = pMsgDigest * h1 (mod order) */
+         cpMontMul_BNU(h1,
+                       h1,orderLen, BN_NUMBER(pMsgDigest), BN_SIZE(pMsgDigest),
+                       pOrder,orderLen,
+                       MNT_HELPER(pMontR), MNT_PRODUCT(pMontR), NULL);
+
+         /* compute h1*BasePoint + h2*publicKey */
+         //gfec_PointProduct(&P,
+         //                  &G, h1, orderLen, &Public, h2, orderLen,
+         //                  pEC, (Ipp8u*)ECP_SBUFFER(pEC));
+         gfec_BasePointProduct(&P,
+                               h1, orderLen, &Public, h2, orderLen,
+                               pEC, (Ipp8u*)ECP_SBUFFER(pEC));
+
+         /* get P.X */
+         if(gfec_GetPoint(h1, NULL, &P, pEC)) {
+            /* C' = int(P.x) mod order */
+            pGF->decode(h1, h1, pGF);
+            elmLen = cpMod_BNU(h1, elmLen, pOrder, orderLen);
+            cpGFpElementPadd(h1+elmLen, orderLen-elmLen, 0);
+
+            /* and make sure signX==P.X */
+            cpGFpElementCopyPadd(h2, orderLen, BN_NUMBER(pSignX), BN_SIZE(pSignX));
+            if(GFP_EQ(h1, h2, orderLen))
+               vResult = ippECValid;
+         }
+
+         cpEcGFpReleasePool(1, pEC);
+         cpGFpReleasePool(2, pGF);
       }
-      else
-         ECP_METHOD(pECC)->ProdPoint(ECP_GENC(pECC),   pH1,
-                                  ECP_PUBLIC(pECC), pH2,
-                                  &P1, pECC, pList);
-#endif
-      /* compute h1*BasePoint + h2*publicKey */
-      if((IppECCPStd128r1 == ECP_TYPE(pECC)) || (IppECCPStd128r2 == ECP_TYPE(pECC))
-       ||(IppECCPStd192r1 == ECP_TYPE(pECC))
-       ||(IppECCPStd224r1 == ECP_TYPE(pECC))
-       ||(IppECCPStd256r1 == ECP_TYPE(pECC))
-       ||(IppECCPStd384r1 == ECP_TYPE(pECC))
-       ||(IppECCPStd521r1 == ECP_TYPE(pECC))
-       ||(IppECCPStdSM2   == ECP_TYPE(pECC))) {
-         IppsECCPPointState P0;
-         ECP_POINT_X(&P0) = cpBigNumListGet(&pList);
-         ECP_POINT_Y(&P0) = cpBigNumListGet(&pList);
-         ECP_POINT_Z(&P0) = cpBigNumListGet(&pList);
-         ECP_METHOD(pECC)->MulBasePoint(pH1, &P0, pECC, pList);
-         ECP_METHOD(pECC)->MulPoint(ECP_PUBLIC(pECC), pH2, &P1, pECC, pList);
-         ECP_METHOD(pECC)->AddPoint(&P1, &P0, &P1, pECC, pList);
-      }
-      else
-         ECP_METHOD(pECC)->ProdPoint(ECP_GENC(pECC),   pH1,
-                                  ECP_PUBLIC(pECC), pH2,
-                                  &P1, pECC, pList);
 
-      if( ECCP_IsPointAtInfinity(&P1) ) {
-         *pResult = ippECInvalidSignature;
-         return ippStsNoErr;
-      }
-      /* extract X component */
-      ECP_METHOD(pECC)->GetPointAffine(pH1, NULL, &P1, pECC, pList);
-      /* compare with signX */
-      PMA_mod(pH1, pH1, pOrder);
-      *pResult = (0==cpBN_cmp(pH1, pSignX))? ippECValid : ippECInvalidSignature;
+      *pResult = vResult;
       return ippStsNoErr;
    }
 }

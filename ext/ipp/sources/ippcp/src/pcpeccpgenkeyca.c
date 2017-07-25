@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2003-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,11 +26,9 @@
 // 
 */
 
-#include "precomp.h"
+#include "owndefs.h"
 #include "owncp.h"
-#include "pcpeccppoint.h"
-#include "pcpeccpmethod.h"
-#include "pcpeccpmethodcom.h"
+#include "pcpeccp.h"
 
 
 /*F*
@@ -56,49 +54,47 @@
 //
 *F*/
 IPPFUN(IppStatus, ippsECCPGenKeyPair, (IppsBigNumState* pPrivate, IppsECCPPointState* pPublic,
-                                       IppsECCPState* pECC,
+                                       IppsECCPState* pEC,
                                        IppBitSupplier rndFunc, void* pRndParam))
 {
-   IPP_BAD_PTR2_RET(pECC, rndFunc);
+   IPP_BAD_PTR2_RET(pEC, rndFunc);
 
    /* use aligned EC context */
-   pECC = (IppsECCPState*)( IPP_ALIGNED_PTR(pECC, ALIGN_VAL) );
-   /* test ID */
-   IPP_BADARG_RET(!ECP_VALID_ID(pECC), ippStsContextMatchErr);
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
    /* test private/public keys */
    IPP_BAD_PTR2_RET(pPrivate,pPublic);
    pPrivate = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrivate, ALIGN_VAL) );
-   pPublic = (IppsECCPPointState*)( IPP_ALIGNED_PTR(pPublic, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrivate), ippStsContextMatchErr);
-   IPP_BADARG_RET((BN_ROOM(pPrivate)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITS(pECC)), ippStsSizeErr);
-   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPublic), ippStsContextMatchErr);
+   IPP_BADARG_RET((BN_ROOM(pPrivate)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITSIZE(pEC)), ippStsSizeErr);
+
+   IPP_BADARG_RET( !ECP_POINT_TEST_ID(pPublic), ippStsContextMatchErr );
+   IPP_BADARG_RET(ECP_POINT_FELEN(pPublic)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
 
    {
-      /*
-      // generate random private key X:  0 < X < R
-      */
-      int reqBitLen = ECP_ORDBITS(pECC);
+      /* generate random private key X:  0 < X < R */
+      BNU_CHUNK_T* pOrder = MNT_MODULUS(ECP_MONT_R(pEC));
+      int orderBitLen = ECP_ORDBITSIZE(pEC);
+      int orderLen = BITS_BNU_CHUNK(orderBitLen);
 
-      IppsBigNumState* pOrder = ECP_ORDER(pECC);
+      BNU_CHUNK_T* pX = BN_NUMBER(pPrivate);
+      int nsX = BITS_BNU_CHUNK(orderBitLen);
+      BNU_CHUNK_T xMask = MASK_BNU_CHUNK(orderBitLen);
 
-      int xSize;
-      Ipp32u* pX = (Ipp32u*)BN_NUMBER(pPrivate);
-      Ipp32u xMask = MAKEMASK32(reqBitLen);
-
-      BN_SIGN(pPrivate) = ippBigNumPOS;
       do {
-         xSize = BITS2WORD32_SIZE(reqBitLen);
-         rndFunc(pX, reqBitLen, pRndParam);
-         pX[xSize-1] &= xMask;
-         FIX_BNU(pX, xSize);
-         BN_SIZE(pPrivate) = INTERNAL_BNU_LENGTH(xSize);
-      } while( (0 == cpBN_tst(pPrivate)) ||
-               (0 <= cpBN_cmp(pPrivate, pOrder)) );
+         rndFunc((Ipp32u*)pX, orderBitLen, pRndParam);
+         pX[nsX-1] &= xMask;
+      } while( (1 == cpEqu_BNU_CHUNK(pX, nsX, 0)) ||
+               (0 <= cpCmp_BNU(pX, nsX, pOrder, orderLen)) );
+
+      /* set up private */
+      BN_SIGN(pPrivate) = ippBigNumPOS;
+      FIX_BNU(pX, nsX);
+      BN_SIZE(pPrivate) = nsX;
 
       /* calculate public key */
-      //ECP_METHOD(pECC)->MulPoint(ECP_GENC(pECC), pPrivate, pPublic, pECC, ECP_BNCTX(pECC));
-      ECP_METHOD(pECC)->MulBasePoint(pPrivate, pPublic, pECC, ECP_BNCTX(pECC));
+      gfec_MulBasePoint(pPublic, pX, nsX, pEC, (Ipp8u*)ECP_SBUFFER(pEC));
 
       return ippStsNoErr;
    }

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 * \brief SHA256 implementation.
 */
 #include "epid/common/math/hash.h"
+#include "epid/common/math/src/bignum-internal.h"
 #include "ext/ipp/include/ippcp.h"
 
 EpidStatus Sha256MessageDigest(void const* msg, size_t len,
@@ -30,7 +31,7 @@ EpidStatus Sha256MessageDigest(void const* msg, size_t len,
 
   if (INT_MAX < len) return kEpidBadArgErr;
 
-  sts = ippsSHA256MessageDigest(msg, ipp_len, (Ipp8u*)digest);
+  sts = ippsSHA256MessageDigest(msg, ipp_len, (IppOctStr)digest);
   if (ippStsNoErr != sts) {
     if (ippStsLengthErr == sts) {
       return kEpidBadArgErr;

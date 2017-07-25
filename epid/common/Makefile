@@ -29,12 +29,11 @@ COMMON_UTEST_OBJ = $(COMMON_UTEST_SRC:.cc=.o)
 LIB_COMMON_DIR = .
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
 LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
-LIB_IPPCPEPID_DIR = ../../ext/ipp/sources/ippcpepid/src
 
 #set flags for linker
 LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR)  \
-	-L$(LIB_COMMON_DIR) -L$(LIB_IPPCPEPID_DIR) -L$(LIB_IPPCP_DIR) \
-	-lgtest -lcommon-testhelper -lcommon -lippcpepid -lippcp
+	-L$(LIB_COMMON_DIR) -L$(LIB_IPPCP_DIR) \
+	-lgtest -lcommon-testhelper -lcommon -lippcp
 
 #target part
 $(COMMON_OBJ): %.o: %.c
@@ -42,13 +41,13 @@ $(COMMON_OBJ): %.o: %.c
 
 $(COMMON_LIB): $(COMMON_OBJ)
 	$(AR) rc $(COMMON_LIB) $(COMMON_OBJ)
-	ranlib $(COMMON_LIB)
+	$(RANLIB) $(COMMON_LIB)
 
 $(COMMON_UTEST_EXE): $(COMMON_UTEST_OBJ)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(COMMON_UTEST_OBJ): %.o: %.cc
-	$(CXX) -o $@ $(CXXFLAGS) -I$(COMMON_INCLUDE_DIR) -I$(GTEST_INCLUDE_DIR) -c $^
+	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(COMMON_INCLUDE_DIR) -I$(GTEST_INCLUDE_DIR) -c $^
 
 build: all
 
@@ -67,10 +66,12 @@ ifneq (,$(wildcard $(COMMON_UTEST_EXE)))
 	cp $(COMMON_UTEST_EXE) '$(TEST_INSTALL_DIR)'
 endif
 
-check: $(COMMON_UTEST_EXE) run
+utest:  $(COMMON_UTEST_EXE)
 
-run:
+run_utest:
 	$(COMMON_UTEST_EXE) $(GTEST_FLAGS)
+
+check:  utest run_utest
 
 clean:
 	rm -f  $(COMMON_OBJ) \

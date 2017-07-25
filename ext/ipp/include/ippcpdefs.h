@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2012-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ############################################################################*/
 
 /* 
-//              Intel(R) Integrated Performance Primitives
+//              Intel(R) Integrated Performance Primitives (Intel(R) IPP)
 //              Cryptographic Primitives (ippCP) definitions.
 // 
 // 
@@ -66,10 +66,12 @@ typedef enum {
    ippRijndaelKey256 = 256, IppsRijndaelKey256 = 256  /* 256-bit key */
 } IppsRijndaelKeyLength;
 
-/* AES based  authentication & confidence */
-typedef struct _cpRijndael128GCM IppsRijndael128GCMState;
+/* AES-CCM (authentication & confidence) */
 typedef struct _cpAES_CCM        IppsAES_CCMState;
-typedef struct _cpRijndael128GCM IppsAES_GCMState;
+/* AES-GCM (authentication & confidence) */
+typedef struct _cpAES_GCM        IppsAES_GCMState;
+/* AES-XTS (confidence) */
+typedef struct _cpAES_XTS        IppsAES_XTSSpec;
 
 /*
 // =========================================================
@@ -121,6 +123,9 @@ typedef struct _cpMD5      IppsMD5State;
 typedef struct _cpSM3      IppsSM3State;
 typedef struct _cpHashCtx  IppsHashState;
 
+typedef struct _cpHashMethod_rmf IppsHashMethod;
+typedef struct _cpHashCtx_rmf    IppsHashState_rmf;
+
 
 /* MGF */
 typedef IppStatus (__STDCALL *IppMGF)(const Ipp8u* pSeed, int seedLen, Ipp8u* pMask, int maskLen);
@@ -149,6 +154,7 @@ typedef struct _cpHMAC  IppsHMACSHA224State;
 typedef struct _cpHMAC  IppsHMACSHA384State;
 typedef struct _cpHMAC  IppsHMACSHA512State;
 typedef struct _cpHMAC  IppsHMACMD5State;
+typedef struct _cpHMAC_rmf       IppsHMACState_rmf;
 
 /*
 // =========================================================
@@ -162,6 +168,8 @@ typedef struct _cpAES_CMAC          IppsAES_CMACState;
 // Big Number Integer Arithmetic
 // =========================================================
 */
+#define BN_MAXBITSIZE      (16*1024)   /* bn max size (bits) */
+
 typedef enum {
    ippBigNumNEG = 0, IppsBigNumNEG = 0,
    ippBigNumPOS = 1, IppsBigNumPOS = 1
@@ -208,6 +216,9 @@ typedef IppStatus (__STDCALL *IppBitSupplier)(Ipp32u* pRand, int nBits, void* pE
 // RSA Cryptography
 // =========================================================
 */
+#define MIN_RSA_SIZE (8)
+#define MAX_RSA_SIZE (8*1024)
+
 typedef struct _cpRSA IppsRSAState;
 
 /* key types */
@@ -231,14 +242,26 @@ typedef enum {
 typedef struct _cpRSA_public_key   IppsRSAPublicKeyState;
 typedef struct _cpRSA_private_key  IppsRSAPrivateKeyState;
 
-#define MIN_RSA_SIZE (8)
-#define MAX_RSA_SIZE (4096)
 
 /*
 // =========================================================
 // DL Cryptography
 // =========================================================
 */
+#define MIN_DLP_BITSIZE      (512)
+#define MIN_DLP_BITSIZER     (160)
+
+#define MIN_DLPDH_BITSIZE    (512)
+#define MIN_DLPDH_BITSIZER   (160)
+#define DEF_DLPDH_BITSIZER   (160)
+
+#define MIN_DLPDSA_BITSIZE   (512)
+#define MAX_DLPDSA_BITSIZE  (1024)
+#define MIN_DLPDSA_BITSIZER  (160)
+#define DEF_DLPDSA_BITSIZER  (160)
+#define MAX_DLPDSA_BITSIZER  (160)
+#define MIN_DLPDSA_SEEDSIZE  (160)
+
 typedef struct _cpDLP IppsDLPState;
 
 /* domain parameter tags */
@@ -267,29 +290,12 @@ typedef enum {
    ippDLInvalidSignature       /* invalid signature             */
 } IppDLResult;
 
-#define MIN_DLP_BITSIZE      (512)
-#define MIN_DLP_BITSIZER     (160)
-
-#define MIN_DLPDH_BITSIZE    (512)
-#define MIN_DLPDH_BITSIZER   (160)
-#define DEF_DLPDH_BITSIZER   (160)
-
-#define MIN_DLPDSA_BITSIZE   (512)
-#define MAX_DLPDSA_BITSIZE  (1024)
-#define MIN_DLPDSA_BITSIZER  (160)
-#define DEF_DLPDSA_BITSIZER  (160)
-#define MAX_DLPDSA_BITSIZER  (160)
-#define MIN_DLPDSA_SEEDSIZE  (160)
-
 /*
 // =========================================================
 // EC Cryptography
 // =========================================================
 */
-typedef struct _cpECCP      IppsECCPState;
-typedef struct _cpECCB      IppsECCBState;
-typedef struct _cpECCPPoint IppsECCPPointState;
-typedef struct _cpECCBPoint IppsECCBPointState;
+#define EC_GFP_MAXBITSIZE   (1024)
 
 /* operation result */
 typedef enum {
@@ -361,6 +367,28 @@ typedef enum {
    IppECCBStd409k1 = IppECCKStd+4,  /* Koblitz 409 curve */
    IppECCBStd571k1 = IppECCKStd+5   /* Koblitz 571 curve */
 } IppsECType, IppECCType;
+
+/*
+// GF over prime and its extension
+*/
+typedef struct _cpGFpMethod   IppsGFpMethod;
+
+typedef struct _cpGFp         IppsGFpState;
+typedef struct _cpGFpElement  IppsGFpElement;
+
+typedef struct _cpGFpEC       IppsGFpECState;
+typedef struct _cpGFpECPoint  IppsGFpECPoint;
+
+typedef struct _cpGFpEC       IppsECCPState;
+typedef struct _cpGFpECPoint  IppsECCPPointState;
+
+typedef struct {
+   const IppsGFpState* pBasicGF;
+   const IppsGFpState* pGroundGF;
+   int   basicGFdegree;
+   int   groundGFdegree;
+   int   elementLen;
+} IppsGFpInfo;
 
 #endif /* _OWN_BLDPCS */
 

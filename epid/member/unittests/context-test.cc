@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@
  */
 #include <cstring>
 #include <vector>
+#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 #include "epid/common-testhelper/prng-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/member/unittests/member-testhelper.h"
 
 extern "C" {
@@ -168,23 +170,181 @@ TEST_F(EpidMemberTest, CreateFailsForInvalidPrivateKey) {
 TEST_F(EpidMemberTest, SetHashAlgFailsGivenNullPtr) {
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(nullptr, kSha256));
 }
-TEST_F(EpidMemberTest, SetHashAlgCanSetValidAlgorithm) {
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA256) {
   Prng my_prng;
   MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
                           &Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha256));
+}
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA384) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha384));
+}
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA512) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha512));
+}
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA512256) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha512_256));
 }
 TEST_F(EpidMemberTest, SetHashAlgFailsForNonSupportedAlgorithm) {
   Prng my_prng;
   MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
                           &Prng::Generate, &my_prng);
-  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha512_256));
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha3_256));
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha3_384));
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha3_512));
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, (HashAlg)-1));
+}
+//////////////////////////////////////////////////////////////////////////
+// EpidMemberSetSigRl
+TEST_F(EpidMemberTest, SetSigRlFailsGivenNullPointer) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetSigRl(nullptr, &srl, sizeof(SigRl)));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, nullptr, sizeof(SigRl)));
+}
+TEST_F(EpidMemberTest, SetSigRlFailsGivenZeroSize) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetSigRl(member_ctx, &srl, 0));
+}
+// Size parameter must be at least big enough for n2 == 0 case
+TEST_F(EpidMemberTest, SetSigRlFailsGivenTooSmallSize) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidMemberSetSigRl(member_ctx, &srl, (sizeof(srl) - sizeof(srl.bk)) - 1));
+  srl.n2 = this->kOctStr32_1;
+  EXPECT_EQ(
+      kEpidBadArgErr,
+      EpidMemberSetSigRl(member_ctx, &srl, (sizeof(srl) - sizeof(srl.bk)) - 1));
+}
+TEST_F(EpidMemberTest, SetSigRlFailsGivenN2TooBigForSize) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  srl.n2 = this->kOctStr32_1;
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+}
+TEST_F(EpidMemberTest, SetSigRlFailsGivenN2TooSmallForSize) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl)));
+}
+TEST_F(EpidMemberTest, SetSigRlFailsGivenBadGroupId) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  srl.gid.data[0] = ~srl.gid.data[0];
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+}
+TEST_F(EpidMemberTest, SetPrivRlFailsGivenEmptySigRlFromDifferentGroup) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
+  size_t sig_rl_size = this->kGrpXSigRl.size();
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
+}
+TEST_F(EpidMemberTest, SetSigRlFailsGivenOldVersion) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
+  srl.gid = this->kGroupPublicKey.gid;
+  srl.version = this->kOctStr32_1;
+  EXPECT_EQ(kEpidNoErr,
+            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+  OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
+  srl.version = octstr32_0;
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+}
+TEST_F(EpidMemberTest, SetSigRlPreservesOldRlOnFailure) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGrpXKey, this->kGrpXSigrevokedMember0PrivKey,
+                          &Prng::Generate, &my_prng);
+  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
+  size_t sig_rl_size = this->kGrpXSigRl.size();
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
+  // wrong sigrl contains revoked member0 and has lower version
+  SigRl const* wrong_sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrpXSigRlSingleEntry.data());
+  size_t wrong_sig_rl_size = this->kGrpXSigRlSingleEntry.size();
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidMemberSetSigRl(member_ctx, wrong_sig_rl, wrong_sig_rl_size));
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(sig_rl));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member_ctx, kSha256));
+  // Check that sigrevoked member is still in SigRl
+  EXPECT_EQ(kEpidSigRevokedInSigRl, EpidSign(member_ctx, msg.data(), msg.size(),
+                                             nullptr, 0, sig, sig_len));
+}
+TEST_F(EpidMemberTest, SetSigRlWorksGivenValidSigRl) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGrpXKey, this->kGrpXMember0PrivKey,
+                          &Prng::Generate, &my_prng);
+  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
+  size_t sig_rl_size = this->kGrpXSigRl.size();
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
+}
+TEST_F(EpidMemberTest, SetSigRlWorksGivenEmptySigRl) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
+                          &Prng::Generate, &my_prng);
+  uint8_t sig_rl_data_n2_zero[] = {
+      // gid
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01,
+      // version
+      0x00, 0x00, 0x00, 0x00,
+      // n2
+      0x0, 0x00, 0x00, 0x00,
+      // not bk's
+  };
+  SigRl* sig_rl = reinterpret_cast<SigRl*>(sig_rl_data_n2_zero);
+  size_t sig_rl_size = sizeof(sig_rl_data_n2_zero);
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
+}
+TEST_F(EpidMemberTest, SetSigRlWorksGivenSigRlWithOneEntry) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(this->kGrpXKey, this->kGrpXMember0PrivKey,
+                          &Prng::Generate, &my_prng);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrpXSigRlSingleEntry.data());
+  size_t sig_rl_size = this->kGrpXSigRlSingleEntry.size();
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
 }
 //////////////////////////////////////////////////////////////////////////
 // EpidRegisterBaseName

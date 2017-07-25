@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2005-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,13 +26,6 @@
 
 #if !defined(_CP_VARIANT_H)
 #define _CP_VARIANT_H
-
-/*
-// modes of the CPU feature
-*/
-#define _FEATURE_OFF_      (0)   /* feature is OFF a priori */
-#define _FEATURE_ON_       (1)   /* feature is ON  a priori */
-#define _FEATURE_TICKTOCK_ (2)   /* dectect is feature OFF/ON */
 
 /*
 // set _AES_NI_ENABLING_
@@ -71,43 +64,28 @@
 
 
 /*
-// set _SHA_NI_ENABLING_
+// set/reset _SHA_NI_ENABLING_
 */
-#if defined _IPP_SHA_NI_
-   #if (_IPP_SHA_NI_ == 0)
-      #define _SHA_NI_ENABLING_  _FEATURE_OFF_
-   #elif  (_IPP_SHA_NI_ == 1)
-      #define _SHA_NI_ENABLING_  _FEATURE_ON_
-   #else
-      #error Define _IPP_SHA_NI_=0 or 1 or omit _IPP_SHA_NI_ at all
+#if (_IPP>=_IPP_P8) || (_IPP32E>=_IPP32E_Y8)
+   #if !defined(_SHA_NI_ENABLING_)
+      #define _SHA_NI_ENABLING_  _FEATURE_TICKTOCK_
    #endif
 #else
-   #if (_IPP>=_IPP_P8) || (_IPP32E>=_IPP32E_Y8)
-      #define _SHA_NI_ENABLING_  _FEATURE_TICKTOCK_
-   #else
-      #define _SHA_NI_ENABLING_  _FEATURE_OFF_
-   #endif
+   #undef  _SHA_NI_ENABLING_
+   #define _SHA_NI_ENABLING_  _FEATURE_OFF_
 #endif
 
 /*
-// set _ADCOX_NI_ENABLING_
+// set/reset _ADCOX_NI_ENABLING_
 */
-#if defined _IPP_ADCX_NI_
-   #if (_IPP_ADCX_NI_ == 0)
-      #define _ADCOX_NI_ENABLING_  _FEATURE_OFF_
-   #elif  (_IPP_ADCX_NI_ == 1)
-      #define _ADCOX_NI_ENABLING_  _FEATURE_ON_
-   #else
-      #error Define _IPP_ADCX_NI_=0 or 1 or omit _IPP_ADCX_NI_ at all
+#if (_IPP32E>=_IPP32E_L9)
+   #if !defined(_ADCOX_NI_ENABLING_)
+      #define _ADCOX_NI_ENABLING_  _FEATURE_TICKTOCK_
    #endif
 #else
-   #if (_IPP32E>=_IPP32E_L9)
-      #define _ADCOX_NI_ENABLING_  _FEATURE_TICKTOCK_
-   #else
-      #define _ADCOX_NI_ENABLING_  _FEATURE_OFF_
-   #endif
+   #undef  _ADCOX_NI_ENABLING_
+   #define _ADCOX_NI_ENABLING_  _FEATURE_OFF_
 #endif
-
 
 /*
 // IPP supports several hash algorithms by default:
@@ -184,9 +162,9 @@
 // and therefore prime number generator are based on SHA1.
 // So, do no exclude SHA1 from the active list of hash algorithms
 */
-//#if !defined(_ENABLE_ALG_SHA1_)
-//#define _ENABLE_ALG_SHA1_
-//#endif
+#if defined(_DISABLE_ALG_SHA1_)
+#undef _DISABLE_ALG_SHA1_
+#endif
 
 /*
 // Because of performane reason hash algorithms are implemented in form
@@ -229,7 +207,9 @@
 */
 #define _USE_SQR_          /*     use implementaton of sqr */
 #define xUSE_KARATSUBA_    /* not use Karatsuba method for multiplication */
-#define _USE_WINDOW_EXP_   /*     use fixed window exponentiation */
+#if !defined(_DISABLE_WINDOW_EXP_)
+   #define _USE_WINDOW_EXP_   /*     use fixed window exponentiation */
+#endif
 
 /*
 // RSA:
@@ -240,6 +220,15 @@
 #define xUSE_ERNIE_CBA_MITIGATION_  /* not use (Ernie) mitigation of CBA */
 #define _USE_GRES_CBA_MITIGATION_   /*     use (Gres)  mitigation of CBA */
 #define xUSE_FOLD_MONT512_          /*     use foding technique in RSA-1024 case */
+
+#if (_IPP>=_IPP_W7)
+#define _RSA_SSE2
+#define _RSA_SSE2_PUBLIC_
+#endif
+
+#if (_IPP32E>=_IPP32E_L9)
+#define _RSA_AVX2
+#endif
 
 /*
 // IPP supports different implementation of NIST's (standard) EC over GF(0):
@@ -267,34 +256,168 @@
 // _ECP_IMPL_MFM_          means that implementation uses "Montgomary Friendly Modulus" (primes);
 //                         p256 and sm2 are using such kind of optimization
 */
-#define _ECP_IMPL_ARBIRTRARY_  0
-#define _ECP_IMPL_SPECIFIC_    1
-#define _ECP_IMPL_MFM_         2
+#define _ECP_IMPL_NONE_        0
+#define _ECP_IMPL_ARBIRTRARY_  1
+#define _ECP_IMPL_SPECIFIC_    2
+#define _ECP_IMPL_MFM_         3
 
-#define _ECP_128_    _ECP_IMPL_SPECIFIC_
-#define _ECP_192_    _ECP_IMPL_SPECIFIC_
-#define _ECP_224_    _ECP_IMPL_SPECIFIC_
-#define _ECP_256_    _ECP_IMPL_SPECIFIC_
-#define _ECP_384_    _ECP_IMPL_SPECIFIC_
-#define _ECP_521_    _ECP_IMPL_SPECIFIC_
-#define _ECP_SM2_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_SM2_    _ECP_IMPL_ARBIRTRARY_
-
-#if (_IPP32E >= _IPP32E_M7)
-#undef  _ECP_192_
-#undef  _ECP_224_
-#undef  _ECP_256_
-#undef  _ECP_384_
-#undef  _ECP_521_
-#undef  _ECP_SM2_
-
-#define _ECP_192_    _ECP_IMPL_MFM_
-#define _ECP_224_    _ECP_IMPL_MFM_
-#define _ECP_256_    _ECP_IMPL_MFM_
-#define _ECP_384_    _ECP_IMPL_MFM_
-#define _ECP_521_    _ECP_IMPL_MFM_
-#define _ECP_SM2_    _ECP_IMPL_MFM_
+#if !defined(_ECP_112R1_)
+#if !defined(_DISABLE_ECP_112R1_)
+#  define _ECP_112R1_    _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_112R1_    _ECP_IMPL_NONE_
 #endif
+#endif
+
+#if !defined(_ECP_112R2_)
+#if !defined(_DISABLE_ECP_112R2_)
+#  define _ECP_112R2_    _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_112R2_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_160R1_)
+#if !defined(_DISABLE_ECP_160R1_)
+#  define _ECP_160R1_    _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_160R1_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_160R2_)
+#if !defined(_DISABLE_ECP_160R2_)
+#  define _ECP_160R2_    _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_160R2_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_128R1_)
+#if !defined(_DISABLE_ECP_128R1_)
+#  define _ECP_128R1_    _ECP_IMPL_SPECIFIC_
+#else
+#  define _ECP_128R1_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_128R2_)
+#if !defined(_DISABLE_ECP_128R2_)
+#  define _ECP_128R2_    _ECP_IMPL_SPECIFIC_
+#else
+#  define _ECP_128R2_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_192_)
+#if !defined(_DISABLE_ECP_192_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_192_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_192_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_192_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_224_)
+#if !defined(_DISABLE_ECP_224_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_224_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_224_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_224_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_256_)
+#if !defined(_DISABLE_ECP_256_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_256_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_256_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_256_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_384_)
+#if !defined(_DISABLE_ECP_384_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_384_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_384_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_384_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_521_)
+#if !defined(_DISABLE_ECP_521_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_521_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_521_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_521_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_SM2_)
+#if !defined(_DISABLE_ECP_SM2_)
+#  if (_IPP32E >= _IPP32E_M7) || (_IPP >= _IPP_P8)
+#     define _ECP_SM2_    _ECP_IMPL_MFM_
+#  else
+#     define _ECP_SM2_    _ECP_IMPL_SPECIFIC_
+#  endif
+#else
+#  define _ECP_SM2_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_ECP_BN_)
+#if !defined(_DISABLE_ECP_BN_)
+#  define _ECP_BN_    _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_BN_    _ECP_IMPL_NONE_
+#endif
+#endif
+
+#if !defined(_DISABLE_ECP_GENERAL_)
+#  define _ECP_GENERAL_ _ECP_IMPL_ARBIRTRARY_
+#else
+#  define _ECP_GENERAL_ _ECP_IMPL_NONE_
+#endif
+
+//#define _ECP_128_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_192_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_224_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_256_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_384_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_521_    _ECP_IMPL_SPECIFIC_
+//#define _ECP_SM2_    _ECP_IMPL_SPECIFIC_
+
+//#if (_IPP32E >= _IPP32E_M7)
+//#undef  _ECP_192_
+//#undef  _ECP_224_
+//#undef  _ECP_256_
+//#undef  _ECP_384_
+//#undef  _ECP_521_
+//#undef  _ECP_SM2_
+
+//#define _ECP_192_    _ECP_IMPL_MFM_
+//#define _ECP_224_    _ECP_IMPL_MFM_
+//#define _ECP_256_    _ECP_IMPL_MFM_
+//#define _ECP_384_    _ECP_IMPL_MFM_
+//#define _ECP_521_    _ECP_IMPL_MFM_
+//#define _ECP_SM2_    _ECP_IMPL_MFM_
+//#endif
 
 
 /*

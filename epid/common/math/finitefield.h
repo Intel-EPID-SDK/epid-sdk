@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -86,6 +86,9 @@ EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff);
 
  \returns ::EpidStatus
 
+ \attention It is the responsibility of the caller to ensure that ground_field
+ exists for the entire lifetime of the new FiniteField.
+
  \see DeleteFiniteField
 */
 EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
@@ -111,6 +114,9 @@ EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
  The newly constructed finite field.
 
  \returns ::EpidStatus
+
+ \attention It is the responsibility of the caller to ensure that ground_field
+ exists for the entire lifetime of the new FiniteField.
 
  \see DeleteFiniteField
 */
@@ -142,6 +148,9 @@ void DeleteFiniteField(FiniteField** ff);
 The Newly constructed finite field element.
 
  \returns ::EpidStatus
+
+ \attention It is the responsibility of the caller to ensure that ff
+ exists for the entire lifetime of the new FfElement.
 
  \see NewFiniteField
  \see DeleteFfElement
@@ -175,7 +184,7 @@ void DeleteFfElement(FfElement** ff_elem);
  \see NewFfElement
  \see WriteFfElement
 */
-EpidStatus ReadFfElement(FiniteField* ff, void const* ff_elem_str,
+EpidStatus ReadFfElement(FiniteField* ff, ConstOctStr ff_elem_str,
                          size_t strlen, FfElement* ff_elem);
 
 /// Initializes an existing FfElement from a BigNum.
@@ -213,7 +222,7 @@ EpidStatus InitFfElementFromBn(FiniteField* ff, BigNum* bn, FfElement* ff_elem);
  \see GtElemStr
 */
 EpidStatus WriteFfElement(FiniteField* ff, FfElement const* ff_elem,
-                          void* ff_elem_str, size_t strlen);
+                          OctStr ff_elem_str, size_t strlen);
 
 /// Calculates the additive inverse of a finite field element.
 /*!
@@ -454,7 +463,7 @@ EpidStatus FfIsEqual(FiniteField* ff, FfElement const* a, FfElement const* b,
  \see NewFiniteField
  \see NewFfElement
  */
-EpidStatus FfHash(FiniteField* ff, void const* msg, size_t msg_len,
+EpidStatus FfHash(FiniteField* ff, ConstOctStr msg, size_t msg_len,
                   HashAlg hash_alg, FfElement* r);
 
 /// Generate random finite field element.
