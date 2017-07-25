@@ -49,6 +49,17 @@ ippcp_files = Pattern(src_dir='sources/ippcpepid/src/',
                       ],
                       excludes=['pcpepidmain.c'],
                       recursive=True)
+#Symbols defined in following files are used by ippcpepid library
+ippcp_intern_files = Pattern(src_dir='sources/ippcp/src/',
+                             includes=[
+                                 'pcpmontexpbinca.c',
+                                 'pcpmontred.c',
+                                 'pcpbnuarith.c',
+                                 'pcpbnu32misc.c',
+                                 'pcpbnu32arith.c',
+                                 'pcpbnumisc.c',
+                             ],
+                             recursive=True)
 
 ippdir = ''
 #internal ipp includes src/primitives/ipp/
@@ -73,9 +84,18 @@ if 'install_package' in env['MODE']:
                         excludes=[],
                         recursive=True)
     env.InstallTopLevel(this_file, sub_dir='ext/ipp/')
+    makefile = Pattern(src_dir='./sources/ippcpepid',
+                        includes=['Makefile'],
+                        excludes=[],
+                        recursive=True)
+    env.InstallTopLevel(makefile, sub_dir='ext/ipp/sources/ippcpepid')
+
 else:
 
     all_c_files = ippcp_files.files()
+    if 'use_commercial_ipp' in env['MODE']:
+        all_c_files = all_c_files + ippcp_intern_files.files()
+
     outputs = env.Library(IPP_LIBNAME, all_c_files)
 
     env.SdkLib(outputs)

@@ -19,6 +19,7 @@ var group___epid_member_module =
       [ "rx", "struct_pre_computed_signature.html#acd0674d5b5e96244645e9abef7bdbddc", null ],
       [ "T", "struct_pre_computed_signature.html#a73471643dc757115701833ca2e831a72", null ]
     ] ],
+    [ "MemberCtx", "group___epid_member_module.html#gadfb10d5dfdadb0694792c7b06718e817", null ],
     [ "EpidAddPreSigs", "group___epid_member_module.html#gad2e3de5c6ce641a318f8a46b61e75236", null ],
     [ "EpidDecompressPrivKey", "group___epid_member_module.html#gaf8cd05388f017486f14da2ee48d067ef", null ],
     [ "EpidGetNumPreSigs", "group___epid_member_module.html#gad78ca056dfea2565bbacd5734d9dc075", null ],

@@ -58,6 +58,15 @@ size_t GetFileSize(char const* filename) {
   return file_length;
 }
 
+size_t GetFileSize_S(char const* filename, size_t max_size) {
+  size_t size = GetFileSize(filename);
+  if (size > max_size) {
+    return 0;
+  } else {
+    return size;
+  }
+}
+
 void* AllocBuffer(size_t size) {
   void* buffer = NULL;
   if (size) {
@@ -80,7 +89,7 @@ void* NewBufferFromFile(const char* filename, size_t* size) {
       break;
     }
 
-    len = GetFileSize(filename);
+    len = GetFileSize_S(filename, SIZE_MAX);
     if (len == 0) {
       log_error("cannot load empty file '%s'", filename);
       break;

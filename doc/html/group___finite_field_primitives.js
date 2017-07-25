@@ -13,11 +13,16 @@ var group___finite_field_primitives =
     [ "FfIsZero", "group___finite_field_primitives.html#ga20d9140e5670d679ef8183d9b5115f53", null ],
     [ "FfMul", "group___finite_field_primitives.html#ga4613a75bd001a974b3e3e494c3a112a5", null ],
     [ "FfMultiExp", "group___finite_field_primitives.html#ga84d21decc1c957bcf6e98e1492eb2ac3", null ],
+    [ "FfMultiExpBn", "group___finite_field_primitives.html#ga1ef46fc83f9c11263a2aa1ec906c9144", null ],
     [ "FfNeg", "group___finite_field_primitives.html#gae7a8c7503b6fc7a41bcaab4d45ca37b2", null ],
+    [ "FfSqrt", "group___finite_field_primitives.html#ga39892fe2ab431e166dbbcf57756660f6", null ],
     [ "FfSscmMultiExp", "group___finite_field_primitives.html#ga0d0c31a22bbfb665a16b2d25b0cd2634", null ],
+    [ "FfSub", "group___finite_field_primitives.html#ga59d20610f245ff4bc3a17b7bfe289991", null ],
+    [ "InitFfElementFromBn", "group___finite_field_primitives.html#ga90b2c192708973b54b7a3e82b34536ed", null ],
     [ "NewFfElement", "group___finite_field_primitives.html#gacc54f315ede2dbeb8c5990c024a0de6c", null ],
     [ "NewFiniteField", "group___finite_field_primitives.html#ga7d99fdc5e4573668a5744e49df7ab67c", null ],
     [ "NewFiniteFieldViaBinomalExtension", "group___finite_field_primitives.html#ga83041e3be9984a4bd8f1021934bfa3a2", null ],
+    [ "NewFiniteFieldViaPolynomialExtension", "group___finite_field_primitives.html#gae69af62a03179718cac81b004549c598", null ],
     [ "ReadFfElement", "group___finite_field_primitives.html#ga884d9e1baadf29a410244a735853e3c7", null ],
     [ "WriteFfElement", "group___finite_field_primitives.html#ga678694636708463b078d842d5c58a900", null ]
 ];

@@ -13,10 +13,14 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
+/// Message signing implementation.
 /*!
  * \file
- * \brief Message signing implementation.
+ *
+ * This file has a corresponding walk-through in the SDK documentation.
+ *
+ * Review the walk-through for correctness after making changes to this
+ * file.
  */
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +29,8 @@
 #include "util/envutil.h"
 #include "util/stdtypes.h"
 #include "util/buffutil.h"
+#include "epid/member/api.h"
+#include "epid/common/file_parser.h"
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -47,13 +53,12 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
   EpidStatus sts = kEpidErr;
   void* prng = NULL;
   MemberCtx* member = NULL;
-
   SigRl* sig_rl = NULL;
-  size_t sig_rl_size = 0;
 
   do {
     GroupPubKey pub_key = {0};
     PrivKey priv_key = {0};
+    size_t sig_rl_size = 0;
 
     if (!sig) {
       sts = kEpidBadArgErr;
@@ -69,8 +74,8 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
 
     if (signed_sig_rl) {
       // authenticate and determine space needed for SigRl
-      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
-                               sig_rl, &sig_rl_size);
+      sts = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert, NULL,
+                               &sig_rl_size);
       if (kEpidSigInvalid == sts) {
         // authentication failure
         break;
@@ -94,13 +99,7 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       if (kEpidNoErr != sts) {
         break;
       }
-    }
-
-    // acquire PRNG
-    sts = PrngCreate(&prng);
-    if (kEpidNoErr != sts) {
-      break;
-    }
+    }  // if (signed_sig_rl)
 
     // decompress private key
     if (privkey_size == sizeof(PrivKey)) {
@@ -113,6 +112,12 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       }
     } else {
       sts = kEpidErr;
+      break;
+    }  // if (privkey_size == sizeof(PrivKey))
+
+    // acquire PRNG
+    sts = PrngCreate(&prng);
+    if (kEpidNoErr != sts) {
       break;
     }
 

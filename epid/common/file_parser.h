@@ -36,6 +36,16 @@
   @{
 */
 
+/// Recognized Intel(R) EPID versions
+typedef enum EpidVersion {
+  kEpid1x,           ///< Intel(R) EPID version 1.x
+  kEpid2x,           ///< Intel(R) EPID version 2.x
+  kNumEpidVersions,  ///< Maximum number of EPID versions
+} EpidVersion;
+
+/// Encoding of issuer material Intel(R) EPID versions
+extern const OctStr16 kEpidVersionCode[kNumEpidVersions];
+
 /// Recognized Intel(R) EPID file types
 typedef enum EpidFileType {
   kIssuingCaPubKeyFile,  ///< IoT Issuing CA public key file
@@ -72,6 +82,29 @@ typedef struct EpidCaCertificate {
   EcdsaSignature signature;  ///< ECDSA Signature on SHA-256 of above values
 } EpidCaCertificate;
 #pragma pack()
+
+/// Extracts Intel(R) EPID Binary Output File header information
+/*!
+  \param[in] buf
+  Pointer to buffer containing Intel(R) EPID Binary Output File to parse.
+
+  \param[in] len
+  The size of buf in bytes.
+
+  \param[out] epid_version
+  The extracted EPID version or kNumEpidVersions if EPID version is unknown.
+  Pass NULL to not extract.
+
+  \param[out] file_type
+  The extracted EPID file type or kNumFileTypes if file type is unknown.
+  Pass NULL to not extract.
+
+  \returns ::EpidStatus
+
+*/
+EpidStatus EpidParseFileHeader(void const* buf, size_t len,
+                               EpidVersion* epid_version,
+                               EpidFileType* file_type);
 
 /// Extracts group public key from buffer in issuer binary format
 /*!

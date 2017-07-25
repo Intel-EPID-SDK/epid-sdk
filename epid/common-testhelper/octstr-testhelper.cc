@@ -20,7 +20,7 @@
  */
 #include "epid/common-testhelper/octstr-testhelper.h"
 extern "C" {
-#include "epid/common/memory.h"
+#include "epid/common/src/memory.h"
 }
 #include "ext/ipp/include/ippcp.h"
 

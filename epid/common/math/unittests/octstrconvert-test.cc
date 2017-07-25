@@ -24,7 +24,10 @@
 
 #include "epid/common/stdtypes.h"
 #include "gtest/gtest.h"
-#include "epid/common/math/bignum-internal.h"
+
+extern "C" {
+#include "epid/common/math/src/bignum-internal.h"
+}
 
 namespace {
 

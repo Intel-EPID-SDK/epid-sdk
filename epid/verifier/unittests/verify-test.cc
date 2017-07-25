@@ -23,8 +23,7 @@
 
 extern "C" {
 #include "epid/verifier/api.h"
-#include "epid/common/endian_convert.h"
-#include "epid/common/memory.h"
+#include "epid/common/src/endian_convert.h"
 }
 
 #include "epid/verifier/unittests/verifier-testhelper.h"
@@ -43,12 +42,12 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenNullParameters) {
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(nullptr, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
-  EXPECT_EQ(kEpidBadArgErr, EpidVerify(verifier, nullptr, sig.size(),
-                                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidVerify(verifier, nullptr, sig.size(), msg.data(), msg.size()));
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       nullptr, msg.size(), nullptr, 0));
+                       nullptr, msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooShortForRlCount) {
@@ -63,7 +62,7 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooShortForRlCount) {
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooLongForRlCount) {
@@ -77,7 +76,7 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooLongForRlCount) {
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 #if (SIZE_MAX <= 0xFFFFFFFF)  // When size_t value is 32 bit or lower
@@ -89,13 +88,13 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenRlCountTooBig) {
   uint32_t n2 = SIZE_MAX / sizeof(NrProof) + 1;
   uint32_t n2_ = ntohl(n2);
   EpidSignature* sig_struct = (EpidSignature*)sig.data();
-  memcpy_S(&(sig_struct->n2), sizeof(sig_struct->n2), &n2_, sizeof(n2_));
+  sig_struct->n2 = *(OctStr32*)&n2_;
   sig.resize(sizeof(EpidSignature) + (n2 - 1) * sizeof(NrProof));
   auto& msg = this->kTest0;
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 #endif
 
@@ -119,8 +118,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithBNotInG1) {
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
   sig.sigma0.B.x.data.data[31]++;
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithBIdentityOfG1) {
@@ -131,10 +130,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithBIdentityOfG1) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.B = this->G1_identity_str;
+  sig.sigma0.B = this->kG1IdentityStr;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithDiffBaseNameSameHashAlg) {
@@ -148,9 +147,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithDiffBaseNameSameHashAlg) {
 
   VerifierCtxObj verifier(pub_key);
 
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigInvalid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithSameBaseNameDiffHashAlg) {
@@ -164,9 +164,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithSameBaseNameDiffHashAlg) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigInvalid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithKNotInG1) {
@@ -179,8 +180,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithKNotInG1) {
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
   sig.sigma0.K.x.data.data[31]++;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithTNotInG1) {
@@ -193,8 +194,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithTNotInG1) {
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
   sig.sigma0.T.x.data.data[31]++;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithCNotInRange) {
@@ -205,10 +206,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithCNotInRange) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.c.data = this->params_str.p.data;
+  sig.sigma0.c.data = this->kParamsStr.p.data;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithSxNotInRange) {
@@ -219,10 +220,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithSxNotInRange) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.sx.data = this->params_str.p.data;
+  sig.sigma0.sx.data = this->kParamsStr.p.data;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithSfNotInRange) {
@@ -233,10 +234,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithSfNotInRange) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.sf.data = this->params_str.p.data;
+  sig.sigma0.sf.data = this->kParamsStr.p.data;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithSaNotInRange) {
@@ -247,10 +248,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithSaNotInRange) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.sa.data = this->params_str.p.data;
+  sig.sigma0.sa.data = this->kParamsStr.p.data;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigWithSbNotInRange) {
@@ -261,10 +262,10 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigWithSbNotInRange) {
 
   EpidSignature sig = *(
       const EpidSignature*)(this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  sig.sigma0.sb.data = this->params_str.p.data;
+  sig.sigma0.sb.data = this->kParamsStr.p.data;
   size_t size = this->kSigGrp01Member0Sha256RandombaseTest0.size();
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, &sig, size, msg.data(),
-                                        msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, &sig, size, msg.data(), msg.size()));
 }
 
 //   4.1.2 step 2.g - The verifier computes nc = (-c) mod p.
@@ -305,7 +306,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInMsg) {
   msg[0]++;
   EXPECT_EQ(kEpidSigInvalid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInBaseName) {
@@ -319,8 +320,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInBaseName) {
   // simulate change to basename
   sig->sigma0.B.x.data.data[0] += 1;
   auto msg = this->kTest1;
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, sig, sig_data.size(),
-                                        msg.data(), msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, sig, sig_data.size(), msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInGroup) {
@@ -334,8 +335,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInGroup) {
   // simulate change to h1
   sig->sigma0.T.x.data.data[0] += 1;
   auto msg = this->kTest1;
-  EXPECT_EQ(kEpidSigInvalid, EpidVerify(verifier, sig, sig_data.size(),
-                                        msg.data(), msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigInvalid,
+            EpidVerify(verifier, sig, sig_data.size(), msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInHashAlg) {
@@ -348,7 +349,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInHashAlg) {
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
   EXPECT_EQ(kEpidSigInvalid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 //   4.1.2 step 2.p - If any of the above verifications fails, the verifier
@@ -362,7 +363,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigDifferingOnlyInHashAlg) {
 TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlSingleEntry) {
   // * 4.1.2 step 3.a - The verifier verifies that gid does not match any entry
   //                    in GroupRL.
-  // result must be kEpidSigRevokedinGroupRl
+  // result must be kEpidSigRevokedInGroupRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -371,18 +372,19 @@ TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlSingleEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinGroupRl,
+  EXPECT_EQ(kEpidSigRevokedInGroupRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlFirstEntry) {
   // * 4.1.2 step 3.a - The verifier verifies that gid does not match any entry
   //                    in GroupRL.
-  // result must be kEpidSigRevokedinGroupRl
+  // result must be kEpidSigRevokedInGroupRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -391,17 +393,18 @@ TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlFirstEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinGroupRl,
+  EXPECT_EQ(kEpidSigRevokedInGroupRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlFirstEntryUsingIkgfData) {
-  // result must be kEpidSigRevokedinGroupRl
-  auto& pub_key = this->pub_key_rev_group_ikgf_str;
+  // result must be kEpidSigRevokedInGroupRl
+  auto& pub_key = this->kPubKeyRevGroupIkgfStr;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& grp_rl = this->kGrpRlIkgf;
@@ -409,18 +412,19 @@ TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlFirstEntryUsingIkgfData) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinGroupRl,
+  EXPECT_EQ(kEpidSigRevokedInGroupRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlMiddleEntry) {
   // * 4.1.2 step 3.a - The verifier verifies that gid does not match any entry
   //                    in GroupRL.
-  // result must be kEpidSigRevokedinGroupRl
+  // result must be kEpidSigRevokedInGroupRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -429,18 +433,19 @@ TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlMiddleEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinGroupRl,
+  EXPECT_EQ(kEpidSigRevokedInGroupRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlLastEntry) {
   // * 4.1.2 step 3.a - The verifier verifies that gid does not match any entry
   //                    in GroupRL.
-  // result must be kEpidSigRevokedinGroupRl
+  // result must be kEpidSigRevokedInGroupRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -449,12 +454,13 @@ TEST_F(EpidVerifierTest, VerifyRejectsFromGroupRlLastEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinGroupRl,
+  EXPECT_EQ(kEpidSigRevokedInGroupRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 //   4.1.2 step 3.b - If gid matches an entry in GroupRL, aborts and returns 2.
@@ -475,7 +481,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlSingleEntry) {
   //                    and verifies that G1.isEqual(t4, K) = false.
   //                    A faster private-key revocation check algorithm is
   //                    provided in Section 4.5.
-  // result must be kEpidSigRevokedinPrivRl
+  // result must be kEpidSigRevokedInPrivRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -484,12 +490,13 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlSingleEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
       verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntry) {
@@ -498,7 +505,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntry) {
   //                    and verifies that G1.isEqual(t4, K) = false.
   //                    A faster private-key revocation check algorithm is
   //                    provided in Section 4.5.
-  // result must be kEpidSigRevokedinPrivRl
+  // result must be kEpidSigRevokedInPrivRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -507,12 +514,13 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
       verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntryUsingIkgfData) {
@@ -521,8 +529,8 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntryUsingIkgfData) {
   //                    and verifies that G1.isEqual(t4, K) = false.
   //                    A faster private-key revocation check algorithm is
   //                    provided in Section 4.5.
-  // result must be kEpidSigRevokedinPrivRl
-  auto& pub_key = this->pub_key_ikgf_str;
+  // result must be kEpidSigRevokedInPrivRl
+  auto& pub_key = this->kPubKeyIkgfStr;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& priv_rl = this->kPrivRlIkgf;
@@ -530,12 +538,13 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlFirstEntryUsingIkgfData) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
       verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlMiddleEntry) {
@@ -544,7 +553,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlMiddleEntry) {
   //                    and verifies that G1.isEqual(t4, K) = false.
   //                    A faster private-key revocation check algorithm is
   //                    provided in Section 4.5.
-  // result must be kEpidSigRevokedinPrivRl
+  // result must be kEpidSigRevokedInPrivRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -553,12 +562,13 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlMiddleEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
       verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlLastEntry) {
@@ -567,7 +577,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlLastEntry) {
   //                    and verifies that G1.isEqual(t4, K) = false.
   //                    A faster private-key revocation check algorithm is
   //                    provided in Section 4.5.
-  // result must be kEpidSigRevokedinPrivRl
+  // result must be kEpidSigRevokedInPrivRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -576,12 +586,30 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromPrivRlLastEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
       verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
+}
+
+TEST_F(EpidVerifierTest, VerifyAcceptsSigFromEmptyPrivRlUsingIkgfData) {
+  auto& pub_key = this->kPubKeyIkgfStr;
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  auto& priv_rl = this->kEmptyPrivRlIkgf;
+  auto& sig = this->kSigMember0Sha256Bsn0Msg0NoSigRlIkgf;
+
+  VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
+      verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
+
+  EXPECT_EQ(kEpidNoErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
+                                   sig.size(), msg.data(), msg.size()));
 }
 
 //   4.1.2 step 4.c - If the above step fails, the verifier aborts and
@@ -608,12 +636,13 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigRlverNotMatchSigRlRlver) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
@@ -627,19 +656,20 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlSingleEntry) {
   // * 4.1.2 step 5.d - For i = 0, ..., n2-1, the verifier verifies
   //                    nrVerify(B, K, B[i], K[i], Sigma[i]) = true. The details
   //                    of nrVerify() will be given in the next subsection.
-  // result must be kEpidSigRevokedinSigRl
+  // result must be kEpidSigRevokedInSigRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -647,19 +677,20 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlSingleEntry) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0SingleEntrySigRl;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinSigRl,
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlFirstEntry) {
   // * 4.1.2 step 5.d - For i = 0, ..., n2-1, the verifier verifies
   //                    nrVerify(B, K, B[i], K[i], Sigma[i]) = true. The details
   //                    of nrVerify() will be given in the next subsection.
-  // result must be kEpidSigRevokedinSigRl
+  // result must be kEpidSigRevokedInSigRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -667,35 +698,37 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlFirstEntry) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinSigRl,
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlFirstEntryUsingIkgfData) {
-  auto& pub_key = this->pub_key_ikgf_str;
+  auto& pub_key = this->kPubKeyIkgfStr;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& sig_rl = this->kSigRlIkgf;
   auto& sig = this->kSigRevSigMember0Sha256Bsn0Msg0Ikgf;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinSigRl,
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlMiddleEntry) {
   // * 4.1.2 step 5.d - For i = 0, ..., n2-1, the verifier verifies
   //                    nrVerify(B, K, B[i], K[i], Sigma[i]) = true. The details
   //                    of nrVerify() will be given in the next subsection.
-  // result must be kEpidSigRevokedinSigRl
+  // result must be kEpidSigRevokedInSigRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -703,19 +736,20 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlMiddleEntry) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinSigRl,
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlLastEntry) {
   // * 4.1.2 step 5.d - For i = 0, ..., n2-1, the verifier verifies
   //                    nrVerify(B, K, B[i], K[i], Sigma[i]) = true. The details
   //                    of nrVerify() will be given in the next subsection.
-  // result must be kEpidSigRevokedinSigRl
+  // result must be kEpidSigRevokedInSigRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -723,12 +757,47 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlLastEntry) {
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinSigRl,
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
+}
+
+TEST_F(EpidVerifierTest,
+       RejectsSigFromNonemptySigRlGivenEmptySigRlUsingIkgfData) {
+  auto& pub_key = this->kPubKeyIkgfStr;
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  auto& sig_rl = this->kEmptySigRlIkgf;
+  auto& sig = this->kSigMember0Sha256Bsn0Msg0Ikgf;
+  VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
+                                        sig_rl.size()));
+
+  EXPECT_EQ(kEpidBadArgErr,
+            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
+                       msg.data(), msg.size()));
+}
+
+TEST_F(EpidVerifierTest, VerifyAcceptsSigFromEmptySigRlUsingIkgfData) {
+  auto& pub_key = this->kPubKeyIkgfStr;
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  auto& sig_rl = this->kEmptySigRlIkgf;
+  auto& sig = this->kSigMember0Sha256Bsn0Msg0EmptySigRlIkgf;
+  VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
+                                        sig_rl.size()));
+
+  EXPECT_EQ(kEpidNoErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
+                                   sig.size(), msg.data(), msg.size()));
 }
 
 //   4.1.2 step 5.e - If the above step fails, the verifier aborts and
@@ -744,40 +813,15 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromSigRlLastEntry) {
 //                    "operation failed".
 // Not possible, checked in EpidVerifierSetVerifierRl
 
-TEST_F(EpidVerifierTest,
-       VerifyDoesNotRejectSigFromMemberIfBaseNameIsOnlyDiffInVerifierRl) {
-  // * 4.1.2 step 6.b - The verifier verifies that B in the signature and in
-  //                    VerifierRL match. If mismatch, go to step 7.
-  // result must be "operation failed" (not kEpidSig*)
-  auto& pub_key = this->kGrpXKey;
-  auto& msg = this->kMsg0;
-  auto& bsn = this->kBsn0;
-  auto& grp_rl = this->kGrpRl;
-  auto& priv_rl = this->kGrpXPrivRl;
-  auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn1VerRl_012;
-  auto& sig = this->kSigGrpXVerRevokedMember0Sha256Bsn0Msg0;
-
-  VerifierCtxObj verifier(pub_key);
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
-  THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
-      verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
-  THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
-      verifier, (PrivRl const*)priv_rl.data(), priv_rl.size()));
-  THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
-                                        sig_rl.size()));
-  THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
-      verifier, (VerifierRl const*)ver_rl.data(), ver_rl.size()));
-
-  EXPECT_EQ(kEpidSigValid,
-            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
-}
+// * 4.1.2 step 6.b - The verifier verifies that B in the signature and in
+//                    VerifierRL match. If mismatch, go to step 7.
+// result must be "operation failed" (not kEpidSig*)
+// Not possible, checked in EpidVerifierSetVerifierRl
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlSingleEntry) {
   // * 4.1.2 step 6.c - For i = 0, ..., n4-1, the verifier verifies that
   //                    K != K[i].
-  // result must be kEpidSigRevokedinVerifierRl
+  // result must be kEpidSigRevokedInVerifierRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
@@ -789,6 +833,7 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlSingleEntry) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -798,26 +843,27 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlSingleEntry) {
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       verifier, (VerifierRl const*)ver_rl.data(), ver_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinVerifierRl,
+  EXPECT_EQ(kEpidSigRevokedInVerifierRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlFirstEntry) {
   // * 4.1.2 step 6.c - For i = 0, ..., n4-1, the verifier verifies that
   //                    K != K[i].
-  // result must be kEpidSigRevokedinVerifierRl
+  // result must be kEpidSigRevokedInVerifierRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha256VerRl;
   auto& sig = this->kSigGrpXVerRevokedMember0Sha256Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -827,26 +873,27 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlFirstEntry) {
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       verifier, (VerifierRl const*)ver_rl.data(), ver_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinVerifierRl,
+  EXPECT_EQ(kEpidSigRevokedInVerifierRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlMiddleEntry) {
   // * 4.1.2 step 6.c - For i = 0, ..., n4-1, the verifier verifies that
   //                    K != K[i].
-  // result must be kEpidSigRevokedinVerifierRl
+  // result must be kEpidSigRevokedInVerifierRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha256VerRl;
   auto& sig = this->kSigGrpXVerRevokedMember1Sha256Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -856,26 +903,27 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlMiddleEntry) {
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       verifier, (VerifierRl const*)ver_rl.data(), ver_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinVerifierRl,
+  EXPECT_EQ(kEpidSigRevokedInVerifierRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlLastEntry) {
   // * 4.1.2 step 6.c - For i = 0, ..., n4-1, the verifier verifies that
   //                    K != K[i].
-  // result must be kEpidSigRevokedinVerifierRl
+  // result must be kEpidSigRevokedInVerifierRl
   auto& pub_key = this->kGrpXKey;
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha256VerRl;
   auto& sig = this->kSigGrpXVerRevokedMember2Sha256Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -885,9 +933,9 @@ TEST_F(EpidVerifierTest, VerifyRejectsSigFromVerifierRlLastEntry) {
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       verifier, (VerifierRl const*)ver_rl.data(), ver_rl.size()));
 
-  EXPECT_EQ(kEpidSigRevokedinVerifierRl,
+  EXPECT_EQ(kEpidSigRevokedInVerifierRl,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 //   4.1.2 step 6.d - If the above step fails, the verifier aborts and
@@ -907,9 +955,10 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameNoRlSha256) {
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha256) {
@@ -919,11 +968,12 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha256) {
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha256VerRl;
   auto& sig = this->kSigGrpXMember0Sha256Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -935,7 +985,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha256) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameNoRlSha256) {
@@ -947,7 +997,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameNoRlSha256) {
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha256) {
@@ -969,12 +1019,12 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha256) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest,
        VerifyAcceptsSigWithRandomBaseNameAllRlSha256UsingIkgfData) {
-  auto& pub_key = this->pub_key_ikgf_str;
+  auto& pub_key = this->kPubKeyIkgfStr;
   auto& msg = this->kMsg0;
   auto& grp_rl = this->kGrpRlIkgf;
   auto& priv_rl = this->kPrivRlIkgf;
@@ -992,7 +1042,7 @@ TEST_F(EpidVerifierTest,
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha384) {
@@ -1002,11 +1052,12 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha384) {
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha384VerRl;
   auto& sig = this->kSigGrpXMember0Sha384Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha384));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -1018,7 +1069,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha384) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha384) {
@@ -1040,7 +1091,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha384) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha512) {
@@ -1050,11 +1101,12 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha512) {
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha512VerRl;
   auto& sig = this->kSigGrpXMember0Sha512Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -1066,7 +1118,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithBaseNameAllRlSha512) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha512) {
@@ -1088,7 +1140,7 @@ TEST_F(EpidVerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRlSha512) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, DISABLED_VerifyAcceptsSigWithBaseNameAllRlSha512256) {
@@ -1098,11 +1150,12 @@ TEST_F(EpidVerifierTest, DISABLED_VerifyAcceptsSigWithBaseNameAllRlSha512256) {
   auto& grp_rl = this->kGrpRl;
   auto& priv_rl = this->kGrpXPrivRl;
   auto& sig_rl = this->kGrpXSigRl;
-  auto& ver_rl = this->kGrpXBsn0VerRl;
+  auto& ver_rl = this->kGrpXBsn0Sha512256VerRl;
   auto& sig = this->kSigGrpXMember0Sha512256Bsn0Msg0;
 
   VerifierCtxObj verifier(pub_key);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512_256));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetGroupRl(
       verifier, (GroupRl const*)grp_rl.data(), grp_rl.size()));
   THROW_ON_EPIDERR(EpidVerifierSetPrivRl(
@@ -1114,7 +1167,7 @@ TEST_F(EpidVerifierTest, DISABLED_VerifyAcceptsSigWithBaseNameAllRlSha512256) {
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), bsn.data(), bsn.size()));
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest,
@@ -1137,7 +1190,7 @@ TEST_F(EpidVerifierTest,
 
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
-                       msg.data(), msg.size(), nullptr, 0));
+                       msg.data(), msg.size()));
 }
 
 }  // namespace

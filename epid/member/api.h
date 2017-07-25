@@ -163,7 +163,7 @@ EpidStatus EpidMemberWritePrecomp(MemberCtx const* ctx, MemberPrecomp* precomp);
  */
 EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
 
-/// Computes the size in bytes required for a Intel(R) EPID signature.
+/// Computes the size in bytes required for an Intel(R) EPID signature.
 /*!
  \param[in] sig_rl
  The signature based revocation list that is used. NULL is treated as
@@ -177,7 +177,7 @@ EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
 */
 size_t EpidGetSigSize(SigRl const* sig_rl);
 
-/// Writes a Intel(R) EPID signature.
+/// Writes an Intel(R) EPID signature.
 /*!
  \param[in] ctx
  The member context.

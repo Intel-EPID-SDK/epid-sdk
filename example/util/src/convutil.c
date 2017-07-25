@@ -48,7 +48,27 @@ bool StringToHashAlg(char const* str, HashAlg* alg) {
       return true;
     }
   }
-  log_error("hash algorithm \"%s\" is unknown", str);
+  return false;
+}
+
+const char* epid_version_to_string[kNumEpidVersions] = {"1", "2"};
+
+char const* EpidVersionToString(EpidVersion version) {
+  if ((int)version < 0 || (size_t)version >= COUNT_OF(epid_version_to_string))
+    return "unknown";
+  return epid_version_to_string[version];
+}
+
+bool StringToEpidVersion(char const* str, EpidVersion* version) {
+  size_t i;
+  if (!version || !str) return false;
+  for (i = 0; i < COUNT_OF(epid_version_to_string); i++) {
+    if (0 == strcmp(str, epid_version_to_string[i])) {
+      *version = (EpidVersion)i;
+      return true;
+    }
+  }
+  log_error("epid version \"%s\" is unknown", str);
   return false;
 }
 

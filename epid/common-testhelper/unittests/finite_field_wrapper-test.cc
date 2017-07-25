@@ -27,7 +27,6 @@
 
 extern "C" {
 #include "epid/common/math/bignum.h"
-#include "epid/common/memory.h"
 #include "epid/common/types.h"
 }
 

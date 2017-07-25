@@ -60,9 +60,9 @@ typedef struct EcGroup EcGroup;
  \param[in] b
  The B value of the elliptic curve.
  \param[in] x
- The X co-ordinate of the base point of the elliptic curve.
+ The X-coordinate of the base point of the elliptic curve.
  \param[in] y
- The Y co-ordinate of the base point of the elliptic curve.
+ The Y-coordinate of the base point of the elliptic curve.
  \param[in] order
  The order of the elliptic curve group.
  \param[in] cofactor
@@ -167,9 +167,9 @@ EpidStatus WriteEcPoint(EcGroup* g, EcPoint const* p, void* p_str,
  \param[in] g
  The elliptic curve group.
  \param[in] a
- The left hand parameter.
+ The first operand to be multiplied.
  \param[in] b
- The right hand parameter.
+ The second operand to be multiplied.
  \param[out] r
  The result of multiplying a and b.
 
@@ -258,6 +258,33 @@ EpidStatus EcSscmExp(EcGroup* g, EcPoint const* a, BigNumStr const* b,
 EpidStatus EcMultiExp(EcGroup* g, EcPoint const** a, BigNumStr const** b,
                       size_t m, EcPoint* r);
 
+/// Multi-exponentiates elements in elliptic curve group.
+/*!
+Takes a group elements a[0], ... , a[m-1] in G and positive
+integers b[0], ..., b[m-1], where m is a small positive integer.
+Outputs r (in G) = EcExp(a[0],b[0]) * ... * EcExp(a[m-1],b[m-1]).
+
+\param[in] g
+The elliptic curve group.
+\param[in] a
+The bases.
+\param[in] b
+The powers. Power must be less than the order of the elliptic curve
+group.
+\param[in] m
+Number of entries in a and b.
+\param[out] r
+The result of raising each a to the corresponding power b and multiplying
+the results.
+
+\returns ::EpidStatus
+
+\see NewEcGroup
+\see NewEcPoint
+*/
+EpidStatus EcMultiExpBn(EcGroup* g, EcPoint const** a, BigNum const** b,
+                        size_t m, EcPoint* r);
+
 /// Software side-channel mitigated implementation of EcMultiExp.
 /*!
  Takes a group elements a[0], ... , a[m-1] in G and positive
@@ -330,6 +357,26 @@ EpidStatus EcGetRandom(EcGroup* g, BitSupplier rnd_func, void* rnd_func_param,
 */
 EpidStatus EcInGroup(EcGroup* g, void const* p_str, size_t strlen,
                      bool* in_group);
+
+/// Hashes an arbitrary message to an Intel(R) EPID 1.1 element in an elliptic
+/// curve group.
+/*!
+\param[in] g
+The elliptic curve group.
+\param[in] msg
+The message.
+\param[in] msg_len
+The size of msg in bytes.
+\param[out] r
+The hashed value.
+
+\returns ::EpidStatus
+
+\see NewEcGroup
+\see NewEcPoint
+*/
+EpidStatus Epid11EcHash(EcGroup* g, void const* msg, size_t msg_len,
+                        EcPoint* r);
 
 /// Hashes an arbitrary message to an element in an elliptic curve group.
 /*!

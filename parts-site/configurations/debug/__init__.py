@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ############################################################################
+# pylint: disable=locally-disabled, missing-docstring
 
 from parts.config import DefineConfiguration
 
 DefineConfiguration("debug", dependsOn='default')
-

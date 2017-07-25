@@ -16,7 +16,7 @@
 
 /*!
  * \file
- * \brief EcGroup C++ wrapper implementation.
+ * \brief Verifier C++ wrapper implementation.
  */
 #include <cstdio>
 #include <string>

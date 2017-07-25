@@ -38,7 +38,8 @@ TEST_F(EpidVerifierTest, NrVerifyFailsGivenNullParameters) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(nullptr, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0],
@@ -72,7 +73,8 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTNotInG1) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.T.x.data.data[0]++;
   EXPECT_EQ(kEpidBadArgErr,
@@ -86,9 +88,10 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTIdentityOfG1) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
-  nr_proof.T = this->G1_identity_str;
+  nr_proof.T = this->kG1IdentityStr;
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof));
@@ -100,9 +103,10 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithCNotInRange) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
-  nr_proof.c.data = this->params_str.p.data;
+  nr_proof.c.data = this->kParamsStr.p.data;
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof));
@@ -114,9 +118,10 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSmuNotInRange) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
-  nr_proof.smu.data = this->params_str.p.data;
+  nr_proof.smu.data = this->kParamsStr.p.data;
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof));
@@ -128,9 +133,10 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSnuNotInRange) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
-  nr_proof.snu.data = this->params_str.p.data;
+  nr_proof.snu.data = this->kParamsStr.p.data;
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof));
@@ -155,7 +161,8 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithInvalidCommitment) {
   VerifierCtxObj verifier(this->kGrp01Key);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   std::vector<uint8_t> test_msg = this->kTest0;
   test_msg[0]++;
   EXPECT_EQ(
@@ -177,7 +184,8 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithValidCommitmentDiffHashAlg) {
   EpidSignature const* epid_signature_sha384 =
       reinterpret_cast<EpidSignature const*>(
           this->kSigGrp01Member0Sha384RandombaseTest0.data());
-  SigRl const* sig_rl = reinterpret_cast<SigRl const*>(&this->kGrp01SigRl);
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha384));
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrVerify(verifier, &epid_signature_sha256->sigma0,
@@ -211,7 +219,7 @@ TEST_F(EpidVerifierTest, NrVerifyAcceptsSigWithRandomBaseNameSha256) {
 
 TEST_F(EpidVerifierTest,
        NrVerifyAcceptsSigWithRandomBaseNameSha256UsingIkgfData) {
-  VerifierCtxObj verifier(this->pub_key_ikgf_str);
+  VerifierCtxObj verifier(this->kPubKeyIkgfStr);
   EpidSignature const* epid_signature = reinterpret_cast<EpidSignature const*>(
       this->kSigMember0Sha256RandombaseMsg0Ikgf.data());
   SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kSigRlIkgf.data());

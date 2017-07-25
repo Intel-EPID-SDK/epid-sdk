@@ -32,9 +32,9 @@
 
 extern "C" {
 #include "epid/common/math/pairing.h"
-#include "epid/common/math/ecgroup-internal.h"
-#include "epid/common/math/finitefield-internal.h"
-#include "epid/common/math/pairing-internal.h"
+#include "epid/common/math/src/ecgroup-internal.h"
+#include "epid/common/math/src/finitefield-internal.h"
+#include "epid/common/math/src/pairing-internal.h"
 }
 
 /// compares Fq12ElemStr values

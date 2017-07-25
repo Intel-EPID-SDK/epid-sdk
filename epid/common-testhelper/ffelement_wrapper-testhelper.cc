@@ -94,6 +94,11 @@ FfElementObj::FfElementObj(FiniteFieldObj* ff, Fq2ElemStr const& bytes)
   init(ff, (unsigned char*)&bytes, sizeof(bytes));
 }
 
+FfElementObj::FfElementObj(FiniteFieldObj* ff, Fq3ElemStr const& bytes)
+    : state_(new State) {
+  init(ff, (unsigned char*)&bytes, sizeof(bytes));
+}
+
 FfElementObj::FfElementObj(FiniteFieldObj* ff, Fq6ElemStr const& bytes)
     : state_(new State) {
   init(ff, (unsigned char*)&bytes, sizeof(bytes));

@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -62,7 +62,8 @@ $(document).ready(function(){initNavTree('Glossary.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
-<ul><li class="level1"><a href="#Glossary_Daa">DAA</a></li>
+<ul><li class="level1"><a href="#Issuing_CA">CA public key</a></li>
+<li class="level1"><a href="#Glossary_Daa">DAA</a></li>
 <li class="level1"><a href="#Glossary_EllipticCurve">Elliptic curve</a></li>
 <li class="level1"><a href="#Glossary_EllipticCurvePoint">Elliptic curve point</a></li>
 <li class="level1"><a href="#Glossary_Group">Group</a></li>
@@ -81,7 +82,10 @@ $(document).ready(function(){initNavTree('Glossary.html','');});
 <li class="level1"><a href="#Glossary_Verifier">Verifier</a></li>
 </ul>
 </div>
-<div class="textblock"><h1><a class="anchor" id="Glossary_Daa"></a>
+<div class="textblock"><h1><a class="anchor" id="Issuing_CA"></a>
+CA public key</h1>
+<p>The CA (Certificate Authority) public key contains the ECDSA public key of the issuing CA. The verifier uses this key to authenticate that information provided by the issuer is genuine.</p>
+<h1><a class="anchor" id="Glossary_Daa"></a>
 DAA</h1>
 <p>Direct Anonymous Attestation (DAA) is a digital signature algorithm that supports anonymity by providing a group public verification key associated with many unique private signing keys. Intel&reg; EPID enhances DAA by enabling a private key to be revoked given a signature created by that key, even if the key itself is still unknown.</p>
 <h1><a class="anchor" id="Glossary_EllipticCurve"></a>
@@ -117,7 +121,7 @@ Intel® EPID signature</h1>
 <p>An Intel&reg; EPID signature is a type of digital signature that preserves anonymity of the signer, while still proving the signer is a member of a trusted group.</p>
 <h1><a class="anchor" id="Glossary_Issuer"></a>
 Issuer</h1>
-<p>The issuer is the entity in the Intel&reg; EPID scheme that is responsible for managing group membership. An example of an issuer is the Intel Key Generation Facility.</p>
+<p>The issuer is the entity in the Intel&reg; EPID scheme that is responsible for managing group membership. Issuer APIs are not included in the SDK. An example of an issuer is the Intel Key Generation Facility. For sample issuer material, refer to <a class="el" href="IssuerMaterial.html">Sample Issuer Material</a>. For tools that can help you if you choose to use iKGF as your issuer, refer to <a class="el" href="ChoosingiKGF.html">If You Choose iKGF as Your Issuer</a>.</p>
 <p>The issuer manages groups by doing the following:</p>
 <ul>
 <li>Creates groups by generating one issuing private key and one group certificate for each group. The group certificate contains the group public key.</li>
@@ -150,7 +154,7 @@ Pairing</h1>
 <h1><a class="anchor" id="Glossary_Revocation"></a>
 Revocation, revocation lists</h1>
 <p>Revocation lists are data structures used by the verifier to identify members that are no longer approved members of the group.</p>
-<p>The verifier obtains the member private key based revocation list (PrivRL), signature based revocation list (SigRL), and group based revocation list (GroupRL) from the issuer. The verifier can also maintain its own verifier blacklist (VerifierRL).</p>
+<p>The verifier obtains the member private key based revocation list (PrivRL), signature based revocation list (SigRL), and group based revocation list (GroupRL) from the issuer. The verifier can also maintain its own verifier blacklist (VerifierRL). Verifier blacklist revocation only works with name based signatures.</p>
 <h1><a class="anchor" id="Glossary_Verifier"></a>
 Verifier</h1>
 <p>The verifier is the entity that checks an Intel&reg; EPID signature to establish whether it was signed by an entity or device that is a member in good standing.</p>

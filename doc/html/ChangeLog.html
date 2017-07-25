@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -61,8 +61,34 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 <div class="title">What's New </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1>2.0.0</h1>
-<h2>New in This Release</h2>
+<div class="textblock"><h2>[3.0.0]</h2>
+<h3>New in This Release</h3>
+<ul>
+<li>Support for verification of EPID 1.1 members.</li>
+<li>Make-based build system support.</li>
+<li>Sample material includes compressed keys.</li>
+<li>Enhanced documentation, including step-by-step walkthroughs of example applications.</li>
+<li>Validated on additional IoT platforms.<ul>
+<li>Ostro Linux</li>
+<li>Snappy Ubuntu Core</li>
+</ul>
+</li>
+</ul>
+<h3>Changes</h3>
+<ul>
+<li>A new verifier API has been added to set the basename to be used for verification. Verifier APIs that used to accept basenames now use the basename set via EpidVerifierSetBasename.</li>
+<li>The verifier pre-computation structure has been changed to include the group ID to allow detection of errors that result from providing a pre-computation blob from a different group to EpidVerifierCreate.</li>
+</ul>
+<h3>Fixes</h3>
+<ul>
+<li>The kEpidxxxRevoked enums have been renamed to be consistent with other result return values.</li>
+</ul>
+<h3>Known Issues</h3>
+<ul>
+<li>SHA-512/256 hash algorithm is not supported.</li>
+</ul>
+<h2>[2.0.0] - 2016-07-20</h2>
+<h3>New in This Release</h3>
 <ul>
 <li>Signed binary issuer material support.<ul>
 <li>Binary issuer material validation APIs.</li>
@@ -77,19 +103,21 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 </ul>
 </li>
 </ul>
-<h2>Changes</h2>
+<h3>Changes</h3>
 <ul>
 <li>The default hash algorithm has changed. It is now SHA-512.</li>
 <li>Functions that returned <code>EpidNullPtrErr</code> now return <code>EpidBadArgErr</code> instead.</li>
 </ul>
-<h2>Fixes</h2>
+<h3>Fixes</h3>
 <ul>
 <li>Updated build flags to work around GCC 4.8.5 defect.</li>
 </ul>
-<h2>Known Issues</h2>
+<h2>[1.0.0] - 2016-03-03</h2>
+<h3>New in This Release</h3>
 <ul>
-<li>SHA-512/256 hash algorithm is not supported.</li>
-<li>Compressed key sample material is not included in the package. </li>
+<li>Basic sign and verify functionality</li>
+<li>Dynamic join support for member</li>
+<li>Apache 2.0 License </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

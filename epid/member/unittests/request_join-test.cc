@@ -26,7 +26,7 @@ extern "C" {
 #include "epid/member/api.h"
 #include "epid/common/math/ecgroup.h"
 #include "epid/common/math/finitefield.h"
-#include "epid/common/epid2params.h"
+#include "epid/common/src/epid2params.h"
 }
 
 #include "epid/member/unittests/member-testhelper.h"
@@ -42,7 +42,7 @@ namespace {
 // local constant for RequestJoin tests. This can be hoisted later if needed
 // avoids cpplint warning about multiple includes.
 const GroupPubKey kPubKey = {
-#include "epid/common/testdata/grp01/gpubkey.inc"
+#include "epid/common-testhelper/testdata/grp01/gpubkey.inc"
 };
 
 TEST_F(EpidMemberTest, RequestJoinFailsGivenNullParameters) {
@@ -135,7 +135,7 @@ TEST_F(EpidMemberTest,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
   const GroupPubKey* grp_public_key = reinterpret_cast<const GroupPubKey*>(
-      this->group_public_key_data_ikgf.data());
+      this->kGroupPublicKeyDataIkgf.data());
   EXPECT_EQ(kEpidNoErr, EpidRequestJoin(grp_public_key, &ni, &f, rnd_func,
                                         rnd_param, kSha256, &join_request));
 }
@@ -297,9 +297,9 @@ TEST_F(EpidMemberTest, PrivateKeyValidationRejectsKeyNotInGroup) {
 
 TEST_F(EpidMemberTest, PrivateKeyValidationRejectsKeyNotInGroupUsingIKGFData) {
   const GroupPubKey* grp_public_key = reinterpret_cast<const GroupPubKey*>(
-      this->group_public_key_data_ikgf.data());
+      this->kGroupPublicKeyDataIkgf.data());
   const PrivKey mbr_private_key = {
-#include "epid/common/testdata/ikgf/groupb/member0/mprivkey.inc"
+#include "epid/common-testhelper/testdata/ikgf/groupb/member0/mprivkey.inc"
   };
   EXPECT_FALSE(EpidIsPrivKeyInGroup(grp_public_key, &mbr_private_key));
 }
@@ -311,9 +311,9 @@ TEST_F(EpidMemberTest, PrivateKeyValidationAcceptsKeyInGroup) {
 
 TEST_F(EpidMemberTest, PrivateKeyValidationAcceptsKeyInGroupUsingIKGFData) {
   const GroupPubKey* grp_public_key = reinterpret_cast<const GroupPubKey*>(
-      this->group_public_key_data_ikgf.data());
-  const PrivKey* mbr_private_key = reinterpret_cast<const PrivKey*>(
-      this->member_private_key_data_ikgf.data());
+      this->kGroupPublicKeyDataIkgf.data());
+  const PrivKey* mbr_private_key =
+      reinterpret_cast<const PrivKey*>(this->kMemberPrivateKeyDataIkgf.data());
   EXPECT_TRUE(EpidIsPrivKeyInGroup(grp_public_key, mbr_private_key));
 }
 

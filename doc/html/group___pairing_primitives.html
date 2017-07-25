@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,6 +58,7 @@ $(document).ready(function(){initNavTree('group___pairing_primitives.html','');}
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#groups">Modules</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -68,6 +69,12 @@ $(document).ready(function(){initNavTree('group___pairing_primitives.html','');}
 <p>Pairing operations.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:group___epid11_pairing_primitives"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid11_pairing_primitives.html">EPID 1.1 specific pairing</a></td></tr>
+<tr class="memdesc:group___epid11_pairing_primitives"><td class="mdescLeft">&#160;</td><td class="mdescRight">EPID 1.1 pairing operations. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:ga3f1fa61d25487f96dfb0ffef4ad35607"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3f1fa61d25487f96dfb0ffef4ad35607"></a>
@@ -78,7 +85,7 @@ typedef struct <a class="el" href="group___pairing_primitives.html#ga3f1fa61d254
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ga29f79a645871830754d396b9b4a2a0cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___pairing_primitives.html#ga29f79a645871830754d396b9b4a2a0cc">NewPairingState</a> (<a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> const *ga, <a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> const *gb, <a class="el" href="group___finite_field_primitives.html#gab281b24e336a8b3d7d90079d862d969e">FiniteField</a> *ff, <a class="el" href="struct_big_num_str.html">BigNumStr</a> const *t, <a class="el" href="stdtypes_8h.html#ad5c9d4ba3dc37783a528b0925dc981a0">bool</a> neg, <a class="el" href="group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607">PairingState</a> **ps)</td></tr>
-<tr class="memdesc:ga29f79a645871830754d396b9b4a2a0cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a new Pairing State.  <a href="#ga29f79a645871830754d396b9b4a2a0cc">More...</a><br /></td></tr>
+<tr class="memdesc:ga29f79a645871830754d396b9b4a2a0cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a new pairing state.  <a href="#ga29f79a645871830754d396b9b4a2a0cc">More...</a><br /></td></tr>
 <tr class="separator:ga29f79a645871830754d396b9b4a2a0cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad54aebdc331d39b73000fdca9e04f94d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___pairing_primitives.html#gad54aebdc331d39b73000fdca9e04f94d">DeletePairingState</a> (<a class="el" href="group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607">PairingState</a> **ps)</td></tr>
 <tr class="memdesc:gad54aebdc331d39b73000fdca9e04f94d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frees a previously allocated by PairingState.  <a href="#gad54aebdc331d39b73000fdca9e04f94d">More...</a><br /></td></tr>
@@ -89,7 +96,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Pairing operations. </p>
-<p>Provides APIs for defining and using a pairing relationship between two Elliptic Curve Groups. </p>
+<p>Provides APIs for defining and using a pairing relationship between two elliptic curve groups. </p>
 <h2 class="groupheader">Function Documentation</h2>
 <a class="anchor" id="gad54aebdc331d39b73000fdca9e04f94d"></a>
 <div class="memitem">
@@ -109,11 +116,11 @@ Functions</h2></td></tr>
 <p>Frees memory pointed to by pairing state. Nulls the pointer.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ps</td><td>The Pairing state. Can be NULL.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ps</td><td>The pairing state. Can be NULL.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___pairing_primitives.html#ga29f79a645871830754d396b9b4a2a0cc" title="Constructs a new Pairing State. ">NewPairingState</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___pairing_primitives.html#ga29f79a645871830754d396b9b4a2a0cc" title="Constructs a new pairing state. ">NewPairingState</a> </dd></dl>
 
 </div>
 </div>
@@ -165,8 +172,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Constructs a new Pairing State. </p>
-<p>Allocates memory and creates a new Pairing State for Optimal Ate Pairing.</p>
+<p>Constructs a new pairing state. </p>
+<p>Allocates memory and creates a new pairing state for Optimal Ate Pairing.</p>
 <p>Use <a class="el" href="group___pairing_primitives.html#gad54aebdc331d39b73000fdca9e04f94d" title="Frees a previously allocated by PairingState. ">DeletePairingState()</a> to free memory.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -175,7 +182,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ff</td><td>The result finite field. Must be a Fq12 field. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">t</td><td>A positive integer such that 6(t^2) == q - p, where p and q are parameters of G1. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">neg</td><td>Select the alternate "negate" processing path for Optimal Ate Pairing. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">ps</td><td>Newly constructed Pairing State.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ps</td><td>Newly constructed pairing state.</td></tr>
   </table>
   </dd>
 </dl>

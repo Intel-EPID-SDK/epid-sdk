@@ -173,7 +173,20 @@ class EcGroupTest : public ::testing::Test {
   static const G2ElemStr efq2_inv_a_str;
   static const G2ElemStr efq2_identity_str;
 
+  // Epid 1.1 hash of message "aad"
+  static const Epid11G3ElemStr kAadHash;
+  // Epid 1.1 hash of message "bsn0"
+  static const Epid11G3ElemStr kBsn0Hash;
+  // Epid 1.1 hash of message "test"
+  static const Epid11G3ElemStr kTestHash;
+  // Epid 1.1 hash of message "aac"
+  static const Epid11G3ElemStr kAacHash;
+
   virtual void SetUp() {
+    Epid11Params epid11_params_str = {
+#include "epid/common/1.1/src/epid11params_tate.inc"
+    };
+
     fq = FiniteFieldObj(q);
     fq_a = FfElementObj(&fq, a1);
     fq_b = FfElementObj(&fq, b1);
@@ -199,6 +212,23 @@ class EcGroupTest : public ::testing::Test {
     efq2_b = EcPointObj(&efq2, efq2_b_str);
     efq2_r = EcPointObj(&efq2);
     efq2_identity = EcPointObj(&efq2, efq_identity_str);
+
+    epid11_Fq_tick = FiniteFieldObj(epid11_params_str.q_tick);
+    epid11_a_tick = FfElementObj(&epid11_Fq_tick, epid11_params_str.a_tick);
+    epid11_b_tick = FfElementObj(&epid11_Fq_tick, epid11_params_str.b_tick);
+    epid11_g3_x = FfElementObj(&epid11_Fq_tick, epid11_params_str.g3.x);
+    epid11_g3_y = FfElementObj(&epid11_Fq_tick, epid11_params_str.g3.y);
+    epid11_p_tick = BigNumObj(epid11_params_str.p_tick);
+    BigNumStr h_tick_str = {0};
+    ((OctStr32*)
+         h_tick_str.data.data)[sizeof(BigNumStr) / sizeof(OctStr32) - 1] =
+        epid11_params_str.h_tick;
+    epid11_h_tick = BigNumObj(h_tick_str);
+
+    epid11_G3 =
+        EcGroupObj(&epid11_Fq_tick, epid11_a_tick, epid11_b_tick, epid11_g3_x,
+                   epid11_g3_y, epid11_p_tick, epid11_h_tick);
+    epid11_G3_r = EcPointObj(&epid11_G3);
   }
 
   FiniteFieldObj fq;
@@ -222,6 +252,17 @@ class EcGroupTest : public ::testing::Test {
   EcPointObj efq2_b;
   EcPointObj efq2_r;
   EcPointObj efq2_identity;
+
+  FiniteFieldObj epid11_Fq_tick;
+  FfElementObj epid11_a_tick;
+  FfElementObj epid11_b_tick;
+  FfElementObj epid11_g3_x;
+  FfElementObj epid11_g3_y;
+  BigNumObj epid11_p_tick;
+  BigNumObj epid11_h_tick;
+
+  EcGroupObj epid11_G3;
+  EcPointObj epid11_G3_r;
 };
 
 const G1ElemStr EcGroupTest::g1_str = {
@@ -490,6 +531,46 @@ const G2ElemStr EcGroupTest::efq2_identity_str = {
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     },
 };
+
+// msg=aad, size=3
+// algorithm code path: sqrt result <= modulus/2, high bit is 0
+const G1ElemStr EcGroupTest::kAadHash = {
+    0xB2, 0x12, 0x39, 0x3A, 0xA0, 0xCF, 0xA0, 0xDE, 0xB8, 0x85, 0xE7,
+    0x5B, 0x1C, 0x13, 0x01, 0x0D, 0x0D, 0xA2, 0xBA, 0xC5, 0xB4, 0x3F,
+    0x5E, 0xC7, 0x5B, 0x5A, 0xE2, 0x49, 0x1B, 0x3F, 0x65, 0x08, 0xC2,
+    0x47, 0x40, 0xF3, 0xC7, 0x08, 0xA2, 0x41, 0x61, 0x99, 0x65, 0x4D,
+    0x82, 0x2B, 0x9A, 0x06, 0x2C, 0xDF, 0x07, 0x71, 0xCC, 0xFA, 0x73,
+    0x51, 0x45, 0x87, 0x55, 0x07, 0x17, 0xD1, 0x9C, 0x0B};
+
+// msg=bsn0, size=4
+// algorithm code path: sqrt result <= modulus/2, high bit is 1
+const G1ElemStr EcGroupTest::kBsn0Hash = {
+    0x04, 0x0C, 0xB6, 0x57, 0x26, 0xD0, 0xE1, 0x48, 0x23, 0xC2, 0x40,
+    0x5A, 0x91, 0x7C, 0xC6, 0x33, 0xFE, 0x0C, 0xC2, 0x2B, 0x52, 0x9D,
+    0x6B, 0x87, 0xF9, 0xA7, 0x82, 0xCB, 0x36, 0x90, 0xFB, 0x09, 0x10,
+    0xB1, 0x55, 0xAD, 0x98, 0x0D, 0x4F, 0x94, 0xDD, 0xBE, 0x52, 0x21,
+    0x87, 0xC6, 0x3E, 0x52, 0x22, 0x83, 0xE3, 0x10, 0x36, 0xEF, 0xF8,
+    0x6B, 0x04, 0x4D, 0x9F, 0x14, 0xA8, 0x51, 0xAF, 0xC3};
+
+// msg=test, size=4
+// algorithm code path: sqrt result > modulus/2, high bit is 0
+const G1ElemStr EcGroupTest::kTestHash = {
+    0x82, 0x14, 0xAD, 0xE2, 0x0E, 0xCC, 0x95, 0x27, 0x14, 0xD0, 0x70,
+    0xF1, 0x70, 0x17, 0xC2, 0xC2, 0x8C, 0x9F, 0x05, 0x79, 0xCD, 0xC8,
+    0x72, 0x55, 0xFE, 0xAB, 0x80, 0x6F, 0x40, 0x5A, 0x6E, 0x64, 0x37,
+    0x14, 0x7F, 0x8B, 0xF9, 0xD7, 0xEB, 0xA4, 0x5D, 0x9E, 0x57, 0x85,
+    0xFF, 0x0F, 0xE5, 0xC6, 0x73, 0x4F, 0x17, 0x19, 0x96, 0x31, 0x3A,
+    0xD1, 0xE1, 0x4E, 0xA8, 0xF9, 0x56, 0xD4, 0xBA, 0x4D};
+
+// msg=aac, size=3
+const G1ElemStr EcGroupTest::kAacHash = {
+    0xAF, 0x5C, 0xBC, 0xD4, 0x88, 0x18, 0xD0, 0x35, 0xBD, 0xE0, 0x2F,
+    0x77, 0x8B, 0x76, 0x52, 0x78, 0x92, 0x66, 0x36, 0x3A, 0x72, 0x15,
+    0x20, 0x84, 0xE7, 0x1E, 0xFE, 0x94, 0x77, 0xFD, 0x83, 0x08, 0xEF,
+    0x4B, 0x6B, 0xDE, 0x24, 0xD8, 0x42, 0x34, 0x88, 0xB8, 0x87, 0x4A,
+    0xA8, 0x5D, 0x5A, 0xC1, 0x82, 0xFF, 0xE5, 0x25, 0xD7, 0x20, 0x2D,
+    0x99, 0x49, 0xFE, 0x72, 0x34, 0xAA, 0xC9, 0xD2, 0xAA};
+
 ///////////////////////////////////////////////////////////////////////
 // NewEcGroup
 TEST_F(EcGroupTest, NewFailsGivenArgumentsMismatch) {
@@ -1138,6 +1219,292 @@ TEST_F(EcGroupTest, MultiExpWorksGivenTwoG2Exponents) {
   EXPECT_EQ(this->efq2_multiexp_abxy_str, efq2_r_str);
 }
 ///////////////////////////////////////////////////////////////////////
+// EcMultiExpBn
+TEST_F(EcGroupTest, MultiExpBnFailsGivenArgumentsMismatch) {
+  EcPoint const* pts_ec1[] = {this->efq_a, this->efq_b};
+  EcPoint const* pts_ec2[] = {this->efq2_a, this->efq2_b};
+  EcPoint const* pts_ec1_ec2[] = {this->efq_a, this->efq2_b};
+  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
+                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
+                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
+                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
+  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
+                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
+                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
+                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
+  BigNumObj bno0(bnm0);
+  BigNumObj bno1(bnm1);
+  BigNum const* b[] = {bno0, bno1};
+  size_t m = 2;
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq2, pts_ec1, b, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts_ec2, b, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts_ec1, b, m, this->efq2_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts_ec1_ec2, b, m, this->efq_r));
+}
+TEST_F(EcGroupTest, MultiExpBnFailsGivenNullPointer) {
+  EcPoint const* pts[] = {this->efq_a, this->efq_b};
+  EcPoint const* pts_withnull[] = {nullptr, this->efq_b};
+  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
+                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
+                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
+                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
+  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
+                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
+                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
+                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
+  BigNumObj bno0(bnm0);
+  BigNumObj bno1(bnm1);
+  BigNum const* b[] = {bno0, bno1};
+  BigNum const* b_withnull[] = {nullptr, bno1};
+  size_t m = 2;
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(nullptr, pts, b, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, nullptr, b, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts, nullptr, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b, m, nullptr));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts_withnull, b, m, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts, b_withnull, m, this->efq_r));
+}
+TEST_F(EcGroupTest, MultiExpBnFailsGivenIncorrectMLen) {
+  EcPoint const* pts[] = {this->efq_a, this->efq_b};
+  const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3, 0x6B,
+                           0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27, 0xFF, 0xB8,
+                           0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF, 0xF2, 0x6A, 0xFF,
+                           0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
+  const BigNumStr bnm1 = {{0xE2, 0xFF, 0x03, 0x1D, 0xFF, 0x19, 0x81, 0xCB, 0xFF,
+                           0xFF, 0x6B, 0xD5, 0x3E, 0xFF, 0xFF, 0xFF, 0xFF, 0xBD,
+                           0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF, 0x84, 0xFF, 0xFF,
+                           0x8C, 0x03, 0xB2, 0x26, 0xFF}};
+  BigNumObj bno0(bnm0);
+  BigNumObj bno1(bnm1);
+  BigNum const* b[] = {bno0, bno1};
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b, 0, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts, b, std::numeric_limits<size_t>::max(),
+                         this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcMultiExpBn(this->efq, pts, b, (size_t)INT_MAX + 1, this->efq_r));
+}
+TEST_F(EcGroupTest, MultiExpBnFailsGivenOutOfRangeExponent) {
+  EcPoint const* pt[] = {this->efq_a};
+  BigNumObj bno_p(this->p);
+  BigNum const* b[] = {bno_p};
+  EcPoint const* pts[] = {this->efq_a, this->efq_b};
+  const BigNumStr bnm_1 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
+                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
+                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
+                            0xF2, 0x6A, 0xFF, 0xFF, 0xEA, 0x31, 0xFF, 0xFF}};
+  BigNumObj bno_1(bnm_1);
+  BigNum const* b_1[] = {bno_1, bno_p};
+  BigNum const* b_2[] = {bno_p, bno_1};
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pt, b, 1, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b_1, 2, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b_2, 2, this->efq_r));
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenOneZeroExponent) {
+  G1ElemStr efq_r_str;
+  BigNumStr zero_bn_str = {0};
+  EcPoint const* pts[] = {this->efq_a};
+  BigNumObj bno_zero(zero_bn_str);
+  BigNum const* b[] = {bno_zero};
+  size_t m = 1;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq, pts, b, m, this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_identity_str, efq_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoZeroExponents) {
+  G1ElemStr efq_r_str;
+  BigNumStr zero_bn_str = {0};
+  EcPoint const* pts[] = {this->efq_a, this->efq_a};
+  BigNumObj bno_zero0(zero_bn_str);
+  BigNumObj bno_zero1(zero_bn_str);
+  BigNum const* b[] = {bno_zero0, bno_zero1};
+  size_t m = 2;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq, pts, b, m, this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_identity_str, efq_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenSixZeroExponents) {
+  G1ElemStr efq_r_str;
+  BigNumStr zero_bn_str = {0};
+  EcPoint const* pts[] = {this->efq_a, this->efq_a, this->efq_a,
+                          this->efq_a, this->efq_a, this->efq_a};
+  BigNumObj bno_zero0(zero_bn_str);
+  BigNumObj bno_zero1(zero_bn_str);
+  BigNumObj bno_zero2(zero_bn_str);
+  BigNumObj bno_zero3(zero_bn_str);
+  BigNumObj bno_zero4(zero_bn_str);
+  BigNumObj bno_zero5(zero_bn_str);
+  BigNum const* b[] = {bno_zero0, bno_zero1, bno_zero2,
+                       bno_zero3, bno_zero4, bno_zero5};
+  size_t m = 6;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq, pts, b, m, this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_identity_str, efq_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenOneG2ZeroExponent) {
+  G2ElemStr efq2_r_str;
+  BigNumStr zero_bn_str = {0};
+  EcPoint const* pts[] = {this->efq2_a};
+  BigNumObj bno_zero(zero_bn_str);
+  BigNum const* b[] = {bno_zero};
+  size_t m = 1;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  EXPECT_EQ(this->efq2_identity_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoG2ZeroExponents) {
+  G2ElemStr efq2_r_str;
+  BigNumStr zero_bn_str = {0};
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_a};
+  BigNumObj bno_zero0(zero_bn_str);
+  BigNumObj bno_zero1(zero_bn_str);
+  BigNum const* b[] = {bno_zero0, bno_zero1};
+  size_t m = 2;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  EXPECT_EQ(this->efq2_identity_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenSixG2ZeroExponents) {
+  G2ElemStr efq2_r_str;
+  BigNumStr zero_bn_str = {0};
+  BigNumObj bno_zero0(zero_bn_str);
+  BigNumObj bno_zero1(zero_bn_str);
+  BigNumObj bno_zero2(zero_bn_str);
+  BigNumObj bno_zero3(zero_bn_str);
+  BigNumObj bno_zero4(zero_bn_str);
+  BigNumObj bno_zero5(zero_bn_str);
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_a, this->efq2_a,
+                          this->efq2_a, this->efq2_a, this->efq2_a};
+  BigNum const* b[] = {bno_zero0, bno_zero1, bno_zero2,
+                       bno_zero3, bno_zero4, bno_zero5};
+  size_t m = 6;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  EXPECT_EQ(this->efq2_identity_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenOneExponent) {
+  G1ElemStr efq_r_str;
+  EcPoint const* pts[] = {this->efq_a};
+  BigNumObj bno_x(this->x_str);
+  BigNum const* b[] = {bno_x};
+  size_t m = 1;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq, pts, b, m, this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_exp_ax_str, efq_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoExponents) {
+  G1ElemStr efq_r_str;
+  EcPoint const* pts[] = {this->efq_a, this->efq_b};
+  BigNumObj bno_x(this->x_str);
+  BigNumObj bno_y(this->y_str);
+  BigNum const* b[] = {bno_x, bno_y};
+  size_t m = 2;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq, pts, b, m, this->efq_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
+  EXPECT_EQ(this->efq_multiexp_abxy_str, efq_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenOneG2Exponent) {
+  G2ElemStr efq2_r_str;
+  EcPoint const* pts[] = {this->efq2_a};
+  BigNumObj bno_x(this->x_str);
+  BigNum const* b[] = {bno_x};
+  size_t m = 1;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  EXPECT_EQ(this->efq2_exp_ax_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoG2Exponents) {
+  G2ElemStr efq2_r_str;
+  EcPoint const* pts[] = {this->efq2_a, this->efq2_b};
+  BigNumObj bno_x(this->x_str);
+  BigNumObj bno_y(this->y_str);
+  BigNum const* b[] = {bno_x, bno_y};
+  size_t m = 2;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->efq2, pts, b, m, this->efq2_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->efq2, this->efq2_r, &efq2_r_str, sizeof(efq2_r_str)));
+  EXPECT_EQ(this->efq2_multiexp_abxy_str, efq2_r_str);
+}
+TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoDifferentSizeG3Exponents) {
+  const G1ElemStr g3_b_str = {
+      {{{
+          0x09, 0x0d, 0x6f, 0x82, 0x77, 0x88, 0x49, 0x53, 0xba, 0x1e, 0x1b,
+          0x0e, 0x5e, 0xae, 0xc0, 0x27, 0xad, 0xe3, 0xb1, 0x09, 0x4f, 0xcd,
+          0xb6, 0xe6, 0x6f, 0x7f, 0xa3, 0x1a, 0x1e, 0xfb, 0x52, 0x72,
+      }}},
+      {{{
+          0xfa, 0x85, 0x0f, 0x5c, 0x97, 0x61, 0xbf, 0x46, 0x7e, 0xec, 0xd6,
+          0x64, 0xda, 0xa9, 0x8e, 0xf5, 0xd3, 0xdf, 0xfa, 0x13, 0x5a, 0xb2,
+          0x3e, 0xeb, 0x0a, 0x9d, 0x02, 0xc0, 0x33, 0xec, 0x2a, 0x70,
+      }}}};
+  const G1ElemStr g3_k_str = {
+      {{{
+          0x41, 0xb7, 0xa4, 0xc8, 0x43, 0x3f, 0x0b, 0xc2, 0x80, 0x31, 0xbe,
+          0x75, 0x65, 0xe9, 0xbb, 0x81, 0x73, 0x5b, 0x91, 0x4f, 0x3f, 0xd7,
+          0xbe, 0xb5, 0x19, 0x56, 0x3f, 0x18, 0x95, 0xea, 0xc1, 0xd7,
+      }}},
+      {{{
+          0xa4, 0x5e, 0xb9, 0x86, 0xfc, 0xe5, 0xc4, 0x0f, 0x54, 0x37, 0xab,
+          0xed, 0x59, 0x20, 0xce, 0x67, 0x68, 0x3c, 0x25, 0x4d, 0xbc, 0x5f,
+          0x6a, 0x4d, 0x5a, 0xa7, 0x93, 0xce, 0x90, 0x2d, 0x3e, 0x5a,
+      }}}};
+  EcPointObj B(&this->epid11_G3, g3_b_str);
+  EcPointObj K(&this->epid11_G3, g3_k_str);
+  EcPoint const* pts[] = {B, K};
+  const std::vector<uint8_t> bnm_sf_str = {
+      0x00, 0x3c, 0xc1, 0x73, 0x35, 0x3c, 0x99, 0x61, 0xb0, 0x80, 0x9a,
+      0x0e, 0x8d, 0xbf, 0x5d, 0x0b, 0xa9, 0x18, 0x2b, 0x36, 0x3c, 0x06,
+      0xbc, 0x1c, 0xc7, 0x9f, 0x76, 0xba, 0x5a, 0x26, 0xcd, 0x5e, 0x24,
+      0xb9, 0x68, 0xde, 0x47, 0x72, 0xf9, 0xf9, 0x1e, 0xaa, 0x74, 0x17,
+      0x31, 0xe4, 0x66, 0x59, 0x69, 0xe5, 0x9e, 0x27, 0x1d, 0x57, 0xe5,
+      0x39, 0x57, 0xd4, 0xc5, 0x78, 0xf2, 0x77, 0x5c, 0x9f, 0x6c, 0xfe,
+      0x12, 0x00, 0xa8, 0xe0, 0xd3, 0x81, 0x38, 0xaa, 0x5a};
+  const BigNumStr bnm_nc_tick_str = {{{
+      0xcd, 0x2e, 0xe8, 0xf4, 0x85, 0x95, 0x04, 0x09, 0xbd, 0xa4, 0xfa, 0x07,
+      0xe3, 0x1c, 0xb9, 0x5a, 0x82, 0x73, 0xa6, 0xea, 0x47, 0x5c, 0x31, 0x74,
+      0x3c, 0x0a, 0xeb, 0x62, 0x94, 0x2f, 0x7b, 0x10,
+  }}};
+  BigNumObj bno_sf(bnm_sf_str);
+  // In order to callculate exp sf data should be devided by group order
+  THROW_ON_EPIDERR(BigNumMod(bno_sf, epid11_p_tick, bno_sf));
+  BigNumObj bno_nc_tick(bnm_nc_tick_str);
+  BigNum const* b[] = {bno_sf, bno_nc_tick};
+  EcPointObj R3 = EcPointObj(&this->epid11_G3);
+  const std::vector<uint8_t> expected_r_str = {
+      // X
+      0x1E, 0xDF, 0x9E, 0xA5, 0xF5, 0xED, 0xB3, 0x3F, 0xCC, 0x83, 0x10, 0x5E,
+      0x3E, 0xB7, 0xE5, 0x06, 0x5F, 0x19, 0xF9, 0xFD, 0xE9, 0x57, 0x0B, 0x31,
+      0xC8, 0xDA, 0x0A, 0x7B, 0xCD, 0xB5, 0xAA, 0x2E,
+      // Y
+      0x6A, 0x6B, 0x5A, 0x8D, 0x48, 0x5F, 0x2F, 0x72, 0x77, 0x93, 0xD6, 0xD0,
+      0x49, 0xE1, 0x84, 0x35, 0x98, 0xF1, 0xDE, 0x71, 0xC5, 0xF4, 0x40, 0xFB,
+      0x1C, 0x75, 0x83, 0xD7, 0x4F, 0x58, 0x0A, 0x8D};
+  std::vector<uint8_t> g3_r_str;
+  g3_r_str.resize(expected_r_str.size(), 0);
+  size_t m = 2;
+  EXPECT_EQ(kEpidNoErr, EcMultiExpBn(this->epid11_G3, pts, b, m, R3));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->epid11_G3, R3, g3_r_str.data(), g3_r_str.size()));
+  EXPECT_EQ(g3_r_str, expected_r_str);
+}
+///////////////////////////////////////////////////////////////////////
 // EcSscmMultiExp
 TEST_F(EcGroupTest, SscmMultiExpFailsGivenArgumentsMismatch) {
   EcPoint const* pts_ec1[] = {this->efq_a, this->efq_b};
@@ -1459,7 +1826,8 @@ TEST_F(EcGroupTest, HashFailsGivenUnsupportedHashAlg) {
 }
 TEST_F(EcGroupTest, HashFailsGivenIncorrectMsgLen) {
   uint8_t const msg[] = {0};
-  EXPECT_EQ(kEpidBadArgErr, EcHash(this->efq, msg, 0, kSha256, this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            EcHash(this->efq, nullptr, 1, kSha256, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
             EcHash(this->efq, msg, std::numeric_limits<size_t>::max(), kSha256,
                    this->efq_r));
@@ -1469,6 +1837,9 @@ TEST_F(EcGroupTest, HashFailsGivenIncorrectMsgLen) {
   EXPECT_EQ(kEpidBadArgErr,
             EcHash(this->efq, msg, (size_t)0x100000001, kSha256, this->efq_r));
 #endif
+}
+TEST_F(EcGroupTest, HashAcceptsZeroLengthMessage) {
+  EXPECT_EQ(kEpidNoErr, EcHash(this->efq, "", 0, kSha256, this->efq_r));
 }
 TEST_F(EcGroupTest, HashWorksGivenSHA256HashAlg) {
   G1ElemStr efq_r_str;
@@ -1493,6 +1864,75 @@ TEST_F(EcGroupTest, HashWorksGivenSHA512HashAlg) {
   THROW_ON_EPIDERR(
       WriteEcPoint(this->efq, this->efq_r, &efq_r_str, sizeof(efq_r_str)));
   EXPECT_EQ(this->efq_r_sha512_str, efq_r_str);
+}
+///////////////////////////////////////////////////////////////////////
+// 1.1 EcHash
+TEST_F(EcGroupTest, Epid11HashFailsGivenMismatchedArguments) {
+  uint8_t const msg[] = {0};
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->efq2, msg, sizeof(msg), this->efq_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->efq, msg, sizeof(msg), this->efq2_r));
+}
+TEST_F(EcGroupTest, Epid11HashFailsGivenNullPointer) {
+  uint8_t const msg[] = {0};
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(nullptr, msg, sizeof(msg), this->epid11_G3_r));
+  EXPECT_EQ(kEpidBadArgErr, Epid11EcHash(this->epid11_G3, nullptr, sizeof(msg),
+                                         this->epid11_G3_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->epid11_G3, msg, sizeof(msg), nullptr));
+}
+TEST_F(EcGroupTest, Epid11HashFailsGivenInvalidMsgLen) {
+  uint8_t const msg[] = {0};
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->epid11_G3, nullptr, 1, this->epid11_G3_r));
+  EXPECT_EQ(kEpidBadArgErr, Epid11EcHash(this->epid11_G3, msg,
+                                         std::numeric_limits<size_t>::max(),
+                                         this->epid11_G3_r));
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->epid11_G3, msg, (size_t)INT_MAX + 1,
+                         this->epid11_G3_r));
+#if (SIZE_MAX >= 0x100000001)  // When size_t value allowed to be 0x100000001
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11EcHash(this->epid11_G3, msg, (size_t)0x100000001,
+                         this->epid11_G3_r));
+#endif
+}
+TEST_F(EcGroupTest, Epid11HashAcceptsZeroLengthMessage) {
+  EXPECT_EQ(kEpidNoErr,
+            Epid11EcHash(this->epid11_G3, "", 0, this->epid11_G3_r));
+}
+TEST_F(EcGroupTest, Epid11HashWorksGivenValidParameters) {
+  Epid11G3ElemStr r_str;
+
+  uint8_t const msg0[] = {'a', 'a', 'd'};
+  EXPECT_EQ(kEpidNoErr, Epid11EcHash(this->epid11_G3, msg0, sizeof(msg0),
+                                     this->epid11_G3_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->epid11_G3, this->epid11_G3_r, &r_str, sizeof(r_str)));
+  EXPECT_EQ(this->kAadHash, r_str);
+
+  uint8_t const msg1[] = {'b', 's', 'n', '0'};
+  EXPECT_EQ(kEpidNoErr, Epid11EcHash(this->epid11_G3, msg1, sizeof(msg1),
+                                     this->epid11_G3_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->epid11_G3, this->epid11_G3_r, &r_str, sizeof(r_str)));
+  EXPECT_EQ(this->kBsn0Hash, r_str);
+
+  uint8_t const msg2[] = {'t', 'e', 's', 't'};
+  EXPECT_EQ(kEpidNoErr, Epid11EcHash(this->epid11_G3, msg2, sizeof(msg2),
+                                     this->epid11_G3_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->epid11_G3, this->epid11_G3_r, &r_str, sizeof(r_str)));
+  EXPECT_EQ(this->kTestHash, r_str);
+
+  uint8_t const msg3[] = {'a', 'a', 'c'};
+  EXPECT_EQ(kEpidNoErr, Epid11EcHash(this->epid11_G3, msg3, sizeof(msg3),
+                                     this->epid11_G3_r));
+  THROW_ON_EPIDERR(
+      WriteEcPoint(this->epid11_G3, this->epid11_G3_r, &r_str, sizeof(r_str)));
+  EXPECT_EQ(this->kAacHash, r_str);
 }
 ///////////////////////////////////////////////////////////////////////
 // EcMakePoint

@@ -55,6 +55,19 @@ bool FileExists(char const* filename);
 */
 size_t GetFileSize(char const* filename);
 
+/// Get file size
+/*!
+  checks the size against an expected maximum size.
+  \param[in] filename
+
+  The file path.
+  \param[in] max_size
+
+  the maximum expected size of the file.
+  \returns size of the file in bytes
+*/
+size_t GetFileSize_S(char const* filename, size_t max_size);
+
 /// Allocate a buffer of a fixed size
 /*!
   Logs an error message on failure.

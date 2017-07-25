@@ -27,6 +27,7 @@
 extern "C" {
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/finitefield.h"
+#include "epid/common/1.1/types.h"
 }
 
 class FiniteFieldObj;
@@ -51,6 +52,8 @@ class FfElementObj {
   FfElementObj(FiniteFieldObj* ff, FqElemStr const& bytes);
   /// Create a FfElement
   FfElementObj(FiniteFieldObj* ff, Fq2ElemStr const& bytes);
+  /// Create a FfElement
+  FfElementObj(FiniteFieldObj* ff, Fq3ElemStr const& bytes);
   /// Create a FfElement
   FfElementObj(FiniteFieldObj* ff, Fq6ElemStr const& bytes);
   /// Create a FfElement

@@ -42,7 +42,7 @@
 /*!
 
   Uses Elliptic Curve Digital Signature Algorithm (ECDSA) to verify
-  that the SHA256 hash of the input buffer was signed with the
+  that the SHA-256 hash of the input buffer was signed with the
   private key corresponding to the provided public key.
 
   The operation is over the standard secp256r1 curve.
@@ -77,7 +77,7 @@ EpidStatus EcdsaVerifyBuffer(void const* buf, size_t buf_len,
 /*!
 
   Uses Elliptic Curve Digital Signature Algorithm (ECDSA) to generate
-  a signature of the SHA256 hash of the input buffer with the provided
+  a signature of the SHA-256 hash of the input buffer with the provided
   private key.
 
   The operation is over the standard secp256r1 curve.

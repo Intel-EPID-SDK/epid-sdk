@@ -1,5 +1,6 @@
 var group___file_parser =
 [
+    [ "EPID 1.1 support", "group___epid11_file_parser_module.html", "group___epid11_file_parser_module" ],
     [ "EpidFileHeader", "struct_epid_file_header.html", [
       [ "epid_version", "struct_epid_file_header.html#a35d43c51c1739940381e4898ca87b824", null ],
       [ "file_type", "struct_epid_file_header.html#af5d48c739cc6c00c6e1ce35abf4f1473", null ]
@@ -26,9 +27,16 @@ var group___file_parser =
       [ "kGroupRlRequestFile", "group___file_parser.html#gga9a33be7edc6b4c7a867fb07bd2bddecbab772fa1e3f221af125ffb34b86b3f24c", null ],
       [ "kNumFileTypes", "group___file_parser.html#gga9a33be7edc6b4c7a867fb07bd2bddecbac6d742ea3dd3b17f6d763970ac84b811", null ]
     ] ],
+    [ "EpidVersion", "group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d", [
+      [ "kEpid1x", "group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da5f270e2e8c2412bc07de293023f425cc", null ],
+      [ "kEpid2x", "group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da6af0ee9d9689f1d4325bdd0beb8a89e2", null ],
+      [ "kNumEpidVersions", "group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da8bbd27765997dd10f1c0378dbecef01d", null ]
+    ] ],
+    [ "EpidParseFileHeader", "group___file_parser.html#ga8e38d1102eb1dd9b5af2e2f79236da55", null ],
     [ "EpidParseGroupPubKeyFile", "group___file_parser.html#ga43fdbc1bf2edd3695d21cb457365afbb", null ],
     [ "EpidParseGroupRlFile", "group___file_parser.html#gad767f72dc55307b872a8b5600da3fd6f", null ],
     [ "EpidParsePrivRlFile", "group___file_parser.html#gadc033fb23e3cbda56aa7e3d412060b7e", null ],
     [ "EpidParseSigRlFile", "group___file_parser.html#ga237ef5a43076aa6fc6eb18829a93da3f", null ],
-    [ "kEpidFileTypeCode", "group___file_parser.html#ga3770c39a0546c79447c9d4159d794c33", null ]
+    [ "kEpidFileTypeCode", "group___file_parser.html#ga3770c39a0546c79447c9d4159d794c33", null ],
+    [ "kEpidVersionCode", "group___file_parser.html#gaae808987ce82188dff42baa4e43cab82", null ]
 ];

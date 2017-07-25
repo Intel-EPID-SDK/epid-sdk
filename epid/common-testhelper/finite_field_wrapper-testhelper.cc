@@ -42,8 +42,6 @@ struct FiniteFieldObj::State {
   struct InnerState {
     /// The ground field
     FiniteFieldObj gf_;
-    /// The ground element
-    FfElementObj ge_;
   };
   /// Inner state
   /*!
@@ -81,11 +79,10 @@ struct FiniteFieldObj::State {
   }
 
   /// setter for inner_state
-  void SetInnerState(FiniteFieldObj const& gf, FfElementObj const& ge) {
+  void SetInnerState(FiniteFieldObj const& gf) {
     if (!inner_state) {
       inner_state = new InnerState;
       inner_state->gf_ = gf;
-      inner_state->ge_ = ge;
     }
   }
 
@@ -97,7 +94,6 @@ struct FiniteFieldObj::State {
       }
       if (!inner_state) {
         inner_state->gf_ = state->gf_;
-        inner_state->ge_ = state->ge_;
       }
     } else {
       if (inner_state) {
@@ -148,9 +144,20 @@ FiniteFieldObj::FiniteFieldObj(FiniteFieldObj const& ground_field,
                                FfElementObj const& ground_element, int degree)
     : state_(new State) {
   FiniteField* temp = nullptr;
-  state_->SetInnerState(ground_field, ground_element);
+  state_->SetInnerState(ground_field);
   NewFiniteFieldViaBinomalExtension(ground_field, ground_element, degree,
                                     &temp);
+  state_->ff_.reset(temp, finite_field_deleter);
+  state_->size_ = ground_field.GetElementMaxSize() * degree;
+}
+
+FiniteFieldObj::FiniteFieldObj(FiniteFieldObj const& ground_field,
+                               BigNumStr const* irr_polynomial, int degree)
+    : state_(new State) {
+  FiniteField* temp = nullptr;
+  state_->SetInnerState(ground_field);
+  NewFiniteFieldViaPolynomialExtension(ground_field, irr_polynomial, degree,
+                                       &temp);
   state_->ff_.reset(temp, finite_field_deleter);
   state_->size_ = ground_field.GetElementMaxSize() * degree;
 }

@@ -83,7 +83,7 @@ TEST_F(EpidMemberTest, GetSigSizeReturnsCorrectValueGivenValidSigRl) {
 TEST_F(EpidMemberTest,
        GetSigSizeReturnsCorrectValueGivenValidSigRlUsingIKGFData) {
   const std::vector<uint8_t> sigrl_bin = {
-#include "epid/common/testdata/ikgf/groupa/sigrl.inc"
+#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl.inc"
   };
 
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(sigrl_bin.data());

@@ -16,7 +16,7 @@
 
 /*!
  * \file
- * \brief Intel(R) EPID parameters C++ wrapper interface.
+ * \brief Intel(R) EPID 2.0 parameters C++ wrapper interface.
  */
 #ifndef EPID_COMMON_TESTHELPER_EPID_PARAMS_TESTHELPER_H_
 #define EPID_COMMON_TESTHELPER_EPID_PARAMS_TESTHELPER_H_

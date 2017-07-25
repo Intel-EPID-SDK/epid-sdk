@@ -34,7 +34,7 @@ extern "C" {
 /// Macro used to indicate fatal error during unit test run
 #define THROW_ON_EPIDERR(actual)                                       \
   if (kEpidNoErr != actual) {                                          \
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");        \
+    printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect");  \
     throw std::logic_error(std::string("Failed to call: ") + #actual); \
   }
 

@@ -41,10 +41,10 @@ typedef enum {
   kEpidNoErr = 0,                   //!< no error
   kEpidSigValid = 0,                //!< Signature is valid
   kEpidSigInvalid = 1,              //!< Signature is invalid
-  kEpidSigRevokedinGroupRl = 2,     //!< Signature revoked in GroupRl
-  kEpidSigRevokedinPrivRl = 3,      //!< Signature revoked in PrivRl
-  kEpidSigRevokedinSigRl = 4,       //!< Signature revoked in SigRl
-  kEpidSigRevokedinVerifierRl = 5,  //!< Signature revoked in VerifierRl
+  kEpidSigRevokedInGroupRl = 2,     //!< Signature revoked in GroupRl
+  kEpidSigRevokedInPrivRl = 3,      //!< Signature revoked in PrivRl
+  kEpidSigRevokedInSigRl = 4,       //!< Signature revoked in SigRl
+  kEpidSigRevokedInVerifierRl = 5,  //!< Signature revoked in VerifierRl
   kEpidErr = -999,                  //!< unspecified error
   kEpidNotImpl,                     //!< not implemented error
   kEpidBadArgErr,                   //!< incorrect arg to function
@@ -56,6 +56,8 @@ typedef enum {
   kEpidHashAlgorithmNotSupported,  //!< unsupported hash algorithm type
   kEpidRandMaxIterErr,  //!< reached max iteration for random number generation
   kEpidDuplicateErr,    //!< argument would add duplicate entry
+  kEpidInconsistentBasenameSetErr,    //!< set basename conflicts with arguments
+  kEpidMathQuadraticNonResidueError,  //!< quadratic Non-Residue Error
 } EpidStatus;
 
 /// Returns string representation of error code.

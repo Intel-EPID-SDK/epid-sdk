@@ -3758,6 +3758,9 @@ class TestNameIs {
     // used.
     bool res = false;
     res = &TestNameIs::operator();
+    // The line below is to avoid ICPC warning #177: this class constructor
+    // never used.
+    TestNameIs t("");
     return test_info && test_info->name() == name_;
   }
 

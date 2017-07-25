@@ -29,21 +29,21 @@ print '* Parts  Version:', PartsExtensionVersion()
 print "***************************************"
 
 def PrintCompilerVersion(env):
-  """
-  Function to print version of compilers used for build
-  Args:
-    env: Environment to get compilers version
-  """
-  res = ''
-  if 'INTELC_VERSION' in env:
-    res += 'ICC ' +  env['INTELC_VERSION'] + ';'
-  if 'MSVC_VERSION' in env:
-    res += 'MS ' + env['MSVC_VERSION'] + ';'
-  if 'GXX_VERSION' in env:
-    res += 'GXX ' + env['GXX_VERSION'] + ';'
-  if 'GCC_VERSION' in env:
-    res += 'GCC ' + env['GCC_VERSION'] + ';'
-  print 'Compiler Version: ', res
+    """
+    Function to print version of compilers used for build
+    Args:
+      env: Environment to get compilers version
+    """
+    res = ''
+    if 'INTELC_VERSION' in env:
+        res += 'ICC ' +  env['INTELC_VERSION'] + ';'
+    if 'MSVC_VERSION' in env:
+        res += 'MS ' + env['MSVC_VERSION'] + ';'
+    if 'GXX_VERSION' in env:
+        res += 'GXX ' + env['GXX_VERSION'] + ';'
+    if 'GCC_VERSION' in env:
+        res += 'GCC ' + env['GCC_VERSION'] + ';'
+    print 'Compiler Version: ', res
 
 def include_parts(part_list, **kwargs):
     for parts_file in part_list:
@@ -60,24 +60,33 @@ common_parts = ['epid/common/common.parts']
 member_parts = ['epid/member/member.parts']
 verifier_parts = ['epid/verifier/verifier.parts']
 util_parts = ['example/util/util.parts']
-example_parts = ['example/verifysig/verifysig.parts',
+example_parts = ['ext/dropt/dropt.parts',
+                 'example/verifysig/verifysig.parts',
                  'example/signmsg/signmsg.parts',
-                 'example/data/data.parts']
-example_test_parts = ['test/testbot/testbot.parts',
+                 'example/data/data.parts',
+                 'example/compressed_data/compressed_data.parts']
+tools_parts = ['tools/revokegrp/revokegrp.parts',
+               'tools/revokekey/revokekey.parts',
+               'tools/revokesig/revokesig.parts',
+               'tools/extractkeys/extractkeys.parts',
+               'tools/extractgrps/extractgrps.parts']
+testbot_test_parts = ['test/testbot/testbot.parts',
                       'test/testbot/signmsg/signmsg_testbot.parts',
                       'test/testbot/verifysig/verifysig_testbot.parts',
-                      'test/testbot/integration/integration_testbot.parts']
+                      'test/testbot/integration/integration_testbot.parts',
+                      'test/testbot/ssh_remote/ssh_remote_testbot.parts',
+                      'test/testbot/revokegrp/revokegrp_testbot.parts',
+                      'test/testbot/revokekey/revokekey_testbot.parts',
+                      'test/testbot/revokesig/revokesig_testbot.parts',
+                      'test/testbot/extractkeys/extractkeys_testbot.parts',
+                      'test/testbot/extractgrps/extractgrps_testbot.parts']
 package_parts = ['ext/gtest/gtest.parts',
                  'ext/ipp/ippcommon.parts',
                  'ext/ipp/ippcp.parts',
                  'ext/ipp/ippcpepid.parts',
                  'package.parts']
-internal_tools_parts = ['tools/ikgfwrapper/ikgfwrapper.parts',
-                        'tools/revokegrp/revokegrp.parts',
-                        'tools/revokekey/revokekey.parts',
-                        'tools/revokesig/revokesig.parts',
-                        'tools/extractkeys/extractkeys.parts',
-                        'tools/extractgrps/extractgrps.parts']
+internal_tools_parts = ['ext/dropt/dropt.parts',
+                        'tools/ikgfwrapper/ikgfwrapper.parts']
 ######## End Part groups ###############################################
 ######## Commandline option setup #######################################
 product_variants = [
@@ -101,6 +110,9 @@ def is_internal_tools():
 def is_package():
     return GetOption("product-variant") == 'package-epid-sdk'
 
+def use_commercial_ipp():
+    return GetOption("use-commercial-ipp")
+
 def variant_dirname():
     s = GetOption("product-variant")
     if s == 'production':
@@ -117,6 +129,12 @@ AddOption("--product-variant", "--prod-var", nargs=1,
                                        default_variant),
           action='store', dest='product-variant', type='choice',
           choices=product_variants, default=default_variant)
+
+AddOption("--use-commercial-ipp",
+          help=("Link with commercial IPP. The IPPROOT environment variable "
+                "must be set."),
+          action='store_true', dest='use-commercial-ipp',
+          default=False)
 
 SetOptionDefault("PRODUCT_VARIANT", variant_dirname())
 
@@ -156,6 +174,9 @@ def set_default_production_options():
     SetOptionDefault('INSTALL_SAMPLE_DATA',
                      '$INSTALL_ROOT/example')
 
+    SetOptionDefault('INSTALL_TOOLS_DATA',
+                     '$INSTALL_ROOT/tools')
+
     SetOptionDefault('PACKAGE_DIR',
                      '#_package')
 
@@ -170,7 +191,10 @@ def set_default_production_options():
 
 if is_production():
     set_default_production_options()
-    include_parts(ipp_parts, mode=['install_lib'],
+    ipp_mode = ['install_lib']
+    if use_commercial_ipp():
+        ipp_mode.append('use_commercial_ipp')
+    include_parts(ipp_parts, mode=ipp_mode,
                   INSTALL_INCLUDE='${INSTALL_IPP_INCLUDE}')
     include_parts(utest_parts + common_parts +
                   member_parts + verifier_parts,
@@ -180,6 +204,9 @@ if is_production():
                   INSTALL_INCLUDE='${INSTALL_EPID_INCLUDE}',
                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
                   INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
+    include_parts(tools_parts,
+                  INSTALL_BIN='${INSTALL_TOOLS_BIN}',
+                  INSTALL_DATA='${INSTALL_TOOLS_DATA}')
     PrintCompilerVersion(DefaultEnvironment())
     Default('all')
     Default('run_utest::')
@@ -192,15 +219,15 @@ if is_internal_test():
     include_parts(util_parts + example_parts,
                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
                   INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
-    include_parts(example_test_parts)
+    include_parts(tools_parts, INSTALL_BIN='${INSTALL_TOOLS_BIN}')
+    include_parts(testbot_test_parts)
     Default('all')
 
 if is_internal_tools():
     set_default_production_options()
     include_parts(ipp_parts + utest_parts + common_parts + util_parts)
     include_parts(internal_tools_parts, INSTALL_BIN='${INSTALL_TOOLS_BIN}')
-    Default('ikgfwrapper', 'revokegrp', 'revokekey', 'revokesig',
-            'extractkeys', 'extractgrps')
+    Default('ikgfwrapper')
 
 if is_package():
     set_default_production_options()

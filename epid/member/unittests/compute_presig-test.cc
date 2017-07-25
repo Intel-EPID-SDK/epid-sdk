@@ -23,7 +23,7 @@
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/context.h"
+#include "epid/member/src/context.h"
 }
 
 #include "epid/member/unittests/member-testhelper.h"
@@ -37,8 +37,8 @@ namespace {
 
 TEST_F(EpidMemberTest, ComputePreSigFailsGivenNullPointer) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   PreComputedSignature presig;
   EXPECT_EQ(kEpidBadArgErr, EpidComputePreSig(nullptr, &presig));
@@ -53,8 +53,8 @@ TEST_F(EpidMemberTest,
         0xF6, 0x2D, 0x53, 0x6C, 0xD1, 0x0B, 0x50, 0x0D}}};
 
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   PreComputedSignature presig;
   EXPECT_EQ(kEpidNoErr, EpidComputePreSig(member, &presig));

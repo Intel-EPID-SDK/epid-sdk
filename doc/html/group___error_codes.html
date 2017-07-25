@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,11 +74,11 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> = 0, 
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab45ad60085d03c03ea30b40a0519897e">kEpidSigValid</a> = 0, 
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360aeedd19b8a1cbdecf963f90b4860e02b8">kEpidSigInvalid</a> = 1, 
-<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a2b38f44424cecd7b432194a2012dc9c7">kEpidSigRevokedinGroupRl</a> = 2, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360aedd43fb4043bef3b515fc23f1d9a5fe5">kEpidSigRevokedInGroupRl</a> = 2, 
 <br />
-&#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a780a20821863553b88ca617a6fc0f718">kEpidSigRevokedinPrivRl</a> = 3, 
-<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360aff83186b61d48f9fee5f691c5b219bc1">kEpidSigRevokedinSigRl</a> = 4, 
-<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360addbba767bb884b4459a567056b4d3f86">kEpidSigRevokedinVerifierRl</a> = 5, 
+&#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a1dc7b7e6ff97c7ed9ff4191d76ebd6e1">kEpidSigRevokedInPrivRl</a> = 3, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a43c658cbf0d156850d71ce3f8efd461c">kEpidSigRevokedInSigRl</a> = 4, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a486e052baa99c6c25ae5d5cc710de298">kEpidSigRevokedInVerifierRl</a> = 5, 
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360aa08f0d2e394b37694117a6a32bc71e6e">kEpidErr</a> = -999, 
 <br />
 &#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a5252da1ff519a098446723e9edd30cc7">kEpidNotImpl</a>, 
@@ -92,7 +92,9 @@ Enumerations</h2></td></tr>
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ad4d4ff24a7ef2cd7a50b8082265e9ff4">kEpidHashAlgorithmNotSupported</a>, 
 <br />
 &#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a61234ad9610406da6bf7977afd72a357">kEpidRandMaxIterErr</a>, 
-<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a3706f895a660260033b5b91890516c0f">kEpidDuplicateErr</a>
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a3706f895a660260033b5b91890516c0f">kEpidDuplicateErr</a>, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a94ae9c9b9337afd2fefd3b4f9c3160df">kEpidInconsistentBasenameSetErr</a>, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129">kEpidMathQuadraticNonResidueError</a>
 <br />
  }<tr class="memdesc:gafdb27c77c2c4b32c807e326a8a0da360"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return status for SDK functions.  <a href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">More...</a><br /></td></tr>
 </td></tr>
@@ -134,16 +136,16 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360aeedd19b8a1cbdecf963f90b4860e02b8"></a>kEpidSigInvalid&#160;</td><td class="fielddoc">
 <p>Signature is invalid. </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a2b38f44424cecd7b432194a2012dc9c7"></a>kEpidSigRevokedinGroupRl&#160;</td><td class="fielddoc">
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360aedd43fb4043bef3b515fc23f1d9a5fe5"></a>kEpidSigRevokedInGroupRl&#160;</td><td class="fielddoc">
 <p>Signature revoked in <a class="el" href="struct_group_rl.html" title="group revocation list ">GroupRl</a>. </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a780a20821863553b88ca617a6fc0f718"></a>kEpidSigRevokedinPrivRl&#160;</td><td class="fielddoc">
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a1dc7b7e6ff97c7ed9ff4191d76ebd6e1"></a>kEpidSigRevokedInPrivRl&#160;</td><td class="fielddoc">
 <p>Signature revoked in <a class="el" href="struct_priv_rl.html" title="private-key based revocation list. ">PrivRl</a>. </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360aff83186b61d48f9fee5f691c5b219bc1"></a>kEpidSigRevokedinSigRl&#160;</td><td class="fielddoc">
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a43c658cbf0d156850d71ce3f8efd461c"></a>kEpidSigRevokedInSigRl&#160;</td><td class="fielddoc">
 <p>Signature revoked in <a class="el" href="struct_sig_rl.html" title="signature based revocation list ">SigRl</a>. </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360addbba767bb884b4459a567056b4d3f86"></a>kEpidSigRevokedinVerifierRl&#160;</td><td class="fielddoc">
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a486e052baa99c6c25ae5d5cc710de298"></a>kEpidSigRevokedInVerifierRl&#160;</td><td class="fielddoc">
 <p>Signature revoked in <a class="el" href="struct_verifier_rl.html">VerifierRl</a>. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360aa08f0d2e394b37694117a6a32bc71e6e"></a>kEpidErr&#160;</td><td class="fielddoc">
@@ -179,9 +181,14 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a3706f895a660260033b5b91890516c0f"></a>kEpidDuplicateErr&#160;</td><td class="fielddoc">
 <p>argument would add duplicate entry </p>
 </td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360a94ae9c9b9337afd2fefd3b4f9c3160df"></a>kEpidInconsistentBasenameSetErr&#160;</td><td class="fielddoc">
+<p>set basename conflicts with arguments </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129"></a>kEpidMathQuadraticNonResidueError&#160;</td><td class="fielddoc">
+<p>quadratic Non-Residue Error </p>
+</td></tr>
 </table>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="verifysig_8c-example.html#a24">verifysig.c</a>.</dd>
-</dl>
+
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>

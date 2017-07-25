@@ -60,7 +60,7 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntryFailsGivenRevokedPrivKey) {
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[0];
   BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));
 }
 
@@ -68,7 +68,7 @@ TEST_F(EpidVerifierTest,
        CheckPrivRlEntryFailsGivenRevokedPrivKeyUsingIkgfData) {
   // test a revoked priv key
   // check ctx, sig, f for NULL
-  auto& pub_key = this->pub_key_ikgf_str;
+  auto& pub_key = this->kPubKeyIkgfStr;
   auto& priv_rl = this->kPrivRlIkgf;
   // signed using revoked key
   auto& sig = this->kSigRevokedPrivKeySha256Bsn0Msg0Ikgf;
@@ -78,7 +78,7 @@ TEST_F(EpidVerifierTest,
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[2];
   BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
 
-  EXPECT_EQ(kEpidSigRevokedinPrivRl,
+  EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));
 }
 
@@ -100,7 +100,7 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntrySucceedsGivenUnRevokedPrivKey) {
 TEST_F(EpidVerifierTest,
        CheckPrivRlEntrySucceedsGivenUnRevokedPrivKeyUsingIkgfData) {
   // test a non revoked priv key
-  auto& pub_key = this->pub_key_ikgf_str;
+  auto& pub_key = this->kPubKeyIkgfStr;
   auto& priv_rl = this->kPrivRlIkgf;
   // signed using un revoked key
   auto& sig = this->kSigMember0Sha256Bsn0Msg0Ikgf;

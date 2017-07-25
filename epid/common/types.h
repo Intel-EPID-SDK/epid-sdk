@@ -29,7 +29,8 @@
   Defines serialized data types used by the SDK.
 
   Most of the types defined here are fixed size binary buffers of various sizes
-  that are semantically mapped to the types of various inputs to the EPID APIs.
+  that are semantically mapped to the types of various inputs to the
+  Intel(R) EPID APIs.
 
   For example ::GtElemStr is a 384 byte buffer that represents a serialized
   value that is compatible with a ::FfElement belonging to the ::FiniteField
@@ -41,6 +42,8 @@
 
 /// Recognized hash algorithms
 typedef enum {
+  /// Invalid
+  kInvalidHashAlg = -1,
   /// SHA-256
   kSha256 = 0,
   /// SHA-384
@@ -336,4 +339,5 @@ typedef struct EcdsaPrivateKey {
 #pragma pack()
 
 /*! @} */
+
 #endif  // EPID_COMMON_TYPES_H_

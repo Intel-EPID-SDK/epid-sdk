@@ -25,6 +25,8 @@
 
 #ifndef __cplusplus
 #ifndef _Bool
+/// C99 standard name for bool
+#define _Bool char
 /// Boolean type
 typedef char bool;
 /// integer constant 1

@@ -25,6 +25,8 @@
 
 #include "util/buffutil.h"
 #include "util/envutil.h"
+#include "epid/verifier/api.h"
+#include "epid/common/file_parser.h"
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -35,16 +37,6 @@ bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   return true;
 }
 
-/// Authenticate and allocate revocation list
-/*!  Utility function to authenticate revocation list and allocate a
-  buffer to contain the parsed result
-  \note caller is responsible for freeing free the memory allocated
- */
-EpidStatus AuthenticateAndAllocateRl(void const* buf, size_t len,
-                                     EpidCaCertificate const* cert,
-                                     EpidFileType file_type, const char* name,
-                                     void** new_rl, size_t* rl_len);
-
 EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   size_t msg_len, void const* basename, size_t basename_len,
                   void const* signed_priv_rl, size_t signed_priv_rl_size,
@@ -53,16 +45,13 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   VerifierRl const* ver_rl, size_t ver_rl_size,
                   void const* signed_pub_key, size_t signed_pub_key_size,
                   EpidCaCertificate const* cacert, HashAlg hash_alg,
-                  VerifierPrecomp* precomp, bool is_precomp_init) {
+                  VerifierPrecomp* verifier_precomp,
+                  bool verifier_precomp_is_input) {
   EpidStatus result = kEpidErr;
   VerifierCtx* ctx = NULL;
-
   PrivRl* priv_rl = NULL;
-  size_t priv_rl_size = 0;
   SigRl* sig_rl = NULL;
-  size_t sig_rl_size = 0;
   GroupRl* grp_rl = NULL;
-  size_t grp_rl_size = 0;
 
   do {
     GroupPubKey pub_key = {0};
@@ -73,24 +62,17 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
       break;
     }
 
-    if (is_precomp_init && precomp) {
-      // create verifier
-      result = EpidVerifierCreate(&pub_key, precomp, &ctx);
-      if (kEpidNoErr != result) {
-        break;
-      }
-    } else {
-      // create verifier
-      result = EpidVerifierCreate(&pub_key, NULL, &ctx);
-      if (kEpidNoErr != result) {
-        break;
-      }
+    // create verifier
+    result = EpidVerifierCreate(
+        &pub_key, verifier_precomp_is_input ? verifier_precomp : NULL, &ctx);
+    if (kEpidNoErr != result) {
+      break;
+    }
 
-      // initialize pre-computation blob
-      result = EpidVerifierWritePrecomp(ctx, precomp);
-      if (kEpidNoErr != result) {
-        break;
-      }
+    // serialize verifier pre-computation blob
+    result = EpidVerifierWritePrecomp(ctx, verifier_precomp);
+    if (kEpidNoErr != result) {
+      break;
     }
 
     // set hash algorithm used for signing
@@ -99,47 +81,109 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
       break;
     }
 
+    // set the basename used for signing
+    result = EpidVerifierSetBasename(ctx, basename, basename_len);
+    if (kEpidNoErr != result) {
+      break;
+    }
+
     if (signed_priv_rl) {
-      result = AuthenticateAndAllocateRl(signed_priv_rl, signed_priv_rl_size,
-                                         cacert, kPrivRlFile, "PrivRl",
-                                         (void**)&priv_rl, &priv_rl_size);
+      // authenticate and determine space needed for RL
+      size_t priv_rl_size = 0;
+      result = EpidParsePrivRlFile(signed_priv_rl, signed_priv_rl_size, cacert,
+                                   NULL, &priv_rl_size);
+      if (kEpidSigInvalid == result) {
+        // authentication failure
+        break;
+      }
       if (kEpidNoErr != result) {
         break;
       }
+
+      priv_rl = AllocBuffer(priv_rl_size);
+      if (!priv_rl) {
+        result = kEpidMemAllocErr;
+        break;
+      }
+
+      // fill the rl
+      result = EpidParsePrivRlFile(signed_priv_rl, signed_priv_rl_size, cacert,
+                                   priv_rl, &priv_rl_size);
+      if (kEpidNoErr != result) {
+        break;
+      }
+
       // set private key based revocation list
       result = EpidVerifierSetPrivRl(ctx, priv_rl, priv_rl_size);
       if (kEpidNoErr != result) {
         break;
       }
-    }
+    }  // if (signed_priv_rl)
 
     if (signed_sig_rl) {
-      result = AuthenticateAndAllocateRl(signed_sig_rl, signed_sig_rl_size,
-                                         cacert, kSigRlFile, "SigRl",
-                                         (void**)&sig_rl, &sig_rl_size);
+      // authenticate and determine space needed for RL
+      size_t sig_rl_size = 0;
+      result = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
+                                  NULL, &sig_rl_size);
+      if (kEpidSigInvalid == result) {
+        // authentication failure
+        break;
+      }
       if (kEpidNoErr != result) {
         break;
       }
+
+      sig_rl = AllocBuffer(sig_rl_size);
+      if (!sig_rl) {
+        result = kEpidMemAllocErr;
+        break;
+      }
+
+      // fill the rl
+      result = EpidParseSigRlFile(signed_sig_rl, signed_sig_rl_size, cacert,
+                                  sig_rl, &sig_rl_size);
+      if (kEpidNoErr != result) {
+        break;
+      }
+
       // set signature based revocation list
       result = EpidVerifierSetSigRl(ctx, sig_rl, sig_rl_size);
       if (kEpidNoErr != result) {
         break;
       }
-    }
+    }  // if (signed_sig_rl)
 
     if (signed_grp_rl) {
-      result = AuthenticateAndAllocateRl(signed_grp_rl, signed_grp_rl_size,
-                                         cacert, kGroupRlFile, "GroupRl",
-                                         (void**)&grp_rl, &grp_rl_size);
+      // authenticate and determine space needed for RL
+      size_t grp_rl_size = 0;
+      result = EpidParseGroupRlFile(signed_grp_rl, signed_grp_rl_size, cacert,
+                                    NULL, &grp_rl_size);
+      if (kEpidSigInvalid == result) {
+        // authentication failure
+        break;
+      }
       if (kEpidNoErr != result) {
         break;
       }
-      // set group based revocation list
+
+      grp_rl = AllocBuffer(grp_rl_size);
+      if (!grp_rl) {
+        result = kEpidMemAllocErr;
+        break;
+      }
+
+      // fill the rl
+      result = EpidParseGroupRlFile(signed_grp_rl, signed_grp_rl_size, cacert,
+                                    grp_rl, &grp_rl_size);
+      if (kEpidNoErr != result) {
+        break;
+      }
+      // set group revocation list
       result = EpidVerifierSetGroupRl(ctx, grp_rl, grp_rl_size);
       if (kEpidNoErr != result) {
         break;
       }
-    }
+    }  // if (signed_grp_rl)
 
     if (ver_rl) {
       // set verifier based revocation list
@@ -150,8 +194,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
     }
 
     // verify signature
-    result =
-        EpidVerify(ctx, sig, sig_len, msg, msg_len, basename, basename_len);
+    result = EpidVerify(ctx, sig, sig_len, msg, msg_len);
     if (kEpidNoErr != result) {
       break;
     }
@@ -163,71 +206,6 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
   if (priv_rl) free(priv_rl);
   if (sig_rl) free(sig_rl);
   if (grp_rl) free(grp_rl);
-
-  return result;
-}
-
-EpidStatus AuthenticateAndAllocateRl(void const* buf, size_t len,
-                                     EpidCaCertificate const* cert,
-                                     EpidFileType file_type, const char* name,
-                                     void** new_rl, size_t* rl_len) {
-  typedef EpidStatus (*ParseFuncType)(void const* buf, size_t len,
-                                      EpidCaCertificate const* cert,
-                                      unsigned char* rl, size_t* rl_len);
-  EpidStatus result = kEpidErr;
-  void* parsed_rl = NULL;
-  ParseFuncType ParseFunc = NULL;
-
-  if (!buf || !cert || !new_rl || !rl_len || !name) {
-    return kEpidBadArgErr;
-  }
-
-  switch (file_type) {
-    case kPrivRlFile:
-      ParseFunc = (ParseFuncType)&EpidParsePrivRlFile;
-      break;
-    case kSigRlFile:
-      ParseFunc = (ParseFuncType)&EpidParseSigRlFile;
-      break;
-    case kGroupRlFile:
-      ParseFunc = (ParseFuncType)&EpidParseGroupRlFile;
-      break;
-    default:
-      return kEpidBadArgErr;
-  }
-
-  do {
-    size_t parsed_len = 0;
-
-    // authenticate and determine space needed for RL
-    result = ParseFunc(buf, len, cert, NULL, &parsed_len);
-    if (kEpidSigInvalid == result) {
-      // authentication failure
-      break;
-    }
-    if (kEpidNoErr != result) {
-      break;
-    }
-    parsed_rl = AllocBuffer(parsed_len);
-    if (!parsed_rl) {
-      result = kEpidMemAllocErr;
-      break;
-    }
-
-    // fill the rl
-    result = ParseFunc(buf, len, cert, parsed_rl, &parsed_len);
-
-    if (kEpidNoErr != result) {
-      break;
-    }
-
-    *rl_len = parsed_len;
-    *new_rl = parsed_rl;
-  } while (0);
-
-  if (kEpidNoErr != result) {
-    if (parsed_rl) free(parsed_rl);
-  }
 
   return result;
 }

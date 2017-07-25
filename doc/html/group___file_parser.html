@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,6 +58,7 @@ $(document).ready(function(){initNavTree('group___file_parser.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#groups">Modules</a> &#124;
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a> &#124;
@@ -70,6 +71,12 @@ $(document).ready(function(){initNavTree('group___file_parser.html','');});
 <p>Parser for issuer material.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:group___epid11_file_parser_module"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid11_file_parser_module.html">EPID 1.1 support</a></td></tr>
+<tr class="memdesc:group___epid11_file_parser_module"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parser for 1.1 issuer material. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_epid_file_header.html">EpidFileHeader</a></td></tr>
@@ -81,6 +88,12 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
+<tr class="memitem:ga1562efc7c1891875d6b2b9180d65de9d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">EpidVersion</a> { <a class="el" href="group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da5f270e2e8c2412bc07de293023f425cc">kEpid1x</a>, 
+<a class="el" href="group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da6af0ee9d9689f1d4325bdd0beb8a89e2">kEpid2x</a>, 
+<a class="el" href="group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da8bbd27765997dd10f1c0378dbecef01d">kNumEpidVersions</a>
+ }<tr class="memdesc:ga1562efc7c1891875d6b2b9180d65de9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recognized Intel(R) EPID versions.  <a href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:ga1562efc7c1891875d6b2b9180d65de9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9a33be7edc6b4c7a867fb07bd2bddecb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#ga9a33be7edc6b4c7a867fb07bd2bddecb">EpidFileType</a> { <br />
 &#160;&#160;<a class="el" href="group___file_parser.html#gga9a33be7edc6b4c7a867fb07bd2bddecbac24554caafe2db01e2daed413188cd92">kIssuingCaPubKeyFile</a>, 
 <a class="el" href="group___file_parser.html#gga9a33be7edc6b4c7a867fb07bd2bddecba1f8d8c4b253403a35c51e05d34a7ca1e">kGroupPubKeyFile</a>, 
@@ -100,6 +113,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ga8e38d1102eb1dd9b5af2e2f79236da55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#ga8e38d1102eb1dd9b5af2e2f79236da55">EpidParseFileHeader</a> (void const *buf, size_t len, <a class="el" href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">EpidVersion</a> *epid_version, <a class="el" href="group___file_parser.html#ga9a33be7edc6b4c7a867fb07bd2bddecb">EpidFileType</a> *file_type)</td></tr>
+<tr class="memdesc:ga8e38d1102eb1dd9b5af2e2f79236da55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts Intel(R) EPID Binary Output File header information.  <a href="#ga8e38d1102eb1dd9b5af2e2f79236da55">More...</a><br /></td></tr>
+<tr class="separator:ga8e38d1102eb1dd9b5af2e2f79236da55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga43fdbc1bf2edd3695d21cb457365afbb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#ga43fdbc1bf2edd3695d21cb457365afbb">EpidParseGroupPubKeyFile</a> (void const *buf, size_t len, <a class="el" href="struct_epid_ca_certificate.html">EpidCaCertificate</a> const *cert, <a class="el" href="struct_group_pub_key.html">GroupPubKey</a> *pubkey)</td></tr>
 <tr class="memdesc:ga43fdbc1bf2edd3695d21cb457365afbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts group public key from buffer in issuer binary format.  <a href="#ga43fdbc1bf2edd3695d21cb457365afbb">More...</a><br /></td></tr>
 <tr class="separator:ga43fdbc1bf2edd3695d21cb457365afbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -115,6 +131,10 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:gaae808987ce82188dff42baa4e43cab82"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaae808987ce82188dff42baa4e43cab82"></a>
+const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#gaae808987ce82188dff42baa4e43cab82">kEpidVersionCode</a> [<a class="el" href="group___file_parser.html#gga1562efc7c1891875d6b2b9180d65de9da8bbd27765997dd10f1c0378dbecef01d">kNumEpidVersions</a>]</td></tr>
+<tr class="memdesc:gaae808987ce82188dff42baa4e43cab82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encoding of issuer material Intel(R) EPID versions. <br /></td></tr>
+<tr class="separator:gaae808987ce82188dff42baa4e43cab82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3770c39a0546c79447c9d4159d794c33"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3770c39a0546c79447c9d4159d794c33"></a>
 const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___file_parser.html#ga3770c39a0546c79447c9d4159d794c33">kEpidFileTypeCode</a> [<a class="el" href="group___file_parser.html#gga9a33be7edc6b4c7a867fb07bd2bddecbac6d742ea3dd3b17f6d763970ac84b811">kNumFileTypes</a>]</td></tr>
 <tr class="memdesc:ga3770c39a0546c79447c9d4159d794c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encoding of issuer material file types. <br /></td></tr>
@@ -167,7 +187,82 @@ const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td clas
 
 </div>
 </div>
+<a class="anchor" id="ga1562efc7c1891875d6b2b9180d65de9d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">EpidVersion</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Recognized Intel(R) EPID versions. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga1562efc7c1891875d6b2b9180d65de9da5f270e2e8c2412bc07de293023f425cc"></a>kEpid1x&#160;</td><td class="fielddoc">
+<p>Intel(R) EPID version 1.x. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga1562efc7c1891875d6b2b9180d65de9da6af0ee9d9689f1d4325bdd0beb8a89e2"></a>kEpid2x&#160;</td><td class="fielddoc">
+<p>Intel(R) EPID version 2.x. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga1562efc7c1891875d6b2b9180d65de9da8bbd27765997dd10f1c0378dbecef01d"></a>kNumEpidVersions&#160;</td><td class="fielddoc">
+<p>Maximum number of EPID versions. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga8e38d1102eb1dd9b5af2e2f79236da55"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> EpidParseFileHeader </td>
+          <td>(</td>
+          <td class="paramtype">void const *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">EpidVersion</a> *&#160;</td>
+          <td class="paramname"><em>epid_version</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___file_parser.html#ga9a33be7edc6b4c7a867fb07bd2bddecb">EpidFileType</a> *&#160;</td>
+          <td class="paramname"><em>file_type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Extracts Intel(R) EPID Binary Output File header information. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">buf</td><td>Pointer to buffer containing Intel(R) EPID Binary Output File to parse.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>The size of buf in bytes.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">epid_version</td><td>The extracted EPID version or kNumEpidVersions if EPID version is unknown. Pass NULL to not extract.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">file_type</td><td>The extracted EPID file type or kNumFileTypes if file type is unknown. Pass NULL to not extract.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga43fdbc1bf2edd3695d21cb457365afbb"></a>
 <div class="memitem">
 <div class="memproto">

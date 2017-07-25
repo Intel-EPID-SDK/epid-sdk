@@ -27,7 +27,7 @@
 /// Check if opaque data blob containing CA certificate is authorized
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size);
 
-/// verify signature
+/// verify EPID 2.x signature
 EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   size_t msg_len, void const* basename, size_t basename_len,
                   void const* signed_priv_rl, size_t signed_priv_rl_size,
@@ -36,6 +36,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   VerifierRl const* ver_rl, size_t ver_rl_size,
                   void const* signed_pub_key, size_t signed_pub_key_size,
                   EpidCaCertificate const* cacert, HashAlg hash_alg,
-                  VerifierPrecomp* precomp, bool is_precomp_init);
+                  VerifierPrecomp* verifier_precomp,
+                  bool verifier_precomp_is_input);
 
 #endif  // EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_

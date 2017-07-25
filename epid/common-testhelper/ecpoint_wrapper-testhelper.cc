@@ -86,6 +86,11 @@ EcPointObj::EcPointObj(EcGroupObj* group, G2ElemStr const& bytes)
   init(group, (unsigned char*)&bytes, sizeof(bytes));
 }
 
+EcPointObj::EcPointObj(EcGroupObj* group, Epid11G2ElemStr const& bytes)
+    : state_(new State) {
+  init(group, (unsigned char*)&bytes, sizeof(bytes));
+}
+
 EcPointObj::EcPointObj(EcGroupObj* group,
                        std::vector<unsigned char> const& bytes)
     : state_(new State) {

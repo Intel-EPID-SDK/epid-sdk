@@ -27,6 +27,7 @@ api_headers = Pattern(src_dir='.',
                       recursive=False).files()
 parts_file = ['util.parts']
 
+makefile = ['Makefile']
 #unit tests
 utest_files = Pattern(src_dir='.',
                       includes=['*-test.cc', '*-testhelper.cc'],
@@ -38,6 +39,7 @@ if 'install_package' in env['MODE']:
     env.InstallTopLevel(api_headers, sub_dir='example/${PART_SHORT_NAME}')
     env.InstallTopLevel(utest_files, sub_dir='example/${PART_SHORT_NAME}/utest')
     env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
+    env.InstallTopLevel(makefile, sub_dir='example/${PART_SHORT_NAME}')
 else:
     env.DependsOn([Component('common', requires=REQ.HEADERS)])
 

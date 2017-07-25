@@ -27,7 +27,6 @@
 
 extern "C" {
 #include "epid/common/math/ecdsa.h"
-#include "epid/common/memory.h"
 }
 
 #include "epid/common-testhelper/prng-testhelper.h"

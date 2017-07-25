@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -86,7 +86,7 @@ Roles</h1>
 </div>
 <h2><a class="anchor" id="EpidOverview_Issuers"></a>
 Issuers</h2>
-<p>The issuer is responsible for managing group membership.</p>
+<p>The issuer is responsible for managing group membership. Issuer functionality is not included in the SDK.</p>
 <p>The issuer manages groups by doing the following:</p>
 <ul>
 <li>Creates groups by generating one issuing private key and one group certificate for each group. The group certificate contains the group public key.</li>
@@ -119,6 +119,7 @@ Verifiers</h2>
 <li>Confirm a member is in fact a member of a given group in good standing.</li>
 <li>Obtain group certificates and revocation lists from issuers.</li>
 <li>Negotiate details of signature protocol with members.</li>
+<li>Manage a private list of revoked members, also called the verifier blacklist.</li>
 </ul>
 <div class="image">
 <img src="epid_diagram_verifier_high_level.png" alt="epid_diagram_verifier_high_level.png"/>
@@ -137,7 +138,7 @@ Groups</h1>
 <h1><a class="anchor" id="EpidOverview_Keys"></a>
 Keys</h1>
 <p>The Intel&reg; EPID scheme works with three types of keys: the group public key, the issuing private key, and the member private key. A group public key corresponds to the unique member private keys that are part of the group. Member private keys are generated from the issuing private key.</p>
-<p>Additionally, in the Intel&reg; EPID scheme, a private key can be revoked given a signature created by that key, even if the key itself is still unknown. Group membership can be revoked and entire groups can be revoked. For more information on revocation, refer to <a class="el" href="SignVerifyTutorial.html#SignVerifyTutorial_Revocation_Group">Revocation</a>.</p>
+<p>Additionally, in the Intel&reg; EPID scheme, a private key can be revoked given a signature created by that key, even if the key itself is still unknown. Group membership can be revoked and entire groups can be revoked. For more information on revocation, refer to <a class="el" href="Revocation.html">In-Depth Explanation of Revocation</a>.</p>
 <h2><a class="anchor" id="EpidOverview_Group_public_key"></a>
 Group Public Key</h2>
 <p>The group public key is the key used by the verifier to confirm that a member belongs to a group in good standing. Each member private key in a group is associated with the group's public key.</p>

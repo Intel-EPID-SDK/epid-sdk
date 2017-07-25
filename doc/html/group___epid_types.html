@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,6 +58,7 @@ $(document).ready(function(){initNavTree('group___epid_types.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#groups">Modules</a> &#124;
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
@@ -69,6 +70,12 @@ $(document).ready(function(){initNavTree('group___epid_types.html','');});
 <p>SDK data types.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:group___epid11_types"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid11_types.html">EPID 1.1 specific types</a></td></tr>
+<tr class="memdesc:group___epid11_types"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intel(R) EPID 1.1 specific data types. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_oct_str8.html">OctStr8</a></td></tr>
@@ -195,12 +202,13 @@ typedef <a class="el" href="struct_g1_elem_str.html">G1ElemStr</a>&#160;</td><td
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:ga5e450438f6f9a5eacd0cf5ce354ec890"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> { <br />
-&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d">kSha256</a> = 0, 
+&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a68b2137c7946583a99f0dac2286523eb">kInvalidHashAlg</a> = -1, 
+<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d">kSha256</a> = 0, 
 <a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a0f4dde6e82b84f5769873f6704fcd290">kSha384</a> = 1, 
 <a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890afb78d98f37fecc53dd1637d94c5c0055">kSha512</a> = 2, 
-<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a9746b5049a62bca2f7b844925e6136ba">kSha512_256</a> = 3, 
 <br />
-&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a4fa16d3867498f5e2f8ae5c94b0fab85">kSha3_256</a> = 4, 
+&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a9746b5049a62bca2f7b844925e6136ba">kSha512_256</a> = 3, 
+<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a4fa16d3867498f5e2f8ae5c94b0fab85">kSha3_256</a> = 4, 
 <a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a90d21c8885ab138f7cf91f253dd6ef86">kSha3_384</a> = 5, 
 <a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890ade8e74cf7910b3a71fe902a40abf7eee">kSha3_512</a> = 6
 <br />
@@ -211,7 +219,7 @@ Enumerations</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>SDK data types. </p>
 <p>Defines serialized data types used by the SDK.</p>
-<p>Most of the types defined here are fixed size binary buffers of various sizes that are semantically mapped to the types of various inputs to the EPID APIs.</p>
+<p>Most of the types defined here are fixed size binary buffers of various sizes that are semantically mapped to the types of various inputs to the Intel(R) EPID APIs.</p>
 <p>For example <a class="el" href="struct_gt_elem_str.html" title="Serialized GT element. ">GtElemStr</a> is a 384 byte buffer that represents a serialized value that is compatible with a <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa" title="An element in a finite field. ">FfElement</a> belonging to the <a class="el" href="group___finite_field_primitives.html#gab281b24e336a8b3d7d90079d862d969e" title="A finite field. ">FiniteField</a> GT. </p>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a class="anchor" id="ga5e450438f6f9a5eacd0cf5ce354ec890"></a>
@@ -226,7 +234,10 @@ Enumerations</h2></td></tr>
 
 <p>Recognized hash algorithms. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d"></a>kSha256&#160;</td><td class="fielddoc">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga5e450438f6f9a5eacd0cf5ce354ec890a68b2137c7946583a99f0dac2286523eb"></a>kInvalidHashAlg&#160;</td><td class="fielddoc">
+<p>Invalid. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d"></a>kSha256&#160;</td><td class="fielddoc">
 <p>SHA-256. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga5e450438f6f9a5eacd0cf5ce354ec890a0f4dde6e82b84f5769873f6704fcd290"></a>kSha384&#160;</td><td class="fielddoc">

@@ -39,6 +39,13 @@
   @{
 */
 
+/// Print format
+typedef enum {
+  kPrintUtilUnannotated = 0,  //!< Unannotated output format
+  kPrintUtilAnnotated = 1,    //!< Annotated output format
+  kPrintUtilFormatCount = 2,  //!< Count of print formats.
+} PrintUtilFormat;
+
 #if !defined(EPID_ENABLE_DEBUG_PRINT)
 
 /// Do not print bignum if EPID_ENABLE_DEBUG_PRINT is undefined
@@ -78,12 +85,6 @@
 #define PrintGtElemStr(...)
 
 #else
-
-/// Print format
-typedef enum {
-  kPrintUtilUnannotated = 0,  //!< Unannotated output format
-  kPrintUtilAnnotated = 1,    //!< Annotated output format
-} PrintUtilFormat;
 
 /// Prints BigNum
 /*!

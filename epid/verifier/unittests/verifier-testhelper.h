@@ -33,19 +33,19 @@ extern "C" {
 class EpidVerifierTest : public ::testing::Test {
  public:
   /// Serialized identity element in G1
-  static const G1ElemStr G1_identity_str;
+  static const G1ElemStr kG1IdentityStr;
   /// test public key
-  static const GroupPubKey pub_key_str;
+  static const GroupPubKey kPubKeyStr;
   /// test public key from Ikgf
-  static const GroupPubKey pub_key_ikgf_str;
+  static const GroupPubKey kPubKeyIkgfStr;
   /// test public key of revoked group from Ikgf
-  static const GroupPubKey pub_key_rev_group_ikgf_str;
+  static const GroupPubKey kPubKeyRevGroupIkgfStr;
   /// verifier pre-computation data associated with pub_key_str
-  static const VerifierPrecomp verifier_precomp_str;
+  static const VerifierPrecomp kVerifierPrecompStr;
   /// verifier pre-computation data associated with pub_key_str from Ikgf
-  static const VerifierPrecomp verifier_precomp_ikgf_str;
+  static const VerifierPrecomp kVerifierPrecompIkgfStr;
   /// Intel(R) EPID 2.0 parameters
-  static const Epid2Params params_str;
+  static const Epid2Params kParamsStr;
   /// public key in Grp01
   static const GroupPubKey kGrp01Key;
   /// private key based revocation list in Grp01
@@ -54,22 +54,28 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kGrp01SigRl;
   /// signature based revocation list from Ikgf
   static const std::vector<uint8_t> kSigRlIkgf;
+  /// empty signature based revocation list from Ikgf
+  static const std::vector<uint8_t> kEmptySigRlIkgf;
   /// number of SigRl entries for Grp01
   static const uint32_t kGrp01SigRlN2 = 50;
+  /// verifier revocation list in Grp01 with one entry
+  static const std::vector<uint8_t> kGrp01VerRlOneEntry;
   /// verifier revocation list in Grp01
   static const std::vector<uint8_t> kGrp01VerRl;
+  /// empty verifier revocation in Grp01
+  static const std::vector<uint8_t> kEmptyGrp01VerRl;
   /// C string with a message "test message"
   static const std::vector<uint8_t> kTest0;
   /// the message "test1"
   static const std::vector<uint8_t> kTest1;
+  /// the basename "basename"
+  static const std::vector<uint8_t> kBasename;
   /// the basename "basename1"
   static const std::vector<uint8_t> kBasename1;
   /// Signature of Test0 with RandomBase by Grp01 Member0 using Sha256
   static const std::vector<uint8_t> kSigGrp01Member0Sha256RandombaseTest0;
   /// Signature of Test with RandomBase, Member0 using Sha256 from Ikgf
   static const std::vector<uint8_t> kSigMember0Sha256RandombaseMsg0Ikgf;
-  /// Signature of Test1 with Basename1 by Grp01 Member0 using Sha256
-  static const std::vector<uint8_t> kSigGrp01Member0Sha256Basename1Test1;
   /// Signature of Test1 with RandomBase by Grp01 Member0 using Sha384
   static const std::vector<uint8_t> kSigGrp01Member0Sha384RandombaseTest0;
   /// Signature of Test1 with RandomBase by Grp01 Member0 using Sha512
@@ -90,15 +96,15 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t>
       kSigGrp01Member0Sha512RandombaseTest1NoSigRl;
   /// group based rl test data (empty rl)
-  static const std::vector<uint8_t> group_rl_empty_buf;
+  static const std::vector<uint8_t> kGroupRlEmptyBuf;
   /// group based rl test data (v=3, n=3, 3 revoked gid)
-  static const std::vector<uint8_t> group_rl_3gid_buf;
+  static const std::vector<uint8_t> kGroupRl3GidBuf;
   /// group based rl test data (v=3, n=0, 3 revoked gid)
-  static const std::vector<uint8_t> group_rl_3gid_n0_buf;
+  static const std::vector<uint8_t> kGroupRl3GidN0Buf;
   /// group based rl test data (v=3, n=2, 3 revoked gid)
-  static const std::vector<uint8_t> group_rl_3gid_n2_buf;
+  static const std::vector<uint8_t> kGroupRl3GidN2Buf;
   /// group based rl test data (v=3, n=4, 3 revoked gid)
-  static const std::vector<uint8_t> group_rl_3gid_n4_buf;
+  static const std::vector<uint8_t> kGroupRl3GidN4Buf;
   /// a message
   static const std::vector<uint8_t> kMsg0;
   /// a message
@@ -120,8 +126,10 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kGrpRlRevokedGrpXMiddleEntry;
   /// a group revocation list with multiple entries
   static const std::vector<uint8_t> kGrpRlRevokedGrpXLastEntry;
-  /// the privrl from Ikgf
+  /// private key based revocation list from Ikgf
   static const std::vector<uint8_t> kPrivRlIkgf;
+  /// empty private key based revocation list from Ikgf
+  static const std::vector<uint8_t> kEmptyPrivRlIkgf;
 
   /// a group key in group X
   static const GroupPubKey kGrpXKey;
@@ -132,8 +140,14 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kGrpXPrivRlRevokedPrivKey000OnlyEntry;
   /// the sigrl of group X
   static const std::vector<uint8_t> kGrpXSigRl;
-  /// a verifierrl of group X with bsn0 for some verifier
-  static const std::vector<uint8_t> kGrpXBsn0VerRl;
+  /// a verifierrl of group X with bsn0 and SHA256 for some verifier
+  static const std::vector<uint8_t> kGrpXBsn0Sha256VerRl;
+  /// a verifierrl of group X with bsn0 and SHA384 for some verifier
+  static const std::vector<uint8_t> kGrpXBsn0Sha384VerRl;
+  /// a verifierrl of group X with bsn0 and SHA512 for some verifier
+  static const std::vector<uint8_t> kGrpXBsn0Sha512VerRl;
+  /// a verifierrl of group X with bsn0 and SHA512/256 for some verifier
+  static const std::vector<uint8_t> kGrpXBsn0Sha512256VerRl;
   /// a verifierrl of group X with bsn0 for some verifier with single entry
   static const std::vector<uint8_t> kGrpXBsn0VerRlSingleEntry;
   /// a verifierrl of group X with bsn1 for some verifier
@@ -166,6 +180,10 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kSigGrpXMember0Sha256Bsn0Msg0;
   /// signature of msg0 by member0 with Sha256 bsn0 from Ikgf
   static const std::vector<uint8_t> kSigMember0Sha256Bsn0Msg0Ikgf;
+  /// signature of msg0 by member0 with Sha256 bsn0 from Ikgf with empty SigRl
+  static const std::vector<uint8_t> kSigMember0Sha256Bsn0Msg0EmptySigRlIkgf;
+  /// signature of msg0 by member0 with Sha256 bsn0 from Ikgf without SigRl
+  static const std::vector<uint8_t> kSigMember0Sha256Bsn0Msg0NoSigRlIkgf;
   /// signature of msg0 by member0 from SigRl first entry with Sha256 bsn0 from
   /// Ikgf
   static const std::vector<uint8_t> kSigRevSigMember0Sha256Bsn0Msg0Ikgf;
@@ -223,17 +241,17 @@ class EpidVerifierTest : public ::testing::Test {
   // EpidVerify Signature Based Revocation List Reject
   /// GroupPubKey to be used for EpidVerify Signature Based Revocation List
   /// Reject tests
-  static const GroupPubKey pub_key_sigrl_verify;
+  static const GroupPubKey kPubKeySigRlVerify;
   /// SigRl with 1 entry
-  static const std::vector<uint8_t> sigrl_single_entry;
+  static const std::vector<uint8_t> kSigRlSingleEntry;
   /// SigRl with 1 entry
-  static const std::vector<uint8_t> sigrl_five_entries;
+  static const std::vector<uint8_t> kSigRlFiveEntries;
   /// First entry in sigrl_five_entries
-  static const EpidSignature signature_sigrl_first;
+  static const EpidSignature kSignatureSigrlFirst;
   /// Middle entry in sigrl_five_entries
-  static const EpidSignature signature_sigrl_middle;
+  static const EpidSignature kSignatureSigrlMiddle;
   /// Last entry in sigrl_five_entries
-  static const EpidSignature signature_sigrl_last;
+  static const EpidSignature kSignatureSigrlLast;
 
   /// setup called before each TEST_F starts
   virtual void SetUp() {}
@@ -243,10 +261,9 @@ class EpidVerifierTest : public ::testing::Test {
   /// value "1" represented as an octstr constant
   /*!
   this value is used frequently to set 32 bit fields. describing as a constant
-  here
-  to reduce replication in code.
+  here to reduce replication in code.
   */
-  static const OctStr32 octstr32_1;
+  static const OctStr32 kOctStr32_1;
 };
 
 #endif  // EPID_VERIFIER_UNITTESTS_VERIFIER_TESTHELPER_H_

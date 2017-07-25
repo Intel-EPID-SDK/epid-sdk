@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,73 +74,120 @@ $(document).ready(function(){initNavTree('SignVerifyTutorial.html','');});
 </ul>
 </div>
 <div class="textblock"><p>The Intel&reg; EPID SDK provides example tools to show you how to use the Intel&reg; EPID SDK APIs. These examples are called <em>signmsg</em> and <em>verifysig</em>.</p>
-<p>You can build these examples using the instructions in <a class="el" href="BuildingSdk.html">Building From Source</a>. The tutorial assumes <code>_install/epid-sdk/example</code> is the current directory.</p>
+<p>You can build these examples using the instructions in <a class="el" href="BuildingSdk.html">Building from Source</a>. The tutorial assumes <code>_install/epid-sdk/example</code> is the current directory.</p>
 <p>All command lines in this tutorial use posix command line conventions; for other systems, adjust accordingly.</p>
-<p>For the code used in this tutorial, refer to <a href="examples.html"><b>Examples</b></a>.</p>
+<p>For the code used in this tutorial, refer to <a class="el" href="Examples.html">Walkthroughs of Examples Showing API Usage</a>.</p>
 <dl class="section note"><dt>Note</dt><dd>The data for running this tutorial is pre-generated. Once the samples are built, the data is in the <code>_install/epid-sdk/example/data</code> directory. See <a class="el" href="IssuerMaterial.html">Sample Issuer Material</a>.</dd></dl>
 <h1><a class="anchor" id="SignVerifyTutorial_Signmmsg"></a>
 Creating an Intel® EPID Signature of a Given Message</h1>
-<p>The example application <em>signmsg</em> shows you how to create an Intel&reg; EPID Signature of a given message. </p><pre class="fragment">$ ./signmsg -h
+<p>The example application <em>signmsg</em> shows you how to create an Intel&reg; EPID signature of a given message. </p><pre class="fragment">$ ./signmsg -h
 Usage: signmsg [OPTION]...
 Create Intel(R) EPID signature of message
 
 Options:
+  --sig=FILE
+      write signature to FILE (default: sig.dat)
 
---sig=FILE            write signature to FILE (default: sig.dat)
---msg=MESSAGE         MESSAGE to sign
---bsn=BASENAME        BASENAME to sign with (default: random)
---sigrl=FILE          load signature based revocation list from FILE
---gpubkey=FILE        load group public key from FILE
-                        (default: pubkey.bin)
---mprivkey=FILE       load member private key from FILE
-                        (default: mprivkey.dat)
---mprecmpi=FILE       load pre-computed member data from FILE
---mprecmpo=FILE       write pre-computed member data to FILE
---hashalg=NAME        SHA-256 | SHA-384 | SHA-512 (default: SHA-512)
---capubkey=FILE       load IoT Issuing CA public key from FILE
-                        (default: cacert.bin)
--h,--help             display this help and exit
--v,--verbose          print status messages to stdout
+  --msg=MESSAGE
+      MESSAGE to sign
+
+  --bsn=BASENAME
+      BASENAME to sign with (default: random)
+
+  --sigrl=FILE
+      load signature based revocation list from FILE
+
+  --gpubkey=FILE
+      load group public key from FILE (default: pubkey.bin)
+
+  --mprivkey=FILE
+      load member private key from FILE (default: mprivkey.dat)
+
+  --mprecmpi=FILE
+      load pre-computed member data from FILE
+
+  --mprecmpo=FILE
+      write pre-computed member data to FILE
+
+  --capubkey=FILE
+      load IoT Issuing CA public key from FILE (default: cacert.bin)
+
+  --hashalg={SHA-256 | SHA-384 | SHA-512}
+      use specified hash algorithm (default: SHA-512)
+
+  -h, --help
+      display this help and exit
+
+  -v, --verbose
+      print status messages to stdout
 </pre><p>To sign a message, a group member in good standing uses the following command: </p><pre class="fragment">$ ./signmsg --msg="test0"
-</pre><p>The above command signs a message "test0". <em>signmsg</em> uses default options for the group public key, member private key, and hash algorithm (SHA-512). All other parameters that are not given are ignored. The command produces a signature file: <code>sig.dat</code></p>
+</pre><p>The above command signs a message "test0". <em>signmsg</em> uses default options for the group public key, member private key, hash algorithm and IoT Issuing CA public key. All other parameters that are not given are ignored. The command produces a signature file: <code>sig.dat</code></p>
 <h1><a class="anchor" id="SignVerifyTutorial_Verifysig"></a>
 Verifying an Intel® EPID Signature</h1>
-<p>The example application <em>verifysig</em> shows you how to verify that a given Intel&reg; EPID Signature is produced by a member in good standing. </p><pre class="fragment">$ ./verifysig -h
+<p>The example application <em>verifysig</em> shows you how to verify that a given Intel&reg; EPID signature is produced by a member in good standing. </p><pre class="fragment">$ ./verifysig -h
 Usage: verifysig [OPTION]...
 Verify signature was created by group member in good standing
 
 Options:
+  --sig=FILE
+      load signature from FILE (default: sig.dat)
 
---sig=FILE            load signature from FILE (default: sig.dat)
---msg=MESSAGE         MESSAGE that was signed (default: empty)
---bsn=BASENAME        BASENAME used in signature (default: random)
---privrl=FILE         load private key based revocation list from FILE
---sigrl=FILE          load signature based revocation list from FILE
---grprl=FILE          load group revocation list from FILE
-                        (default: grprl.bin)
---verifierrl=FILE     load verifier revocation list from FILE
---gpubkey=FILE        load group public key from FILE (default: pubkey.bin)
---vprecmpi=FILE       load pre-computed verifier data from FILE
---vprecmpo=FILE       write pre-computed verifier data to FILE
---hashalg=NAME        SHA-256 | SHA-384 | SHA-512 (default: SHA-512)
---capubkey=FILE       load IoT Issuing CA public key from FILE
-                        (default: cacert.bin)
--h,--help             display this help and exit
--v,--verbose          print status messages to stdout
+  --msg=MESSAGE
+      MESSAGE that was signed (default: empty)
+
+  --bsn=BASENAME
+      BASENAME used in signature (default: random)
+
+  --privrl=FILE
+      load private key revocation list from FILE
+
+  --sigrl=FILE
+      load signature based revocation list from FILE
+
+  --grprl=FILE
+      load group revocation list from FILE
+       (default: grprl.bin)
+
+  --verifierrl=FILE
+      load verifier revocation list from FILE
+
+  --gpubkey=FILE
+      load group public key from FILE (default: pubkey.bin)
+
+  --vprecmpi=FILE
+      load pre-computed verifier data from FILE
+
+  --vprecmpo=FILE
+      write pre-computed verifier data to FILE
+
+  --capubkey=FILE
+      load IoT Issuing CA public key from FILE
+   (default: cacert.bin)
+
+  --hashalg={SHA-256 | SHA-384 | SHA-512}
+      use specified hash algorithm for 2.0 groups (default: SHA-512)
+
+  -h, --help
+  display this help and exit
+
+  -v, --verbose
+      print status messages to stdout
 </pre><p>To verify that a signature is from a member in good standing, the verifier uses the following command: </p><pre class="fragment">$ ./verifysig --msg="test0"
 signature verified successfully
-</pre><p>This verifies that the default signature file <code>sig.dat</code> is generated for the message "test0" by a member in good standing. <em>verifysig</em> uses default inputs for group public key and hash algorithm (SHA-512). All other parameters are ignored. The output <code>verifysig: signature verified successfully</code> denotes that the verification is successful.</p>
+</pre><p>This verifies that the default signature file <code>sig.dat</code> is generated for the message "test0" by a member in good standing. <em>verifysig</em> uses default inputs for group public key, hash algorithm and IoT Issuing CA public key. All other parameters are ignored. The output <code>verifysig: signature verified successfully</code> denotes that the verification is successful.</p>
 <h1><a class="anchor" id="SignVerifyTutorial_Basename"></a>
 Linking Intel® EPID Signatures from the Same Member</h1>
-<p>A name-based signature is a type of signature that gives the verifier the ability to link Intel&reg; EPID signatures from the same member, reducing the member's privacy.</p>
-<p>The verifier can ask the member to sign a message with a basename that the verifier chooses. If the member uses the name-based signature option (i.e., in cases where a basename is specified), then all the signatures created by the member using the same basename are linkable by the verifier.</p>
+<p>A name based signature is created using the additional parameter of a basename. If the member uses the same basename, the verifier can mathematically link signatures generated by the member, showing that the signatures are from the same member.</p>
+<p>To validate a signature with a basename, you need to use the same basename for signing and verification. The mechanism for ensuring that the member and verifier use the same basename is outside the scope of the SDK.</p>
+<p>If a basename is not provided, then the member uses a random basename and the signature generated by the member is anonymous.</p>
+<p>For more general information on why you might want to use a basename, refer to <a class="el" href="Basenames.html#name_based">Name Based Signatures</a>.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The use of a name-based signature creates a platform unique pseudonymous identifier. Because it reduces the member's privacy, the user should be notified when it is used and should have control over its use.</dd></dl>
-<p>A name-based signature is created using the additional parameter of a basename. If the member uses the same basename, the verifier can mathematically link signatures generated by the member, showing that the signatures are from the same member.</p>
-<p>If basename is not provided, then the member uses a random basename and the signature generated by the member is anonymous.</p>
-<p>To Sign message "test0" with a basename "base0": </p><pre class="fragment">$ ./signmsg --msg="test0" --bsn="base0"
+<p>To sign message "test0" with a basename "base0": </p><pre class="fragment">$ ./signmsg --msg="test0" --bsn="base0"
 </pre><p>To verify the signature: </p><pre class="fragment">$ ./verifysig --msg="test0" --bsn="base0"
 verifysig: signature verified successfully
-</pre><h1><a class="anchor" id="SignVerifyTutorial_VerificationFailures"></a>
+</pre><p>To validate a signature, you need to use the same message for signing and verification. The mechanism for ensuring that the member and verifier use the same message is outside the scope of the SDK.</p>
+<p>Member and verifier must also use the same hash algorithm and basename, if applicable.</p>
+<h1><a class="anchor" id="SignVerifyTutorial_VerificationFailures"></a>
 Expected Failures</h1>
 <p>The signature verification process fails if there is a parameter mismatch between sign and verify operations. Here are some examples.</p>
 <p>Verification fails if there is a mismatch in the message: </p><pre class="fragment">$ ./signmsg --msg="test0"

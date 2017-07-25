@@ -15,6 +15,8 @@
 ############################################################################
 Import('*')
 
+import os
+
 env.PartVersion("9.0.1")
 env.PartName("ippcp")
 env.DependsOn([Component('ippcommon')])
@@ -71,12 +73,43 @@ if 'install_package' in env['MODE']:
                         excludes=[],
                         recursive=True)
     env.InstallTopLevel(this_file, sub_dir='ext/ipp/')
+    makefile = Pattern(src_dir='./sources/ippcp',
+                        includes=['Makefile'],
+                        excludes=[],
+                        recursive=True)
+    env.InstallTopLevel(makefile, sub_dir='ext/ipp/sources/ippcp')
+
 else:
     all_c_files = ippcp_files.files()
     outputs = env.Library(ipp_libname, all_c_files)
 
-    env.SdkLib(outputs)
     env.SdkInclude(install_headers)
     env.SdkInclude(common_headers)
-    if 'install_lib' in env['MODE']:
-        env.InstallLib(outputs)
+    if 'use_commercial_ipp' in env['MODE']:
+        try:
+            IPPROOT = os.environ['IPPROOT']
+        except KeyError, e:
+            env.PrintError("Necessary environment variable not set: ",
+                           e, show_stack=False)
+        if env['TARGET_PLATFORM']['OS'] == 'win32':
+            libpre = ''
+            libpost = '.lib'
+            IPP_TH_SYMBOL = 'mt'
+        else:
+            libpre = 'lib'
+            libpost = '.a'
+            IPP_TH_SYMBOL = ''
+        if env['TARGET_PLATFORM']['ARCH'] == 'x86':
+            archdir = 'ia32/'
+        else:
+            archdir = 'intel64/'
+
+        ippcp_libname = libpre + 'ippcp' + IPP_TH_SYMBOL + libpost
+        ippcore_libname = libpre + 'ippcore' + IPP_TH_SYMBOL + libpost
+        ipp_dir = IPPROOT + '/lib/' + archdir
+        env.SdkLib(ipp_dir + ippcp_libname)
+        env.SdkLib(ipp_dir + ippcore_libname)
+    else:
+        env.SdkLib(outputs)
+        if 'install_lib' in env['MODE']:
+            env.InstallLib(outputs)

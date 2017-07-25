@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: Building From Source</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: Building from Source</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,12 +58,14 @@ $(document).ready(function(){initNavTree('BuildingSdk.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">Building From Source </div>  </div>
+<div class="title">Building from Source </div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#BuildingSdk_Prerequisites">Prerequisites</a></li>
-<li class="level1"><a href="#BuildingSdk_Building">Building</a></li>
+<li class="level1"><a href="#BuildingSdk_Building_SCons">Building SDK with SCons</a></li>
+<li class="level1"><a href="#BuildingSdk_Building_Makefile">Alternate Makefile/Autoconf Based Build Approach</a></li>
+<li class="level1"><a href="#BuildingSdk_CommercialIpp">Improving Performance with Commercial IPP</a></li>
 <li class="level1"><a href="#BuildingSdk_Examples">Example Programs</a></li>
 <li class="level1"><a href="#BuildingSdk_PortingBuildSystem">Building with Other Build Systems</a></li>
 </ul>
@@ -72,6 +74,7 @@ $(document).ready(function(){initNavTree('BuildingSdk.html','');});
 <h1><a class="anchor" id="BuildingSdk_Prerequisites"></a>
 Prerequisites</h1>
 <p>Building SDK code out of the box requires a number of tools. This section lists the tools used to build the SDK.</p>
+<p>For more information on how to install these tools, refer to <a class="el" href="BuildToolsInstallation.html">Guide to Installing Build Tools</a>.</p>
 <table class="doxtable">
 <tr>
 <th>Prerequisite </th><th>Notes  </th></tr>
@@ -84,8 +87,8 @@ Prerequisites</h1>
 <tr>
 <td><a href="https://bitbucket.org/sconsparts/parts">Parts</a> </td><td>0.10.9.2 or later </td></tr>
 </table>
-<h1><a class="anchor" id="BuildingSdk_Building"></a>
-Building</h1>
+<h1><a class="anchor" id="BuildingSdk_Building_SCons"></a>
+Building SDK with SCons</h1>
 <p>To use the SDK, you need to build it to generate libraries compatible with your build environment.</p>
 <p>To build based on the default SConstruct file in the root directory of the SDK, invoke scons with no arguments. </p><pre class="fragment">cd &lt;path/to/sdk-root&gt;
 scons
@@ -103,11 +106,11 @@ scons
 <tr>
 <td><code>--target=x86_64</code> </td><td>Target x86_64 </td></tr>
 <tr>
-<td><code>--tc=cl</code> </td><td>Use msvc to compile </td></tr>
+<td><code>--tc=cl</code> </td><td>Use MSVC to compile (Microsoft&reg;* C/C++ Optimizing Compiler) </td></tr>
 <tr>
-<td><code>--tc=gcc</code> </td><td>Use gcc to compile </td></tr>
+<td><code>--tc=gcc</code> </td><td>Use GCC to compile (GNU* Compiler Collection) </td></tr>
 <tr>
-<td><code>--tc=icl,mstools</code> </td><td>Use intelc to compile </td></tr>
+<td><code>--tc=icl,mstools</code> </td><td>Use Intel&reg; C++ compiler </td></tr>
 <tr>
 <td><code>build::</code> </td><td>Build the SDK (does not build unit tests) </td></tr>
 <tr>
@@ -118,6 +121,29 @@ scons
 <td><code>-c</code> </td><td>Clean the build </td></tr>
 </table>
 <p>Built components appear in the <code>_install</code> directory of the SDK root.</p>
+<h1><a class="anchor" id="BuildingSdk_Building_Makefile"></a>
+Alternate Makefile/Autoconf Based Build Approach</h1>
+<p>You can build with the <code>make</code> command on platforms that support Make/Autoconf.</p>
+<p>In the root directory of the SDK, run: </p><pre class="fragment">./configure
+make all
+make check
+make install
+</pre><p><code>./configure</code> sets up the default settings:</p>
+<ul>
+<li>The default compilers are GCC/G++. You can specify compilers via the CC and CXX variables. For example, <code>./configure CC=/opt/intel/bin/icc CXX=/opt/intel/bin/icpc</code></li>
+<li>The default installation directory is <code>./_install</code>. You can specify the installation directory by using <code>./configure --prefix=/usr/local/epid_install</code></li>
+<li>To change OS bit version, use CFLAGS parameter <code>-m32</code> and <code>-m64</code>. For example, <code>./configure CFLAGS=-m32</code></li>
+</ul>
+<p><code>make check</code> is optional. It builds and runs the unit tests.</p>
+<p>Alternatively, you can use <code>make build</code> as a shortcut to replace <code>make all</code>, <code>make check</code>, and <code>make install</code>.</p>
+<p>To clean the build, run <code>make clean</code>.</p>
+<p>To remove the install directory, run <code>make uninstall</code>.</p>
+<h1><a class="anchor" id="BuildingSdk_CommercialIpp"></a>
+Improving Performance with Commercial IPP</h1>
+<p>For higher performance, you can use the commercial version of Cryptography for Intel&reg; Integrated Performance Primitives, available at <a href="https://software.intel.com/articles/download-ipp-cryptography-libraries">https://software.intel.com/articles/download-ipp-cryptography-libraries</a>.</p>
+<dl class="section note"><dt>Note</dt><dd>The SDK has been validated with v9.0.3 of the cryptography library.</dd></dl>
+<p>To build the SDK using a commercial Intel&reg; IPP installation, the <code>IPPROOT</code> environment variable must be properly configured to point to the IPP installation directory, as described in Setting Environment Variables* in the <a href="https://software.intel.com/sites/default/files/managed/a7/15/ipp_userguide_0.pdf">Intel&reg; IPP User's Guide</a> (PDF link).</p>
+<p>Once the environment is configured, you can build using commercial IPP by specifying <code>--use-commercial-ipp</code> as a command line option.</p>
 <h1><a class="anchor" id="BuildingSdk_Examples"></a>
 Example Programs</h1>
 <p>The SDK includes several examples that show you different aspects of how the Intel&reg; EPID scheme works. In the SDK build, these examples are located in <code>_install/epid-sdk/example</code>.</p>
@@ -135,7 +161,10 @@ Building with Other Build Systems</h1>
 <div class="image">
 <img src="basicdoc.png" alt="basicdoc.png"/>
 </div>
- </div></div><!-- contents -->
+<p><br />
+</p>
+<p>Other names and brands may be claimed as the property of others. </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->

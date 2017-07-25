@@ -1,5 +1,5 @@
-var examples =
+var Examples =
 [
-    [ "signmsg.c", "signmsg_8c-example.html", null ],
-    [ "verifysig.c", "verifysig_8c-example.html", null ]
+    [ "Generating an Intel® EPID Signature", "SignmsgWalkthru.html", null ],
+    [ "Verifying an Intel® EPID Signature", "VerifysigWalkthru.html", null ]
 ];

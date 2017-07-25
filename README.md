@@ -32,9 +32,9 @@ multitude of security solutions.
 * A C/C++ compiler supported by Parts
 
 
-## Release Notes
+## What's New in This Release
 
-See [RELEASE_NOTES.md](RELEASE_NOTES.md).
+See [CHANGELOG.md](CHANGELOG.md).
 
 
 ## Documentation

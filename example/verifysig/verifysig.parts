@@ -35,11 +35,12 @@ if 'install_package' in env['MODE']:
 else:
     env.DependsOn([
         Component('verifier'),
-        Component('util')
+        Component('util'),
+        Component('dropt')
     ])
 
     env.Append(CPPPATH='#/example/verifysig')
-    
+
     if env['TARGET_PLATFORM']['OS'] == 'win32':
         if env.isConfigBasedOn('debug'):
             env['PDB'] = '${PART_NAME}.pdb'

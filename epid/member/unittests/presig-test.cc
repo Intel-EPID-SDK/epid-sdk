@@ -52,20 +52,20 @@ namespace {
 // EpidAddPreSigs
 TEST_F(EpidMemberTest, AddPreSigsFailsGivenNullPointer) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  PreComputedSignature presig = this->precomputed_signatures[0];
+  PreComputedSignature presig = this->kPrecomputedSignatures[0];
 
   EXPECT_EQ(kEpidBadArgErr, EpidAddPreSigs(nullptr, 1, &presig));
 }
 
 TEST_F(EpidMemberTest, AddPreSigsFailsGivenHugeNumberOfPreSigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  PreComputedSignature presig = this->precomputed_signatures[0];
+  PreComputedSignature presig = this->kPrecomputedSignatures[0];
 
   // number_presigs = 0x80..01 of size equal to sizeof(size_t)
   EXPECT_EQ(kEpidBadArgErr,
@@ -75,8 +75,8 @@ TEST_F(EpidMemberTest, AddPreSigsFailsGivenHugeNumberOfPreSigs) {
 TEST_F(EpidMemberTest,
        AddPreSigsComputesSpecifiedNumberOfPresigsIfInputPresigsNull) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 2, nullptr));
   ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 1, nullptr));
@@ -87,13 +87,13 @@ TEST_F(EpidMemberTest,
 
 TEST_F(EpidMemberTest, AddPreSigsClearsInputPresigBuffer) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   // For a test purposes allocate an array of precomputed signatures with
   // all elements initialized to the same precomputed signature.
   // Warning: Do not use precomputed signatures twice in production code!
-  std::vector<PreComputedSignature> presigs(2, this->precomputed_signatures[0]);
+  std::vector<PreComputedSignature> presigs(2, this->kPrecomputedSignatures[0]);
 
   ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, presigs.size(), presigs.data()));
   EXPECT_TRUE(std::all_of((uint8_t*)presigs.data(),
@@ -103,14 +103,14 @@ TEST_F(EpidMemberTest, AddPreSigsClearsInputPresigBuffer) {
 
 TEST_F(EpidMemberTest, AddPreSigsAddsCorrectNumberOfPresigsGivenValidInput) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   // For a test purposes allocate an arrays of precomputed signatures with
   // all elements initialized to the same precomputed signature.
   // Warning: Do not use precomputed signatures twice in production code!
   std::vector<PreComputedSignature> presigs1(2,
-                                             this->precomputed_signatures[0]);
+                                             this->kPrecomputedSignatures[0]);
   std::vector<PreComputedSignature> presigs2 = presigs1;
 
   // add
@@ -132,21 +132,21 @@ TEST_F(EpidMemberTest, GetNumPreSigsReturnsZeroGivenNullptr) {
 
 TEST_F(EpidMemberTest, NumPreSigsForNewleyCreatedContextIsZero) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   EXPECT_EQ((size_t)0, EpidGetNumPreSigs(member));
 }
 
 TEST_F(EpidMemberTest, GetNumPreSigsReturnsNumberOfAddedPresigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   // For a test purposes allocate an array of precomputed signatures with
   // all elements initialized to the same precomputed signature.
   // Warning: Do not use precomputed signatures twice in production code!
-  std::vector<PreComputedSignature> presigs(5, this->precomputed_signatures[0]);
+  std::vector<PreComputedSignature> presigs(5, this->kPrecomputedSignatures[0]);
 
   THROW_ON_EPIDERR(EpidAddPreSigs(member, presigs.size(), presigs.data()));
   EXPECT_EQ(presigs.size(), EpidGetNumPreSigs(member));
@@ -155,8 +155,8 @@ TEST_F(EpidMemberTest, GetNumPreSigsReturnsNumberOfAddedPresigs) {
 // EpidWritePreSigs
 TEST_F(EpidMemberTest, WritePreSigsFailsGivenNullPointer) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   PreComputedSignature presig;
 
   EXPECT_EQ(kEpidBadArgErr, EpidWritePreSigs(nullptr, &presig, 0));
@@ -164,10 +164,10 @@ TEST_F(EpidMemberTest, WritePreSigsFailsGivenNullPointer) {
 
 TEST_F(EpidMemberTest, WritePreSigsFailsGivenWrongNumberOfPresigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  PreComputedSignature presig = this->precomputed_signatures[0];
+  PreComputedSignature presig = this->kPrecomputedSignatures[0];
 
   // add one pre-computed signature
   THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, &presig));
@@ -177,13 +177,13 @@ TEST_F(EpidMemberTest, WritePreSigsFailsGivenWrongNumberOfPresigs) {
 
 TEST_F(EpidMemberTest, WritePreSigsClearsPresigsOnSuccess) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   std::vector<PreComputedSignature> presigs(
-      COUNT_OF(this->precomputed_signatures));
-  presigs.assign(std::begin(this->precomputed_signatures),
-                 std::end(this->precomputed_signatures));
+      COUNT_OF(this->kPrecomputedSignatures));
+  presigs.assign(std::begin(this->kPrecomputedSignatures),
+                 std::end(this->kPrecomputedSignatures));
 
   THROW_ON_EPIDERR(EpidAddPreSigs(member, presigs.size(), presigs.data()));
 
@@ -201,11 +201,11 @@ TEST_F(EpidMemberTest, WritePreSigsClearsPresigsOnSuccess) {
 
 TEST_F(EpidMemberTest, CanWriteAddedPresigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  PreComputedSignature presig0 = this->precomputed_signatures[0];
-  PreComputedSignature presig1 = this->precomputed_signatures[1];
+  PreComputedSignature presig0 = this->kPrecomputedSignatures[0];
+  PreComputedSignature presig1 = this->kPrecomputedSignatures[1];
   PreComputedSignature presigs[2] = {presig0, presig1};
 
   THROW_ON_EPIDERR(EpidAddPreSigs(member, COUNT_OF(presigs), presigs));
@@ -218,8 +218,8 @@ TEST_F(EpidMemberTest, CanWriteAddedPresigs) {
 
 TEST_F(EpidMemberTest, CanWriteGeneratedPresigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   PreComputedSignature zero_buffer;
   memset(&zero_buffer, 0, sizeof(zero_buffer));
@@ -235,8 +235,8 @@ TEST_F(EpidMemberTest, CanWriteGeneratedPresigs) {
 
 TEST_F(EpidMemberTest, WritePreSigsCanWriteZeroPresigs) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   PreComputedSignature presig;
 

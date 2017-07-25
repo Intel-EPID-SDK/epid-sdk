@@ -42,6 +42,22 @@ char const* HashAlgToString(HashAlg alg);
 */
 bool StringToHashAlg(char const* str, HashAlg* alg);
 
+/// convert an EPID version to a string
+/*!
+\param[in] version an EPID version
+\returns string representing the version
+*/
+char const* EpidVersionToString(EpidVersion version);
+
+/// convert a string to an EPID version
+/*!
+\param[in] str a string
+\param[out] version an EPID version
+\retval true string represents an EPID version
+\retval false string does not represent an EPID version
+*/
+bool StringToEpidVersion(char const* str, EpidVersion* version);
+
 /// convert an EPID file type to a string
 /*!
 \param[in] type an EPID file type

@@ -2,7 +2,8 @@ var group___epid_print =
 [
     [ "PrintUtilFormat", "group___epid_print.html#ga3e215d157eb205ad596bb84bce694a83", [
       [ "kPrintUtilUnannotated", "group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83aeb475b793d8d357087d7fcc74702ffae", null ],
-      [ "kPrintUtilAnnotated", "group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83ae2d5345c14f57fc992a613003c3c443d", null ]
+      [ "kPrintUtilAnnotated", "group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83ae2d5345c14f57fc992a613003c3c443d", null ],
+      [ "kPrintUtilFormatCount", "group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83ade23610605d0ba7dd48db5060e28995a", null ]
     ] ],
     [ "PrintBigNum", "group___epid_print.html#ga45a933b44fc1dfe926e3af89c198070a", null ],
     [ "PrintBigNumStr", "group___epid_print.html#ga5f249c594ed12e4a9b11b7bc101da85d", null ],

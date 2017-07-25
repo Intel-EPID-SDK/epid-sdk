@@ -16,29 +16,54 @@
 Import('*')
 env.PartName('common-testhelper')
 
-
-
 src_files = Pattern(src_dir='.',
                     includes=['*-testhelper.cc'],
                     excludes=[],
-                    recursive=True).files()
+                    recursive=False).files()
 inc_files = Pattern(src_dir='.',
                     includes=['*-testhelper.h'],
                     excludes=[],
-                    recursive=True).files()
-#unit tests
+                    recursive=False).files()
+epid11_src_files = Pattern(src_dir='1.1',
+                           includes=['*-testhelper.cc'],
+                           excludes=[],
+                           recursive=False).files()
+epid11_inc_files = Pattern(src_dir='1.1',
+                           includes=['*-testhelper.h'],
+                           excludes=[],
+                           recursive=False).files()
+test_data_files = Pattern(src_dir='testdata',
+                          includes=['*'],
+                          excludes=[],
+                          recursive=True)
+epid11_test_data_files = Pattern(src_dir='1.1/testdata',
+                                 includes=['*'],
+                                 excludes=[],
+                                 recursive=True)
+
+# unit tests
 utest_files = Pattern(src_dir='.',
                       includes=['*-test.cc'],
                       excludes=[],
                       recursive=True).files()
 
-
 if 'install_package' in env['MODE']:
-    env.InstallTopLevel(src_files,sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(inc_files,sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(utest_files, sub_dir='epid/${PART_SHORT_NAME}/unittests')
+    env.InstallTopLevel(src_files, sub_dir='epid/${PART_SHORT_NAME}')
+    env.InstallTopLevel(inc_files, sub_dir='epid/${PART_SHORT_NAME}')
+    env.InstallTopLevel(utest_files,
+                        sub_dir='epid/${PART_SHORT_NAME}/unittests')
+    env.InstallTopLevel(test_data_files,
+                        sub_dir='epid/${PART_SHORT_NAME}/testdata')
+
+    env.InstallTopLevel(epid11_src_files, sub_dir='epid/${PART_SHORT_NAME}/1.1')
+    env.InstallTopLevel(epid11_inc_files, sub_dir='epid/${PART_SHORT_NAME}/1.1')
+    env.InstallTopLevel(epid11_test_data_files,
+                        sub_dir='epid/${PART_SHORT_NAME}/1.1/testdata')
+
     parts_file = ['common-testhelper.parts']
     env.InstallTopLevel(parts_file, sub_dir='epid/${PART_SHORT_NAME}')
+    makefile = ['Makefile']
+    env.InstallTopLevel(makefile, sub_dir='epid/${PART_SHORT_NAME}')
 else:
     env.DependsOn([
         Component('common'),
@@ -48,7 +73,7 @@ else:
 
     testenv = env.Clone()
 
-    outputs = env.Library('${PART_NAME}', src_files)
+    outputs = env.Library('${PART_NAME}', src_files + epid11_src_files)
     env.Sdk(outputs)
 
     testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"

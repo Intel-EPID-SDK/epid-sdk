@@ -40,8 +40,8 @@ namespace {
 // Simple error cases
 TEST_F(EpidMemberTest, SignBasicFailsGivenNullParameters) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
@@ -56,8 +56,8 @@ TEST_F(EpidMemberTest, SignBasicFailsGivenNullParameters) {
 }
 TEST_F(EpidMemberTest, SignBasicFailsForBasenameWithoutRegisteredBasenames) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
@@ -66,8 +66,8 @@ TEST_F(EpidMemberTest, SignBasicFailsForBasenameWithoutRegisteredBasenames) {
 }
 TEST_F(EpidMemberTest, SignBasicFailsIfGivenUnregisteredBasename) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn0 = this->kBsn0;
   auto& bsn1 = this->kBsn1;
@@ -81,8 +81,8 @@ TEST_F(EpidMemberTest, SignBasicFailsIfGivenUnregisteredBasename) {
 // Anonymity
 TEST_F(EpidMemberTest, BasicSignaturesOfSameMessageAreDifferent) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   BasicSignature basic_sig1;
   BasicSignature basic_sig2;
@@ -95,8 +95,8 @@ TEST_F(EpidMemberTest, BasicSignaturesOfSameMessageAreDifferent) {
 TEST_F(EpidMemberTest,
        BasicSignaturesOfSameMessageWithSameBasenameAreDifferent) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig1;
@@ -112,21 +112,21 @@ TEST_F(EpidMemberTest,
 // Variable basename
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingRandomBase) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                       0, &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasename) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
@@ -134,17 +134,17 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasename) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
-            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size(),
-                               bsn.data(), bsn.size()));
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasenameUsingIKGFData) {
   Prng my_prng;
   GroupPubKey grp_public_key = *reinterpret_cast<const GroupPubKey*>(
-      this->group_public_key_data_ikgf.data());
-  PrivKey mbr_private_key = *reinterpret_cast<const PrivKey*>(
-      this->member_private_key_data_ikgf.data());
+      this->kGroupPublicKeyDataIkgf.data());
+  PrivKey mbr_private_key =
+      *reinterpret_cast<const PrivKey*>(this->kMemberPrivateKeyDataIkgf.data());
   MemberCtxObj member(grp_public_key, mbr_private_key, &Prng::Generate,
                       &my_prng);
   auto& msg = this->kMsg0;
@@ -155,15 +155,15 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasenameUsingIKGFData) {
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
   VerifierCtxObj ctx(grp_public_key);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
-            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size(),
-                               bsn.data(), bsn.size()));
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest,
        SignBasicSucceedsUsingRandomBaseWithRegisteredBasenames) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
@@ -171,31 +171,31 @@ TEST_F(EpidMemberTest,
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
-            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size(),
-                               bsn.data(), bsn.size()));
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest,
        SignBasicSucceedsUsingRandomBaseWithoutRegisteredBasenames) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                       0, &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 /////////////////////////////////////////////////////////////////////////
 // Variable hash alg
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha256HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
@@ -204,15 +204,15 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha256HashAlg) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha256));
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha384HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
@@ -221,15 +221,15 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha384HashAlg) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha384));
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
@@ -238,15 +238,15 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512HashAlg) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512));
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, DISABLED_SignBasicSucceedsUsingSha512256HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
@@ -255,17 +255,17 @@ TEST_F(EpidMemberTest, DISABLED_SignBasicSucceedsUsingSha512256HashAlg) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512_256));
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                              msg.size(), nullptr, 0));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 /////////////////////////////////////////////////////////////////////////
 TEST_F(EpidMemberTest, SignBasicFailsForInvalidMemberPrecomp) {
   Prng my_prng;
-  MemberPrecomp mbr_precomp = this->member_precomp;
+  MemberPrecomp mbr_precomp = this->kMemberPrecomp;
   mbr_precomp.e12.x[0].data.data[0]++;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       mbr_precomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
@@ -276,9 +276,9 @@ TEST_F(EpidMemberTest, SignBasicFailsForInvalidMemberPrecomp) {
 // Variable precomputed signatures
 TEST_F(EpidMemberTest, SignBasicFailsForInvalidPrecomputedSignature) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
-  PreComputedSignature precompsig = this->precomputed_signatures[0];
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  PreComputedSignature precompsig = this->kPrecomputedSignatures[0];
   precompsig.B.x.data.data[0]++;
   THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, &precompsig));
   auto& msg = this->kMsg0;
@@ -289,8 +289,8 @@ TEST_F(EpidMemberTest, SignBasicFailsForInvalidPrecomputedSignature) {
 }
 TEST_F(EpidMemberTest, SignBasicConsumesPrecomputedSignatures) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   THROW_ON_EPIDERR(EpidAddPreSigs(member, 3, nullptr));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
@@ -303,8 +303,8 @@ TEST_F(EpidMemberTest, SignBasicConsumesPrecomputedSignatures) {
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsWithPrecomputedSignatures) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, nullptr));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
@@ -313,15 +313,15 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithPrecomputedSignatures) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
-            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size(),
-                               bsn.data(), bsn.size()));
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsWithoutPrecomputedSignatures) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   THROW_ON_EPIDERR(EpidAddPreSigs(member, 1, nullptr));
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
@@ -333,35 +333,35 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithoutPrecomputedSignatures) {
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), bsn.size(), &basic_sig));
   // verify basic signature
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidSigValid,
-            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size(),
-                               bsn.data(), bsn.size()));
+            EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
 /////////////////////////////////////////////////////////////////////////
 // Variable messages
 TEST_F(EpidMemberTest, SignBasicSucceedsGivenEmptyMessage) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), 0, bsn.data(),
                                       bsn.size(), &basic_sig));
-  VerifierCtxObj ctx(this->group_public_key);
-  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), 0,
-                                              bsn.data(), bsn.size()));
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidSigValid, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), 0));
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsWithShortMessage) {
   // check: 1, 13, 128, 256, 512, 1021, 1024 bytes
   // 13 and 1021 are primes
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   BasicSignature basic_sig;
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   size_t lengths[] = {1,   13,   128, 256,
                       512, 1021, 1024};  // have desired lengths to loop over
   std::vector<uint8_t> msg(
@@ -373,17 +373,17 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithShortMessage) {
     EXPECT_EQ(kEpidNoErr,
               EpidSignBasic(member, msg.data(), length, nullptr, 0, &basic_sig))
         << "EpidSignBasic for message_len: " << length << " failed";
-    EXPECT_EQ(kEpidNoErr, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                             length, nullptr, 0))
+    EXPECT_EQ(kEpidNoErr,
+              EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), length))
         << "EpidVerifyBasicSig for message_len: " << length << " failed";
   }
 }
 TEST_F(EpidMemberTest, SignBasicSucceedsWithLongMessage) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
   BasicSignature basic_sig;
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   {                                     // 1000000
     std::vector<uint8_t> msg(1000000);  // allocate message for max size
     for (size_t n = 0; n < msg.size(); n++) {
@@ -392,8 +392,8 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithLongMessage) {
     EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                         0, &basic_sig))
         << "EpidSignBasic for message_len: " << 1000000 << " failed";
-    EXPECT_EQ(kEpidNoErr, EpidVerifyBasicSig(ctx, &basic_sig, msg.data(),
-                                             msg.size(), nullptr, 0))
+    EXPECT_EQ(kEpidNoErr,
+              EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()))
         << "EpidVerifyBasicSig for message_len: " << 1000000 << " failed";
   }
 }

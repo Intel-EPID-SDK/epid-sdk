@@ -32,8 +32,10 @@ EPID SDK. All data files are in binary format.
     |   |   |__ mprivkey.dat
     |   |
     |   |__ privrl.bin
+    |   |__ privrl_empty.bin
     |   |__ pubkey.bin
     |   |__ sigrl.bin
+    |   |__ sigrl_empty.bin
     |
     |__ groupb
     |   |__ member0
@@ -49,14 +51,18 @@ EPID SDK. All data files are in binary format.
     |   |   |__ mprivkey.dat
     |   |
     |   |__ privrl.bin
+    |   |__ privrl_empty.bin
     |   |__ pubkey.bin
     |   |__ sigrl.bin
+    |   |__ sigrl_empty.bin
     |
     |__ grprl.bin
     |__ grprl_empty.bin
     |__ mprivkey.dat
+    |__ privrl.bin
     |__ pubkey.bin
     |__ cacert.bin
+    |__ sigrl.bin
 
 
 ## Description
@@ -68,7 +74,7 @@ There are 2 groups
 - **groupb**
 
 
-_Note: No compressed key sample material is included in the package._
+_Note: No compressed key sample material is included in this folder._
 
 ### Group A
 
@@ -104,6 +110,10 @@ In addition, **groupa** contain the following revocation lists:
   **sigrevokedmember0**, **sigrevokedmember2** and
   **sigrevokedmember2**
 
+- `privrl_empty.bin` - private key based revocation list with 0 entries
+
+- `sigrl_empty.bin` - signature based revocation list with 0 entries
+
 
 ### Group B
 
@@ -127,21 +137,31 @@ In addition, **groupb** contain the following revocation lists:
 - `sigrl.bin` - signature based revocation list with 1 entries -
   **sigrevokedmember0**
 
+- `privrl_empty.bin` - private key based revocation list with 0 entries
+
+- `sigrl_empty.bin` - signature based revocation list with 0 entries
+
 
 ### Default files
 
 - `/data/cacert.bin` - CA certificate used as default input to signmsg
-  and verifysig
+  and `verifysig`
 
 - `/data/grprl.bin` - group revocation list with one entry **groupb** used
-  as default input to verifysig
+  as default input to `verifysig`
 
-- `/data/pubkey.bin` - public key of a group A used as default input
-  to signmsg and verifysig
+- `/data/pubkey.bin` - public key in **groupa** used as default input
+  to signmsg and `verifysig`
 
-- `/data/mprivkey.dat` - private key of a member0 in the group A above
-  used as default input to signmsg
+- `/data/mprivkey.dat` - private key of a **member0** in the
+  **groupa** used as default input to `signmsg`
 
+- `/data/privrl.bin` - private key based revocation list in the
+  **groupa** with 0 entries used as default input to `verifysig`
+
+- `/data/sigrl.bin` - signature based revocation list in the
+  **groupa** with 0 entries used as default input to `signmsg`
+  and `verifysig`
 
 ### Group revocation lists
 
@@ -149,7 +169,7 @@ There are 2 group revocation lists:
 
 - `grprl.bin` - group revocation list with 1 entry - **groupb**
 
-- `grprl_empty.bin` - group revocation list with 0 entry
+- `grprl_empty.bin` - group revocation list with 0 entries
 
 
 ### IoT EPID Issuing CA certificate
@@ -157,5 +177,3 @@ There are 2 group revocation lists:
 - `/data/cacert.bin` - CA certificate used to check that revocation
   lists and group public keys are authorized by the issuer, e.g.,
   signed by the issuer
-
-

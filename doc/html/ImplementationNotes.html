@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">2.0.0</span>
+&#160;<span id="projectnumber">3.0.0</span>
 </div>
   </td>
  </tr>
@@ -77,11 +77,11 @@ Random Number Generation</h1>
 Protecting Secrets</h1>
 <p>Member code works with private keys, so member code must be run in a trusted environment.</p>
 <dl class="section warning"><dt>Warning</dt><dd>If member memory is available to an untrusted source, the member private key could be exposed.</dd></dl>
-<p>The <a class="el" href="group___epid_common.html#gad471f600f6032f432b99432fda97a070" title="Clear information stored in block of memory pointer to by ptr. ">EpidZeroMemory</a> function is used by the memory allocation routines <a class="el" href="group___epid_common.html#gada170fd890504b013139f4a33033ae4b" title="Allocates memory of size bytes. ">EpidAlloc</a>, <a class="el" href="group___epid_common.html#ga6911838728d546e4a51d7bcb8404525c" title="Reallocates memory allocated by EpidAlloc. ">EpidRealloc</a> and <a class="el" href="group___epid_common.html#gaeae76709e6bfc80c9d79ec4943ccc1ac" title="Frees memory allocated by EpidAlloc. ">EpidFree</a> to wipe the memory as memory is freed.</p>
-<dl class="section warning"><dt>Warning</dt><dd>The <a class="el" href="group___epid_common.html#gad471f600f6032f432b99432fda97a070" title="Clear information stored in block of memory pointer to by ptr. ">EpidZeroMemory</a> function may be optimized away by some compilers. If it is, you should consider using a compiler or operating system specific memory sanitization function (e.g. memcpy_s or SecureZeroMemory).</dd></dl>
+<p>The <code>EpidZeroMemory</code> function is used by the memory allocation routines <code>EpidAlloc</code>, <code>EpidRealloc</code> and <code>EpidFree</code> to wipe the memory as memory is freed.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The <code>EpidZeroMemory</code> function may be optimized away by some compilers. If it is, you should consider using a compiler or operating system specific memory sanitization function (e.g. <code>memcpy_s</code> or <code>SecureZeroMemory</code>).</dd></dl>
 <h1><a class="anchor" id="ImplementationNotes_MathPrimitives"></a>
 Replacing Math Primitives</h1>
-<p>SDK math primitives are designed to be replaced with your own implementation if you need to rely on custom hardware for performance. The SDK is designed to simplify this process by isolating implementation details behind a clearly defined interface, defined by the non-internal headers the <code>epid/common/math</code> directory. Math functionality has detailed tests to ease validation.</p>
+<p>SDK math primitives are designed to be replaced with your own implementation if you need to rely on custom hardware for performance. The SDK is designed to simplify this process by isolating implementation details behind a clearly defined interface, defined by the non-internal headers in the <code>epid/common/math</code> directory. Math functionality has detailed tests to ease validation.</p>
 <h1><a class="anchor" id="ImplementationNotes_SerializedTypes"></a>
 Octstring/Buffer Types</h1>
 <p>Serialized information in the SDK is passed in fixed size buffer types whenever possible. Collectively these fixed size buffer types are called Octstrings.</p>

@@ -27,6 +27,7 @@
 extern "C" {
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/1.1/types.h"
 }
 
 class EcGroupObj;
@@ -49,6 +50,8 @@ class EcPointObj {
   EcPointObj(EcGroupObj* group, G1ElemStr const& bytes);
   /// Create an EcPoint
   EcPointObj(EcGroupObj* group, G2ElemStr const& bytes);
+  /// Create an EcPoint
+  EcPointObj(EcGroupObj* group, Epid11G2ElemStr const& bytes);
   /// Create an EcPoint
   EcPointObj(EcGroupObj* group, std::vector<unsigned char> const& bytes);
   /// Create an EcPoint

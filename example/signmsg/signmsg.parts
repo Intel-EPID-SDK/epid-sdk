@@ -20,32 +20,33 @@ Import('*')
 env.PartName("signmsg")
 
 src_files = Pattern(src_dir='src/',
-                        includes=['*.c'],
-                        recursive=True).files()
+                    includes=['*.c'],
+                    recursive=True).files()
 inc_files = Pattern(src_dir='src/',
-                        includes=['*.h'],
-                        recursive=True).files()
+                    includes=['*.h'],
+                    recursive=True).files()
 parts_file = ['signmsg.parts']
 
 if 'install_package' in env['MODE']:
-    env.InstallTopLevel(inc_files + src_files,sub_dir='example/${PART_SHORT_NAME}/src')
+    env.InstallTopLevel(inc_files + src_files,
+                        sub_dir='example/${PART_SHORT_NAME}/src')
     env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
 else:
     env.DependsOn([
         Component('member'),
-        Component('util')
+        Component('util'),
+        Component('dropt')
     ])
-    
+
     env.Append(CPPPATH='#/example/signmsg')
-   
+
     if env['TARGET_PLATFORM']['OS'] == 'win32':
         if env.isConfigBasedOn('debug'):
             env['PDB'] = '${PART_NAME}.pdb'
-    
+
     outputs = env.Program('${PART_NAME}', src_files,
                           no_import_lib=True)
-    
+
     env.InstallBin(outputs,
                    no_pkg=False,
                    INSTALL_BIN='${INSTALL_SAMPLE_BIN}')
-    

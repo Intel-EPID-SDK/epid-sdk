@@ -40,15 +40,16 @@
 /// Internal context of verifier.
 typedef struct VerifierCtx VerifierCtx;
 
-/// Pre-computed member settings.
+/// Pre-computed verifier settings.
 /*!
- Serialized form of the information about a member that remains stable for
+ Serialized form of the information about a verifier that remains stable for
  a given set of keys.
 
  \note e12 = 0 implies that this data is not valid
  */
 #pragma pack(1)
 typedef struct VerifierPrecomp {
+  GroupId gid;     ///< group ID
   GtElemStr e12;   ///< an element in GT
   GtElemStr e22;   ///< an element in GT
   GtElemStr e2w;   ///< an element in GT
@@ -117,7 +118,7 @@ EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
 
 /// Sets the private key based revocation list.
 /*!
- The caller is responsible for insuring the revocation list is authorized,
+ The caller is responsible for ensuring the revocation list is authorized,
  e.g signed by the issuer. The caller is also responsible checking the version
  of the revocation list. The call fails if trying to set an older version
  of the revocation list than was last set.
@@ -152,7 +153,7 @@ EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
 
 /// Sets the signature based revocation list.
 /*!
- The caller is responsible for insuring the revocation list is authorized,
+ The caller is responsible for ensuring the revocation list is authorized,
  e.g signed by the issuer. The caller is also responsible checking the version
  of the revocation list. The call fails if trying to set an older version
  of the revocation list than was last set.
@@ -187,7 +188,7 @@ EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
 
 /// Sets the group based revocation list.
 /*!
- The caller is responsible for insuring the revocation list is authorized,
+ The caller is responsible for ensuring the revocation list is authorized,
  e.g signed by the issuer. The caller is also responsible checking the version
  of the revocation list. The call fails if trying to set an older version
  of the revocation list than was last set.
@@ -222,20 +223,14 @@ EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
 
 /// Sets the verifier revocation list.
 /*!
- The caller is responsible for insuring the revocation list is authorized,
- e.g signed by the issuer. The caller is also responsible checking the version
- of the revocation list. The call fails if trying to set an older version
- of the revocation list than was last set.
 
- \attention
- The memory pointed to by ver_rl is accessed directly by the verifier
- until a new list is set or the verifier is destroyed. Do not modify the
- contents of this memory. The behavior of subsequent operations that rely on
- the revocation list is undefined if the memory is modified.
+ The caller is responsible for ensuring the revocation list is
+ authorized. The caller is also responsible for checking the version
+ of the revocation list. The call fails if trying to set an older
+ version of the same revocation list than was last set.
 
- \attention
- It is the responsibility of the caller to free the memory pointed to by ver_rl
- after the verifier is no longer using it.
+ Once ::EpidVerifierSetVerifierRl returns, callers are free to release
+ the memory pointed to by ver_rl.
 
  \param[in,out] ctx
  The verifier context.
@@ -251,6 +246,8 @@ EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
  to by the verifier is undefined.
 
  \see EpidVerifierCreate
+ \see EpidBlacklistSig
+ \see EpidWriteVerifierRl
  */
 EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
                                      size_t ver_rl_size);
@@ -273,6 +270,28 @@ EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
  */
 EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
 
+/// Sets the basename to be used by a verifier.
+/*!
+
+  \note
+  A successful call to this function will clear the current verifier
+  blacklist.
+
+  \param[in, out] ctx
+  The verifier context.
+  \param[in] basename
+  The basename. Pass NULL for random base.
+  \param[in] basename_len
+  Number of bytes in basename buffer. Must be 0 if basename is NULL.
+
+  \returns ::EpidStatus
+
+  \see EpidVerifierCreate
+
+ */
+EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
+                                   size_t basename_len);
+
 /// Verifies a signature and checks revocation status.
 /*!
  \param[in] ctx
@@ -285,10 +304,6 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
  The message that was signed.
  \param[in] msg_len
  The size of msg in bytes.
- \param[in] basename
- The basename. Pass NULL if not specified
- \param[in] basename_len
- Number of bytes in basename buffer. Must be 0 if basename is NULL.
 
  \returns ::EpidStatus
 
@@ -296,13 +311,13 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
  Signature validated successfully
  \retval ::kEpidSigInvalid
  Signature is invalid
- \retval ::kEpidSigRevokedinGroupRl
+ \retval ::kEpidSigRevokedInGroupRl
  Signature revoked in GroupRl
- \retval ::kEpidSigRevokedinPrivRl
+ \retval ::kEpidSigRevokedInPrivRl
  Signature revoked in PrivRl
- \retval ::kEpidSigRevokedinSigRl
+ \retval ::kEpidSigRevokedInSigRl
  Signature revoked in SigRl
- \retval ::kEpidSigRevokedinVerifierRl
+ \retval ::kEpidSigRevokedInVerifierRl
  Signature revoked in VerifierRl
 
  \note
@@ -314,8 +329,7 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
  \see EpidSign
  */
 EpidStatus EpidVerify(VerifierCtx const* ctx, EpidSignature const* sig,
-                      size_t sig_len, void const* msg, size_t msg_len,
-                      void const* basename, size_t basename_len);
+                      size_t sig_len, void const* msg, size_t msg_len);
 
 /// Determines if two signatures are linked.
 /*!
@@ -364,10 +378,6 @@ bool EpidAreSigsLinked(BasicSignature const* sig1, BasicSignature const* sig2);
  The message that was signed.
  \param[in] msg_len
  The size of msg in bytes.
- \param[in] basename
- The basename. Pass NULL if not specified
- \param[in] basename_len
- Number of bytes in basename buffer. Must be 0 if basename is NULL.
 
  \returns ::EpidStatus
 
@@ -384,8 +394,7 @@ bool EpidAreSigsLinked(BasicSignature const* sig1, BasicSignature const* sig2);
  \see EpidSign
  */
 EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
-                              void const* msg, size_t msg_len,
-                              void const* basename, size_t basename_len);
+                              void const* msg, size_t msg_len);
 
 /// Verifies the non-revoked proof for a single signature based revocation list
 /// entry.
@@ -463,5 +472,76 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
 EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
                                 BasicSignature const* sig, FpElemStr const* f);
 
+/// Returns the number of bytes required to serialize the verifier blacklist
+/*!
+
+  Use this function to determine the buffer size required by
+  ::EpidWriteVerifierRl.
+
+  \param[in] ctx
+  The verifier context.
+
+  \returns
+  Size in bytes required to serialize the verifier blacklist
+
+  \see EpidVerifierCreate
+  \see EpidVerifierSetVerifierRl
+  \see EpidBlacklistSig
+  \see EpidWriteVerifierRl
+*/
+size_t EpidGetVerifierRlSize(VerifierCtx const* ctx);
+
+/// Serializes the verifier blacklist to a buffer.
+/*!
+
+  If the current blacklist is empty or not set a valid empty verifier
+  blacklist will be serialized.
+
+  Use ::EpidGetVerifierRlSize to determine the buffer size required to
+  serialize the verifier blacklist.
+
+  \param[in] ctx
+  The verifier context.
+  \param[out] ver_rl
+  An existing buffer in which to write the verifier revocation list.
+  \param[in] ver_rl_size
+  The size of the caller allocated output buffer in bytes.
+
+  \returns ::EpidStatus
+
+  \see EpidVerifierCreate
+  \see EpidVerifierSetVerifierRl
+  \see EpidBlacklistSig
+  \see EpidGetVerifierRlSize
+*/
+EpidStatus EpidWriteVerifierRl(VerifierCtx const* ctx, VerifierRl* ver_rl,
+                               size_t ver_rl_size);
+
+/// Adds a valid name-based signature to the verifier blacklist.
+/*!
+
+  If the signature is not valid it will not be added to the blacklist.
+
+  \param[in] ctx
+  The verifier context.
+  \param[in] sig
+  The name-based signature to revoke.
+  \param[in] sig_len
+  The size of sig in bytes.
+  \param[in] msg
+  The message that was signed.
+  \param[in] msg_len
+  The size of msg in bytes.
+
+  \returns ::EpidStatus
+
+  \see EpidVerifierCreate
+  \see EpidVerifierSetVerifierRl
+  \see EpidWriteVerifierRl
+*/
+EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
+                            size_t sig_len, void const* msg, size_t msg_len);
+
 /*! @} */
+
 #endif  // EPID_VERIFIER_API_H_

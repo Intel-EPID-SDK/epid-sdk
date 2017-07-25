@@ -28,12 +28,14 @@ install_headers = Glob('*.h')
 
 parts_file = ['gtest.parts']
 license_file = ['LICENSE']
+makefile = ['Makefile']
 
 if 'install_package' in env['MODE']:
     env.InstallTopLevel(cpp_files,sub_dir='ext/gtest')
     env.InstallTopLevel(install_headers,sub_dir='ext/gtest')
     env.InstallTopLevel(parts_file,sub_dir='ext/gtest')
     env.InstallTopLevel(license_file,sub_dir='ext/gtest')
+    env.InstallTopLevel(makefile,sub_dir='ext/gtest')
 else:
     env.Append(CPPPATH=[AbsDir('..')])
     

@@ -47,6 +47,9 @@ class FiniteFieldObj {
   /// Create a FiniteField
   FiniteFieldObj(FiniteFieldObj const& ground_field,
                  FfElementObj const& ground_element, int degree);
+  /// Create a FiniteField
+  FiniteFieldObj(FiniteFieldObj const& ground_field,
+                 BigNumStr const* irr_polynomial, int degree);
   /// Destroy the FiniteField
   ~FiniteFieldObj();
   /// cast operator to get the pointer to the stored FiniteField

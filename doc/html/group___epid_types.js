@@ -1,5 +1,6 @@
 var group___epid_types =
 [
+    [ "EPID 1.1 specific types", "group___epid11_types.html", "group___epid11_types" ],
     [ "OctStr8", "struct_oct_str8.html", [
       [ "data", "struct_oct_str8.html#a5e6c56fda48c88b419e621b464b03bef", null ]
     ] ],
@@ -158,6 +159,7 @@ var group___epid_types =
     [ "ReKeySeed", "group___epid_types.html#ga54bd22670f2e348593db7ab631131d10", null ],
     [ "Seed", "group___epid_types.html#ga888541b8148df69c634a92c64ed51317", null ],
     [ "HashAlg", "group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890", [
+      [ "kInvalidHashAlg", "group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a68b2137c7946583a99f0dac2286523eb", null ],
       [ "kSha256", "group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d", null ],
       [ "kSha384", "group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890a0f4dde6e82b84f5769873f6704fcd290", null ],
       [ "kSha512", "group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890afb78d98f37fecc53dd1637d94c5c0055", null ],

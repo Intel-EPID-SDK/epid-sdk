@@ -24,6 +24,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "epid/common/stdtypes.h"
 #include "epid/common/errors.h"
 #include "epid/common/types.h"
 
@@ -96,14 +97,14 @@ EpidStatus ReadBigNum(void const* bn_str, size_t strlen, BigNum* bn);
 
   \returns ::EpidStatus
 */
-EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, void const* bn_str);
+EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, void* bn_str);
 
 /// Adds two BigNum values.
 /*!
   \param[in] a
-  The left hand parameter.
+  The first operand to be added.
   \param[in] b
-  The right hand parameter.
+  The second operand to be added.
   \param[out] r
   The result of adding a and b.
 
@@ -114,9 +115,9 @@ EpidStatus BigNumAdd(BigNum const* a, BigNum const* b, BigNum* r);
 /// Subtracts two BigNum values.
 /*!
   \param[in] a
-  The left hand parameter.
+  The first operand to use in subtraction.
   \param[in] b
-  The right hand parameter.
+  The second operand to use in subtraction.
   \param[out] r
   The result of subtracting a and b.
 
@@ -127,15 +128,32 @@ EpidStatus BigNumSub(BigNum const* a, BigNum const* b, BigNum* r);
 /// Multiplies two BigNum values.
 /*!
   \param[in] a
-  The left hand parameter.
+  The first operand to be multiplied.
   \param[in] b
-  The right hand parameter.
+  The second operand to be multiplied.
   \param[out] r
   The result of multiplying a and b.
 
   \returns ::EpidStatus
 */
 EpidStatus BigNumMul(BigNum const* a, BigNum const* b, BigNum* r);
+
+/// Divides two BigNum values.
+/*!
+\note Only needed for Intel(R) EPID 1.1 verification.
+
+\param[in] a
+Dividend parameter.
+\param[in] b
+Divisor parameter.
+\param[out] q
+Quotient of result.
+\param[out] r
+Remainder of result.
+
+\returns ::EpidStatus
+*/
+EpidStatus BigNumDiv(BigNum const* a, BigNum const* b, BigNum* q, BigNum* r);
 
 /// Computes modular reduction for BigNum value by specified modulus.
 /*!
@@ -149,6 +167,39 @@ Modular reduction result.
 \returns ::EpidStatus
 */
 EpidStatus BigNumMod(BigNum const* a, BigNum const* b, BigNum* r);
+
+/// Checks if a BigNum is even.
+/*!
+ \param[in] a
+ The BigNum to check.
+ \param[out] is_even
+ The result of the check.
+
+ \returns ::EpidStatus
+ */
+EpidStatus BigNumIsEven(BigNum const* a, bool* is_even);
+
+/// Checks if a BigNum is zero.
+/*!
+ \param[in] a
+ The BigNum to check.
+ \param[out] is_zero
+ The result of the check.
+
+ \returns ::EpidStatus
+ */
+EpidStatus BigNumIsZero(BigNum const* a, bool* is_zero);
+
+/// Raises 2 to the given power
+/*!
+ \param[in] n
+ The power.
+ \param[out] r
+ The result of 2^n.
+
+ \returns ::EpidStatus
+ */
+EpidStatus BigNumPow2N(unsigned int n, BigNum* r);
 
 /*!
   @}

@@ -35,16 +35,15 @@ namespace {
 
 TEST_F(EpidMemberTest, NrProveFailsGivenNullParameters) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature const* basic_sig =
       &reinterpret_cast<EpidSignature const*>(
-           this->grp01_member0_sig_test1_sha256.data())
+           this->kGrp01Member0SigTest1Sha256.data())
            ->sigma0;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -62,16 +61,15 @@ TEST_F(EpidMemberTest, NrProveFailsGivenNullParameters) {
 
 TEST_F(EpidMemberTest, NrProveFailsGivenInvalidSigRlEntry) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature const* basic_sig =
       &reinterpret_cast<EpidSignature const*>(
-           this->grp01_member0_sig_test1_sha256.data())
+           this->kGrp01Member0SigTest1Sha256.data())
            ->sigma0;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -90,16 +88,15 @@ TEST_F(EpidMemberTest, NrProveFailsGivenInvalidSigRlEntry) {
 
 TEST_F(EpidMemberTest, NrProveFailsGivenInvalidBasicSig) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature const* basic_sig =
       &reinterpret_cast<EpidSignature const*>(
-           this->grp01_member0_sig_test1_sha256.data())
+           this->kGrp01Member0SigTest1Sha256.data())
            ->sigma0;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -119,12 +116,11 @@ TEST_F(EpidMemberTest, NrProveFailsGivenInvalidBasicSig) {
 
 TEST_F(EpidMemberTest, GeneratesNrProofForEmptyMessage) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -135,7 +131,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofForEmptyMessage) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha256));
   EXPECT_EQ(kEpidNoErr,
             EpidNrVerify(ctx, &basic_sig, nullptr, 0, &sig_rl->bk[0], &proof));
@@ -143,13 +139,12 @@ TEST_F(EpidMemberTest, GeneratesNrProofForEmptyMessage) {
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingDefaultHashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -159,7 +154,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingDefaultHashAlg) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
 
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
                                      &sig_rl->bk[0], &proof));
@@ -168,18 +163,18 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingDefaultHashAlg) {
 TEST_F(EpidMemberTest, GeneratesNrProofUsingDefaultHashAlgUsingIKGFData) {
   Prng my_prng;
   GroupPubKey grp_public_key = *reinterpret_cast<const GroupPubKey*>(
-      this->group_public_key_data_ikgf.data());
-  PrivKey mbr_private_key = *reinterpret_cast<const PrivKey*>(
-      this->member_private_key_data_ikgf.data());
+      this->kGroupPublicKeyDataIkgf.data());
+  PrivKey mbr_private_key =
+      *reinterpret_cast<const PrivKey*>(this->kMemberPrivateKeyDataIkgf.data());
   const std::vector<uint8_t> sigrl_bin = {
-#include "epid/common/testdata/ikgf/groupa/sigrl.inc"
+#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl.inc"
   };
 
   MemberCtxObj member(grp_public_key, mbr_private_key, &Prng::Generate,
                       &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
+  auto msg = this->kTest1Msg;
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(sigrl_bin.data());
 
   NrProof proof;
@@ -198,13 +193,12 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingDefaultHashAlgUsingIKGFData) {
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -215,7 +209,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256HashAlg) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha256));
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
                                      &sig_rl->bk[0], &proof));
@@ -223,13 +217,12 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256HashAlg) {
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingSha384HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -240,7 +233,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha384HashAlg) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha384));
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
                                      &sig_rl->bk[0], &proof));
@@ -248,13 +241,12 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha384HashAlg) {
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -265,7 +257,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512HashAlg) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512));
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
                                      &sig_rl->bk[0], &proof));
@@ -273,13 +265,12 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512HashAlg) {
 
 TEST_F(EpidMemberTest, DISABLED_GeneratesNrProofUsingSha512256HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->group_public_key, this->member_private_key,
-                      this->member_precomp, &Prng::Generate, &my_prng);
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
   BasicSignature basic_sig;
-  auto msg = this->test1_msg;
-  SigRl const* sig_rl =
-      reinterpret_cast<const SigRl*>(this->sig_rl_data.data());
+  auto msg = this->kTest1Msg;
+  SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
 
   NrProof proof;
 
@@ -290,7 +281,7 @@ TEST_F(EpidMemberTest, DISABLED_GeneratesNrProofUsingSha512256HashAlg) {
                                     &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
-  VerifierCtxObj ctx(this->group_public_key);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512_256));
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
                                      &sig_rl->bk[0], &proof));

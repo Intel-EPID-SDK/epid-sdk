@@ -53,23 +53,32 @@ class Prng {
   static int __STDCALL Generate(unsigned int* random_data, int num_bits,
                                 void* user_data) {
     unsigned int num_bytes = num_bits / CHAR_BIT;
-    int num_words = num_bytes / sizeof(unsigned int);
+    unsigned int num_words = num_bytes / sizeof(unsigned int);
+    unsigned int extra_bytes = num_bytes % sizeof(unsigned int);
     if (!random_data) {
       return kPrngBadArgErr;
     }
     if (num_bits <= 0) {
       return kPrngBadArgErr;
     }
-    if (num_bytes < sizeof(unsigned int) ||
-        num_bytes % sizeof(unsigned int) != 0) {
-      return kPrngBadArgErr;
-    }
     Prng* myprng = (Prng*)user_data;
     std::uniform_int_distribution<> dis(0x0, 0xffff);
-    for (int n = 0; n < num_words; n++) {
-      random_data[n] =
-          (dis(myprng->generator_) << 16) + dis(myprng->generator_);
+    if (num_words > 0) {
+      for (unsigned int n = 0; n < num_words; n++) {
+        random_data[n] =
+            (dis(myprng->generator_) << 16) + dis(myprng->generator_);
+      }
     }
+    if (extra_bytes > 0) {
+      unsigned int data =
+          (dis(myprng->generator_) << 16) + dis(myprng->generator_);
+      unsigned char* byte_data = (unsigned char*)&data;
+      unsigned char* random_bytes = (unsigned char*)&random_data[num_words];
+      for (unsigned int n = 0; n < extra_bytes; n++) {
+        random_bytes[n] = byte_data[n];
+      }
+    }
+
     return kPrngNoErr;
   }
 

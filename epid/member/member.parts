@@ -16,53 +16,38 @@
 Import('*')
 env.PartName('member')
 
-
-
 api_headers = Pattern(src_dir='.',
                       includes=['api.h'],
-                      excludes=[''],
                       recursive=False).files()
-
-
-member_headers = Pattern(src_dir='.',
-                         includes=['*.h'],
-                         excludes=['api.h'],
-                         recursive=False).files()
-
-
-src_files = Pattern(src_dir='.',
+src_files = Pattern(src_dir='src',
                     includes=['*.c'],
-                    excludes=['*-test.cc'],
-                    recursive=True).files()
+                    recursive=False).files()
+internal_headers = Pattern(src_dir='src',
+                           includes=['*.h'],
+                           recursive=False).files()
 
-
-#unit tests
-utest_files = Pattern(src_dir='.',
+utest_files = Pattern(src_dir='unittests',
                       includes=['*-test.cc',
                                 '*-testhelper.cc',],
-                      excludes=[],
-                      recursive=True).files()
+                      recursive=False).files()
+utest_headers = Pattern(src_dir='unittests',
+                        includes=['*-testhelper.h',],
+                        recursive=False).files()
 
-utest_header_files = Pattern(src_dir='.',
-                             includes=['*-testhelper.h',],
-                             excludes=[],
-                             recursive=True).files()
-
-parts_file = Pattern(src_dir='.',
-                     includes=['member.parts'],
-                     excludes=[],
-                     recursive=False).files()
-
+build_files = Pattern(src_dir='.',
+                      includes=['*.parts', 'Makefile'],
+                      recursive=False).files()
 
 if 'install_package' in env['MODE']:
-    env.InstallTopLevel(api_headers + member_headers,
+    env.InstallTopLevel(api_headers,
                         sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(src_files, sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(utest_files,
+    env.InstallTopLevel(src_files + internal_headers,
+                        sub_dir='epid/${PART_SHORT_NAME}/src')
+    env.InstallTopLevel(utest_files + utest_headers,
                         sub_dir='epid/${PART_SHORT_NAME}/unittests')
-    env.InstallTopLevel(utest_header_files,
-                        sub_dir='epid/${PART_SHORT_NAME}/unittests')
-    env.InstallTopLevel(parts_file, sub_dir='epid/${PART_SHORT_NAME}')
+
+    env.InstallTopLevel(build_files, sub_dir='epid/${PART_SHORT_NAME}')
+
 else:
     env.DependsOn([
         Component('common'),

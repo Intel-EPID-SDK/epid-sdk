@@ -31,7 +31,7 @@
 /*!
   \defgroup PairingPrimitives pairing
   Provides APIs for defining and using a pairing relationship between two
-  Elliptic Curve Groups.
+  elliptic curve groups.
 
   \ingroup EpidMath
   @{
@@ -40,9 +40,9 @@
 /// A pairing
 typedef struct PairingState PairingState;
 
-/// Constructs a new Pairing State.
+/// Constructs a new pairing state.
 /*!
- Allocates memory and creates a new Pairing State for Optimal Ate Pairing.
+ Allocates memory and creates a new pairing state for Optimal Ate Pairing.
 
  Use DeletePairingState() to free memory.
 
@@ -58,7 +58,7 @@ typedef struct PairingState PairingState;
  \param[in] neg
  Select the alternate "negate" processing path for Optimal Ate Pairing.
  \param[out] ps
- Newly constructed Pairing State.
+ Newly constructed pairing state.
 
  \returns ::EpidStatus
 
@@ -73,7 +73,7 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
  Frees memory pointed to by pairing state. Nulls the pointer.
 
  \param[in] ps
- The Pairing state. Can be NULL.
+ The pairing state. Can be NULL.
 
  \see NewPairingState
 */

@@ -26,7 +26,6 @@
 
 extern "C" {
 #include "epid/common/math/bignum.h"
-#include "epid/common/memory.h"
 }
 
 namespace {
@@ -389,6 +388,146 @@ TEST_F(BigNumTest, MulWorksWith264BitValue) {
   BigNumObj bn_33low(this->vec_33byte_low);
   EXPECT_EQ(kEpidNoErr, BigNumMul(bn_high_bit_set, bn_2, bn));
   EXPECT_TRUE(CompareBigNum(bn, bn_33low));
+}
+
+///////////////////////////////////////////////////////////////////////
+// Division
+
+TEST_F(BigNumTest, DivFailsGivenNullPointer) {
+  BigNumObj a, b, q, r;
+  EXPECT_EQ(kEpidBadArgErr, BigNumDiv(nullptr, b, q, r));
+  EXPECT_EQ(kEpidBadArgErr, BigNumDiv(a, nullptr, q, r));
+  EXPECT_EQ(kEpidBadArgErr, BigNumDiv(a, b, nullptr, r));
+  EXPECT_EQ(kEpidBadArgErr, BigNumDiv(a, b, q, nullptr));
+}
+
+TEST_F(BigNumTest, DivFailsGivenDivByZero) {
+  BigNumObj a;
+  BigNumObj zero(this->str_0);
+  BigNumObj q, r;
+  EXPECT_EQ(kEpidBadArgErr, BigNumDiv(a, zero, q, r));
+}
+
+TEST_F(BigNumTest, DivToOneKeepsOriginal) {
+  BigNumObj a(this->str_large);
+  BigNumObj zero(this->str_0);
+  BigNumObj one(this->str_1);
+  BigNumObj q, r;
+  EXPECT_EQ(kEpidNoErr, BigNumDiv(a, one, q, r));
+  EXPECT_TRUE(CompareBigNum(a, q));
+  EXPECT_TRUE(CompareBigNum(zero, r));
+}
+
+TEST_F(BigNumTest, DivToItselfIsIdentity) {
+  BigNumObj a(this->str_large);
+  BigNumObj zero(this->str_0);
+  BigNumObj one(this->str_1);
+  BigNumObj q, r;
+  EXPECT_EQ(kEpidNoErr, BigNumDiv(a, a, q, r));
+  EXPECT_TRUE(CompareBigNum(one, q));
+  EXPECT_TRUE(CompareBigNum(zero, r));
+}
+
+TEST_F(BigNumTest, DivOneByTwoIsZero) {
+  BigNumObj zero(this->str_0);
+  BigNumObj one(this->str_1);
+  BigNumObj two(this->str_2);
+  BigNumObj q, r;
+  EXPECT_EQ(kEpidNoErr, BigNumDiv(one, two, q, r));
+  EXPECT_TRUE(CompareBigNum(zero, q));
+  EXPECT_TRUE(CompareBigNum(one, r));
+}
+
+///////////////////////////////////////////////////////////////////////
+// IsEven
+
+TEST_F(BigNumTest, IsEvenFailsGivenNullPointer) {
+  BigNumObj zero(this->str_0);
+  bool r;
+  EXPECT_EQ(kEpidBadArgErr, BigNumIsEven(nullptr, &r));
+  EXPECT_EQ(kEpidBadArgErr, BigNumIsEven(zero, nullptr));
+}
+
+TEST_F(BigNumTest, IsEvenPassesEvenNumbers) {
+  BigNumObj zero(this->str_0);
+  BigNumObj two(this->str_2);
+  BigNumObj big(this->str_big);
+  bool r;
+  EXPECT_EQ(kEpidNoErr, BigNumMul(big, two, big));
+  EXPECT_EQ(kEpidNoErr, BigNumIsEven(zero, &r));
+  EXPECT_EQ(kEpidNoErr, BigNumIsEven(two, &r));
+  EXPECT_EQ(kEpidNoErr, BigNumIsEven(big, &r));
+}
+
+TEST_F(BigNumTest, IsEvenFailsOddNumbers) {
+  BigNumObj zero(this->str_0);
+  BigNumObj one(this->str_1);
+  BigNumObj two(this->str_2);
+  BigNumObj big(this->str_big);
+  bool r;
+  EXPECT_EQ(kEpidNoErr, BigNumMul(big, two, big));
+  EXPECT_EQ(kEpidNoErr, BigNumAdd(big, one, big));
+  EXPECT_EQ(kEpidNoErr, BigNumIsEven(one, &r));
+  EXPECT_EQ(kEpidNoErr, BigNumIsEven(big, &r));
+}
+
+///////////////////////////////////////////////////////////////////////
+// IsZero
+TEST_F(BigNumTest, IsZeroFailsGivenNullPointer) {
+  BigNumObj zero(this->str_0);
+  bool r;
+  EXPECT_EQ(kEpidBadArgErr, BigNumIsZero(nullptr, &r));
+  EXPECT_EQ(kEpidBadArgErr, BigNumIsZero(zero, nullptr));
+}
+
+TEST_F(BigNumTest, IsZeroPassesZero) {
+  BigNumObj zero(this->str_0);
+  bool r;
+  EXPECT_EQ(kEpidNoErr, BigNumIsZero(zero, &r));
+}
+
+TEST_F(BigNumTest, IsZeroFailsNonZero) {
+  BigNumObj one(this->str_1);
+  BigNumObj two(this->str_2);
+  BigNumObj big(this->str_big);
+  bool r;
+  EXPECT_EQ(kEpidNoErr, BigNumIsZero(one, &r));
+  EXPECT_EQ(kEpidNoErr, BigNumIsZero(two, &r));
+  EXPECT_EQ(kEpidNoErr, BigNumIsZero(big, &r));
+}
+
+///////////////////////////////////////////////////////////////////////
+// Pow2N
+TEST_F(BigNumTest, Pow2NFailsGivenNullPointer) {
+  EXPECT_EQ(kEpidBadArgErr, BigNumPow2N(1, nullptr));
+}
+
+TEST_F(BigNumTest, Pow2NZeroGivesOne) {
+  BigNumObj r;
+  BigNumObj one(this->str_1);
+  EXPECT_EQ(kEpidNoErr, BigNumPow2N(0, r));
+  EXPECT_TRUE(CompareBigNum(one, r));
+}
+
+TEST_F(BigNumTest, Pow2NOneGivesTwo) {
+  BigNumObj r;
+  BigNumObj two(this->str_2);
+  EXPECT_EQ(kEpidNoErr, BigNumPow2N(1, r));
+  EXPECT_TRUE(CompareBigNum(two, r));
+}
+
+TEST_F(BigNumTest, Pow2NGivesPow2n) {
+  unsigned int n = 2;
+  BigNumObj r;
+  BigNumObj two(this->str_2);
+  BigNumObj expect;
+  EXPECT_EQ(kEpidNoErr, BigNumMul(two, two, expect));
+  for (n = 2; n < 4; n++) {
+    EXPECT_EQ(kEpidNoErr, BigNumPow2N(n, r));
+    EXPECT_TRUE(CompareBigNum(expect, r));
+    EXPECT_EQ(kEpidNoErr, BigNumMul(expect, two, expect));
+    n++;
+  }
 }
 
 }  // namespace

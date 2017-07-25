@@ -58,7 +58,7 @@ MemberCtxObj::operator MemberCtx*() const { return ctx_; }
 MemberCtxObj::operator const MemberCtx*() const { return ctx_; }
 
 /// Arbitrary test data were generated based on Intel(R) EPID 2.0 parameters
-const GroupPubKey EpidMemberTest::group_public_key = {
+const GroupPubKey EpidMemberTest::kGroupPublicKey = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x00, 0x00, 0x01},  // group id
     {{{{0xb3, 0x6f, 0xff, 0x81, 0xe2, 0x1b, 0x17, 0xeb, 0x3d, 0x75, 0x3d, 0x61,
@@ -87,7 +87,7 @@ const GroupPubKey EpidMemberTest::group_public_key = {
          0x83, 0x7d, 0x3e, 0x31, 0xee, 0x11, 0x40, 0xa9}}}}}  // w
 };
 
-const PrivKey EpidMemberTest::member_private_key = {
+const PrivKey EpidMemberTest::kMemberPrivateKey = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x00, 0x00, 0x01},  // group id
     {{{{0x46, 0xc9, 0x69, 0xee, 0xf4, 0x68, 0xe1, 0x5f, 0xac, 0xbf, 0xdd, 0x77,
@@ -104,7 +104,7 @@ const PrivKey EpidMemberTest::member_private_key = {
      0x36, 0x2d, 0x41, 0x35, 0x63, 0x61, 0x31, 0xc7}  // f
 };
 
-const MemberPrecomp EpidMemberTest::member_precomp = {
+const MemberPrecomp EpidMemberTest::kMemberPrecomp = {
     {0xd8, 0x14, 0xba, 0x4b, 0x44, 0x03, 0x55, 0x6c, 0xf6, 0x42, 0xe8, 0xf0,
      0x4c, 0xb5, 0xe7, 0xd4, 0xa2, 0xa3, 0x69, 0x47, 0xf5, 0xd4, 0xc8, 0xe9,
      0xc5, 0x5a, 0x39, 0xb5, 0x55, 0xa5, 0xd3, 0xfb, 0xf3, 0x85, 0x5a, 0x0d,
@@ -241,7 +241,7 @@ const MemberPrecomp EpidMemberTest::member_precomp = {
         0xb3, 0xde, 0x52, 0x3e, 0xc0, 0xd0, 0xb8, 0x19, 0x85, 0x1b, 0x7b, 0xe3,
     }  // ea2
 };
-const PreComputedSignature EpidMemberTest::precomputed_signatures[2] = {
+const PreComputedSignature EpidMemberTest::kPrecomputedSignatures[2] = {
     {
         {{{{0x5c, 0x1b, 0x75, 0x1c, 0xc7, 0x2c, 0xf7, 0x4a, 0x97, 0x43, 0xf2,
             0x1a, 0x70, 0x80, 0x90, 0x61, 0xf5, 0x9e, 0x9b, 0x43, 0x92, 0x2f,
@@ -409,28 +409,28 @@ const PreComputedSignature EpidMemberTest::precomputed_signatures[2] = {
          0xe8, 0x26, 0x11, 0x56, 0x5c, 0xcb, 0x04, 0x65, 0x36, 0xfd, 0xd9, 0x39,
          0x35, 0xfa, 0x78, 0xa5, 0xc2, 0x3c, 0x2e, 0x17}  // rb
     }};
-const std::vector<uint8_t> EpidMemberTest::group_public_key_data_ikgf = {
-#include "epid/common/testdata/ikgf/groupa/pubkey.inc"
+const std::vector<uint8_t> EpidMemberTest::kGroupPublicKeyDataIkgf = {
+#include "epid/common-testhelper/testdata/ikgf/groupa/pubkey.inc"
 };
-const std::vector<uint8_t> EpidMemberTest::member_private_key_data_ikgf = {
-#include "epid/common/testdata/ikgf/groupa/member0/mprivkey.inc"
+const std::vector<uint8_t> EpidMemberTest::kMemberPrivateKeyDataIkgf = {
+#include "epid/common-testhelper/testdata/ikgf/groupa/member0/mprivkey.inc"
 };
 
-const std::vector<uint8_t> EpidMemberTest::grp01_member0_sig_test1_sha256 = {
-#include "epid/common/testdata/grp01/member0/sig_test1_sha256.inc"
+const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha256 = {
+#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
 };
-const std::vector<uint8_t> EpidMemberTest::grp01_member0_sig_test1_sha384 = {
-#include "epid/common/testdata/grp01/member0/sig_test1_sha384.inc"
+const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha384 = {
+#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha384.inc"
 };
-const std::vector<uint8_t> EpidMemberTest::grp01_member0_sig_test1_sha512 = {
-#include "epid/common/testdata/grp01/member0/sig_test1_sha512.inc"
+const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha512 = {
+#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
 };
-const std::vector<uint8_t> EpidMemberTest::test1_msg = {'t', 'e', 's', 't',
+const std::vector<uint8_t> EpidMemberTest::kTest1Msg = {'t', 'e', 's', 't',
                                                         '1'};
-std::vector<uint8_t> EpidMemberTest::sig_rl_data = {
-#include "epid/common/testdata/grp01/sigrl.inc"
+std::vector<uint8_t> EpidMemberTest::kSigRlData = {
+#include "epid/common-testhelper/testdata/grp01/sigrl.inc"
 };
-std::vector<uint8_t> EpidMemberTest::sig_rl_5_entry_data = {
+std::vector<uint8_t> EpidMemberTest::kSigRl5EntryData = {
     // gid
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x01,
@@ -503,20 +503,20 @@ const std::vector<uint8_t> EpidMemberTest::kMsg1 = {'m', 's', 'g', '1'};
 const std::vector<uint8_t> EpidMemberTest::kBsn1 = {'b', 's', 'n', '1'};
 
 const GroupPubKey EpidMemberTest::kGrpXKey = {
-#include "epid/common/testdata/grp_x/pubkey.inc"
+#include "epid/common-testhelper/testdata/grp_x/pubkey.inc"
 };
 
 const CompressedPrivKey EpidMemberTest::kGrpXMember9CompressedKey = {
-#include "epid/common/testdata/grp_x/cmember9/cmpprivkey.inc"
+#include "epid/common-testhelper/testdata/grp_x/cmember9/cmpprivkey.inc"
 };
 const PrivKey EpidMemberTest::kGrpXMember9PrivKey = {
-#include "epid/common/testdata/grp_x/cmember9/mprivkey.inc"
+#include "epid/common-testhelper/testdata/grp_x/cmember9/mprivkey.inc"
 };
 
 const GroupPubKey EpidMemberTest::kGrpYKey = {
-#include "epid/common/testdata/grp_y/pubkey.inc"
+#include "epid/common-testhelper/testdata/grp_y/pubkey.inc"
 };
 
 const CompressedPrivKey EpidMemberTest::kGrpYMember9CompressedKey = {
-#include "epid/common/testdata/grp_y/cmember9/cmpprivkey.inc"
+#include "epid/common-testhelper/testdata/grp_y/cmember9/cmpprivkey.inc"
 };

@@ -63,29 +63,29 @@ class MemberCtxObj {
 class EpidMemberTest : public ::testing::Test {
  public:
   /// test data
-  static const GroupPubKey group_public_key;
+  static const GroupPubKey kGroupPublicKey;
   /// test data
-  static const PrivKey member_private_key;
+  static const PrivKey kMemberPrivateKey;
   /// test data
-  static const std::vector<uint8_t> group_public_key_data_ikgf;
+  static const std::vector<uint8_t> kGroupPublicKeyDataIkgf;
   /// test data
-  static const std::vector<uint8_t> member_private_key_data_ikgf;
+  static const std::vector<uint8_t> kMemberPrivateKeyDataIkgf;
   /// test data
-  static const MemberPrecomp member_precomp;
+  static const MemberPrecomp kMemberPrecomp;
   /// test data
-  static const PreComputedSignature precomputed_signatures[2];
+  static const PreComputedSignature kPrecomputedSignatures[2];
   /// test data
-  static const std::vector<uint8_t> grp01_member0_sig_test1_sha256;
+  static const std::vector<uint8_t> kGrp01Member0SigTest1Sha256;
   /// test data
-  static const std::vector<uint8_t> grp01_member0_sig_test1_sha384;
+  static const std::vector<uint8_t> kGrp01Member0SigTest1Sha384;
   /// test data
-  static const std::vector<uint8_t> grp01_member0_sig_test1_sha512;
+  static const std::vector<uint8_t> kGrp01Member0SigTest1Sha512;
   /// test data
-  static const std::vector<uint8_t> test1_msg;
+  static const std::vector<uint8_t> kTest1Msg;
   /// signature based revocation list with 50 entries
-  static std::vector<uint8_t> sig_rl_data;
+  static std::vector<uint8_t> kSigRlData;
   /// signature based revocation list with 5 entries
-  static std::vector<uint8_t> sig_rl_5_entry_data;
+  static std::vector<uint8_t> kSigRl5EntryData;
   /// a message
   static const std::vector<uint8_t> kMsg0;
   /// a message
