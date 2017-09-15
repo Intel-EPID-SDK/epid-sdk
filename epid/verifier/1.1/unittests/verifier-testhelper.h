@@ -37,10 +37,16 @@ class Epid11VerifierTest : public ::testing::Test {
   static const Epid11G3ElemStr kG3IdentityStr;
   /// test public key
   static const Epid11GroupPubKey kPubKeyStr;
+  /// test public key for tests of msg containing all bytes
+  static const Epid11GroupPubKey kPubKeyStrForMsg0_255;
   /// the message "test message"
   static const std::vector<uint8_t> kMsg0;
   /// the basename "basename1"
   static const std::vector<uint8_t> kBsn0;
+  /// a data with bytes [0,255]
+  static const std::vector<uint8_t> kData_0_255;
+  /// Signature of kData_0_255 with kBsn0 by Grp01 Member0 using Sha256
+  static const std::vector<uint8_t> kSigGrp01Member0Sha256kBsn0Data_0_255;
   /// the privrl of group X
   static const std::vector<uint8_t> kGrpXPrivRl;
   /// currpted privrl of group X
@@ -92,6 +98,8 @@ class Epid11VerifierTest : public ::testing::Test {
 
   /// signature based revocation list
   static const std::vector<uint8_t> kSigRl;
+  /// signature based revocation list for tests of msg containing all bytes
+  static const std::vector<uint8_t> kSigRlForMsg0_255;
   /// signature based revocation list (empty rl)
   static const std::vector<uint8_t> kEmptySigRl;
 

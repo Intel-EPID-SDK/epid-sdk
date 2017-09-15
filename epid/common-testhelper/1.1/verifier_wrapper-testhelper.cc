@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
  * \brief EcGroup C++ wrapper implementation.
  */
 #include <cstdio>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
 

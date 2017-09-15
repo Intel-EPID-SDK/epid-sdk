@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 * \brief Intel(R) EPID 1.1 constant parameters implementation.
 */
 #include "epid/common/1.1/src/epid11params.h"
-#include "epid/common/src/memory.h"
 #include "epid/common/math/tatepairing.h"
+#include "epid/common/src/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

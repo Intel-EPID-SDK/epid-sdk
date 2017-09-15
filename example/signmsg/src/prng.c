@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
  * \file
  * \brief Pseudo random number generator implementation.
  */
-#include <time.h>
 #include <ippcp.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "src/prng.h"
 

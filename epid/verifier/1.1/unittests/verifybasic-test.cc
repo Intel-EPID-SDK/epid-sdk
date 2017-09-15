@@ -26,9 +26,9 @@ extern "C" {
 #include "epid/verifier/1.1/api.h"
 }
 
+#include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
 #include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/verifier/1.1/unittests/verifier-testhelper.h"
-#include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
 
 namespace {
 
@@ -93,6 +93,18 @@ TEST_F(Epid11VerifierTest, VerifyBasicSigCanVerifyWithBasename) {
   auto& basename = this->kBsn0;
   THROW_ON_EPIDERR(
       Epid11VerifierSetBasename(verifier, basename.data(), basename.size()));
+  EXPECT_EQ(kEpidNoErr,
+            Epid11VerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
+}
+
+TEST_F(Epid11VerifierTest,
+       VerifyBasicSigCanVerifyMsgContainingAllPossibleBytes) {
+  Epid11VerifierCtxObj verifier(kPubKeyStrForMsg0_255);
+  auto const& sig = (Epid11Signature const*)this
+                        ->kSigGrp01Member0Sha256kBsn0Data_0_255.data();
+  const Epid11BasicSignature basic_sig = sig->sigma0;
+
+  auto& msg = this->kData_0_255;
   EXPECT_EQ(kEpidNoErr,
             Epid11VerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }

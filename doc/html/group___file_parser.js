@@ -1,6 +1,6 @@
 var group___file_parser =
 [
-    [ "EPID 1.1 support", "group___epid11_file_parser_module.html", "group___epid11_file_parser_module" ],
+    [ "Intel(R) EPID 1.1 support", "group___epid11_file_parser_module.html", "group___epid11_file_parser_module" ],
     [ "EpidFileHeader", "struct_epid_file_header.html", [
       [ "epid_version", "struct_epid_file_header.html#a35d43c51c1739940381e4898ca87b824", null ],
       [ "file_type", "struct_epid_file_header.html#af5d48c739cc6c00c6e1ce35abf4f1473", null ]

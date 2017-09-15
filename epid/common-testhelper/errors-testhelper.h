@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@
 #ifndef EPID_COMMON_TESTHELPER_ERRORS_TESTHELPER_H_
 #define EPID_COMMON_TESTHELPER_ERRORS_TESTHELPER_H_
 
-#include <string>
 #include <cstdio>
-#include <stdexcept>
-#include <vector>
 #include <initializer_list>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 extern "C" {
 #include "epid/common/math/bignum.h"
@@ -34,6 +34,13 @@ extern "C" {
 /// Macro used to indicate fatal error during unit test run
 #define THROW_ON_EPIDERR(actual)                                       \
   if (kEpidNoErr != actual) {                                          \
+    printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect");  \
+    throw std::logic_error(std::string("Failed to call: ") + #actual); \
+  }
+
+/// Macro used to indicate fatal error during unit test run
+#define THROW_NE(expected, actual)                                     \
+  if (expected != actual) {                                            \
     printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect");  \
     throw std::logic_error(std::string("Failed to call: ") + #actual); \
   }

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 /*!
 * \file
-* \brief Intel EPID 1.1 Verifier context implementation.
+* \brief Intel Intel(R) EPID 1.1 Verifier context implementation.
 */
 
-#include "epid/verifier/1.1/api.h"
 #include "epid/verifier/1.1/src/context.h"
-#include "epid/common/src/memory.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/common/src/memory.h"
+#include "epid/verifier/1.1/api.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

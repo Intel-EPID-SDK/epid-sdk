@@ -16,15 +16,15 @@
 
 /*!
  * \file
- * \brief EPID 1.1 signature verification implementation.
+ * \brief Intel(R) EPID 1.1 signature verification implementation.
  */
 
 #include "src/verifysig11.h"
 
 #include <stdlib.h>
 
-#include "epid/verifier/1.1/api.h"
 #include "epid/common/1.1/file_parser.h"
+#include "epid/verifier/1.1/api.h"
 
 EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
                     size_t msg_len, void const* basename, size_t basename_len,

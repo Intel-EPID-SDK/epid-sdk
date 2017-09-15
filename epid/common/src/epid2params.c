@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -111,6 +111,15 @@ EpidStatus CreateEpid2Params(Epid2Params_** params) {
     if (kEpidNoErr != result) {
       break;
     }
+    result = NewFfElement(internal_param->Fq, &internal_param->b);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = ReadFfElement(internal_param->Fq, &params_str.b,
+                           sizeof(params_str.b), internal_param->b);
+    if (kEpidNoErr != result) {
+      break;
+    }
     result = NewFfElement(internal_param->Fq2, &internal_param->xi);
     if (kEpidNoErr != result) {
       break;
@@ -178,6 +187,7 @@ EpidStatus CreateEpid2Params(Epid2Params_** params) {
 
     DeleteBigNum(&internal_param->p);
     DeleteBigNum(&internal_param->q);
+    DeleteFfElement(&internal_param->b);
     DeleteBigNum(&internal_param->t);
 
     DeleteFp(&internal_param->Fp);
@@ -200,6 +210,7 @@ void DeleteEpid2Params(Epid2Params_** epid_params) {
 
     DeleteBigNum(&(*epid_params)->p);
     DeleteBigNum(&(*epid_params)->q);
+    DeleteFfElement(&(*epid_params)->b);
     DeleteBigNum(&(*epid_params)->t);
     DeleteFfElement(&(*epid_params)->xi);
     DeleteEcPoint(&(*epid_params)->g1);
@@ -320,9 +331,9 @@ EpidStatus NewG1(Epid2Params const* param, FiniteField* Fq, EcGroup** G1) {
   BigNum* cofactor = NULL;
   // h = 1;
   const BigNumStr h1 = {
-      {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}}};
+      {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}}};
 
   if (!param || !Fq || !G1) {
     return kEpidBadArgErr;

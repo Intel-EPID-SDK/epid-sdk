@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,30 +18,32 @@ Import('*')
 
 env.PartName("util")
 
-src_files = Pattern(src_dir='src',
-                    includes=['*.c'],
-                    recursive=True).files()
+src_files = Pattern(src_dir='src', includes=['*.c'], recursive=True).files()
 
-api_headers = Pattern(src_dir='.',
-                      includes=['*.h'],
-                      recursive=False).files()
+api_headers = Pattern(src_dir='.', includes=['*.h'], recursive=False).files()
 parts_file = ['util.parts']
 
 makefile = ['Makefile']
 #unit tests
-utest_files = Pattern(src_dir='.',
-                      includes=['*-test.cc', '*-testhelper.cc'],
-                      excludes=[],
-                      recursive=True).files()
+utest_files = Pattern(
+    src_dir='.',
+    includes=['*-test.cc', '*-testhelper.cc'],
+    excludes=[],
+    recursive=True).files()
+
+if 'use_tss' in env['MODE']:
+    env.Append(CPPDEFINES=['TPM_TSS'])
 
 if 'install_package' in env['MODE']:
     env.InstallTopLevel(src_files, sub_dir='example/${PART_SHORT_NAME}/src')
     env.InstallTopLevel(api_headers, sub_dir='example/${PART_SHORT_NAME}')
-    env.InstallTopLevel(utest_files, sub_dir='example/${PART_SHORT_NAME}/utest')
+    env.InstallTopLevel(
+        utest_files, sub_dir='example/${PART_SHORT_NAME}/utest')
     env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
     env.InstallTopLevel(makefile, sub_dir='example/${PART_SHORT_NAME}')
 else:
-    env.DependsOn([Component('common', requires=REQ.HEADERS)])
+    env.DependsOn(
+        [Component('common', requires=REQ.HEADERS), Component('member')])
 
     env.Append(CPPPATH='#/example')
 

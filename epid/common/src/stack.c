@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
  * \file
  * \brief Stack container implementation.
  */
-#include <limits.h>
 #include "epid/common/src/stack.h"
+#include <limits.h>
 #include "epid/common/src/memory.h"
 
 /// Internal representation of a Stack
@@ -84,6 +84,8 @@ bool StackPopN(Stack* stack, size_t n, void* elements) {
 size_t StackGetSize(Stack const* stack) {
   return stack ? stack->top : (size_t)0;
 }
+
+void* StackGetBuf(Stack const* stack) { return stack ? stack->buf : NULL; }
 
 void DeleteStack(Stack** stack) {
   if (stack && *stack) {

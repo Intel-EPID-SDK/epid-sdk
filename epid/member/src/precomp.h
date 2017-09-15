@@ -48,8 +48,7 @@ typedef struct MemberPrecomp MemberPrecomp;
 
   \returns ::EpidStatus
 
-  \see TpmJoinCommit
-  \see TpmJoin
+  \see CreateEpid2Params
 
  */
 EpidStatus PrecomputeMemberPairing(Epid2Params_ const* epid2_params,

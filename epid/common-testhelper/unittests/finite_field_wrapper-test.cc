@@ -23,8 +23,8 @@
 #include "gtest/gtest.h"
 
 #include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
 #include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
+#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/common/math/bignum.h"

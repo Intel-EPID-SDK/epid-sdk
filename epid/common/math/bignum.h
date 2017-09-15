@@ -24,8 +24,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "epid/common/stdtypes.h"
 #include "epid/common/errors.h"
+#include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
 
 /// Big number operations

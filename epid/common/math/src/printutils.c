@@ -27,11 +27,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ext/ipp/include/ippcp.h"
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/math/src/ecgroup-internal.h"
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/src/memory.h"
+#include "ext/ipp/include/ippcp.h"
 
 /// Allowed number of characters printed in one line
 #define WIDTH 49

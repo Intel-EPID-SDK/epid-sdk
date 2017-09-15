@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -67,10 +67,10 @@ $(document).ready(function(){initNavTree('ecgroup_8h.html','');});
 
 <p>Elliptic curve group interface.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="stdtypes_8h.html">epid/common/stdtypes.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bignum_8h.html">epid/common/math/bignum.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="finitefield_8h.html">epid/common/math/finitefield.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="stdtypes_8h.html">epid/common/stdtypes.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="types_8h.html">epid/common/types.h</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -131,9 +131,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gaad96a1498b85d28f71514b8f7b154d82"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___ec_group_primitives.html#gaad96a1498b85d28f71514b8f7b154d82">Epid11EcHash</a> (<a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> *g, <a class="el" href="group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2">ConstOctStr</a> msg, size_t msg_len, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *r)</td></tr>
 <tr class="memdesc:gaad96a1498b85d28f71514b8f7b154d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashes an arbitrary message to an Intel(R) EPID 1.1 element in an elliptic curve group.  <a href="group___ec_group_primitives.html#gaad96a1498b85d28f71514b8f7b154d82">More...</a><br /></td></tr>
 <tr class="separator:gaad96a1498b85d28f71514b8f7b154d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab647ccc031063807ff3860f51d0f6919"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___ec_group_primitives.html#gab647ccc031063807ff3860f51d0f6919">EcHash</a> (<a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> *g, <a class="el" href="group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2">ConstOctStr</a> msg, size_t msg_len, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *r)</td></tr>
-<tr class="memdesc:gab647ccc031063807ff3860f51d0f6919"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashes an arbitrary message to an element in an elliptic curve group.  <a href="group___ec_group_primitives.html#gab647ccc031063807ff3860f51d0f6919">More...</a><br /></td></tr>
-<tr class="separator:gab647ccc031063807ff3860f51d0f6919"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac3067cc899e65e647390bb3bd1cabe4c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___ec_group_primitives.html#gac3067cc899e65e647390bb3bd1cabe4c">EcHash</a> (<a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> *g, <a class="el" href="group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2">ConstOctStr</a> msg, size_t msg_len, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *r, uint32_t *iterations)</td></tr>
+<tr class="memdesc:gac3067cc899e65e647390bb3bd1cabe4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashes an arbitrary message to an element in an elliptic curve group.  <a href="group___ec_group_primitives.html#gac3067cc899e65e647390bb3bd1cabe4c">More...</a><br /></td></tr>
+<tr class="separator:gac3067cc899e65e647390bb3bd1cabe4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a6114a48214a327d4ec04fd25e5940e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___ec_group_primitives.html#ga8a6114a48214a327d4ec04fd25e5940e">EcMakePoint</a> (<a class="el" href="group___ec_group_primitives.html#gac91c5a7623c17a868dd15b2e9aaf7159">EcGroup</a> *g, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> const *x, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *r)</td></tr>
 <tr class="memdesc:ga8a6114a48214a327d4ec04fd25e5940e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets an EcPoint variable to a point on a curve.  <a href="group___ec_group_primitives.html#ga8a6114a48214a327d4ec04fd25e5940e">More...</a><br /></td></tr>
 <tr class="separator:ga8a6114a48214a327d4ec04fd25e5940e"><td class="memSeparator" colspan="2">&#160;</td></tr>

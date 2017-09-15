@@ -8,12 +8,12 @@ COMPRESSED_DEFAULT_FILES_INSTALL_DIR = $(epidinstalldir)/compressed_example
 SIGNMSG_INCLUDE_DIR = ./signmsg
 SIGNMSG_SRC = $(wildcard ./signmsg/src/*.c)
 SIGNMSG_OBJ = $(SIGNMSG_SRC:.c=.o)
-SIGNMSG_EXE = ./signmsg/src/signmsg
+SIGNMSG_EXE = ./signmsg/src/signmsg$(EXE_EXTENSION)
 
 VERIFYSIG_INCLUDE_DIR = ./verifysig
 VERIFYSIG_SRC = $(wildcard ./verifysig/src/*.c)
 VERIFYSIG_OBJ = $(VERIFYSIG_SRC:.c=.o)
-VERIFYSIG_EXE = ./verifysig/src/verifysig
+VERIFYSIG_EXE = ./verifysig/src/verifysig$(EXE_EXTENSION)
 
 
 LIB_UTIL_DIR = ./util/src

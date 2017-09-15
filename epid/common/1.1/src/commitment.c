@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
  * \file
  * \brief Commitment hash implementation.
  */
-#include <stdio.h>
-#include <limits.h>
 #include "epid/common/1.1/src/commitment.h"
-#include "epid/common/src/memory.h"
+#include <limits.h>
+#include <stdio.h>
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/common/src/memory.h"
 
 EpidStatus SetKeySpecificEpid11CommitValues(Epid11GroupPubKey const* pub_key,
                                             Epid11CommitValues* values) {

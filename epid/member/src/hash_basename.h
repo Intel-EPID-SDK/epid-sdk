@@ -19,6 +19,7 @@
 #define EPID_MEMBER_SRC_HASH_BASENAME_H_
 
 #include <stddef.h>
+#include <stdint.h>
 #include "epid/common/errors.h"
 #include "epid/common/types.h"  // HashAlg
 
@@ -45,12 +46,14 @@ typedef struct G1ElemStr G1ElemStr;
   \param[out] B_str
   The resulting hashed basename.
 
-  \returns ::EpidStatus
+  \param[out] iterations
+  The number of hash iterations needed to find a valid hash. Can be NULL.
 
-  \see TpmSignCommit
+  \returns ::EpidStatus
 
 */
 EpidStatus HashBaseName(EcGroup* G1, HashAlg hash_alg, void const* basename,
-                        size_t basename_len, G1ElemStr* B_str);
+                        size_t basename_len, G1ElemStr* B_str,
+                        uint32_t* iterations);
 
 #endif  // EPID_MEMBER_SRC_HASH_BASENAME_H_

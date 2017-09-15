@@ -22,8 +22,8 @@
 extern "C" {
 #include "epid/common/src/memory.h"
 }
-#include "ext/ipp/include/ippcp.h"
 #include "epid/common/types.h"
+#include "ext/ipp/include/ippcp.h"
 
 typedef Ipp8u* IppOctStr;
 

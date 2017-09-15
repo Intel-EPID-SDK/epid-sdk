@@ -18,10 +18,49 @@
  * \brief Main entry point for unit tests.
  */
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "epid/common-testhelper/testapp-testhelper.h"
 #include "gtest/gtest.h"
 
 int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
+  std::vector<std::string> positive;
+  std::vector<std::string> negative;
+  std::vector<char*> argv_new;
+  argv_new.push_back(argv[0]);
+  bool include_protected = false;
+  bool print_help = false;
+  for (int i = 1; i < argc; i++) {
+    std::string arg(argv[i]);
+    if (arg == std::string("--also_run_protected_tests")) {
+      include_protected = true;
+    } else if (arg == std::string("--help")) {
+      print_help = true;
+      argv_new.push_back(argv[i]);
+    } else if (arg.compare(0, 15, "--gtest_filter=") == 0) {
+      split_filter(&positive, &negative, arg.substr(15));
+    } else {
+      argv_new.push_back(argv[i]);
+    }
+  }
+  if (!include_protected) {
+    negative.push_back("*.*_PROTECTED_*");
+    negative.push_back("*.PROTECTED_*");
+  }
+  std::string filter = join_filter(positive, negative);
+  if (filter != "") {
+    argv_new.push_back(&filter[0]);
+  }
+  int argc_new = (int)argv_new.size();
+  argv_new.push_back(nullptr);
+  testing::InitGoogleTest(&argc_new, argv_new.data());
+  if (print_help) {
+    printf("\n");
+    printf("Custom Options:\n");
+    printf("  --also_run_protected_tests\n");
+    printf("    similar to --gtest_also_run_disabled_tests, but for\n");
+    printf("    protected tests (PROTECTED_ instead of DISABLED_)\n");
+    printf("\n");
+    printf("Protected tests are tests where some data is protected\n");
+    printf("(i.e. hidden) from the code and can only be used indirectly.\n");
+  }
   return RUN_ALL_TESTS();
 }

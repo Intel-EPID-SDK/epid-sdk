@@ -22,12 +22,14 @@
  * Review the walk-through for correctness after making changes to this
  * file.
  */
+#include "src/signmsg.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "src/signmsg.h"
-#include "src/prng.h"
-#include "epid/member/api.h"
 #include "epid/common/file_parser.h"
+#include "epid/member/api.h"
+#include "src/prng.h"
+#include "util/convutil.h"
 
 EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
                    size_t basename_len, unsigned char const* signed_sig_rl,
@@ -35,9 +37,8 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
                    unsigned char const* signed_pubkey,
                    size_t signed_pubkey_size, unsigned char const* priv_key_ptr,
                    size_t privkey_size, HashAlg hash_alg,
-                   MemberPrecomp* member_precomp, bool member_precomp_is_input,
-                   EpidSignature** sig, size_t* sig_len,
-                   EpidCaCertificate const* cacert) {
+                   MemberPrecomp* member_precomp, EpidSignature** sig,
+                   size_t* sig_len, EpidCaCertificate const* cacert) {
   EpidStatus sts = kEpidErr;
   void* prng = NULL;
   MemberCtx* member = NULL;
@@ -46,7 +47,9 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
   do {
     GroupPubKey pub_key = {0};
     PrivKey priv_key = {0};
+    MembershipCredential member_credential = {0};
     size_t sig_rl_size = 0;
+    MemberParams params = {0};
 
     if (!sig) {
       sts = kEpidBadArgErr;
@@ -59,8 +62,7 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
     if (kEpidNoErr != sts) {
       break;
     }
-
-    // decompress private key
+    // handle compressed private key or membership credential
     if (privkey_size == sizeof(PrivKey)) {
       priv_key = *(PrivKey*)priv_key_ptr;
     } else if (privkey_size == sizeof(CompressedPrivKey)) {
@@ -69,6 +71,8 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       if (kEpidNoErr != sts) {
         break;
       }
+    } else if (privkey_size == sizeof(MembershipCredential)) {
+      member_credential = *(MembershipCredential*)priv_key_ptr;
     } else {
       sts = kEpidErr;
       break;
@@ -80,20 +84,35 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
 
+    SetMemberParams(&PrngGen, prng, NULL, &params);
     // create member
-    sts = EpidMemberCreate(&pub_key, &priv_key,
-                           member_precomp_is_input ? member_precomp : NULL,
-                           PrngGen, prng, &member);
+    sts = EpidMemberCreate(&params, &member);
     if (kEpidNoErr != sts) {
       break;
     }
 
-    if (!member_precomp_is_input && member_precomp) {
-      // return member pre-computation blob if requested
-      sts = EpidMemberWritePrecomp(member, member_precomp);
+    sts = EpidMemberSetHashAlg(member, hash_alg);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+
+    if (privkey_size == sizeof(PrivKey) ||
+        privkey_size == sizeof(CompressedPrivKey)) {
+      sts = EpidProvisionKey(member, &pub_key, &priv_key, member_precomp);
       if (kEpidNoErr != sts) {
         break;
       }
+    } else if (privkey_size == sizeof(MembershipCredential)) {
+      sts = EpidProvisionCredential(member, &pub_key, &member_credential,
+                                    member_precomp);
+      if (kEpidNoErr != sts) {
+        break;
+      }
+    }  // if (privkey_size == sizeof(PrivKey))
+    // start member
+    sts = EpidMemberStartup(member);
+    if (kEpidNoErr != sts) {
+      break;
     }
 
     // register any provided basename as allowed
@@ -137,11 +156,6 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
         break;
       }
     }  // if (signed_sig_rl)
-
-    sts = EpidMemberSetHashAlg(member, hash_alg);
-    if (kEpidNoErr != sts) {
-      break;
-    }
 
     // Signature
     // Note: Signature size must be computed after sig_rl is loaded.

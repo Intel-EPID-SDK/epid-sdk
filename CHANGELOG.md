@@ -1,5 +1,49 @@
 # Intel(R) EPID SDK ChangeLog                                   {#ChangeLog}
 
+## [5.0.0] - 2017-09-15
+
+### Added
+
+* The member implementation now has the option to support signing
+  using a TPM, using the ECDAA capabilities of TPM 2.0.
+
+
+### Changed
+
+* Member API updated to unify HW and SW use cases.
+    * Added
+        * `ProvisionKey`
+        * `ProvisionCompressed`
+        * `ProvisionCredential`
+        * `Startup`
+    * Parameters changed
+        * `MemberCreate`
+        * `RequestJoin`
+    * Removed or made private
+        * `WritePrecomp`
+        * `SignBasic`
+        * `NrProve`
+        * `AssemblePrivKey`
+
+* `EpidRequestJoin` was renamed to `EpidCreateJoinRequest` to make it
+  clear that it is not directly communicating with the issuer.
+
+
+### Fixed
+
+* `EpidCreateJoinRequest` creates valid join requests. This fixes a
+  regression in `EpidRequestJoin` introduced in 4.0.0.
+
+
+### Known Issues
+
+* Only the SHA-256 hash algorithm is supported when using the
+  SDK with the IBM TPM simulator due to a defect in version
+  532 of the simulator.
+
+* Basenames are limited to 124 bytes in TPM mode.
+
+
 ## [4.0.0] - 2017-04-25
 
 ### Added

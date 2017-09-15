@@ -69,9 +69,9 @@ class Epid11FileParser : public ::testing::Test {
   static const std::vector<uint8_t> kShortGroupRl;
 };
 const EpidCaCertificate Epid11FileParser::kCert = {
-    // EpidFileHeader::epid_version
+    // Intel(R) EPID Version
     0x02, 0x00,
-    // EpidFileHeader::file_type
+    // File type
     0x00, 0x11,
     // pubkey
     0x24, 0x42, 0xa5, 0xcc, 0x0e, 0xcd, 0x01, 0x5f, 0xa3, 0xca, 0x31, 0xdc,
@@ -114,9 +114,9 @@ const EpidCaCertificate Epid11FileParser::kCert = {
     0x1c, 0x01, 0x5b, 0xc9, 0x08, 0xce, 0x3e, 0x68};
 
 const std::vector<uint8_t> Epid11FileParser::kGroupPublicKeyFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0c,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -194,9 +194,9 @@ const std::vector<uint8_t> Epid11FileParser::kGroupPublicKey = {
     0xa5, 0xfd, 0x6b, 0xc4, 0x1d, 0xfb, 0x47, 0x27, 0xaf, 0xc1, 0x94, 0xcd};
 
 const std::vector<uint8_t> Epid11FileParser::kGroupMultiPublicKeyFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0c,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -238,9 +238,9 @@ const std::vector<uint8_t> Epid11FileParser::kGroupMultiPublicKeyFile = {
     0x68, 0x6f, 0x9e, 0x3b, 0xcf, 0xfd, 0x98, 0xcc, 0xae, 0x92, 0xcc, 0x94,
     0x23, 0xb6, 0xbd, 0x57, 0xac, 0x06, 0x3c, 0xa1, 0xe5, 0x3e, 0xe9, 0xf5,
     0x0e, 0x55, 0xb4, 0xe5,
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0c,
     // GID
     0x00, 0x00, 0x04, 0xd2,
@@ -284,9 +284,9 @@ const std::vector<uint8_t> Epid11FileParser::kGroupMultiPublicKeyFile = {
     0xfb, 0x79, 0xa0, 0xa5};
 
 const std::vector<uint8_t> Epid11FileParser::kEmptyPrivRlFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0d,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -311,9 +311,9 @@ const std::vector<uint8_t> Epid11FileParser::kEmptyPrivRl = {
     0x00, 0x00, 0x00, 0x00};
 
 const std::vector<uint8_t> Epid11FileParser::kShortPrivRlFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0d,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -347,9 +347,9 @@ const std::vector<uint8_t> Epid11FileParser::kShortPrivRl = {
 };
 
 const std::vector<uint8_t> Epid11FileParser::kEmptySigRlFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0e,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -373,9 +373,9 @@ const std::vector<uint8_t> Epid11FileParser::kEmptySigRl = {
     0x00, 0x00, 0x00, 0x00};
 
 const std::vector<uint8_t> Epid11FileParser::kShortSigRlFile = {
-    // Epid Version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0e,
     // GID
     0x00, 0x00, 0x00, 0x7b,
@@ -468,9 +468,9 @@ const std::vector<uint8_t> Epid11FileParser::kShortSigRl = {
     0x48, 0xc2, 0x89, 0xb6, 0x27, 0x3b, 0x95, 0x89};
 
 const std::vector<uint8_t> Epid11FileParser::kEmptyGroupRlFile = {
-    // Epid version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0f,
     // RL ver
     0x00, 0x00, 0x00, 0x00,
@@ -490,9 +490,9 @@ const std::vector<uint8_t> Epid11FileParser::kEmptyGroupRl = {
     0x00, 0x00, 0x00, 0x00};
 
 const std::vector<uint8_t> Epid11FileParser::kShortGroupRlFile = {
-    // Epid version
+    // Intel(R) EPID Version
     0x01, 0x00,
-    // Epid type
+    // File type
     0x00, 0x0f,
     // RL ver
     0x00, 0x00, 0x00, 0x03,
@@ -861,9 +861,9 @@ TEST_F(Epid11FileParser, PrivRlParseParsesLongPrivRl) {
   };
 
   std::vector<uint8_t> long_privrl_file = {
-      // Epid Version
+      // Intel(R) EPID Version
       0x01, 0x00,
-      // Epid type
+      // File type
       0x00, 0x0d,
       // GID
       0x00, 0x00, 0x00, 0x7b,
@@ -1119,9 +1119,9 @@ TEST_F(Epid11FileParser, SigRlParseParsesLongSigRl) {
       0x23, 0x1d, 0x31, 0x17, 0x88, 0x49, 0x13, 0x47, 0xe7, 0xda, 0xfe,
       0x8d, 0x67, 0xba, 0x16, 0x1d, 0x0a, 0xd3, 0x4a, 0x2d, 0xd1, 0xf8,
       0x60, 0x21, 0xa5, 0x00, 0x9a, 0x0d, 0x4d, 0xc4, 0xbd};
-  std::vector<uint8_t> long_sigrl_file = {// EPID Version
+  std::vector<uint8_t> long_sigrl_file = {// Intel(R) EPID Version
                                           0x01, 0x00,
-                                          // Epid type
+                                          // File type
                                           0x00, 0x0e,
                                           // GID
                                           0x00, 0x00, 0x00, 0x7b,
@@ -1362,7 +1362,7 @@ TEST_F(Epid11FileParser, ParsesLongGroupRl) {
       0x30, 0x90, 0x53, 0x8f, 0x55, 0x50, 0xcf, 0xed, 0x9e, 0xaa, 0x31,
       0x4f, 0x7f, 0xb2, 0x27, 0xf9, 0xbb, 0xfa, 0x52, 0x70};
   std::vector<uint8_t> long_grouprl_file = {
-      /// EPID version
+      /// Intel(R) EPID version
       0x01, 0x00,
       // File type
       0x00, 0x0f,

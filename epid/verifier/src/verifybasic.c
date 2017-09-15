@@ -19,9 +19,9 @@
  * \brief VerifyBasicSig implementation.
  */
 
+#include "epid/common/src/memory.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
-#include "epid/common/src/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

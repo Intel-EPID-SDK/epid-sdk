@@ -6,27 +6,27 @@ TOOLS_INSTALL_DIR = $(epidinstalldir)/tools
 EXTRACTGRPS_INCLUDE_DIR = ./extractgrps
 EXTRACTGRPS_SRC = $(wildcard ./extractgrps/src/*.c)
 EXTRACTGRPS_OBJ = $(EXTRACTGRPS_SRC:.c=.o)
-EXTRACTGRPS_EXE = ./extractgrps/src/extractgrps
+EXTRACTGRPS_EXE = ./extractgrps/src/extractgrps$(EXE_EXTENSION)
 
 EXTRACTKEYS_INCLUDE_DIR = ./extractkeys
 EXTRACTKEYS_SRC = $(wildcard ./extractkeys/src/*.c)
 EXTRACTKEYS_OBJ = $(EXTRACTKEYS_SRC:.c=.o)
-EXTRACTKEYS_EXE = ./extractkeys/src/extractkeys
+EXTRACTKEYS_EXE = ./extractkeys/src/extractkeys$(EXE_EXTENSION)
 
 REVOKEGRP_INCLUDE_DIR = ./revokegrp
 REVOKEGRP_SRC = $(wildcard ./revokegrp/src/*.c)
 REVOKEGRP_OBJ = $(REVOKEGRP_SRC:.c=.o)
-REVOKEGRP_EXE = ./revokegrp/src/revokegrp
+REVOKEGRP_EXE = ./revokegrp/src/revokegrp$(EXE_EXTENSION)
 
 REVOKEKEY_INCLUDE_DIR = ./revokekey
 REVOKEKEY_SRC = $(wildcard ./revokekey/src/*.c)
 REVOKEKEY_OBJ = $(REVOKEKEY_SRC:.c=.o)
-REVOKEKEY_EXE = ./revokekey/src/revokekey
+REVOKEKEY_EXE = ./revokekey/src/revokekey$(EXE_EXTENSION)
 
 REVOKESIG_INCLUDE_DIR = ./revokesig
 REVOKESIG_SRC = $(wildcard ./revokesig/src/*.c)
 REVOKESIG_OBJ = $(REVOKESIG_SRC:.c=.o)
-REVOKESIG_EXE = ./revokesig/src/revokesig
+REVOKESIG_EXE = ./revokesig/src/revokesig$(EXE_EXTENSION)
 
 EPID_SDK_ROOT_DIR = ..
 EXAMPLE_DIR = $(EPID_SDK_ROOT_DIR)/example

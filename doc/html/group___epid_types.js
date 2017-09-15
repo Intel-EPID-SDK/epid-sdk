@@ -1,6 +1,6 @@
 var group___epid_types =
 [
-    [ "EPID 1.1 specific types", "group___epid11_types.html", "group___epid11_types" ],
+    [ "Intel(R) EPID 1.1 specific types", "group___epid11_types.html", "group___epid11_types" ],
     [ "OctStr8", "struct_oct_str8.html", [
       [ "data", "struct_oct_str8.html#a5e6c56fda48c88b419e621b464b03bef", null ]
     ] ],

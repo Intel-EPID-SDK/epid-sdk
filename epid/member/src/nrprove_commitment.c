@@ -19,7 +19,6 @@
 #include "epid/member/src/nrprove_commitment.h"
 
 #include <stdint.h>
-#include "epid/member/tpm/nrprove.h"
 #include "epid/common/math/finitefield.h"
 #include "epid/common/src/memory.h"
 

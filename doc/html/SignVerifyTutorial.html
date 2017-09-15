@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -84,7 +84,7 @@ $(document).ready(function(){initNavTree('SignVerifyTutorial.html','');});
 </ul>
 </div>
 <div class="textblock"><p>The Intel&reg; EPID SDK provides example tools to show you how to use the Intel&reg; EPID SDK APIs. These examples are called <code>signmsg</code> and <code>verifysig</code>.</p>
-<p>These examples use the pre-generated data described in <a class="el" href="IssuerMaterial.html">Sample Issuer Material</a>. After you build the SDK, the data is in the <code>_install/epid-sdk/example/data</code> directory. If you don't have genuine issuer material, you can use this data for validation purposes.</p>
+<p>These examples use the pre-generated data described in <a class="el" href="IssuerMaterial.html">Test Data</a>. After you build the SDK, the data is in the <code>_install/epid-sdk/example/data</code> directory. If you don't have genuine issuer material, you can use this data for validation purposes.</p>
 <p>You can follow along with the commands used in this tutorial if you first build these examples using the instructions in <a class="el" href="BuildingSdk.html">Building from Source</a>. The tutorial assumes <code>_install/epid-sdk/example</code> is the current directory.</p>
 <p>All command lines in this tutorial use posix command line conventions; for other systems, adjust accordingly.</p>
 <p>For detailed walkthroughs of the code used in <code>signmsg</code> and <code>verifysig</code>, refer to <a class="el" href="Examples.html">Walkthroughs of Examples Showing API Usage</a>.</p>
@@ -138,9 +138,6 @@ Options:
   --mprecmpi=FILE
       load pre-computed member data from FILE
 
-  --mprecmpo=FILE
-      write pre-computed member data to FILE
-
   --capubkey=FILE
       load IoT Issuing CA public key from FILE (default: cacert.bin)
 
@@ -162,7 +159,7 @@ What Do You Need to Verify a Signature?</h2>
 <p>To verify a signature, you need the following items:</p>
 <ul>
 <li><b>Signature:</b> You need the signature that you want to verify.</li>
-<li><b>CA certificate:</b> You need the CA certificate to verify the authenticity of the issuer material before you use it. Depending on how your issuer protects its data, you may not need a CA certificate. For more information on issuer material, refer to <a class="el" href="ChoosingiKGF.html">If You Choose iKGF as Your Issuer</a> and <a class="el" href="IssuerMaterial.html">Sample Issuer Material</a>.</li>
+<li><b>CA certificate:</b> You need the CA certificate to verify the authenticity of the issuer material before you use it. Depending on how your issuer protects its data, you may not need a CA certificate. For more information on issuer material, refer to <a class="el" href="Provisioning.html">Preparing a Device</a> and <a class="el" href="IssuerMaterial.html">Test Data</a>.</li>
 <li><b>Group certificate:</b> The group certificate comes from the issuer and contains the group public key. You need the group public key to determine if the signature came from a member of this group. The group public key corresponds to the member private key used to generate the signature.</li>
 <li><b>Message:</b> In order for verification to succeed, you need to specify the message that was signed.</li>
 <li><b>Hash algorithm:</b> In order for verification to succeed, you need to specify the hash algorithm that was used to sign the message. If you don't specify a hash algorithm, a default hash algorithm is used.</li>

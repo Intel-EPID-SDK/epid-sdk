@@ -19,14 +19,14 @@
  * \brief Signmsg example implementation.
  */
 
+#include <dropt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dropt.h>
 
+#include "src/signmsg.h"
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
-#include "src/signmsg.h"
 
 // Defaults
 #define PROGRAM_NAME "signmsg"
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
 
-  // intermediate return value for EPID functions
+  // intermediate return value for Intel(R) EPID functions
   EpidStatus result = kEpidErr;
 
   // User Settings
@@ -101,9 +101,6 @@ int main(int argc, char* argv[]) {
 
   // Member pre-computed settings input file name parameter
   static char* mprecmpi_file = NULL;
-
-  // Member pre-computed settings output file name parameter
-  static char* mprecmpo_file = NULL;
 
   // CA certificate file name parameter
   static char* cacert_file = NULL;
@@ -137,9 +134,7 @@ int main(int argc, char* argv[]) {
 
   // Member pre-computed settings
   MemberPrecomp member_precmp = {0};
-
-  // Flag that Member pre-computed settings input is valid
-  bool use_precmp_in;
+  MemberPrecomp* member_precmp_ptr = NULL;
 
   // Hash algorithm
   static HashAlg hashalg = kSha512;
@@ -167,8 +162,6 @@ int main(int argc, char* argv[]) {
        "FILE", dropt_handle_string, &mprivkey_file},
       {'\0', "mprecmpi", "load pre-computed member data from FILE", "FILE",
        dropt_handle_string, &mprecmpi_file},
-      {'\0', "mprecmpo", "write pre-computed member data to FILE", "FILE",
-       dropt_handle_string, &mprecmpo_file},
       {'\0', "capubkey",
        "load IoT Issuing CA public key from FILE (default: " CACERT_DEFAULT ")",
        "FILE", dropt_handle_string, &cacert_file},
@@ -283,7 +276,6 @@ int main(int argc, char* argv[]) {
           log_msg(" pubkey_file   : %s", pubkey_file);
           log_msg(" mprivkey_file : %s", mprivkey_file);
           log_msg(" mprecmpi_file : %s", mprecmpi_file);
-          log_msg(" mprecmpo_file : %s", mprecmpo_file);
           log_msg(" hashalg       : %s", HashAlgToString(hashalg));
           log_msg(" cacert_file   : %s", cacert_file);
           log_msg("");
@@ -298,8 +290,9 @@ int main(int argc, char* argv[]) {
       break;
     }
     // Security note:
-    // Application must confirm that IoT EPID Issuing CA certificate is
-    // authorized by IoT EPID Root CA, e.g., signed by IoT EPID Root CA.
+    // Application must confirm that IoT Intel(R) EPID Issuing CA certificate
+    // is authorized by IoT Intel(R) EPID Root CA, e.g.,
+    // signed by IoT Intel(R) EPID Root CA.
     if (!IsCaCertAuthorizedByRootCa(&cacert, sizeof(cacert))) {
       log_error("CA certificate is not authorized");
       ret_value = EXIT_FAILURE;
@@ -341,7 +334,8 @@ int main(int argc, char* argv[]) {
       break;
     }
     if (mprivkey_size != sizeof(PrivKey) &&
-        mprivkey_size != sizeof(CompressedPrivKey)) {
+        mprivkey_size != sizeof(CompressedPrivKey) &&
+        mprivkey_size != sizeof(MembershipCredential)) {
       log_error("Private Key file size is inconsistent");
       ret_value = EXIT_FAILURE;
       break;
@@ -351,19 +345,18 @@ int main(int argc, char* argv[]) {
       break;
     }
     // Load Member pre-computed settings
-    use_precmp_in = false;
     if (mprecmpi_file) {
       if (sizeof(MemberPrecomp) != GetFileSize(mprecmpi_file)) {
         log_error("incorrect input precomp size");
         ret_value = EXIT_FAILURE;
         break;
       }
-      use_precmp_in = true;
 
       if (0 != ReadLoud(mprecmpi_file, &member_precmp, sizeof(MemberPrecomp))) {
         ret_value = EXIT_FAILURE;
         break;
       }
+      member_precmp_ptr = &member_precmp;
     }
 
     // Report Settings
@@ -387,16 +380,16 @@ int main(int argc, char* argv[]) {
       PrintBuffer(signed_pubkey, signed_pubkey_size);
       log_msg("");
       log_msg(" [in]  Member Private Key: ");
-      PrintBuffer(&mprivkey, sizeof(mprivkey));
+      PrintBuffer(mprivkey, mprivkey_size);
       log_msg("");
       log_msg(" [in]  Hash Algorithm: %s", HashAlgToString(hashalg));
       log_msg("");
-      log_msg(" [in]  IoT EPID Issuing CA Certificate: ");
+      log_msg(" [in]  IoT Intel(R) EPID Issuing CA Certificate: ");
       PrintBuffer(&cacert, sizeof(cacert));
-      if (use_precmp_in) {
+      if (member_precmp_ptr) {
         log_msg("");
         log_msg(" [in]  Member PreComp: ");
-        PrintBuffer(&member_precmp, sizeof(member_precmp));
+        PrintBuffer(member_precmp_ptr, sizeof(member_precmp));
       }
       log_msg("==============================================");
     }
@@ -405,7 +398,7 @@ int main(int argc, char* argv[]) {
     result = SignMsg(msg_str, msg_size, basename_str, basename_size,
                      signed_sig_rl, signed_sig_rl_size, signed_pubkey,
                      signed_pubkey_size, mprivkey, mprivkey_size, hashalg,
-                     &member_precmp, use_precmp_in, &sig, &sig_size, &cacert);
+                     member_precmp_ptr, &sig, &sig_size, &cacert);
 
     // Report Result
     if (kEpidNoErr != result) {
@@ -421,15 +414,6 @@ int main(int argc, char* argv[]) {
     if (sig && sig_size != 0) {
       // Store signature
       if (0 != WriteLoud(sig, sig_size, sig_file)) {
-        ret_value = EXIT_FAILURE;
-        break;
-      }
-    }
-
-    // Store Member pre-computed settings
-    if (mprecmpo_file) {
-      if (0 !=
-          WriteLoud(&member_precmp, sizeof(member_precmp), mprecmpo_file)) {
         ret_value = EXIT_FAILURE;
         break;
       }

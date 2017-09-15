@@ -1,6 +1,6 @@
 var group___pairing_primitives =
 [
-    [ "EPID 1.1 specific pairing", "group___epid11_pairing_primitives.html", "group___epid11_pairing_primitives" ],
+    [ "Intel(R) EPID 1.1 specific pairing", "group___epid11_pairing_primitives.html", "group___epid11_pairing_primitives" ],
     [ "PairingState", "group___pairing_primitives.html#ga3f1fa61d25487f96dfb0ffef4ad35607", null ],
     [ "DeletePairingState", "group___pairing_primitives.html#gad54aebdc331d39b73000fdca9e04f94d", null ],
     [ "NewPairingState", "group___pairing_primitives.html#ga29f79a645871830754d396b9b4a2a0cc", null ],

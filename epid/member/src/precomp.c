@@ -17,9 +17,9 @@
 /*! \file */
 #include "epid/member/src/precomp.h"
 
-#include "epid/common/types.h"
 #include "epid/common/src/epid2params.h"
 #include "epid/common/src/grouppubkey.h"
+#include "epid/common/types.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

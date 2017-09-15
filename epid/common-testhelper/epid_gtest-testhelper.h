@@ -16,7 +16,7 @@
 
 /*!
  * \file
- * \brief Epid specific predicates for gtest
+ * \brief Intel(R) EPID specific predicates for gtest
  */
 #ifndef EPID_COMMON_TESTHELPER_EPID_GTEST_TESTHELPER_H_
 #define EPID_COMMON_TESTHELPER_EPID_GTEST_TESTHELPER_H_

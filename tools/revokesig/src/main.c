@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
  *
  */
 
+#include <dropt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dropt.h>
+#include "epid/common/file_parser.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-#include "epid/common/file_parser.h"
 
 // Defaults
 #define PROGRAM_NAME "revokesig"
@@ -40,9 +40,9 @@
 #pragma pack(1)
 /// Partial signature request, includes components through sig.
 typedef struct SigRlRequestTop {
-  EpidFileHeader header;  ///< EPID File Header
-  GroupId gid;            ///< EPID Group ID
-  EpidSignature sig;      ///< EPID Signature
+  EpidFileHeader header;  ///< Intel(R) EPID File Header
+  GroupId gid;            ///< Intel(R) EPID Group ID
+  EpidSignature sig;      ///< Intel(R) EPID Signature
 } SigRlRequestTop;
 
 /// Partial signature request, includes components after.
@@ -168,10 +168,10 @@ int main(int argc, char* argv[]) {
       break;
     } else if (argc > 0) {
       /* Parse the arguments from argv.
-      *
-      * argv[1] is always safe to access since argv[argc] is guaranteed
-      * to be NULL and since we've established that argc > 0.
-      */
+       *
+       * argv[1] is always safe to access since argv[argc] is guaranteed
+       * to be NULL and since we've established that argc > 0.
+       */
       char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
       if (dropt_get_error(dropt_ctx) != dropt_error_none) {
         log_error(dropt_get_error_message(dropt_ctx));
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 
   | Field                           | Size          |
   |:--------------------------------|--------------:|
-  | EPID Version (0x0200)           |       2 bytes |
+  | Intel(R) EPID Version (0x0200)  |       2 bytes |
   | File Type (0x000B)              |       2 bytes |
   | Group ID Number                 |      16 bytes |
   | Basic Signature                 |      52 bytes |
@@ -432,7 +432,7 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
       log_msg("");
       log_msg(" [in]  Request Len: %d", sizeof(SigRlRequestTop));
       log_msg(" [in]  Request: ");
-      PrintBuffer(&req_top, sizeof(SigRlRequestTop));
+      PrintBuffer(req_top, sizeof(SigRlRequestTop));
       log_msg("==============================================");
     }
 

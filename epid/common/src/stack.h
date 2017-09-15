@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -81,6 +81,17 @@ bool StackPopN(Stack* stack, size_t n, void* elements);
   \see CreateStack
 */
 size_t StackGetSize(Stack const* stack);
+
+/// Get number of elements in the stack
+/*!
+  \param[in] stack
+  Stack context
+
+  \returns Pointer to the buffer, returns NULL if stack is NULL
+
+  \see CreateStack
+*/
+void* StackGetBuf(Stack const* stack);
 
 /// Deallocates memory used for the stack.
 /*!

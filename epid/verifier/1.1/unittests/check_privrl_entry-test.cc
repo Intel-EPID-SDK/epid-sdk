@@ -26,8 +26,8 @@ extern "C" {
 #include "epid/verifier/1.1/api.h"
 }
 
-#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 #include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
+#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 
 namespace {
 

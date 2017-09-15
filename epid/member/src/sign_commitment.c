@@ -20,7 +20,6 @@
 
 #include "epid/common/math/ecgroup.h"
 #include "epid/common/src/commitment.h"
-#include "epid/member/tpm/sign.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

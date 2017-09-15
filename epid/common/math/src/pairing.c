@@ -19,11 +19,11 @@
  * \brief Pairing implementation.
  */
 
-#include <limits.h>
 #include "epid/common/math/pairing.h"
+#include <limits.h>
 #include "epid/common/math/src/bignum-internal.h"
-#include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/math/src/ecgroup-internal.h"
+#include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/math/src/pairing-internal.h"
 #include "epid/common/src/memory.h"
 #include "ext/ipp/include/ippcp.h"

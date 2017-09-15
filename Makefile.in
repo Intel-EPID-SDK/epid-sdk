@@ -29,16 +29,29 @@ endif
 CC_FLAGS := $(CFLAGS) $(SIZE_CFLAGS) -Werror -Wall -Wextra -Wno-missing-braces \
 	-Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-unused-function \
 	-fno-strict-aliasing -Wno-unused-but-set-variable -Wno-comment -Wformat \
-	-Wformat-security -fstack-protector -fPIC -DNDEBUG -D_FORTIFY_SOURCE=2
-#g++ flags
-CXX_FLAGS := $(CC_FLAGS) -std=c++0x
+	-Wformat-security -fstack-protector -DNDEBUG -D_FORTIFY_SOURCE=2
 
 #intel c compiler flags
 ICC_FLAGS := $(CFLAGS) $(SIZE_CFLAGS) -Werror -Wall -Wextra -DNDEBUG \
-	-fstack-protector -fPIC -D_FORTIFY_SOURCE=2 \
+	-fstack-protector -D_FORTIFY_SOURCE=2 \
 	-Wformat -Wformat-security
+
+ifneq ($(OS),Windows_NT)
+	CC_FLAGS += -fPIC
+	ICC_FLAGS += -fPIC
+	CXX11_FLAG = -std=c++0x
+	EXE_EXTENSION =
+else
+	CC_FLAGS += -D__int64='long long'
+	CXX11_FLAG = -std=gnu++11
+	EXE_EXTENSION = .exe
+endif
+$(info $(EXE_EXTENSION))
+#g++ flags
+CXX_FLAGS := $(CC_FLAGS) $(CXX11_FLAG)
+
 #intel c++ compiler flags
-ICPC_FLAGS := $(ICC_FLAGS) -std=c++0x
+ICPC_FLAGS := $(ICC_FLAGS) $(CXX11_FLAG)
 
 #check if architecture was specified
 #or take it by shell command
@@ -78,7 +91,10 @@ else
 endif
 
 # ld flags
-LDFLAGS += -fstack-protector -z noexecstack -z relro -z now -pie
+LDFLAGS += -fstack-protector
+ifneq ($(OS),Windows_NT)
+  LDFLAGS += -z noexecstack -z relro -z now -pie
+endif
 
 #gtest defines
 GTEST_DEFINES := -DGTEST_HAS_PTHREAD=0 -D_VARIADIC_MAX=10
@@ -93,6 +109,7 @@ export CXX CXXFLAGS
 export AR RANLIB
 export epidinstalldir
 export GTEST_FLAGS GTEST_DEFINES IPP_FLAGS
+export EXE_EXTENSION
 
 #just output
 $(info $$ccompiler is [${CC}])
@@ -100,7 +117,9 @@ $(info $$cxxcompiler is [${CXX}])
 $(info $$architecture is [${ARCH}])
 
 #targets part
-all: ipp common member verifier dropt examples_util examples epid_tools
+all:
+	$(MAKE) ipp common member verifier dropt examples_util
+	$(MAKE) examples epid_tools
 
 clean:
 	$(MAKE) -C ./ext/ipp/sources/ippcp clean
@@ -132,14 +151,32 @@ uninstall:
 ipp:
 	$(MAKE) -C ./ext/ipp/sources/ippcp all
 
+common-testhelper:
+	$(MAKE) -C ./epid/common-testhelper/ all
+
+common-testhelper_utest:
+	$(MAKE) -C ./epid/common-testhelper/ utest
+
 common:
 	$(MAKE) -C ./epid/common/ all
+
+common_utest:
+	$(MAKE) -C ./epid/common/ utest
 
 member:
 	$(MAKE) -C ./epid/member/ all
 
+member_utest:
+	$(MAKE) -C ./epid/member/ utest
+
 verifier:
 	$(MAKE) -C ./epid/verifier/ all
+
+verifier_utest:
+	$(MAKE) -C ./epid/verifier/ utest
+
+gtest:
+	$(MAKE) -C ./ext/gtest/ all
 
 dropt:
 	$(MAKE) -C ./ext/dropt/ all
@@ -148,12 +185,8 @@ examples_util:
 	$(MAKE) -C ./example/util/ all
 
 utest:
-	$(MAKE) -C ./ext/gtest/ all
-	$(MAKE) -C ./epid/common-testhelper/ all
-	$(MAKE) -C ./epid/common-testhelper/ utest
-	$(MAKE) -C ./epid/common/ utest
-	$(MAKE) -C ./epid/member/ utest
-	$(MAKE) -C ./epid/verifier/ utest
+	$(MAKE) gtest common-testhelper
+	$(MAKE) common-testhelper_utest common_utest member_utest verifier_utest
 
 run_utest:
 	$(MAKE) -C ./epid/common-testhelper/ run_utest
@@ -161,7 +194,9 @@ run_utest:
 	$(MAKE) -C ./epid/member/ run_utest
 	$(MAKE) -C ./epid/verifier/ run_utest
 
-check: utest run_utest
+check:
+	$(MAKE) utest
+	$(MAKE) run_utest
 
 examples:
 	$(MAKE) -C ./example/ all
@@ -176,4 +211,7 @@ ifneq ("$(wildcard ./ext/google_benchmark/)","")
 	$(MAKE) -C ./ext/google_benchmark/ run_utest
 endif
 
-build: all check install
+build:
+	$(MAKE) all
+	$(MAKE) check
+	$(MAKE) install

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,15 +26,17 @@
 
 extern "C" {
 #include "epid/common/math/bignum.h"
-#include "epid/common/math/finitefield.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/math/finitefield.h"
 }
 
-#include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
-#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
+#include "epid/common-testhelper/bignum_wrapper-testhelper.h"
 #include "epid/common-testhelper/ecgroup_wrapper-testhelper.h"
 #include "epid/common-testhelper/ecpoint_wrapper-testhelper.h"
-#include "epid/common-testhelper/bignum_wrapper-testhelper.h"
+#include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
+#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
+
+typedef struct Epid2Params_ Epid2Params_;
 
 class Epid20Params {
  public:
@@ -50,6 +52,8 @@ class Epid20Params {
   FiniteFieldObj GT;
   EcGroupObj G1;
   EcGroupObj G2;
+  FiniteFieldObj fq;
+  FiniteFieldObj fp;
 
  private:
   static const BigNumStr q_str_;
@@ -64,7 +68,6 @@ class Epid20Params {
   static const Fq2ElemStr xi_str_;
   static const G2ElemStr g2_str_;
 
-  FiniteFieldObj fq;
   FiniteFieldObj fq2;
   FiniteFieldObj fq6;
 };

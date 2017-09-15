@@ -22,10 +22,10 @@
 #ifndef EPID_COMMON_MATH_FINITEFIELD_H_
 #define EPID_COMMON_MATH_FINITEFIELD_H_
 
-#include "epid/common/stdtypes.h"
 #include "epid/common/bitsupplier.h"
 #include "epid/common/errors.h"
 #include "epid/common/math/bignum.h"
+#include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
 
 /// Finite field operations

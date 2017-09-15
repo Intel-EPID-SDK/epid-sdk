@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -62,7 +62,7 @@ $(document).ready(function(){initNavTree('UserManual_VerifyingAnIntelEpidSignatu
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>This walkthrough of the <code>verifysig</code> example shows you how to use SDK APIs to verify an Intel&reg; EPID 2.0 signature. <code>verifysig</code> is built during the <a class="el" href="BuildingSdk.html">SDK build</a>.</p>
-<p>To verify an Intel&reg; EPID 1.1 signature see the example code in <code>verifysig11.c</code>. For information on Intel&reg; EPID 1.1 speciifc APIs see <a href="group___epid11_verifier_module.html"><b>EPID 1.1 support</b></a>.</p>
+<p>To verify an Intel&reg; EPID 1.1 signature see the example code in <code>verifysig11.c</code>. For information on Intel&reg; EPID 1.1 specific APIs see <a href="group___epid11_verifier_module.html"><b>Intel&reg; EPID 1.1 support</b></a>.</p>
 <p><br />
 </p>
 <h1><a class="anchor" id="verifysigWalktrhu_overview"></a>
@@ -79,8 +79,8 @@ Summary</h1>
 <h1><a class="anchor" id="verifysigWalkthrough_main"></a>
 Verifysig Walkthrough</h1>
 <p>First, we include headers so we have access to needed declarations.</p>
-<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/verifysig.h&quot;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="verifier_2api_8h.html">epid/verifier/api.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div></div><!-- fragment --></p>
-<p>The utility headers are used by <code>verifysig</code> for logging and buffer management. The <code><a class="el" href="verifier_2api_8h.html" title="Intel(R) EPID SDK verifier API. ">epid/verifier/api.h</a></code> header provides access to the core verifier APIs, and the <code><a class="el" href="file__parser_8h.html" title="Epid issuer material parsing utilities. ">epid/common/file_parser.h</a></code> header provides an API for parsing buffers formatted according to the various IoT Intel&reg; EPID binary file formats.</p>
+<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/verifysig.h&quot;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div></div><!-- fragment --></p>
+<p>The utility headers are used by <code>verifysig</code> for logging and buffer management. The <code><a class="el" href="verifier_2api_8h.html" title="Intel(R) EPID SDK verifier API. ">epid/verifier/api.h</a></code> header provides access to the core verifier APIs, and the <code><a class="el" href="file__parser_8h.html" title="Intel(R) EPID issuer material parsing utilities. ">epid/common/file_parser.h</a></code> header provides an API for parsing buffers formatted according to the various IoT Intel&reg; EPID binary file formats.</p>
 <p><br />
 </p>
 <p>In <code>main.c</code>, we define a stub function, IsCaCertAuthorizedByRootCa, which is responsible for checking that the CA certificate is authorized by the root CA. Before calling <code>verify</code>, we call this function, IsCaCertAuthorizedByRootCa. In an actual implementation, you need to provide an implementation to validate the issuing CA certificate with the CA root certificate before using it in parse functions.</p>

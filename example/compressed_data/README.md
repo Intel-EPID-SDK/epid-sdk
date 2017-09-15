@@ -172,7 +172,7 @@ There are 2 group revocation lists:
 - `grprl_empty.bin` - group revocation list with 0 entries
 
 
-### IoT EPID Issuing CA certificate
+### IoT Issuing CA certificate
 
 - `cacert.bin` - CA certificate used to check that revocation
   lists and group public keys are authorized by the issuer, e.g.,

@@ -23,9 +23,9 @@
 #define EPID_COMMON_MATH_PAIRING_H_
 
 #include "epid/common/errors.h"
-#include "epid/common/types.h"
-#include "epid/common/math/finitefield.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/math/finitefield.h"
+#include "epid/common/types.h"
 
 /// Pairing operations
 /*!

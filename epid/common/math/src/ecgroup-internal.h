@@ -22,8 +22,8 @@
 #ifndef EPID_COMMON_MATH_SRC_ECGROUP_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_ECGROUP_INTERNAL_H_
 
-#include "ext/ipp/include/ippcp.h"
 #include "epid/common/math/src/finitefield-internal.h"
+#include "ext/ipp/include/ippcp.h"
 
 /// Elpitic Curve Group
 struct EcGroup {

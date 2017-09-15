@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -95,7 +95,7 @@ Building SDK with SCons</h1>
 <p>To build based on the default SConstruct file in the root directory of the SDK, invoke scons with no arguments. </p><pre class="fragment">cd &lt;path/to/sdk-root&gt;
 scons
 </pre><p>By default, this performs a release build of the SDK with unit tests for the current platform and runs unit tests.</p>
-<p>To skip unit test execution when doing cross platfrom build use: </p><pre class="fragment">scons build:: utest::
+<p>To skip unit test execution when doing cross platform build use: </p><pre class="fragment">scons build:: utest::
 </pre><p>Built components appear in the <code>_install</code> directory of the SDK root.</p>
 <p>Potentially useful command line options:</p>
 <table class="doxtable">
@@ -133,6 +133,8 @@ scons
 <td><code>run_utest::</code> </td><td>Run unit tests (builds tests if needed) </td></tr>
 <tr>
 <td><code>-c</code> </td><td>Clean the build </td></tr>
+<tr>
+<td><code>-j N</code> or <code>--jobs=N</code> </td><td>Allow N jobs at once </td></tr>
 </table>
 <h1><a class="anchor" id="BuildingSdk_Building_Makefile"></a>
 Alternate Makefile/Autoconf Based Build Approach</h1>
@@ -149,6 +151,7 @@ make install
 </ul>
 <p><code>make check</code> is optional. It builds and runs the unit tests.</p>
 <p>Alternatively, you can use <code>make build</code> as a shortcut to replace <code>make all</code>, <code>make check</code>, and <code>make install</code>.</p>
+<p>To run N jobs at once use the <code>-j N</code> or <code>--jobs=N</code> option with the <code>make</code> command, e.g. <code>make all -j 4</code> will allow make to create 4 jobs at once.</p>
 <p>To clean the build, run <code>make clean</code>.</p>
 <p>To remove the install directory, run <code>make uninstall</code>.</p>
 <p>To configure cross compilation use <code>--host</code> option. For example, <code>./configure --host=arm-linux-gnueabi</code> configures cross compilation build targeting ARM architecture. Cross compiled tests will not run on the build machine so <code>make check</code> should be replaced to <code>make utest</code>. A typical build sequence for cross compilation is as follows: </p><pre class="fragment">./configure --host=&lt;target system&gt;

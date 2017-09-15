@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
 
 /*!
  * \file
- * \brief EPID 1.1 signature verification interface.
+ * \brief Intel(R) EPID 1.1 signature verification interface.
  */
 #ifndef EXAMPLE_VERIFYSIG_SRC_VERIFYSIG11_H_
 #define EXAMPLE_VERIFYSIG_SRC_VERIFYSIG11_H_
 
 #include <stddef.h>
-#include "epid/common/errors.h"
 #include "epid/common/1.1/types.h"
+#include "epid/common/errors.h"
 
 struct EpidCaCertificate;
 
-/// verify EPID 1.x signature
+/// verify Intel(R) EPID 1.x signature
 EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
                     size_t msg_len, void const* basename, size_t basename_len,
                     void const* signed_priv_rl, size_t signed_priv_rl_size,

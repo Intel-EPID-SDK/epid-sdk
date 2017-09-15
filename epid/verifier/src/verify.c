@@ -19,9 +19,9 @@
  * \brief Verify implementation.
  */
 #include <string.h>
+#include "epid/common/src/endian_convert.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
-#include "epid/common/src/endian_convert.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

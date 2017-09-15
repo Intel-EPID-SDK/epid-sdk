@@ -28,13 +28,11 @@ import tempfile
 import shutil
 from collections import OrderedDict
 
-
 def get_parts_versions(env):
     """Get Parts related versions given SCons environment env"""
     return OrderedDict({'python': string.split(sys.version, " ", 1)[0],
                         'scons': str(SCons.__version__),
                         'parts': str(PartsExtensionVersion())})
-
 
 def get_toolchain_versions(env):
     """Get version of compilation toolchain given SCons environment env"""
@@ -48,23 +46,37 @@ def get_toolchain_versions(env):
         versions['compiler'] = 'GCC ' + env['GCC_VERSION']
         if 'GXX_VERSION' in env:
             versions['compiler'] += ' and GXX ' + env['GXX_VERSION']
-            cmd = env.subst('echo "int main(){return 0;}"'
-                            ' | $CXX $CCFLAGS -xc++ -Wl,--verbose -')
+            if os.name == 'nt':
+                cmd = env.subst('echo int main(){return 0;}'
+                                ' | $CXX $CCFLAGS -xc++ -Wl,--verbose -')
+            else:
+                cmd = env.subst('echo "int main(){return 0;}"'
+                                ' | $CXX $CCFLAGS -xc++ -Wl,--verbose -')
         else:
-            cmd = env.subst('echo "int main(){return 0;}"'
-                            ' | $CC  $CCFLAGS -xc   -Wl,--verbose -')
-        defaultlib_regexp = r'[\n(](/.*\.so[-.\da-fA-F]*).*'
+            if os.name == 'nt':
+                cmd = env.subst('echo int main(){return 0;}'
+                                ' | $CXX $CCFLAGS -xc++ -Wl,--verbose -')
+            else:
+                cmd = env.subst('echo "int main(){return 0;}"'
+                                ' | $CC  $CCFLAGS -xc   -Wl,--verbose -')
+        if os.name == 'nt':
+            defaultlib_regexp = r'\n.* open (.*) succeeded'
+        else:
+            defaultlib_regexp = r'[\n(](/.*\.so[-.\da-fA-F]*).*'
 
     # Intel C compiler always depends from base toolchain
     if 'INTELC_VERSION' in env:
-        versions['compiler'] = 'INTELC {0} with {1}'.format(env['INTELC_VERSION'],
-                                                            versions['compiler'])
+        versions['compiler'] = 'INTELC {0} with {1}'.format(
+            env['INTELC_VERSION'],
+            versions['compiler'])
 
+    env['ENV']['PATH'] = str(env['ENV']['PATH'])
     temp_dir = tempfile.mkdtemp()
     try:
         proc = subprocess.Popen(cmd,
                                 cwd=temp_dir,
-                                env=env['ENV'], shell=True,
+                                env=env['ENV'],
+                                shell=True,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = proc.communicate()
         if proc.returncode != 0:
@@ -144,10 +156,12 @@ example_parts = ['ext/dropt/dropt.parts',
                  'example/signmsg/signmsg.parts',
                  'example/data/data.parts',
                  'example/compressed_data/compressed_data.parts']
-sizing_parts = ['example/signmsg/signmsg_shared.parts',
+sizing_parts = ['example/util/util_static.parts',
+                'example/signmsg/signmsg_shared.parts',
                 'example/verifysig/verifysig_shared.parts',
                 'example/verifysig/verifysig11_shared.parts']
-example_static_parts = ['example/signmsg/signmsg_static.parts',
+example_static_parts = ['example/util/util_static.parts',
+                        'example/signmsg/signmsg_static.parts',
                         'example/verifysig/verifysig_static.parts']
 tools_parts = ['tools/revokegrp/revokegrp.parts',
                'tools/revokekey/revokekey.parts',
@@ -165,6 +179,7 @@ testbot_test_parts = ['test/testbot/testbot.parts',
                       'test/testbot/extractkeys/extractkeys_testbot.parts',
                       'test/testbot/extractgrps/extractgrps_testbot.parts',
                       'tools/reports/reports.parts']
+tss_test_parts = ['test/tss/tss.parts']
 package_parts = ['ext/gtest/gtest.parts',
                  'ext/ipp/ippcp.parts',
                  'package.parts']
@@ -212,6 +227,10 @@ def use_commercial_ipp():
     return GetOption("use-commercial-ipp")
 
 
+def use_tss():
+    return GetOption("use-tss")
+
+
 def config_has_instrumentation():
     return any(DefaultEnvironment().isConfigBasedOn(config_name)
                for config_name in ['instr_release', 'instr_size_optimized_release'])
@@ -239,6 +258,12 @@ AddOption("--use-commercial-ipp",
           help=("Link with commercial IPP. The IPPROOT environment variable "
                 "must be set."),
           action='store_true', dest='use-commercial-ipp',
+          default=False)
+
+AddOption("--use-tss",
+          help=("Link with TPM TSS. The TSSROOT environment variable "
+                "must be set."),
+          action='store_true', dest='use-tss',
           default=False)
 
 AddOption("--ipp-shared",
@@ -305,13 +330,16 @@ if is_production():
     ipp_mode = ['install_lib']
     if use_commercial_ipp():
         ipp_mode.append('use_commercial_ipp')
+    sdk_mode = ['install_lib']
+    if use_tss():
+        sdk_mode.append('use_tss')
     if GetOption('ipp-shared'):
         ipp_mode.append('build_ipp_shared')
     include_parts(ipp_parts, mode=ipp_mode,
                   INSTALL_INCLUDE='${INSTALL_IPP_INCLUDE}')
     include_parts(utest_parts + common_parts +
                   member_parts + verifier_parts,
-                  mode=['install_lib'],
+                  mode=sdk_mode,
                   INSTALL_INCLUDE='${INSTALL_EPID_INCLUDE}')
     include_parts(util_parts + example_parts,
                   INSTALL_INCLUDE='${INSTALL_EPID_INCLUDE}',
@@ -321,13 +349,20 @@ if is_production():
                   INSTALL_BIN='${INSTALL_TOOLS_BIN}',
                   INSTALL_DATA='${INSTALL_TOOLS_DATA}')
     Default('all')
-    Default('run_utest::')
+    Default('utest::')
+    if not use_tss():
+        Default('run_utest::')
 
 if is_internal_test():
     set_default_production_options()
+    sdk_mode = []
+    if use_tss():
+        sdk_mode.append('use_tss')
+        include_parts(tss_test_parts)
     include_parts(ipp_parts)
     include_parts(utest_parts + common_parts +
-                  member_parts + verifier_parts)
+                  member_parts + verifier_parts,
+                  mode=sdk_mode)
     include_parts(util_parts + example_parts,
                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
                   INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
@@ -339,7 +374,7 @@ if is_internal_test():
 
 if is_internal_tools():
     set_default_production_options()
-    include_parts(ipp_parts + utest_parts + common_parts + util_parts)
+    include_parts(ipp_parts + utest_parts + common_parts + verifier_parts + member_parts + util_parts)
     include_parts(internal_tools_parts + memory_profiler_parts,
                   INSTALL_BIN='${INSTALL_TOOLS_BIN}')
     Default('ikgfwrapper', 'memory_profiler')

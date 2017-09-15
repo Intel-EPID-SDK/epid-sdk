@@ -13,19 +13,21 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
+/// Intel(R) EPID SDK member API.
+/*! \file */
 #ifndef EPID_MEMBER_API_H_
 #define EPID_MEMBER_API_H_
 
 #include <stddef.h>
-#include "epid/common/stdtypes.h"
-#include "epid/common/types.h"
-#include "epid/common/errors.h"
 #include "epid/common/bitsupplier.h"
+#include "epid/common/errors.h"
+#include "epid/common/types.h"
 
-/*!
- * \file
- * \brief Intel(R) EPID SDK member API.
- */
+/// Internal context of member.
+typedef struct MemberCtx MemberCtx;
+
+/// Implementation specific configuration parameters.
+typedef struct MemberParams MemberParams;
 
 /// Member functionality
 /*!
@@ -40,64 +42,101 @@
   @{
 */
 
-/// Internal context of member.
-typedef struct MemberCtx MemberCtx;
-
 /// Creates a new member context.
 /*!
- Must be called to create the member context that is used by
- other "Member" APIs.
-
- Allocates memory for the context, then initializes it.
-
- EpidMemberDelete() must be called to safely release the member context.
-
- You need to use a cryptographically secure random
- number generator to create a member context using
- ::EpidMemberCreate. The ::BitSupplier is provided
- as a function prototype for your own implementation
- of the random number generator.
-
- \param[in] pub_key
- The group certificate.
- \param[in] priv_key
- The member private key.
- \param[in] precomp
- Optional pre-computed data. If NULL the value is computed internally and is
- readable using EpidMemberWritePrecomp().
- \param[in] rnd_func
- Random number generator.
- \param[in] rnd_param
- Pass through user data that will be passed to the user_data
- parameter of the random number generator.
+ \param[in] params
+ Implementation specific configuration parameters.
  \param[out] ctx
  Newly constructed member context.
 
  \returns ::EpidStatus
-
- \warning
- For security rnd_func should be a cryptographically secure random
- number generator.
-
- \note
- If the result is not ::kEpidNoErr the content of ctx is undefined.
-
- \see EpidMemberDelete
- \see EpidMemberWritePrecomp
- \see BitSupplier
-
- \b Example
-
- \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidMemberCreate(GroupPubKey const* pub_key, PrivKey const* priv_key,
-                            MemberPrecomp const* precomp, BitSupplier rnd_func,
-                            void* rnd_param, MemberCtx** ctx);
+EpidStatus EpidMemberCreate(MemberParams const* params, MemberCtx** ctx);
+
+/// Creates a request to join a group.
+/*!
+The created request is part of the interaction with an issuer needed to join
+a group. This interaction with the issuer is outside the scope of this API.
+
+\param[in,out] ctx
+The member context.
+\param[in] pub_key
+The group certificate of group to join.
+\param[in] ni
+The nonce chosen by issuer as part of join protocol.
+\param[out] join_request
+The join request.
+
+\returns ::EpidStatus
+*/
+EpidStatus EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
+                                 IssuerNonce const* ni,
+                                 JoinRequest* join_request);
+
+/// Provisions a member context from a membership credential
+/*!
+\param[in,out] ctx
+The member context.
+\param[in] pub_key
+The group certificate of group to provision.
+\param[in] credential
+membership credential.
+\param[in] precomp_str
+Precomputed state (implementation specific optional)
+
+\returns ::EpidStatus
+*/
+EpidStatus EpidProvisionCredential(MemberCtx* ctx, GroupPubKey const* pub_key,
+                                   MembershipCredential const* credential,
+                                   MemberPrecomp const* precomp_str);
+
+/// Provisions a member context from a compressed private key
+/*!
+\param[in,out] ctx
+The member context.
+\param[in] pub_key
+The group certificate of group to provision.
+\param[in] compressed_privkey
+private key.
+\param[in] precomp_str
+Precomputed state (implementation specific optional)
+
+\returns ::EpidStatus
+*/
+EpidStatus EpidProvisionCompressed(MemberCtx* ctx, GroupPubKey const* pub_key,
+                                   CompressedPrivKey const* compressed_privkey,
+                                   MemberPrecomp const* precomp_str);
+
+/// Provisions a member context from a private key
+/*!
+\param[in,out] ctx
+The member context.
+\param[in] pub_key
+The group certificate of group to provision.
+\param[in] priv_key
+private key.
+\param[in] precomp_str
+Precomputed state (implementation specific optional)
+
+\returns ::EpidStatus
+*/
+EpidStatus EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
+                            PrivKey const* priv_key,
+                            MemberPrecomp const* precomp_str);
+
+/// Change member from setup state to normal operation
+/*!
+\param[in,out] ctx
+The member context.
+
+\returns ::EpidStatus
+*/
+EpidStatus EpidMemberStartup(MemberCtx* ctx);
 
 /// Deletes an existing member context.
 /*!
  Must be called to safely release a member context created using
- EpidMemberCreate().
+ ::EpidMemberCreate.
 
  De-initializes the context, frees memory used by the context, and sets the
  context pointer to NULL.
@@ -112,24 +151,6 @@ EpidStatus EpidMemberCreate(GroupPubKey const* pub_key, PrivKey const* priv_key,
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
 void EpidMemberDelete(MemberCtx** ctx);
-
-/// Serializes the pre-computed member settings.
-/*!
- \param[in] ctx
- The member context.
- \param[out] precomp
- The Serialized pre-computed member settings.
-
- \returns ::EpidStatus
-
- \note
- If the result is not ::kEpidNoErr, the content of precomp is undefined.
-
- \b Example
-
- \ref UserManual_GeneratingAnIntelEpidSignature
- */
-EpidStatus EpidMemberWritePrecomp(MemberCtx const* ctx, MemberPrecomp* precomp);
 
 /// Sets the hash algorithm to be used by a member.
 /*!
@@ -237,14 +258,10 @@ size_t EpidGetSigSize(SigRl const* sig_rl);
  \note
  If the result is not ::kEpidNoErr the content of sig is undefined.
 
- \see
- EpidMemberCreate
- \see
- EpidMemberSetHashAlg
- \see
- EpidMemberSetSigRl
- \see
- EpidGetSigSize
+ \see EpidMemberCreate
+ \see EpidMemberSetHashAlg
+ \see EpidMemberSetSigRl
+ \see EpidGetSigSize
 
  \b Example
 
@@ -318,149 +335,6 @@ EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs);
 */
 size_t EpidGetNumPreSigs(MemberCtx const* ctx);
 
-/// Creates a request to join a group.
-/*!
- The created request is part of the interaction with an issuer needed to join
- a group. This interaction with the issuer is outside the scope of this API.
-
- \param[in] pub_key
- The group certificate of group to join.
- \param[in] ni
- The nonce chosen by issuer as part of join protocol.
- \param[in] f
- A randomly selected integer in [1, p-1].
- \param[in] rnd_func
- Random number generator.
- \param[in] rnd_param
- Pass through context data for rnd_func.
- \param[in] hash_alg
- The hash algorithm to be used.
- \param[out] join_request
- The join request.
-
- \returns ::EpidStatus
-
- \warning
- For security rnd_func should be a cryptographically secure random
- number generator.
-
- \note
- The default hash algorithm in Member is SHA-512. This is the
- recommended option if you do not override the hash algorithm
- elsewhere.
-
- \note
- If the result is not ::kEpidNoErr, the content of join_request is undefined.
-
- \see ::HashAlg
- */
-EpidStatus EpidRequestJoin(GroupPubKey const* pub_key, IssuerNonce const* ni,
-                           FpElemStr const* f, BitSupplier rnd_func,
-                           void* rnd_param, HashAlg hash_alg,
-                           JoinRequest* join_request);
-
-/// Creates a basic signature for use in constrained environment.
-/*!
- Used in constrained environments where, due to limited memory, it may not
- be possible to process through a large and potentially unbounded revocation
- list.
-
- \param[in] ctx
- The member context.
- \param[in] msg
- The message.
- \param[in] msg_len
- The length of message in bytes.
- \param[in] basename
- Optional basename. If basename is NULL a random basename is used.
- Signatures generated using random basenames are anonymous. Signatures
- generated using the same basename are linkable by the verifier. If a
- basename is provided it must already be registered or
- ::kEpidBadArgErr is returned.
- \param[in] basename_len
- The size of basename in bytes. Must be 0 if basename is NULL.
- \param[out] sig
- The generated basic signature
-
- \returns ::EpidStatus
-
- \note
- This function should be used in conjunction with EpidNrProve()
-
- \note
- If the result is not ::kEpidNoErr the content of sig, is undefined.
-
- \see EpidMemberCreate
- \see EpidNrProve
- */
-EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
-                         void const* basename, size_t basename_len,
-                         BasicSignature* sig);
-
-/// Calculates a non-revoked proof for a single signature based revocation
-/// list entry.
-/*!
- Used in constrained environments where, due to limited memory, it may not
- be possible to process through a large and potentially unbounded revocation
- list.
-
- \param[in] ctx
- The member context.
- \param[in] msg
- The message.
- \param[in] msg_len
- The length of message in bytes.
- \param[in] sig
- The basic signature.
- \param[in] sigrl_entry
- The signature based revocation list entry.
- \param[out] proof
- The generated non-revoked proof.
-
- \returns ::EpidStatus
-
- \note
- This function should be used in conjunction with EpidSignBasic().
-
- \note
- If the result is not ::kEpidNoErr, the content of proof is undefined.
-
- \see EpidMemberCreate
- \see EpidSignBasic
- */
-EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
-                       BasicSignature const* sig, SigRlEntry const* sigrl_entry,
-                       NrProof* proof);
-
-/// Assembles member private key from membership credential and f value.
-/*!
-
-  Combines membership credential obtained from the issuer in response
-  to a successful join request with the f value chosen by the member
-  to create a complete member private key.
-
-  The assembled private key is sanity checked to confirm it is a
-  possible key in the group.  If it is not ::kEpidBadArgErr is
-  returned.
-
-  \param[in] credential
-  Membership credential received.
-  \param[in] f
-  The f value used to generate the join request associated with the
-  membership credential.
-  \param[in] pub_key
-  The public key of the group.
-  \param[out] priv_key
-  The private key.
-
-  \returns ::EpidStatus
-
-  \see EpidRequestJoin
-*/
-EpidStatus EpidAssemblePrivKey(MembershipCredential const* credential,
-                               FpElemStr const* f, GroupPubKey const* pub_key,
-                               PrivKey* priv_key);
-
 /// Decompresses compressed member private key.
 /*!
 
@@ -485,4 +359,5 @@ EpidStatus EpidDecompressPrivKey(GroupPubKey const* pub_key,
                                  PrivKey* priv_key);
 
 /*! @} */
+
 #endif  // EPID_MEMBER_API_H_

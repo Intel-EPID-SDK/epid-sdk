@@ -16,71 +16,56 @@
 Import('*')
 env.PartName('member')
 
-api_headers = Pattern(src_dir='.',
-                      includes=['api.h'],
-                      recursive=False).files()
-src_files = Pattern(src_dir='src',
-                    includes=['*.c'],
-                    recursive=False).files()
-internal_headers = Pattern(src_dir='src',
-                           includes=['*.h'],
-                           recursive=False).files()
+api_headers = Pattern(src_dir='.', includes=['*.h'], recursive=False).files()
+src_files = Pattern(src_dir='src', includes=['*.c'], recursive=False).files()
+internal_headers = Pattern(
+    src_dir='src', includes=['*.h'], recursive=False).files()
 
-tpm_src_files = Pattern(src_dir='tpm/src',
-                        includes=['*.c'],
-                        recursive=False).files()
-tpm_internal_headers = Pattern(src_dir='tpm/src',
-                               includes=['*.h'],
-                               recursive=False).files()
-tpm_headers = Pattern(src_dir='tpm',
-                      includes=['*.h'],
-                      recursive=False).files()
-tpm_utest_files = Pattern(src_dir='tpm/unittests',
-                          includes=['*-test.cc',
-                                '*-testhelper.cc',],
-                          recursive=False).files()
-tpm_utest_headers = Pattern(src_dir='tpm/unittests',
-                        includes=['*-testhelper.h',],
-                        recursive=False).files()
+tpm_utest_wrapper_files = Pattern(
+    src_dir='tpm2/unittests',
+    includes=['tpm2_wrapper-testhelper.cc'],
+    recursive=False).files()
 
-utest_files = Pattern(src_dir='unittests',
-                      includes=['*-test.cc',
-                                '*-testhelper.cc',],
-                      recursive=False).files()
-utest_headers = Pattern(src_dir='unittests',
-                        includes=['*-testhelper.h',],
-                        recursive=False).files()
+utest_files = Pattern(
+    src_dir='unittests',
+    includes=[
+        '*-test.cc',
+        '*-testhelper.cc',
+    ],
+    recursive=False).files()
+utest_headers = Pattern(
+    src_dir='unittests', includes=[
+        '*-testhelper.h',
+    ], recursive=False).files()
 
-build_files = Pattern(src_dir='.',
-                      includes=['*.parts', 'Makefile'],
-                      recursive=False).files()
+build_files = Pattern(
+    src_dir='.', includes=['*.parts', 'Makefile'], recursive=False).files()
+
+env.Part(parts_file='tpm2/tpm2.parts')
+
+if 'use_tss' in env['MODE']:
+    env.Append(CPPDEFINES=['TPM_TSS'])
 
 if 'install_package' in env['MODE']:
-    env.InstallTopLevel(api_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(src_files + internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(utest_files + utest_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/unittests')
-    env.InstallTopLevel(tpm_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/tpm')
-    env.InstallTopLevel(tpm_src_files + tpm_internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/tpm/src')
-    env.InstallTopLevel(tpm_utest_files + tpm_utest_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/tpm/unittests')
-
+    env.InstallTopLevel(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
+    env.InstallTopLevel(
+        src_files + internal_headers, sub_dir='epid/${PART_SHORT_NAME}/src')
+    env.InstallTopLevel(
+        utest_files + utest_headers,
+        sub_dir='epid/${PART_SHORT_NAME}/unittests')
     env.InstallTopLevel(build_files, sub_dir='epid/${PART_SHORT_NAME}')
 
 else:
     env.DependsOn([
         Component('common'),
+        Component('member.tpm2'),
     ])
 
     env.Append(CPPPATH='#')
 
     testenv = env.Clone()
 
-    outputs = env.Library('${PART_NAME}', src_files + tpm_src_files)
+    outputs = env.Library('${PART_NAME}', src_files)
     env.Sdk(outputs)
     env.SdkInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
 
@@ -90,18 +75,19 @@ else:
 
     #unit tests
     testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
-    testenv.UnitTest("utest",
-                     utest_files + tpm_utest_files,
-                     command_args=[
-                         '--gtest_color=yes',
-                         '--gtest_print_time=1',
-                         '--gtest_output=xml',
-                         '--gtest_filter=**',
-                     ],
-                     make_pdb=(env.isConfigBasedOn('debug') or
-                               env.isConfigBasedOn('static_crt_debug')),
-                     depends=[Component('gtest'),
-                              Component('common-testhelper'),
-                              Component('member'),
-                              Component('verifier')],
-                     INSTALL_BIN='${INSTALL_TEST_BIN}')
+    testenv.UnitTest(
+        "utest",
+        utest_files + tpm_utest_wrapper_files,
+        command_args=[
+            '--gtest_color=yes',
+            '--gtest_print_time=1',
+            '--gtest_output=xml',
+            '--gtest_filter=**',
+        ],
+        make_pdb=(env.isConfigBasedOn('debug') or
+                  env.isConfigBasedOn('static_crt_debug')),
+        depends=[
+            Component('gtest'), Component('common-testhelper'),
+            Component('member'), Component('verifier')
+        ],
+        INSTALL_BIN='${INSTALL_TEST_BIN}')

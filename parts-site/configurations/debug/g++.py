@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,34 +14,43 @@
 # limitations under the License.
 ############################################################################
 # pylint: disable=locally-disabled, invalid-name, missing-docstring
-
 """g++ compiler configuration for debug
 """
 from parts.config import ConfigValues, configuration
 
+
 def map_default_version(env):
     return env['GCC_VERSION']
 
+
 config = configuration(map_default_version)
 
-config.VersionRange("3-*",
-                    append=ConfigValues(
-                        CCFLAGS=['',
-                                 # produce debugging information
-                                 '-g',
-                                 # disable optimization
-                                 '-O0',
-                                 # treat warnings as errors
-                                 '-Werror',
-                                 # enable all warnings
-                                 '-Wall',
-                                 # extra warnings
-                                 '-Wextra',
-                                 # pedantic warnings
-                                 # '-Wpedantic',
-                                 '-fPIC'],
-                        CXXFLAGS=[
-                            # modern C++ features support
-                            '-std=c++0x',
-                        ],
-                    ))
+config.VersionRange(
+    "3-*",
+    append=ConfigValues(
+        CCFLAGS=[
+            '',
+            # produce debugging information
+            '-g',
+            # disable optimization
+            '-O0',
+            # treat warnings as errors
+            '-Werror',
+            # enable all warnings
+            '-Wall',
+            # extra warnings
+            '-Wextra',
+            # pedantic warnings
+            # '-Wpedantic',
+            '-fPIC'
+        ],
+        CXXFLAGS=[
+            # modern C++ features support
+            '-std=c++0x',
+        ],
+        CPPDEFINES=[
+            '_FORTIFY_SOURCE=2',
+        ],
+        LINKFLAGS=[
+            '-fstack-protector',
+        ], ))

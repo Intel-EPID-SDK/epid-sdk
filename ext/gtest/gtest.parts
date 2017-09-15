@@ -15,13 +15,11 @@
 ############################################################################
 Import('*')
 
-env.PartVersion("1.7.0")
+env.PartVersion("1.8.0")
 env.PartName("gtest")
 
 #files
-cpp_files=[
-    'gtest-all.cc'
-    ]
+cpp_files=['gtest-all.cc']
 
 #includes to install
 install_headers = Glob('*.h')

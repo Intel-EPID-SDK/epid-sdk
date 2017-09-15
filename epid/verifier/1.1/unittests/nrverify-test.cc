@@ -23,14 +23,14 @@
 #include "gtest/gtest.h"
 
 extern "C" {
+#include "epid/common/1.1/types.h"
 #include "epid/verifier/1.1/api.h"
 #include "epid/verifier/1.1/src/context.h"
-#include "epid/common/1.1/types.h"
 }
 
-#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 
 namespace {
 
@@ -214,6 +214,18 @@ TEST_F(Epid11VerifierTest, NrVerifyAcceptsSigWithRandomBaseName) {
   EXPECT_EQ(kEpidSigValid,
             Epid11NrVerify(verifier, &epid_signature->sigma0,
                            this->kMsg0.data(), this->kMsg0.size(),
+                           &sig_rl->bk[0], &epid_signature->sigma[0]));
+}
+
+TEST_F(Epid11VerifierTest, NrVerifyAcceptsMsgContainingAllPossibleBytes) {
+  Epid11VerifierCtxObj verifier(this->kPubKeyStrForMsg0_255);
+  Epid11Signature const* epid_signature =
+      (Epid11Signature*)kSigGrp01Member0Sha256kBsn0Data_0_255.data();
+  Epid11SigRl const* sig_rl =
+      reinterpret_cast<Epid11SigRl const*>(this->kSigRlForMsg0_255.data());
+  EXPECT_EQ(kEpidSigValid,
+            Epid11NrVerify(verifier, &epid_signature->sigma0,
+                           this->kData_0_255.data(), this->kData_0_255.size(),
                            &sig_rl->bk[0], &epid_signature->sigma[0]));
 }
 

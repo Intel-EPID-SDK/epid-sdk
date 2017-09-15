@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@
  *
  */
 
+#include <dropt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dropt.h>
 
+#include "epid/common/file_parser.h"
+#include "epid/member/api.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-#include "epid/common/file_parser.h"
-#include "epid/member/api.h"
 
 const OctStr16 kEpidFileVersion = {2, 0};
 
@@ -41,8 +41,8 @@ const OctStr16 kEpidFileVersion = {2, 0};
 
 /// Partial signature request, includes all but message.
 typedef struct PrivRlRequestTop {
-  EpidFileHeader header;  ///< EPID File Header
-  PrivKey privkey;        ///< EPID Private Key
+  EpidFileHeader header;  ///< Intel(R) EPID File Header
+  PrivKey privkey;        ///< Intel(R) EPID Private Key
 } PrivRlRequestTop;
 
 int OpenKey(char const* privkey_file, char const* gpubkey_file,
@@ -214,7 +214,7 @@ int MakeRequest(PrivKey const* priv_key, char const* req_file, bool verbose) {
       log_msg("");
       log_msg(" [in]  Request Len: %d", sizeof(PrivRlRequestTop));
       log_msg(" [in]  Request: ");
-      PrintBuffer(&req_top, sizeof(PrivRlRequestTop));
+      PrintBuffer(req_top, sizeof(PrivRlRequestTop));
       log_msg("==============================================");
     }
 

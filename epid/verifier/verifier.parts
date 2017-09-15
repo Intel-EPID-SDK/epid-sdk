@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,6 +88,9 @@ else:
     ])
 
     env.Append(CPPPATH='#')
+
+    if 'use_tss' in env['MODE']:
+        env.Append(CPPDEFINES=['TPM_TSS'])
 
     testenv = env.Clone()
     outputs = env.Library('${PART_NAME}', src_files + epid11_src_files)

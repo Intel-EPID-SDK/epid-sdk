@@ -55,9 +55,6 @@ typedef struct OctStr256 IssuerNonce;
 
   \returns ::EpidStatus
 
-  \see TpmJoinCommit
-  \see TpmJoin
-
  */
 EpidStatus HashJoinCommitment(FiniteField* Fp, HashAlg hash_alg,
                               GroupPubKey const* pub_key,

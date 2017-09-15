@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 #define EPID_VERIFIER_1_1_API_H_
 
 #include <stddef.h>
-#include "epid/common/stdtypes.h"
 #include "epid/common/1.1/types.h"
 #include "epid/common/errors.h"
+#include "epid/common/stdtypes.h"
 #include "epid/verifier/api.h"
 
 /*!
@@ -29,7 +29,7 @@
 
 /// Intel(R) EPID 1.1 Verifier functionality
 /*!
-  \defgroup Epid11VerifierModule EPID 1.1 support
+  \defgroup Epid11VerifierModule Intel(R) EPID 1.1 support
 
   To verify signatures coming from member devices that belong to an
   Intel&reg; EPID 1.1 group, you need to use Intel&reg; EPID 1.1
@@ -74,7 +74,7 @@ typedef struct Epid11VerifierCtx Epid11VerifierCtx;
  This API supports Intel(R) EPID 1.1 verification.
 
  \note e12 = 0 implies that this data is not valid
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 #pragma pack(1)
@@ -110,7 +110,7 @@ typedef struct Epid11VerifierPrecomp {
 
  \see Epid11VerifierDelete
  \see Epid11VerifierWritePrecomp
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11VerifierCreate(Epid11GroupPubKey const* pub_key,
@@ -129,7 +129,7 @@ EpidStatus Epid11VerifierCreate(Epid11GroupPubKey const* pub_key,
  The verifier context. Can be NULL.
 
  \see Epid11VerifierCreate
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 void Epid11VerifierDelete(Epid11VerifierCtx** ctx);
@@ -147,7 +147,7 @@ void Epid11VerifierDelete(Epid11VerifierCtx** ctx);
  \note
  If the result is not ::kEpidNoErr the content of precomp is undefined.
 
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11VerifierWritePrecomp(Epid11VerifierCtx const* ctx,
@@ -186,7 +186,7 @@ EpidStatus Epid11VerifierWritePrecomp(Epid11VerifierCtx const* ctx,
  pointed to by the verifier is undefined.
 
  \see Epid11VerifierCreate
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11VerifierSetPrivRl(Epid11VerifierCtx* ctx,
@@ -227,7 +227,7 @@ EpidStatus Epid11VerifierSetPrivRl(Epid11VerifierCtx* ctx,
 
  \see Epid11VerifierCreate
  \see SdkOverview_11Verifier \see <a
- href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
  support</b></a>
  */
 EpidStatus Epid11VerifierSetSigRl(Epid11VerifierCtx* ctx,
@@ -267,7 +267,7 @@ EpidStatus Epid11VerifierSetSigRl(Epid11VerifierCtx* ctx,
  to by the verifier is undefined.
 
  \see Epid11VerifierCreate
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11VerifierSetGroupRl(Epid11VerifierCtx* ctx,
@@ -329,7 +329,7 @@ EpidStatus Epid11VerifierSetBasename(Epid11VerifierCtx* ctx,
  verify should de considered to have failed.
 
  \see Epid11VerifierCreate
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11Verify(Epid11VerifierCtx const* ctx,
@@ -364,7 +364,7 @@ EpidStatus Epid11Verify(Epid11VerifierCtx const* ctx,
  verified.
 
  \see Epid11VerifyBasicSig
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 bool Epid11AreSigsLinked(Epid11BasicSignature const* sig1,
@@ -396,7 +396,7 @@ bool Epid11AreSigsLinked(Epid11BasicSignature const* sig1,
  failed.
 
  \see Epid11VerifierCreate
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11VerifyBasicSig(Epid11VerifierCtx const* ctx,
@@ -442,7 +442,7 @@ EpidStatus Epid11VerifyBasicSig(Epid11VerifierCtx const* ctx,
  \see Epid11VerifierCreate
  \see Epid11VerifyBasicSig
  \see Epid11CheckPrivRlEntry
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11NrVerify(Epid11VerifierCtx const* ctx,
@@ -482,7 +482,7 @@ EpidStatus Epid11NrVerify(Epid11VerifierCtx const* ctx,
  \see Epid11VerifierCreate
  \see Epid11NrVerify
  \see Epid11VerifyBasicSig
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
  */
 EpidStatus Epid11CheckPrivRlEntry(Epid11VerifierCtx const* ctx,

@@ -19,10 +19,10 @@
  * \brief EcdsaSignBuffer implementation.
  */
 
-#include "epid/common/math/ecdsa.h"
 #include "epid/common/math/bignum.h"
-#include "epid/common/math/src/bignum-internal.h"
+#include "epid/common/math/ecdsa.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/src/memory.h"
 #include "ext/ipp/include/ippcp.h"
 

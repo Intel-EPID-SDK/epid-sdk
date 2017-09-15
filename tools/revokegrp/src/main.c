@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
  *
  */
 
+#include <dropt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dropt.h>
+#include "epid/common/file_parser.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-#include "epid/common/file_parser.h"
 
 const OctStr16 kEpidFileVersion = {2, 0};
 
@@ -43,12 +43,12 @@ const OctStr16 kEpidFileVersion = {2, 0};
 #pragma pack(1)
 /// Group revocation request entry
 typedef struct GrpInfo {
-  GroupId gid;     ///< EPID Group ID
+  GroupId gid;     ///< Intel(R) EPID Group ID
   uint8_t reason;  ///< Revocation reason
 } GrpInfo;
 /// Group Revocation request
 typedef struct GrpRlRequest {
-  EpidFileHeader header;  ///< EPID File Header
+  EpidFileHeader header;  ///< Intel(R) EPID File Header
   uint32_t count;         ///< Revoked count (big endian)
   GrpInfo groups[1];      ///< Revoked group count (flexible array)
 } GrpRlRequest;
@@ -317,7 +317,7 @@ int MakeRequest(char const* cacert_file, char const* pubkey_file,
         break;
       }
 
-      // Check EPID and file versions
+      // Check Intel(R) EPID and file versions
       if (0 != memcmp(&request->header.epid_version, &kEpidFileVersion,
                       sizeof(kEpidFileVersion))) {
         ret_value = EXIT_FAILURE;
@@ -332,7 +332,14 @@ int MakeRequest(char const* cacert_file, char const* pubkey_file,
       }
 
       grp_count = ntohl(request->count);
-
+      // check if revoked count matches the number of group revocation request
+      // entries contained in the file
+      if (grp_count * sizeof(GrpInfo) !=
+          req_file_size - sizeof(EpidFileHeader) - sizeof(uint32_t)) {
+        log_error("Incorrect revoked request count in existing file");
+        ret_value = EXIT_FAILURE;
+        break;
+      }
       // Update the reason if the group is in the request
       for (grp_index = 0; grp_index < grp_count; grp_index++) {
         if (0 == memcmp(&request->groups[grp_index].gid, &pubkey.gid,

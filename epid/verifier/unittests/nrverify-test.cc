@@ -26,9 +26,9 @@ extern "C" {
 #include "epid/verifier/api.h"
 }
 
-#include "epid/verifier/unittests/verifier-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
 #include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
+#include "epid/verifier/unittests/verifier-testhelper.h"
 
 namespace {
 
@@ -274,6 +274,19 @@ TEST_F(EpidVerifierTest, NrVerifyAcceptsSigWithRandomBaseNameSha512256) {
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kMsg0.data(),
                          this->kMsg0.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0]));
+}
+
+TEST_F(EpidVerifierTest, NrVerifyAcceptsMsgContainingAllPossibleBytes) {
+  VerifierCtxObj verifier(this->kPubKeySigRlVerify);
+  EpidSignature const* epid_signature =
+      (EpidSignature*)kSigGrp01Member0Sha512kBsn0Data_0_255.data();
+  SigRl const* sig_rl =
+      reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
+  EXPECT_EQ(kEpidSigValid,
+            EpidNrVerify(verifier, &epid_signature->sigma0,
+                         this->kData_0_255.data(), this->kData_0_255.size(),
+                         &sig_rl->bk[0], &epid_signature->sigma[0]));
 }
 
 }  // namespace

@@ -21,7 +21,7 @@ COMMON_SRC +=  $(wildcard ./1.1/src/*.c)
 COMMON_OBJ = $(COMMON_SRC:.c=.o)
 COMMON_LIB = ./libcommon.a
 
-COMMON_UTEST_EXE = ./common-utest
+COMMON_UTEST_EXE = ./common-utest$(EXE_EXTENSION)
 COMMON_UTEST_SRC = $(wildcard ./math/unittests/*.cc)
 COMMON_UTEST_SRC += $(wildcard ./unittests/*.cc)
 COMMON_UTEST_SRC += $(wildcard ./1.1/unittests/*.cc)

@@ -19,6 +19,7 @@
  * \brief Sign unit tests.
  */
 #include <vector>
+
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
@@ -30,8 +31,8 @@ extern "C" {
 
 #include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/unittests/member-testhelper.h"
 #include "epid/common-testhelper/verifier_wrapper-testhelper.h"
+#include "epid/member/unittests/member-testhelper.h"
 namespace {
 
 /// Count of elements in array
@@ -219,8 +220,6 @@ TEST_F(EpidMemberTest, SignsMessageUsingRandomBaseNoSigRl) {
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
-  auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
@@ -364,6 +363,71 @@ TEST_F(EpidMemberTest,
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
 }
+#ifndef TPM_TSS
+TEST_F(EpidMemberTest, SignsMessageUsingHugeBasenameNoSigRl) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGrpXKey, this->kGrpXMember0PrivKey,
+                      &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> bsn(1024 * 1024);  // exactly 1 MB
+  uint8_t c = 0;
+  for (size_t i = 0; i < bsn.size(); ++i) {
+    bsn[i] = c++;
+  }
+  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  EXPECT_EQ(kEpidNoErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
+                                 bsn.size(), sig, sig_len));
+  // verify basic signature
+  VerifierCtxObj ctx(this->kGrpXKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+TEST_F(EpidMemberTest, SignsMessageUsingHugeBasenameWithSigRl) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGrpXKey, this->kGrpXMember0PrivKey,
+                      &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> bsn(1024 * 1024);  // exactly 1 MB
+  uint8_t c = 0;
+  for (size_t i = 0; i < bsn.size(); ++i) {
+    bsn[i] = c++;
+  }
+  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  SigRl const* srl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
+  size_t srl_size = this->kGrpXSigRl.size() * sizeof(this->kGrpXSigRl[0]);
+  std::vector<uint8_t> sig_data(EpidGetSigSize(srl));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidMemberSetSigRl(member, srl, srl_size));
+  EXPECT_EQ(kEpidNoErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
+                                 bsn.size(), sig, sig_len));
+  VerifierCtxObj ctx(this->kGrpXKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidVerifierSetSigRl(ctx, srl, srl_size));
+}
+
+TEST_F(EpidMemberTest, SignsMsgUsingBsnContainingAllPossibleBytesNoSigRl) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kData_0_255;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidNoErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
+                                 bsn.size(), sig, sig_len));
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(ctx, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+#endif
 
 /////////////////////////////////////////////////////////////////////////
 // Variable sigRL
@@ -631,18 +695,61 @@ TEST_F(EpidMemberTest, SignMessageReportsIfMemberRevokedUsingIKGFData) {
   EXPECT_EQ(kEpidSigRevokedInSigRl,
             EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
 }
+
+/////////////////////////////////////////////////////////////////////////
+// Revoked member by sigRL for TPM case
+
+TEST_F(EpidMemberTest,
+       PROTECTED_SignMessageByCedentialReportsIfMemberRevoked_EPS0) {
+  // note: a complete sig + nr proof should still be returned!!
+  auto& pub_key = this->kEps0GroupPublicKey;
+  auto credential = *(MembershipCredential const*)&this->kEps0MemberPrivateKey;
+  const std::vector<uint8_t> msg = {'t', 'e', 's', 't', '2'};
+  Prng my_prng;
+  MemberCtxObj member(pub_key, credential, &Prng::Generate, &my_prng);
+  const std::vector<uint8_t> kEps0SigRlMember0Sha256Rndbase0Msg0FirstEntry = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x39, 0x97, 0x09, 0x11, 0x30, 0xb0, 0x2a, 0x29, 0xa7, 0x9b, 0xf1, 0xef,
+      0xe9, 0xe5, 0xc7, 0x03, 0x17, 0xe6, 0x4f, 0x6f, 0x49, 0x4d, 0xeb, 0x0f,
+      0xfd, 0x1c, 0x3f, 0xce, 0xcc, 0xc8, 0x40, 0x6b, 0x23, 0xd3, 0xec, 0x78,
+      0x78, 0x15, 0x4a, 0x34, 0x0f, 0xd1, 0xd3, 0xfa, 0xd2, 0xb2, 0x5a, 0xc9,
+      0xec, 0xa2, 0x41, 0xe1, 0x46, 0x6d, 0xed, 0xb3, 0x4a, 0xa6, 0xdf, 0xb6,
+      0xc2, 0x11, 0x49, 0x0d, 0x8b, 0xc4, 0xdc, 0xe0, 0x3f, 0x86, 0x59, 0xb6,
+      0x47, 0x0e, 0x72, 0xd9, 0x04, 0x91, 0x06, 0x8d, 0xe7, 0xb0, 0x4e, 0x40,
+      0x4a, 0x72, 0xe2, 0x99, 0xcc, 0xf2, 0x93, 0x1f, 0xcb, 0x32, 0x2e, 0xa3,
+      0x62, 0xf5, 0x35, 0x51, 0x8b, 0x8e, 0xc8, 0xf4, 0x1e, 0xbe, 0xc9, 0xf4,
+      0xa9, 0xc4, 0x63, 0xd3, 0x86, 0x5d, 0xf6, 0x44, 0x36, 0x5c, 0x44, 0x11,
+      0xb4, 0xa3, 0x85, 0xd5, 0x9e, 0xaf, 0x56, 0x83};
+  auto srl = reinterpret_cast<SigRl const*>(
+      kEps0SigRlMember0Sha256Rndbase0Msg0FirstEntry.data());
+  size_t srl_size = kEps0SigRlMember0Sha256Rndbase0Msg0FirstEntry.size();
+
+  std::vector<uint8_t> sig_data(EpidGetSigSize(srl));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidMemberSetSigRl(member, srl, srl_size));
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+
+  VerifierCtxObj ctx(pub_key);
+  THROW_ON_EPIDERR(EpidVerifierSetSigRl(ctx, srl, srl_size));
+
+  EXPECT_EQ(kEpidSigRevokedInSigRl,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+
 /////////////////////////////////////////////////////////////////////////
 // Variable hash alg
 
 TEST_F(EpidMemberTest, SignsMessageUsingSha256HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey, kSha256,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha256));
   EXPECT_EQ(kEpidNoErr,
             EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
   // verify signature
@@ -654,13 +761,12 @@ TEST_F(EpidMemberTest, SignsMessageUsingSha256HashAlg) {
 
 TEST_F(EpidMemberTest, SignsMessageUsingSha384HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey, kSha384,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha384));
   EXPECT_EQ(kEpidNoErr,
             EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
   // verify signature
@@ -672,13 +778,12 @@ TEST_F(EpidMemberTest, SignsMessageUsingSha384HashAlg) {
 
 TEST_F(EpidMemberTest, SignsMessageUsingSha512HashAlg) {
   Prng my_prng;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey, kSha512,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   EXPECT_EQ(kEpidNoErr,
             EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
   // verify signature
@@ -691,17 +796,82 @@ TEST_F(EpidMemberTest, SignsMessageUsingSha512HashAlg) {
 TEST_F(EpidMemberTest, SignsMessageUsingSha512256HashAlg) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
-                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+                      kSha512_256, this->kMemberPrecomp, &Prng::Generate,
+                      &my_prng);
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512_256));
   EXPECT_EQ(kEpidNoErr,
             EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
   // verify signature
   VerifierCtxObj ctx(this->kGroupPublicKey);
   THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512_256));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+
+/////////////////////////////////////////////////////////////////////////
+// Variable hash alg for TPM data
+
+TEST_F(EpidMemberTest,
+       PROTECTED_SignsMessageByCredentialUsingSha256HashAlg_EPS0) {
+  Prng my_prng;
+  MemberCtxObj member(
+      this->kEps0GroupPublicKey,
+      *(MembershipCredential const*)&this->kEps0MemberPrivateKey,
+      &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+  // verify signature
+  VerifierCtxObj ctx(this->kEps0GroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha256));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+
+TEST_F(EpidMemberTest,
+       DISABLED_PROTECTED_SignsMessageByCredentialUsingSha384HashAlg_EPS0) {
+  Prng my_prng;
+  MemberCtxObj member(
+      this->kEps0GroupPublicKey,
+      *(MembershipCredential const*)&this->kEps0MemberPrivateKey,
+      &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha384));
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+  // verify signature
+  VerifierCtxObj ctx(this->kEps0GroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha384));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
+
+TEST_F(EpidMemberTest,
+       DISABLED_PROTECTED_SignsMessageByCredentialUsingSha512HashAlg_EPS0) {
+  Prng my_prng;
+  MemberCtxObj member(
+      this->kEps0GroupPublicKey,
+      *(MembershipCredential const*)&this->kEps0MemberPrivateKey,
+      &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+  // verify signature
+  VerifierCtxObj ctx(this->kEps0GroupPublicKey);
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha512));
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
 }
@@ -960,6 +1130,21 @@ TEST_F(EpidMemberTest, SignsLongMessageWithSigRl) {
   EXPECT_EQ(kEpidSigValid,
             EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()))
       << "EpidVerify for message_len: " << 1000000 << " failed";
+}
+
+TEST_F(EpidMemberTest, SignsMsgContainingAllPossibleBytesNoSigRl) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  std::vector<uint8_t> msg = this->kData_0_255;
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
 }
 
 }  // namespace

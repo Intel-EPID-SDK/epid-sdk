@@ -20,9 +20,9 @@
 */
 
 #include <string.h>
+#include "epid/common/src/endian_convert.h"
 #include "epid/verifier/1.1/api.h"
 #include "epid/verifier/1.1/src/context.h"
-#include "epid/common/src/endian_convert.h"
 
 static size_t Epid11GetSignatureRlCount(Epid11Signature const* sig) {
   return (!sig) ? 0 : ntohl(sig->n2);

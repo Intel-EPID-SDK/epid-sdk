@@ -18,14 +18,14 @@
  * \file
  * \brief Verifier context implementation.
  */
-#include <string.h>
-#include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
+#include <string.h>
 #include "epid/common/math/pairing.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/common/src/epid2params.h"
+#include "epid/common/src/memory.h"
 #include "epid/common/src/sigrlvalid.h"
+#include "epid/verifier/api.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -127,8 +127,11 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
       break;
     }
 
-    // set SHA512 as the default hash algorithm
+    // set the default hash algorithm
     verifier_ctx->hash_alg = kSha512;
+#ifdef TPM_TSS  // if build for TSS, make Sha256 default
+    verifier_ctx->hash_alg = kSha256;
+#endif
 
     // Internal representation of Epid2Params
     result = CreateEpid2Params(&verifier_ctx->epid2_params);
@@ -481,9 +484,9 @@ EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
         result = kEpidBadArgErr;
         break;
       }
-      ver_rl =
-          SAFE_REALLOC(ctx->verifier_rl, EpidGetVerifierRlSize(ctx) +
-                                             sizeof(((VerifierRl*)0)->K[0]));
+      ver_rl = SAFE_REALLOC(
+          ctx->verifier_rl,
+          EpidGetVerifierRlSize(ctx) + sizeof(((VerifierRl*)0)->K[0]));
       if (!ver_rl) {
         result = kEpidMemAllocErr;
         break;
@@ -555,7 +558,8 @@ EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
       break;
     }
 
-    result = EcHash(G1, basename, basename_len, ctx->hash_alg, basename_hash);
+    result =
+        EcHash(G1, basename, basename_len, ctx->hash_alg, basename_hash, NULL);
     if (kEpidNoErr != result) {
       break;
     }

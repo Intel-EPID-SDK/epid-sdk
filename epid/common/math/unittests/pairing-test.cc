@@ -24,12 +24,12 @@
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
-#include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
 #include "epid/common-testhelper/ecgroup_wrapper-testhelper.h"
 #include "epid/common-testhelper/ecpoint_wrapper-testhelper.h"
+#include "epid/common-testhelper/epid_params-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
+#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/common/math/pairing.h"

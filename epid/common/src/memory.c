@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 
 #include "epid/common/src/memory.h"
 
-#include <string.h>
 #include <stdint.h>
+#include <string.h>
 
 /// Maximum size of the destination buffer
 #ifndef RSIZE_MAX

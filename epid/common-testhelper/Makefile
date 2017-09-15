@@ -12,7 +12,7 @@ COMMON_TESTHELPER_UTEST_SRC = $(wildcard ./unittests/*.cc)
 COMMON_TESTHELPER_OBJ = $(COMMON_TESTHELPER_SRC:.cc=.o)
 COMMON_TESTHELPER_UTEST_OBJ = $(COMMON_TESTHELPER_UTEST_SRC:.cc=.o)
 COMMON_TESTHELPER_LIB = ./libcommon-testhelper.a
-COMMON_TESTHELPER_UTEST_EXE = ./unittests/common-testhelper-utest
+COMMON_TESTHELPER_UTEST_EXE = ./unittests/common-testhelper-utest$(EXE_EXTENSION)
 
 LIB_COMMON_TESTHELPER_DIR = .
 LIB_COMMON_DIR = ../common

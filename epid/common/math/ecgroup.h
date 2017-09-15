@@ -22,10 +22,10 @@
 #ifndef EPID_COMMON_MATH_ECGROUP_H_
 #define EPID_COMMON_MATH_ECGROUP_H_
 
-#include "epid/common/stdtypes.h"
 #include "epid/common/errors.h"
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/finitefield.h"
+#include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
 
 /// Elliptic curve group operations
@@ -396,6 +396,8 @@ EpidStatus Epid11EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len,
  The hash algorithm.
  \param[out] r
  The hashed value.
+ \param[out] iterations
+ The number of hash iterations needed to find a valid hash. Can be NULL.
 
  \returns ::EpidStatus
 
@@ -403,7 +405,7 @@ EpidStatus Epid11EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len,
  \see NewEcPoint
 */
 EpidStatus EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len, HashAlg hash_alg,
-                  EcPoint* r);
+                  EcPoint* r, uint32_t* iterations);
 
 /// Sets an EcPoint variable to a point on a curve.
 /*!

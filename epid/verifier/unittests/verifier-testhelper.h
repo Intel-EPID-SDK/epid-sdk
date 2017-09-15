@@ -73,6 +73,10 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kBasename;
   /// the basename "basename1"
   static const std::vector<uint8_t> kBasename1;
+  /// a data with bytes [0,255]
+  static const std::vector<uint8_t> kData_0_255;
+  /// Signature of kData_0_255 with kBsn0 by Grp01 Member0 using Sha512
+  static const std::vector<uint8_t> kSigGrp01Member0Sha512kBsn0Data_0_255;
   /// Signature of Test0 with RandomBase by Grp01 Member0 using Sha256
   static const std::vector<uint8_t> kSigGrp01Member0Sha256RandombaseTest0;
   /// Signature of Test with RandomBase, Member0 using Sha256 from Ikgf
@@ -224,6 +228,8 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kSigGrpXMember0Sha384RandbaseMsg0;
   /// signature of msg0 by member0 of groupX with Sha512 bsn0
   static const std::vector<uint8_t> kSigGrpXMember0Sha512Bsn0Msg0;
+  /// signature of msg0 by member0 of groupX with Sha512 huge bsn
+  static const std::vector<uint8_t> kSigGrpXMember0Sha512HugeBsnMsg0;
   /// signature of msg0 by member0 of groupX with Sha512 rnd base
   static const std::vector<uint8_t> kSigGrpXMember0Sha512RandbaseMsg0;
   /// signature of msg0 by member0 of groupX with Sha512256 bsn0

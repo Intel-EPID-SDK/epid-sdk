@@ -23,13 +23,13 @@
 #include "gtest/gtest.h"
 
 extern "C" {
-#include "epid/verifier/1.1/api.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/verifier/1.1/api.h"
 }
 
-#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 #include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
 #include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 
 namespace {
 
@@ -46,6 +46,20 @@ TEST_F(Epid11VerifierTest, VerifyFailsGivenNullParameters) {
   EXPECT_EQ(kEpidBadArgErr,
             Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
                          sig.size(), nullptr, msg.size()));
+}
+
+TEST_F(Epid11VerifierTest, VerifyFailsGivenTooShortSigLen) {
+  Epid11VerifierCtxObj verifier(this->kPubKeyStr);
+  auto sig = this->kSigGrpXMember0Sha256RandbaseMsg0;
+  auto msg = this->kMsg0;
+
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11Verify(verifier, (Epid11Signature const*)sig.data(), 0,
+                         msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadArgErr,
+            Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
+                         sizeof(Epid11Signature) - sizeof(Epid11NrProof) - 1,
+                         msg.data(), msg.size()));
 }
 
 TEST_F(Epid11VerifierTest, VerifyFailsGivenSigLenTooShortForRlCount) {
@@ -729,6 +743,27 @@ TEST_F(Epid11VerifierTest, VerifyAcceptsSigWithRandomBaseNameAllRl) {
       verifier, (Epid11PrivRl const*)priv_rl.data(), priv_rl.size()));
   THROW_ON_EPIDERR(Epid11VerifierSetSigRl(
       verifier, (Epid11SigRl const*)sig_rl.data(), sig_rl.size()));
+  EXPECT_EQ(kEpidSigValid,
+            Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
+                         sig.size(), msg.data(), msg.size()));
+}
+
+TEST_F(Epid11VerifierTest, VerifyAcceptsSigGivenMsgContainingAllPossibleBytes) {
+  auto& pub_key = this->kPubKeyStrForMsg0_255;
+  auto& msg = this->kData_0_255;
+  auto& grp_rl = this->kGroupRlEmptyBuf;
+  auto& priv_rl = this->kGrpXPrivRl;
+  auto& sig = this->kSigGrp01Member0Sha256kBsn0Data_0_255;
+
+  Epid11VerifierCtxObj verifier(pub_key);
+  THROW_ON_EPIDERR(Epid11VerifierSetGroupRl(
+      verifier, (Epid11GroupRl const*)grp_rl.data(), grp_rl.size()));
+  THROW_ON_EPIDERR(Epid11VerifierSetPrivRl(
+      verifier, (Epid11PrivRl const*)priv_rl.data(), priv_rl.size()));
+  THROW_ON_EPIDERR(Epid11VerifierSetSigRl(
+      verifier, (Epid11SigRl const*)this->kSigRlForMsg0_255.data(),
+      this->kSigRlForMsg0_255.size()));
+
   EXPECT_EQ(kEpidSigValid,
             Epid11Verify(verifier, (Epid11Signature const*)sig.data(),
                          sig.size(), msg.data(), msg.size()));

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@
 
 /// Intel(R) EPID 1.1 specific data types.
 /*!
-\defgroup Epid11Types EPID 1.1 specific types
+\defgroup Epid11Types Intel(R) EPID 1.1 specific types
 Defines serialized data types used by the SDK. These data types
 are only used by components that need to do Intel(R) EPID 1.1
 verification.
 
 \ingroup EpidTypes
-\see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+\see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
 support</b></a>
 @{
 */

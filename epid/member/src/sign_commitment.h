@@ -22,10 +22,22 @@
 #include "epid/common/errors.h"
 #include "epid/common/types.h"  // HashAlg
 
+#pragma pack(1)
+/// Result of Sign Commit
+typedef struct SignCommitOutput {
+  G1ElemStr B;   ///< B value for signature
+  G1ElemStr K;   ///< K value for signature
+  G1ElemStr T;   ///< T value for signature
+  G1ElemStr R1;  ///< Serialized G1 element
+  GtElemStr R2;  ///< Serialized GT element
+} SignCommitOutput;
+#pragma pack()
+
+typedef struct SignCommitOutput SignCommitOutput;
+
 /// \cond
 typedef struct FiniteField FiniteField;
 typedef struct FpElemStr FpElemStr;
-typedef struct SignCommitOutput SignCommitOutput;
 /// \endcond
 
 /// Calculates commitment hash of sign commit
@@ -50,9 +62,6 @@ typedef struct SignCommitOutput SignCommitOutput;
   The resulting commitment hash.
 
   \returns ::EpidStatus
-
-  \see TpmSignCommit
-  \see TpmSign
 
  */
 EpidStatus HashSignCommitment(FiniteField* Fp, HashAlg hash_alg,

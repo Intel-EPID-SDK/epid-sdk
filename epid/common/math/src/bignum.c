@@ -139,43 +139,6 @@ EpidStatus ReadBigNum(ConstOctStr bn_str, size_t strlen, BigNum* bn) {
   return kEpidNoErr;
 }
 
-/// Initializes a BigNum from a BNU.
-/*!
-  \param[in] bnu
-  The desired value as a bnu.
-  \param[in] bnu_len
-  The size of bnu_str in 32 bit words.
-  \param[out] bn
-  The target BigNum.
-
-  \returns ::EpidStatus
-
-  \note A BNU is a big integer represented as array of 4 byte words written in
-  little endian order
-
-  \note This is re-documented here because doxygen does not pull in the
-  internal headers
-*/
-EpidStatus InitBigNumFromBnu(ConstBNU bnu, size_t bnu_len, struct BigNum* bn) {
-  IppStatus sts;
-  if (!bn || !bnu) return kEpidBadArgErr;
-
-  if (!bn->ipp_bn) return kEpidBadArgErr;
-
-  if (INT_MAX < bnu_len || bnu_len <= 0) return kEpidBadArgErr;
-
-  sts = ippsSet_BN(IppsBigNumPOS, (int)bnu_len, bnu, bn->ipp_bn);
-  if (sts != ippStsNoErr) {
-    if (ippStsContextMatchErr == sts || ippStsSizeErr == sts ||
-        ippStsLengthErr == sts || ippStsOutOfRangeErr == sts)
-      return kEpidBadArgErr;
-    else
-      return kEpidMathErr;
-  }
-
-  return kEpidNoErr;
-}
-
 EpidStatus WriteBigNum(BigNum const* bn, size_t strlen, OctStr bn_str) {
   IppStatus sts;
   int ipp_strlen = (int)strlen;

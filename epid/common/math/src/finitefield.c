@@ -19,10 +19,10 @@
  * \brief Finite field implementation.
  */
 
-#include <limits.h>
-#include <string.h>
-#include <stdint.h>
 #include "epid/common/math/finitefield.h"
+#include <limits.h>
+#include <stdint.h>
+#include <string.h>
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/src/memory.h"
 

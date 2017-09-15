@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
  * \addtogroup EpidCommon
  * @{
  */
-#include "epid/common/errors.h"
 #include "epid/common/1.1/types.h"
+#include "epid/common/errors.h"
 #include "epid/common/math/ecgroup.h"
 #include "epid/common/math/finitefield.h"
 #include "epid/common/math/hash.h"

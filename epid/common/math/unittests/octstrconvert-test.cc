@@ -22,8 +22,8 @@
  * math libraries. These tests can be omitted if you do not use this function.
  */
 
-#include "epid/common/stdtypes.h"
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "epid/common/stdtypes.h"
 #include "gtest/gtest.h"
 
 extern "C" {

@@ -13,12 +13,8 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief EpidSign implementation.
- */
-
+/// EpidSign implementation.
+/*! \file */
 #include <epid/member/api.h>
 
 #include <string.h>
@@ -26,6 +22,8 @@
 #include "epid/common/src/memory.h"
 #include "epid/common/src/sigrlvalid.h"
 #include "epid/member/src/context.h"
+#include "epid/member/src/nrprove.h"
+#include "epid/member/src/signbasic.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -39,6 +37,7 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
   EpidStatus sts = kEpidErr;
   uint32_t num_sig_rl = 0;
   OctStr32 octstr32_0 = {{0x00, 0x00, 0x00, 0x00}};
+  BigNumStr rnd_bsn = {0};
   if (!ctx || !sig) {
     return kEpidBadArgErr;
   }
@@ -55,7 +54,8 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
   }
 
   // 11. The member sets sigma0 = (B, K, T, c, sx, sf, sa, sb).
-  sts = EpidSignBasic(ctx, msg, msg_len, basename, basename_len, &sig->sigma0);
+  sts = EpidSignBasic(ctx, msg, msg_len, basename, basename_len, &sig->sigma0,
+                      &rnd_bsn);
   if (kEpidNoErr != sts) {
     return sts;
   }
@@ -84,8 +84,13 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
     //      will be given in the next subsection.
     num_sig_rl = ntohl(ctx->sig_rl->n2);
     for (i = 0; i < num_sig_rl; i++) {
-      sts = EpidNrProve(ctx, msg, msg_len, &sig->sigma0, &ctx->sig_rl->bk[i],
-                        &sig->sigma[i]);
+      if (basename) {
+        sts = EpidNrProve(ctx, msg, msg_len, basename, basename_len,
+                          &sig->sigma0, &ctx->sig_rl->bk[i], &sig->sigma[i]);
+      } else {
+        sts = EpidNrProve(ctx, msg, msg_len, &rnd_bsn, sizeof(rnd_bsn),
+                          &sig->sigma0, &ctx->sig_rl->bk[i], &sig->sigma[i]);
+      }
       if (kEpidNoErr != sts) {
         nr_prove_status = sts;
       }

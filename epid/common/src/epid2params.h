@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 typedef struct Epid2Params_ {
   BigNum* p;      ///< a prime
   BigNum* q;      ///< a prime
+  FfElement* b;   ///< an integer between [0, q-1]
   BigNum* t;      ///< an integer
   bool neg;       ///< a boolean
   FfElement* xi;  ///< array of integers between [0, q-1]

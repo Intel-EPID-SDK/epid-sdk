@@ -19,18 +19,18 @@
  * \brief Verifysig example implementation.
  */
 
+#include <dropt.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dropt.h>
 
 #include "epid/common/file_parser.h"
-#include "epid/verifier/api.h"
 #include "epid/verifier/1.1/api.h"
+#include "epid/verifier/api.h"
+#include "src/verifysig.h"
+#include "src/verifysig11.h"
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
-#include "src/verifysig.h"
-#include "src/verifysig11.h"
 
 // Defaults
 #define PROGRAM_NAME "verifysig"
@@ -79,7 +79,7 @@ static dropt_error HandleHashalg(dropt_context* context,
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
-  // intermediate return value for EPID functions
+  // intermediate return value for Intel(R) EPID functions
   EpidStatus result = kEpidErr;
 
   // User Settings
@@ -306,9 +306,9 @@ int main(int argc, char* argv[]) {
           log_msg(" verrl_file : %s", verrl_file);
           log_msg(" vprecmpi_file : %s", vprecmpi_file);
           log_msg(" vprecmpo_file : %s", vprecmpo_file);
-          log_msg(" hashalg       : %s", (UNPARSED_HASHALG == hashalg)
-                                             ? "(default)"
-                                             : HashAlgToString(hashalg));
+          log_msg(" hashalg       : %s",
+                  (UNPARSED_HASHALG == hashalg) ? "(default)"
+                                                : HashAlgToString(hashalg));
           log_msg(" cacert_file_name   : %s", cacert_file_name);
           log_msg("");
         }
@@ -370,15 +370,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Security note:
-    // Application must confirm that IoT EPID Issuing CA certificate is
-    // authorized by IoT EPID Root CA, e.g., signed by IoT EPID Root CA.
+    // Application must confirm that IoT Issuing CA
+    // certificate is authorized by IoT Root CA,
+    // e.g., signed by IoT Root CA.
     if (!IsCaCertAuthorizedByRootCa(&cacert, sizeof(cacert))) {
       log_error("CA certificate is not authorized");
       ret_value = EXIT_FAILURE;
       break;
     }
 
-    // Detect EPID version
+    // Detect Intel(R) EPID version
     result = EpidParseFileHeader(signed_pubkey, signed_pubkey_size,
                                  &epid_version, NULL);
     if (kEpidNoErr != result || kNumEpidVersions <= epid_version) {
@@ -419,7 +420,8 @@ int main(int argc, char* argv[]) {
       log_msg("==============================================");
       log_msg("Verifying Message:");
       log_msg("");
-      log_msg(" [in]  EPID version: %s", EpidVersionToString(epid_version));
+      log_msg(" [in]  Intel(R) EPID version: %s",
+              EpidVersionToString(epid_version));
       log_msg("");
       log_msg(" [in]  Signature Len: %d", (int)sig_size);
       log_msg(" [in]  Signature: ");

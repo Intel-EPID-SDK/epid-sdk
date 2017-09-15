@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-/// Epid 1.1 issuer material parsing utilities.
+/// Intel(R) EPID 1.1 issuer material parsing utilities.
 /*!
  * \file
  */
@@ -28,13 +28,13 @@
 
 /// Parser for 1.1 issuer material
 /*!
- \defgroup Epid11FileParserModule EPID 1.1 support
+ \defgroup Epid11FileParserModule Intel(R) EPID 1.1 support
 
  Defines the APIs needed to parse Intel(R) EPID 1.1 issuer material.
 
  \ingroup FileParser
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
-support</b></a>
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R)
+ EPID 1.1 support</b></a>
   @{
 */
 
@@ -68,7 +68,8 @@ support</b></a>
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
-  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+  \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R)
+  EPID 1.1
  support</b></a>
 
  */
@@ -113,8 +114,8 @@ EpidStatus Epid11ParseGroupPubKeyFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
-  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
- support</b></a>
+  \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R)
+  EPID 1.1 support</b></a>
 
  */
 EpidStatus Epid11ParsePrivRlFile(void const* buf, size_t len,
@@ -159,8 +160,8 @@ EpidStatus Epid11ParsePrivRlFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
-  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
- support</b></a>
+  \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R)
+  EPID 1.1 support</b></a>
 
  */
 EpidStatus Epid11ParseSigRlFile(void const* buf, size_t len,
@@ -204,8 +205,8 @@ EpidStatus Epid11ParseSigRlFile(void const* buf, size_t len,
   \retval ::kEpidSigInvalid
   Parsing failed due to data authentication failure.
 
-  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
- support</b></a>
+  \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R)
+  EPID 1.1 support</b></a>
 
  */
 EpidStatus Epid11ParseGroupRlFile(void const* buf, size_t len,

@@ -18,12 +18,12 @@
 * \file
 * \brief Epid11NrVerify implementation.
 */
-#include "ext/ipp/include/ippcp.h"
+#include "epid/common/math/hash.h"
+#include "epid/common/src/endian_convert.h"
 #include "epid/common/src/memory.h"
 #include "epid/verifier/1.1/api.h"
 #include "epid/verifier/1.1/src/context.h"
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/math/hash.h"
+#include "ext/ipp/include/ippcp.h"
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
   if (kEpidNoErr != (ret)) {     \

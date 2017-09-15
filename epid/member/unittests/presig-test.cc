@@ -18,9 +18,9 @@
  * \file
  * \brief ComputePreSig unit tests.
  */
+#include <algorithm>
 #include <cstring>
 #include <limits>
-#include <algorithm>
 #include <vector>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
@@ -30,9 +30,9 @@ extern "C" {
 #include "epid/member/api.h"
 }
 
-#include "epid/member/unittests/member-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
 #include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/common-testhelper/prng-testhelper.h"
+#include "epid/member/unittests/member-testhelper.h"
 
 /// Count of elements in array
 #define COUNT_OF(A) (sizeof(A) / sizeof((A)[0]))

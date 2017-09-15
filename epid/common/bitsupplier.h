@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 
   You need to pass a pointer to your
   implementation of the random number generator into
-  methods that require it, such as ::EpidMemberCreate.
+  methods that require it.
 
   For an example of how a BitSupplier is created, see
   the `signmsg` example.
@@ -53,8 +53,6 @@
  \returns zero on success and non-zero value on error.
 
  \ingroup EpidCommon
-
- \see EpidMemberCreate
  */
 typedef int(__STDCALL* BitSupplier)(unsigned int* rand_data, int num_bits,
                                     void* user_data);

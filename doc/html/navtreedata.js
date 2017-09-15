@@ -13,17 +13,22 @@ var NAVTREE =
         [ "Members", "EpidOverview.html#EpidOverview_Members", null ],
         [ "Verifiers", "EpidOverview.html#EpidOverview_Verifiers", null ]
       ] ],
+      [ "Member and Verifier Interaction", "EpidOverview.html#EpidOverview_Entity_interaction", null ],
       [ "Groups", "EpidOverview.html#EpidOverview_Groups", null ],
       [ "Keys", "EpidOverview.html#EpidOverview_Keys", [
         [ "Group Public Key", "EpidOverview.html#EpidOverview_Group_public_key", null ],
         [ "Issuing Private Key", "EpidOverview.html#EpidOverview_Issuing_private_key", null ],
         [ "Member Private Key", "EpidOverview.html#EpidOverview_Member_private_key", null ]
-      ] ],
-      [ "Member and Verifier Interaction", "EpidOverview.html#EpidOverview_Entity_interaction", null ]
+      ] ]
     ] ],
     [ "What's Included in the SDK", "SdkOverview.html", [
       [ "SDK Components", "SdkOverview.html#SdkOverview_Components", null ],
-      [ "Filesystem Layout", "SdkOverview.html#SdkOverview_Files", [
+      [ "SDK Core", "SdkOverview.html#SdkOverview_Core", null ],
+      [ "Samples", "SdkOverview.html#SdkOverview_Samples", null ],
+      [ "Tools", "SdkOverview.html#SdkOverview_Tools", null ],
+      [ "Building and Validation", "SdkOverview.html#SdkOverview_BuildingAndValidation", null ],
+      [ "Intel® EPID 1.1 Compatibility", "SdkOverview.html#SdkOverview_Compatibility", null ],
+      [ "Folder Layout", "SdkOverview.html#SdkOverview_Files", [
         [ "Source Layout", "SdkOverview.html#SdkOverview_Files_SourceLayout", null ],
         [ "Install Layout", "SdkOverview.html#SdkOverview_Files_InstallLayout", null ]
       ] ]
@@ -58,27 +63,30 @@ var NAVTREE =
         [ "Detecting Revoked Member from Signature Based Revocation List", "SignVerifyTutorial.html#SignVerifyTutorial_SigRevocation", null ]
       ] ]
     ] ],
-    [ "Sample Issuer Material", "IssuerMaterial.html", [
-      [ "Sample Groups", "IssuerMaterial.html#IssuerMaterial_Groups", [
-        [ "Sample Group A", "IssuerMaterial.html#IssuerMaterial_Groups_groupa", null ],
-        [ "Sample Group B", "IssuerMaterial.html#IssuerMaterial_Groups_groupb", null ]
-      ] ],
-      [ "Group Based Revocation Lists", "IssuerMaterial.html#IssuerMaterial_GroupRls", null ],
-      [ "Compressed Sample Groups", "IssuerMaterial.html#IssuerMaterial_CmpGroups", [
-        [ "Compressed Sample Group A", "IssuerMaterial.html#IssuerMaterial_CmpGroups_groupa", null ],
-        [ "Compressed Sample Group B", "IssuerMaterial.html#IssuerMaterial_CmpGroups_groupb", null ]
-      ] ],
-      [ "Compressed Group Based Revocation Lists", "IssuerMaterial.html#IssuerMaterial_CmpGroupRls", null ]
+    [ "Preparing a Device", "Provisioning.html", [
+      [ "Bulk Provisioning", "Provisioning.html#Provisioning_BulkProvisioning", null ],
+      [ "Dynamic Provisioning", "Provisioning.html#Provisioning_JoinProvisioning", null ],
+      [ "Issuer Material", "Provisioning.html#SampleIssuerMaterial", [
+        [ "Issuer Material for Verifiers", "Provisioning.html#Provisioning_ValidatingVerifiers", null ],
+        [ "Issuer Material for Members", "Provisioning.html#Provisioning_ValidatingMembers", null ]
+      ] ]
     ] ],
-    [ "If You Choose iKGF as Your Issuer", "ChoosingiKGF.html", [
-      [ "Tools for Creating Revocation Requests", "ChoosingiKGF.html#RevocationTools", [
-        [ "Requesting Group Revocation", "ChoosingiKGF.html#RevocationTools_revokegrp", null ],
-        [ "Requesting Private Key Revocation", "ChoosingiKGF.html#RevocationTools_revokekey", null ],
-        [ "Requesting Signature Revocation", "ChoosingiKGF.html#RevocationTools_revokesig", null ]
+    [ "Test Data", "IssuerMaterial.html", [
+      [ "Sample Groups", "IssuerMaterial.html#IssuerMaterial_Groups", null ],
+      [ "Group Revocation Lists", "IssuerMaterial.html#IssuerMaterial_GroupRls", null ],
+      [ "Compressed Sample Groups", "IssuerMaterial.html#CompressedSamples", null ],
+      [ "Compressed Group Revocation Lists", "IssuerMaterial.html#IssuerMaterial_CmpGroupRls", null ]
+    ] ],
+    [ "Managing Groups with iKGF", "UsingiKGF.html", [
+      [ "Contacting iKGF", "UsingiKGF.html#ContactingiKGF", null ],
+      [ "Tools for Creating Revocation Requests", "UsingiKGF.html#RevocationTools", [
+        [ "Requesting Group Revocation", "UsingiKGF.html#RevocationTools_revokegrp", null ],
+        [ "Requesting Private Key Revocation", "UsingiKGF.html#RevocationTools_revokekey", null ],
+        [ "Requesting Signature Revocation", "UsingiKGF.html#RevocationTools_revokesig", null ]
       ] ],
-      [ "Tools for Extracting Keys from iKGF Files", "ChoosingiKGF.html#ExtractionTools", [
-        [ "Extracting Group Public Keys", "ChoosingiKGF.html#ExtractionTools_extractgrps", null ],
-        [ "Extracting Member Private Keys", "ChoosingiKGF.html#ExtractionTools_extractkeys", null ]
+      [ "Tools for Extracting Keys from iKGF Files", "UsingiKGF.html#ExtractionTools", [
+        [ "Extracting Group Public Keys", "UsingiKGF.html#ExtractionTools_extractgrps", null ],
+        [ "Extracting Member Private Keys", "UsingiKGF.html#ExtractionTools_extractkeys", null ]
       ] ]
     ] ],
     [ "In-Depth Explanation of Revocation", "Revocation.html", [
@@ -108,6 +116,20 @@ var NAVTREE =
       [ "Replacing Math Primitives", "ImplementationNotes.html#ImplementationNotes_MathPrimitives", null ],
       [ "Octstring/Buffer Types", "ImplementationNotes.html#ImplementationNotes_SerializedTypes", null ],
       [ "Flexible Arrays", "ImplementationNotes.html#ImplementationNotes_FlexibleArrays", null ]
+    ] ],
+    [ "Considerations for TPM", "TpmConsiderations.html", [
+      [ "Compatibility", "TpmConsiderations.html#TPM_compatibility", null ],
+      [ "Considerations for TPM Manufacturers", "TpmConsiderations.html#TpmConsiderations_Manufacturers", [
+        [ "Provisioning TPM with Intel® EPID Key Material", "TpmConsiderations.html#TPM_provisioning", null ],
+        [ "Mapping TPM Commands to Intel® EPID", "TpmConsiderations.html#TpmConsiderations_Mapping", null ]
+      ] ],
+      [ "Considerations for TPM Applications", "TpmConsiderations.html#TpmConsiderations_Applications", null ],
+      [ "SDK Member Architecture", "TpmConsiderations.html#TpmConsiderations_Architecture", null ],
+      [ "Building the SDK to Take Advantage of TPM", "TpmConsiderations.html#TpmConsiderations_Building", [
+        [ "Prerequisites to Build the SDK in TPM Mode", "TpmConsiderations.html#TpmConsiderations_Prereqs", null ],
+        [ "Building the SDK in TPM Mode", "TpmConsiderations.html#TpmConsiderations_BuildingTpmMode", null ],
+        [ "Intel® EPID Signing and Verification", "TpmConsiderations.html#TpmConsiderations_Signing", null ]
+      ] ]
     ] ],
     [ "Glossary", "Glossary.html", [
       [ "CA public key", "Glossary.html#Issuing_CA", null ],
@@ -145,8 +167,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Basenames.html",
-"group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea",
-"struct_group_rl.html"
+"group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d",
+"struct_fq3_elem_str.html#af1be0a4d5c9c674d75bec34f95e3c731"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

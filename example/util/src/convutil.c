@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@
  *
  */
 
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 #include "util/convutil.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "util/envutil.h"
 
 const char* hash_alg_to_string[] = {"SHA-256",     "SHA-384",  "SHA-512",
@@ -92,4 +92,17 @@ bool StringToEpidFileType(char const* str, EpidFileType* type) {
   }
   log_error("epid file type \"%s\" is unknown", str);
   return false;
+}
+
+void SetMemberParams(BitSupplier rnd_func, void* rnd_param, FpElemStr* f,
+                     MemberParams* params) {
+#ifdef TPM_TSS
+  (void)rnd_func;
+  (void)rnd_param;
+  params->f = f;
+#else
+  params->rnd_func = rnd_func;
+  params->rnd_param = rnd_param;
+  params->f = f;
+#endif
 }

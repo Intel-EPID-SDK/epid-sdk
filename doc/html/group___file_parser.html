@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -64,7 +64,7 @@ $(document).ready(function(){initNavTree('group___file_parser.html','');});
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
-<div class="title">fileparser<div class="ingroups"><a class="el" href="group___epid_module.html">epid</a> &raquo; <a class="el" href="group___epid_common.html">common</a></div></div>  </div>
+<div class="title">fileparser<div class="ingroups"><a class="el" href="group___epid_module.html">epid&amp;nbsp;</a> &raquo; <a class="el" href="group___epid_common.html">common</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -73,7 +73,7 @@ $(document).ready(function(){initNavTree('group___file_parser.html','');});
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
 Modules</h2></td></tr>
-<tr class="memitem:group___epid11_file_parser_module"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid11_file_parser_module.html">EPID 1.1 support</a></td></tr>
+<tr class="memitem:group___epid11_file_parser_module"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid11_file_parser_module.html">Intel(R) EPID 1.1 support</a></td></tr>
 <tr class="memdesc:group___epid11_file_parser_module"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parser for 1.1 issuer material. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -143,7 +143,7 @@ const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td clas
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Parser for issuer material. </p>
 <p>Provides an API for parsing buffers formatted according to the various IoT Intel(R) EPID binary file formats.</p>
-<p>To use this module, include the header <a class="el" href="file__parser_8h.html" title="Epid issuer material parsing utilities. ">epid/common/file_parser.h</a>. </p>
+<p>To use this module, include the header <a class="el" href="file__parser_8h.html" title="Intel(R) EPID issuer material parsing utilities. ">epid/common/file_parser.h</a>. </p>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a class="anchor" id="ga9a33be7edc6b4c7a867fb07bd2bddecb"></a>
 <div class="memitem">
@@ -207,7 +207,7 @@ const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td clas
 <p>Intel(R) EPID version 2.x. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga1562efc7c1891875d6b2b9180d65de9da8bbd27765997dd10f1c0378dbecef01d"></a>kNumEpidVersions&#160;</td><td class="fielddoc">
-<p>Maximum number of EPID versions. </p>
+<p>Maximum number of versions. </p>
 </td></tr>
 </table>
 
@@ -255,8 +255,8 @@ const <a class="el" href="struct_oct_str16.html">OctStr16</a>&#160;</td><td clas
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">buf</td><td>Pointer to buffer containing Intel(R) EPID Binary Output File to parse.</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>The size of buf in bytes.</td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">epid_version</td><td>The extracted EPID version or kNumEpidVersions if EPID version is unknown. Pass NULL to not extract.</td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">file_type</td><td>The extracted EPID file type or kNumFileTypes if file type is unknown. Pass NULL to not extract.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">epid_version</td><td>The extracted Intel(R) EPID version or kNumEpidVersions if Intel(R) EPID version is unknown. Pass NULL to not extract.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">file_type</td><td>The extracted Intel(R) EPID file type or kNumFileTypes if file type is unknown. Pass NULL to not extract.</td></tr>
   </table>
   </dd>
 </dl>

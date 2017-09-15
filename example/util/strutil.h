@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #ifndef EXAMPLE_UTIL_STRUTIL_H_
 #define EXAMPLE_UTIL_STRUTIL_H_
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 // Prior to version 14.0 snprintf was not supported in MSVC
 #if defined(_MSC_VER) && _MSC_VER < 1900

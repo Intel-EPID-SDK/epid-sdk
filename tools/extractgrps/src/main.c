@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,28 +17,28 @@
 /*!
  * \file
  *
- * \brief Extract group keys from EPID group key output file
+ * \brief Extract group keys from group key output file
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <dropt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "epid/common/file_parser.h"
+#include "epid/common/types.h"
+#include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-#include "util/buffutil.h"
 #include "util/strutil.h"
-#include "epid/common/types.h"
-#include "epid/common/file_parser.h"
 
 #define PROGRAM_NAME "extractgrps"
 
 #pragma pack(1)
-/// EPID Key Output File Entry
+/// Intel(R) EPID Key Output File Entry
 typedef struct EpidBinaryGroupCertificate {
-  EpidFileHeader header;     ///< EPID binary file header
-  GroupPubKey pubkey;        ///< EPID 2.0 group public key
+  EpidFileHeader header;     ///< Intel(R) EPID binary file header
+  GroupPubKey pubkey;        ///< Intel(R) EPID 2.0 group public key
   EcdsaSignature signature;  ///< ECDSA Signature on SHA-256 of above values
 } EpidBinaryGroupCertificate;
 #pragma pack()

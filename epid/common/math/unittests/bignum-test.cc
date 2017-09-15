@@ -22,8 +22,8 @@
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/bignum_wrapper-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
 
 extern "C" {
 #include "epid/common/math/bignum.h"

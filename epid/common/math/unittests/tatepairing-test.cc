@@ -24,8 +24,8 @@
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/1.1/epid_params-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
 
 extern "C" {

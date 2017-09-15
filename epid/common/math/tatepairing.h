@@ -23,14 +23,14 @@
 #define EPID_COMMON_MATH_TATEPAIRING_H_
 
 #include "epid/common/errors.h"
-#include "epid/common/types.h"
-#include "epid/common/math/finitefield.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/math/finitefield.h"
+#include "epid/common/types.h"
 
-/// EPID 1.1 pairing operations
+/// Intel(R) EPID 1.1 pairing operations
 /*!
 
-  \defgroup Epid11PairingPrimitives EPID 1.1 specific pairing
+  \defgroup Epid11PairingPrimitives Intel(R) EPID 1.1 specific pairing
   Provides APIs for defining and using a pairing relationship between two
   Elliptic curve groups.
 
@@ -38,7 +38,8 @@
   1.1 verification.
 
   \ingroup PairingPrimitives
-  \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+  \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID
+  1.1
   support</b></a>
   @{
 */
@@ -70,7 +71,7 @@ typedef struct Epid11PairingState Epid11PairingState;
  ff exist for the entire lifetime of the new Epid11PairingState.
 
  \see DeleteEpid11PairingState
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
  support</b></a>
 */
 EpidStatus NewEpid11PairingState(EcGroup const* ga, EcGroup const* gb,
@@ -88,7 +89,7 @@ EpidStatus NewEpid11PairingState(EcGroup const* ga, EcGroup const* gb,
  The pairing state. Can be NULL.
 
  \see NewEpid11PairingState
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
  support</b></a>
 */
 void DeleteEpid11PairingState(Epid11PairingState** ps);
@@ -110,7 +111,7 @@ This pairing operation is intended to support Intel(R) EPID
 
  \returns ::EpidStatus
 
- \see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1
+ \see <a href="group___epid11_verifier_module.html#details"><b>Intel(R) EPID 1.1
  support</b></a>
 */
 EpidStatus Epid11Pairing(Epid11PairingState* ps, EcPoint const* a,

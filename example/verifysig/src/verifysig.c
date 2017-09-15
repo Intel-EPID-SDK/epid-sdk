@@ -23,8 +23,8 @@
 
 #include <stdlib.h>
 
-#include "epid/verifier/api.h"
 #include "epid/common/file_parser.h"
+#include "epid/verifier/api.h"
 
 EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   size_t msg_len, void const* basename, size_t basename_len,

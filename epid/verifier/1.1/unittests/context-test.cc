@@ -29,9 +29,9 @@ extern "C" {
 #include "epid/verifier/1.1/src/context.h"
 }
 
-#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/1.1/verifier_wrapper-testhelper.h"
+#include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/verifier/1.1/unittests/verifier-testhelper.h"
 bool operator==(Epid11VerifierPrecomp const& lhs,
                 Epid11VerifierPrecomp const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
@@ -474,5 +474,16 @@ TEST_F(Epid11VerifierTest, SetBasenameResetsBasenameGivenNullBasename) {
       Epid11VerifierSetBasename(ctx, basename.data(), basename.size()));
   THROW_ON_EPIDERR(Epid11VerifierSetBasename(ctx, nullptr, 0));
   EXPECT_EQ(nullptr, ctx->basename_hash);
+}
+TEST_F(Epid11VerifierTest, SetBasenameAcceptsBsnContainingAllPossibleBytes) {
+  Epid11VerifierCtxObj verifier(this->kPubKeyStrForMsg0_255,
+                                this->kVerifierPrecompStr);
+  Epid11VerifierCtx* ctx = verifier;
+  auto& basename = this->kData_0_255;
+  EXPECT_EQ(kEpidNoErr,
+            Epid11VerifierSetBasename(ctx, basename.data(), basename.size()));
+  EXPECT_EQ(basename.size(), ctx->basename_len);
+  EXPECT_EQ(0, memcmp(basename.data(), ctx->basename, ctx->basename_len));
+  EXPECT_NE(nullptr, ctx->basename_hash);
 }
 }  // namespace

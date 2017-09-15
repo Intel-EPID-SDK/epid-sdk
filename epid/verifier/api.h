@@ -17,9 +17,9 @@
 #define EPID_VERIFIER_API_H_
 
 #include <stddef.h>
+#include "epid/common/errors.h"
 #include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
-#include "epid/common/errors.h"
 
 /*!
  * \file

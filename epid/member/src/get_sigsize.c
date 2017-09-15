@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
  * \file
  * \brief EpidGetSigSize implementation.
  */
-#include "epid/member/api.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/member/api.h"
 
 size_t EpidGetSigSize(SigRl const* sig_rl) {
   const size_t kMinSigSize = sizeof(EpidSignature) - sizeof(NrProof);

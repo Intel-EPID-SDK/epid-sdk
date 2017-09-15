@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -92,12 +92,7 @@ $(document).ready(function(){initNavTree('functions.html','');});
 , <a class="el" href="struct_epid11_sig_rl_entry.html#abe47cfbd00684941f93a211417bedf0c">Epid11SigRlEntry</a>
 , <a class="el" href="struct_epid2_params.html#a2f868edb49be49f645101ef5ebbbc551">Epid2Params</a>
 , <a class="el" href="struct_epid_ca_certificate.html#a280e0b0238cf45834c21849ab8a7e124">EpidCaCertificate</a>
-</li>
-<li>B
-: <a class="el" href="struct_sign_commit_output.html#ae2ebcc07395e60187d9ccca373665dba">SignCommitOutput</a>
-</li>
-<li>b
-: <a class="el" href="struct_sig_rl_entry.html#ac6a47ff0d1b8ea1512e0ff14983ac5ce">SigRlEntry</a>
+, <a class="el" href="struct_sig_rl_entry.html#ac6a47ff0d1b8ea1512e0ff14983ac5ce">SigRlEntry</a>
 </li>
 <li>B
 : <a class="el" href="struct_verifier_rl.html#a5d9a9265fffa96fd5f9260543eb08c68">VerifierRl</a>
@@ -172,6 +167,9 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>eg12
 : <a class="el" href="struct_verifier_precomp.html#ab061d6cc07d1467eeb5bf25f3ea7e306">VerifierPrecomp</a>
 </li>
+<li>epid2_params
+: <a class="el" href="struct_tpm2_ctx.html#ac9cb082159a9ca169b6666779985a705">Tpm2Ctx</a>
+</li>
 <li>epid_version
 : <a class="el" href="struct_epid_file_header.html#a35d43c51c1739940381e4898ca87b824">EpidFileHeader</a>
 </li>
@@ -186,7 +184,8 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="struct_join_request.html#a005651506fd4511e8a3537f6c3634532">JoinRequest</a>
 </li>
 <li>f
-: <a class="el" href="struct_priv_key.html#ad7ee0392a583edd2e287cf8c1f9066ba">PrivKey</a>
+: <a class="el" href="struct_member_params.html#ad6782a38fd79477bccf2313c676ea4fc">MemberParams</a>
+, <a class="el" href="struct_priv_key.html#ad7ee0392a583edd2e287cf8c1f9066ba">PrivKey</a>
 , <a class="el" href="struct_priv_rl.html#a60d73f9ef5fc81f117b3abadf8c18466">PrivRl</a>
 </li>
 <li>file_type
@@ -245,6 +244,9 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>h_tick
 : <a class="el" href="struct_epid11_params.html#a0fe238db4ebc0225899dc2dac97d11c0">Epid11Params</a>
 </li>
+<li>hash_alg
+: <a class="el" href="struct_tpm2_ctx.html#a48940c01483e2e6ba4bd1475fba16fdd">Tpm2Ctx</a>
+</li>
 <li>header
 : <a class="el" href="struct_epid_ca_certificate.html#ac03cf7257c52ad14e3dd3201b930dd50">EpidCaCertificate</a>
 </li>
@@ -258,15 +260,13 @@ $(document).ready(function(){initNavTree('functions.html','');});
 </li>
 <li>k
 : <a class="el" href="struct_epid11_sig_rl_entry.html#a5de66e1352eafe95774a0d76bac8f01a">Epid11SigRlEntry</a>
-</li>
-<li>K
-: <a class="el" href="struct_sign_commit_output.html#a496bdc4d14fb73b1e85dfff3bc9fd3ba">SignCommitOutput</a>
-</li>
-<li>k
-: <a class="el" href="struct_sig_rl_entry.html#a0dfeb058614e81878bfbf86ae3edac3c">SigRlEntry</a>
+, <a class="el" href="struct_sig_rl_entry.html#a0dfeb058614e81878bfbf86ae3edac3c">SigRlEntry</a>
 </li>
 <li>K
 : <a class="el" href="struct_verifier_rl.html#ac7d3dceab4772096bbbeb3fa735d18a9">VerifierRl</a>
+</li>
+<li>key_handle
+: <a class="el" href="struct_tpm2_ctx.html#ad71eba97fbd7d36ac1dd51ffc67791ce">Tpm2Ctx</a>
 </li>
 </ul>
 
@@ -340,17 +340,15 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>r
 : <a class="el" href="struct_epid_ca_certificate.html#ab9d4c318b1fc8d38d3ce53b29f2dfee2">EpidCaCertificate</a>
 </li>
-<li>R1
-: <a class="el" href="struct_nr_prove_commit_output.html#af9c605d560f83ccd69e35d8b9cfe51b3">NrProveCommitOutput</a>
-, <a class="el" href="struct_sign_commit_output.html#ad01513f153f51f7ce211cf323a224499">SignCommitOutput</a>
-</li>
-<li>R2
-: <a class="el" href="struct_nr_prove_commit_output.html#aab0f11e55d3b8d838e472242e27a1a43">NrProveCommitOutput</a>
-, <a class="el" href="struct_sign_commit_output.html#a0f35f1d619ea972acbdf9d45af630de0">SignCommitOutput</a>
-</li>
 <li>rl_ver
 : <a class="el" href="struct_epid11_signature.html#a43cb3ed13c862ff05a9292623ad57c5e">Epid11Signature</a>
 , <a class="el" href="struct_epid_signature.html#a4155f3f4f1223fc4ae50c94f5305def1">EpidSignature</a>
+</li>
+<li>rnd_func
+: <a class="el" href="struct_member_params.html#ad844c7a2be20bac70b118e7c08530c0b">MemberParams</a>
+</li>
+<li>rnd_param
+: <a class="el" href="struct_member_params.html#a7510f05e63328fa13cf2a3a3bd6acd95">MemberParams</a>
 </li>
 </ul>
 
@@ -419,14 +417,15 @@ $(document).ready(function(){initNavTree('functions.html','');});
 </li>
 <li>T
 : <a class="el" href="struct_nr_proof.html#ace535065bbf96502b893ac677dc8dcd3">NrProof</a>
-, <a class="el" href="struct_nr_prove_commit_output.html#a00234dfa2443d49f5a294c58fdacb064">NrProveCommitOutput</a>
-, <a class="el" href="struct_sign_commit_output.html#a9ce3b28916094f5fa108d5f5c86631b0">SignCommitOutput</a>
 </li>
 <li>T1
 : <a class="el" href="struct_epid11_basic_signature.html#a58b058a9c5119a240177acfade328b3b">Epid11BasicSignature</a>
 </li>
 <li>T2
 : <a class="el" href="struct_epid11_basic_signature.html#a267cf4e17d10584736b0c38f3668d822">Epid11BasicSignature</a>
+</li>
+<li>tss
+: <a class="el" href="struct_tpm2_ctx.html#add1c4c767abfee8bf87068ac03c52db1">Tpm2Ctx</a>
 </li>
 </ul>
 

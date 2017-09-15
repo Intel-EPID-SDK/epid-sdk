@@ -6,7 +6,7 @@ var group___ec_group_primitives =
     [ "DeleteEcPoint", "group___ec_group_primitives.html#ga8cb086d792bffb79b3ca07e6ca4ce0e7", null ],
     [ "EcExp", "group___ec_group_primitives.html#ga01bf8d6fa60a2e445490966b3a06c270", null ],
     [ "EcGetRandom", "group___ec_group_primitives.html#ga3f96c43d14d24de0f7a5e214aef64196", null ],
-    [ "EcHash", "group___ec_group_primitives.html#gab647ccc031063807ff3860f51d0f6919", null ],
+    [ "EcHash", "group___ec_group_primitives.html#gac3067cc899e65e647390bb3bd1cabe4c", null ],
     [ "EcInGroup", "group___ec_group_primitives.html#ga48ec5ae951c9f49d8d7d983234eea921", null ],
     [ "EcInverse", "group___ec_group_primitives.html#ga0b6d7a3398251e9352fb29ef4abef466", null ],
     [ "EcIsEqual", "group___ec_group_primitives.html#gad3b3c63c48fa24e8dea07837b05bc061", null ],

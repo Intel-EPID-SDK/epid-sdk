@@ -27,7 +27,8 @@
   }
 
 EpidStatus HashBaseName(EcGroup* G1, HashAlg hash_alg, void const* basename,
-                        size_t basename_len, G1ElemStr* B_str) {
+                        size_t basename_len, G1ElemStr* B_str,
+                        uint32_t* iterations) {
   EpidStatus sts = kEpidErr;
   EcPoint* B = NULL;
 
@@ -39,7 +40,7 @@ EpidStatus HashBaseName(EcGroup* G1, HashAlg hash_alg, void const* basename,
     sts = NewEcPoint(G1, &B);
     BREAK_ON_EPID_ERROR(sts);
 
-    sts = EcHash(G1, basename, basename_len, hash_alg, B);
+    sts = EcHash(G1, basename, basename_len, hash_alg, B, iterations);
     BREAK_ON_EPID_ERROR(sts);
     sts = WriteEcPoint(G1, B, B_str, sizeof(*B_str));
     BREAK_ON_EPID_ERROR(sts);

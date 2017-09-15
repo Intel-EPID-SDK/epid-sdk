@@ -16,7 +16,7 @@
 
 /*!
  * \file
- * \brief Implementation of Epid specific predicates for gtest
+ * \brief Implementation of Intel(R) EPID specific predicates for gtest
  */
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include <string>

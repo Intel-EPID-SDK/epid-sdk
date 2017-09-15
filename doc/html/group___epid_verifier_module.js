@@ -1,6 +1,6 @@
 var group___epid_verifier_module =
 [
-    [ "EPID 1.1 support", "group___epid11_verifier_module.html", "group___epid11_verifier_module" ],
+    [ "Intel(R) EPID 1.1 support", "group___epid11_verifier_module.html", "group___epid11_verifier_module" ],
     [ "VerifierPrecomp", "struct_verifier_precomp.html", [
       [ "e12", "struct_verifier_precomp.html#ad1106376f12772942af0331eb74de6e5", null ],
       [ "e22", "struct_verifier_precomp.html#af8fd90f3a5a2be932a97dcd86099d5b2", null ],

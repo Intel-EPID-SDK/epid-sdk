@@ -16,14 +16,14 @@
 
 /*!
 * \file
-* \brief EPID 1.1 pairing implementation.
+* \brief Intel(R) EPID 1.1 pairing implementation.
 */
 
 #include "epid/common/math/tatepairing.h"
 #include "epid/common/1.1/types.h"
 #include "epid/common/math/src/bignum-internal.h"
-#include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/math/src/ecgroup-internal.h"
+#include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/math/src/tatepairing-internal.h"
 #include "epid/common/src/memory.h"
 #include "ext/ipp/include/ippcp.h"
@@ -126,7 +126,7 @@ EpidStatus NewEpid11PairingState(EcGroup const* ga, EcGroup const* gb,
       break;
     }
 
-    // store EPID fields and groups
+    // store Intel(R) EPID fields and groups
     pairing_state_ctx->ga = (EcGroup*)ga;
     pairing_state_ctx->gb = (EcGroup*)gb;
     pairing_state_ctx->ff = (FiniteField*)ff;

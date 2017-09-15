@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: Sample Issuer Material</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: Test Data</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,36 +58,13 @@ $(document).ready(function(){initNavTree('IssuerMaterial.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">Sample Issuer Material </div>  </div>
+<div class="title">Test Data </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="toc"><h3>Table of Contents</h3>
-<ul><li class="level1"><a href="#IssuerMaterial_Groups">Sample Groups</a><ul><li class="level2"><a href="#IssuerMaterial_Groups_groupa">Sample Group A</a></li>
-<li class="level2"><a href="#IssuerMaterial_Groups_groupb">Sample Group B</a></li>
-</ul>
-</li>
-<li class="level1"><a href="#IssuerMaterial_GroupRls">Group Based Revocation Lists</a></li>
-<li class="level1"><a href="#IssuerMaterial_CmpGroups">Compressed Sample Groups</a><ul><li class="level2"><a href="#IssuerMaterial_CmpGroups_groupa">Compressed Sample Group A</a></li>
-<li class="level2"><a href="#IssuerMaterial_CmpGroups_groupb">Compressed Sample Group B</a></li>
-</ul>
-</li>
-<li class="level1"><a href="#IssuerMaterial_CmpGroupRls">Compressed Group Based Revocation Lists</a></li>
-</ul>
-</div>
-<div class="textblock"><p>The Intel&reg; EPID SDK does not include issuer APIs. That means you cannot generate the following items for validation:</p>
-<ul>
-<li>Group public key, which corresponds to the issuing private key kept by the issuer</li>
-<li>Member private keys</li>
-<li>Signature based revocation list (SigRL)</li>
-<li>Private key based revocation list (PrivRL)</li>
-<li>Group based revocation list (GroupRL)</li>
-</ul>
-<p>For validation purposes, you can use pre-generated sample data. This sample issuer material includes sample groups and revocation lists.</p>
-<p>Sample compressed key material is not included in the package.</p>
+<div class="textblock"><p>The SDK includes sample material in <code>example/data</code> that is intended to be provisioned in members and verifiers so that they can operate without material from a real issuer, such as iKGF.</p>
 <h1><a class="anchor" id="IssuerMaterial_Groups"></a>
 Sample Groups</h1>
-<h2><a class="anchor" id="IssuerMaterial_Groups_groupa"></a>
-Sample Group A</h2>
+<h2>Sample Group A</h2>
 <p>Group A (<code>groupa</code>) contains eight group members and sample revocation lists:</p>
 <p><br />
 </p>
@@ -133,8 +110,7 @@ Sample Group A</h2>
 </table>
 <p><br />
 </p>
-<h2><a class="anchor" id="IssuerMaterial_Groups_groupb"></a>
-Sample Group B</h2>
+<h2>Sample Group B</h2>
 <p>Group B (<code>groupb</code>) contains four group members and sample revocation lists:</p>
 <p><br />
 </p>
@@ -167,24 +143,23 @@ Sample Group B</h2>
 <td>Empty signature based revocation list </td><td><code>groupb/sigrl_empty.bin</code> </td><td>None </td></tr>
 </table>
 <h1><a class="anchor" id="IssuerMaterial_GroupRls"></a>
-Group Based Revocation Lists</h1>
-<p>If an entire group is no longer valid, the issuer can revoke it using the group based revocation list. Two sample group based revocation lists are provided with the SDK.</p>
+Group Revocation Lists</h1>
+<p>If an entire group is no longer valid, the issuer can revoke it using the group revocation list. Two sample group revocation lists are provided with the SDK.</p>
 <p><br />
 </p>
 <h3>Sample GrpRLs</h3>
 <table class="doxtable">
 <tr>
-<th>Group Based Revocation List </th><th>Description  </th></tr>
+<th>Group Revocation List </th><th>Description  </th></tr>
 <tr>
 <td><code>grprl_empty.bin</code> </td><td>No entries </td></tr>
 <tr>
 <td><code>grprl.bin</code> </td><td>One entry in which <code>groupb</code> is revoked </td></tr>
 </table>
-<h1><a class="anchor" id="IssuerMaterial_CmpGroups"></a>
+<h1><a class="anchor" id="CompressedSamples"></a>
 Compressed Sample Groups</h1>
-<p>Intel&reg; EPID SDK supports use of compressed member private keys. The groups described here use compressed compressed member private keys but structuarlly corospond to groups described above.</p>
-<h2><a class="anchor" id="IssuerMaterial_CmpGroups_groupa"></a>
-Compressed Sample Group A</h2>
+<p>Intel&reg; EPID SDK supports use of compressed member private keys. The groups described here use compressed member private keys but structurally correspond to groups described above.</p>
+<h2>Compressed Sample Group A</h2>
 <p>Group A (<code>groupa</code>) contains eight group members and sample revocation lists:</p>
 <p><br />
 </p>
@@ -230,8 +205,7 @@ Compressed Sample Group A</h2>
 </table>
 <p><br />
 </p>
-<h2><a class="anchor" id="IssuerMaterial_CmpGroups_groupb"></a>
-Compressed Sample Group B</h2>
+<h2>Compressed Sample Group B</h2>
 <p>Group B (<code>groupb</code>) contains four group members and sample revocation lists:</p>
 <p><br />
 </p>
@@ -264,14 +238,14 @@ Compressed Sample Group B</h2>
 <td>Empty signature based revocation list </td><td><code>groupb/sigrl_empty.bin</code> </td><td>None </td></tr>
 </table>
 <h1><a class="anchor" id="IssuerMaterial_CmpGroupRls"></a>
-Compressed Group Based Revocation Lists</h1>
-<p>If an entire group is no longer valid, the issuer can revoke it using the group based revocation list. Two sample group based revocation lists are provided with the SDK.</p>
+Compressed Group Revocation Lists</h1>
+<p>If an entire group is no longer valid, the issuer can revoke it using the group revocation list. Two sample group revocation lists are provided with the SDK.</p>
 <p><br />
 </p>
 <h3>Sample GrpRLs</h3>
 <table class="doxtable">
 <tr>
-<th>Group Based Revocation List </th><th>Description  </th></tr>
+<th>Group Revocation List </th><th>Description  </th></tr>
 <tr>
 <td><code>grprl_empty.bin</code> </td><td>No entries </td></tr>
 <tr>

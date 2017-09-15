@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-/// Internal functions of Epid issuer material parsing utilities.
+/// Internal functions of Intel(R) EPID issuer material parsing utilities.
 /*!
  * \file
  */
@@ -22,9 +22,9 @@
 
 #include <stddef.h>
 
+#include "epid/common/errors.h"
 #include "epid/common/file_parser.h"
 #include "epid/common/types.h"
-#include "epid/common/errors.h"
 
 /// Verifies CA certificate to contain EC secp256r1 parameters
 /*!

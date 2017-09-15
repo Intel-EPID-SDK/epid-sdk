@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,39 +14,48 @@
 # limitations under the License.
 ############################################################################
 # pylint: disable=locally-disabled, invalid-name, missing-docstring
-
 """gcc compiler configuration for debug
 """
 from parts.config import ConfigValues, configuration
 
+
 def map_default_version(env):
     return env['GCC_VERSION']
 
+
 config = configuration(map_default_version)
 
-config.VersionRange("3-*",
-                    append=ConfigValues(
-                        CCFLAGS=['',
-                                 # produce debugging information
-                                 '-g',
-                                 # disable optimization
-                                 '-O0',
-                                 # treat warnings as errors
-                                 '-Werror',
-                                 # enable all warnings
-                                 '-Wall',
-                                 # extra warnings
-                                 '-Wextra',
-                                 # pedantic warnings
-                                 # '-Wpedantic',
-                                 # disable warnings due to gcc 4.8.5 issues
-                                 '-Wno-missing-braces',
-                                 '-Wno-missing-field-initializers',
-                                 '-Wno-unknown-pragmas',
-                                 '-Wno-unused-function',
-                                 # do not warn about unused but set variables
-                                 '-Wno-unused-but-set-variable',
-                                 # do not warn about multiline comments
-                                 '-Wno-comment',
-                                 '-fPIC'],
-                    ))
+config.VersionRange(
+    "3-*",
+    append=ConfigValues(
+        CCFLAGS=[
+            '',
+            # produce debugging information
+            '-g',
+            # disable optimization
+            '-O0',
+            # treat warnings as errors
+            '-Werror',
+            # enable all warnings
+            '-Wall',
+            # extra warnings
+            '-Wextra',
+            # pedantic warnings
+            # '-Wpedantic',
+            # disable warnings due to gcc 4.8.5 issues
+            '-Wno-missing-braces',
+            '-Wno-missing-field-initializers',
+            '-Wno-unknown-pragmas',
+            '-Wno-unused-function',
+            # do not warn about unused but set variables
+            '-Wno-unused-but-set-variable',
+            # do not warn about multiline comments
+            '-Wno-comment',
+            '-fPIC'
+        ],
+        CPPDEFINES=[
+            '_FORTIFY_SOURCE=2',
+        ],
+        LINKFLAGS=[
+            '-fstack-protector',
+        ], ))

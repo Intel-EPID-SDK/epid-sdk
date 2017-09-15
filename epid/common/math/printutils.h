@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@
 #ifndef EPID_COMMON_MATH_PRINTUTILS_H_
 #define EPID_COMMON_MATH_PRINTUTILS_H_
 
-#include "epid/common/types.h"
 #include "epid/common/math/bignum.h"
-#include "epid/common/math/finitefield.h"
 #include "epid/common/math/ecgroup.h"
+#include "epid/common/math/finitefield.h"
+#include "epid/common/types.h"
 
 /// Debug print routines
 /*!

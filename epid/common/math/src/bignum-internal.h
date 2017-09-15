@@ -22,10 +22,10 @@
 #ifndef EPID_COMMON_MATH_SRC_BIGNUM_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_BIGNUM_INTERNAL_H_
 
-#include "ext/ipp/include/ippcp.h"
+#include "epid/common/errors.h"
 #include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
-#include "epid/common/errors.h"
+#include "ext/ipp/include/ippcp.h"
 
 typedef void* BNU;
 typedef void const* ConstBNU;
@@ -70,21 +70,5 @@ Length of octet string in bytes.
 \returns bit size of big number value from octet string
 */
 size_t OctStrBitSize(ConstOctStr octstr_ptr, size_t octstr_len);
-
-/// Initializes a BigNum from a BNU.
-/*!
-  \param[in] bnu
-  The desired value as a bnu.
-  \param[in] bnu_len
-  The size of bnu_str in 32 bit words.
-  \param[out] bn
-  The target BigNum.
-
-  \note A BNU is a big integer represented as array of 4 byte words written in
-  little endian order
-
-  \returns ::EpidStatus
-*/
-EpidStatus InitBigNumFromBnu(ConstBNU bnu, size_t bnu_len, struct BigNum* bn);
 
 #endif  // EPID_COMMON_MATH_SRC_BIGNUM_INTERNAL_H_

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "epid/verifier/1.1/api.h"
-#include "epid/verifier/1.1/src/context.h"
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/src/memory.h"
+#include "epid/verifier/1.1/api.h"
+#include "epid/verifier/1.1/src/context.h"
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
   if (kEpidNoErr != (ret)) {     \

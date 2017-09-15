@@ -18,8 +18,8 @@
 
 #include "epid/member/src/join_commitment.h"
 
-#include "epid/common/types.h"
 #include "epid/common/math/finitefield.h"
+#include "epid/common/types.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

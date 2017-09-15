@@ -20,15 +20,23 @@
 
 #include <stddef.h>
 #include "epid/common/errors.h"
-#include "epid/common/types.h"  // HashAlg
+#include "epid/common/types.h"  // HashAlg, G1ElemStr
 
 /// \cond
 typedef struct FiniteField FiniteField;
-typedef struct G1ElemStr G1ElemStr;
 typedef struct FpElemStr FpElemStr;
 typedef struct SigRlEntry SigRlEntry;
 typedef struct NrProveCommitOutput NrProveCommitOutput;
 /// \endcond
+
+#pragma pack(1)
+/// Result of NrProve Commit
+typedef struct NrProveCommitOutput {
+  G1ElemStr T;   ///< T value for NrProof
+  G1ElemStr R1;  ///< Serialized G1 element
+  G1ElemStr R2;  ///< Serialized G1 element
+} NrProveCommitOutput;
+#pragma pack()
 
 /// Calculates commitment hash of NrProve commit
 /*!
@@ -62,9 +70,6 @@ typedef struct NrProveCommitOutput NrProveCommitOutput;
   The resulting commitment hash.
 
   \returns ::EpidStatus
-
-  \see TpmNrProveCommit
-  \see TpmNrProve
 
  */
 EpidStatus HashNrProveCommitment(FiniteField* Fp, HashAlg hash_alg,

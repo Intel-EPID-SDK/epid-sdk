@@ -24,9 +24,9 @@
 
 #include <stddef.h>
 
+#include "epid/common/bitsupplier.h"
 #include "epid/common/errors.h"
 #include "epid/common/types.h"
-#include "epid/common/bitsupplier.h"
 
 /// Elliptic Curve Digital Signature Algorithm Primitives
 /*!

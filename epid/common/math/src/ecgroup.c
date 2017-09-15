@@ -19,17 +19,17 @@
  * \brief Elliptic curve group implementation.
  */
 
+#include "epid/common/math/ecgroup.h"
 #include <string.h>
+#include "epid/common/1.1/types.h"
+#include "epid/common/math/hash.h"
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/math/src/ecgroup-internal.h"
-#include "epid/common/math/ecgroup.h"
 #include "epid/common/math/src/finitefield-internal.h"
-#include "epid/common/math/hash.h"
-#include "epid/common/src/memory.h"
 #include "epid/common/src/endian_convert.h"
+#include "epid/common/src/memory.h"
 #include "ext/ipp/include/ippcp.h"
 #include "ext/ipp/include/ippcpdefs.h"
-#include "epid/common/1.1/types.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -1070,11 +1070,11 @@ EpidStatus Epid11EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len,
 }
 
 EpidStatus EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len, HashAlg hash_alg,
-                  EcPoint* r) {
+                  EcPoint* r, uint32_t* iterations) {
   IppStatus sts = ippStsNoErr;
   IppHashAlgId hash_id;
   int ipp_msg_len = 0;
-  Ipp32u i = 0;
+  Ipp32u ipp_i = 0;
   if (!g || (!msg && msg_len > 0) || !r) {
     return kEpidBadArgErr;
   } else if (!g->ff || !g->ipp_ec || !r->ipp_ec_pt) {
@@ -1104,9 +1104,14 @@ EpidStatus EcHash(EcGroup* g, ConstOctStr msg, size_t msg_len, HashAlg hash_alg,
   }
 
   do {
-    sts = ippsGFpECSetPointHash(i, msg, ipp_msg_len, r->ipp_ec_pt, g->ipp_ec,
-                                hash_id, g->scratch_buffer);
-  } while (ippStsQuadraticNonResidueErr == sts && i++ < EPID_ECHASH_WATCHDOG);
+    sts = ippsGFpECSetPointHash(ipp_i, msg, ipp_msg_len, r->ipp_ec_pt,
+                                g->ipp_ec, hash_id, g->scratch_buffer);
+  } while (ippStsQuadraticNonResidueErr == sts &&
+           ipp_i++ < EPID_ECHASH_WATCHDOG);
+
+  if (iterations) {
+    *iterations = (uint32_t)ipp_i;
+  }
 
   if (ippStsContextMatchErr == sts || ippStsBadArgErr == sts ||
       ippStsLengthErr == sts) {

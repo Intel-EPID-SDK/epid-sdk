@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm/sign.h File Reference</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm2/sign.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -58,42 +58,36 @@ $(document).ready(function(){initNavTree('sign_8h.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">sign.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>TPM signing APIs.  
+<p>SDK TPM Sign API.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="types_8h.html">epid/common/types.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="stdtypes_8h.html">epid/common/stdtypes.h</a>&quot;</code><br />
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_sign_commit_output.html">SignCommitOutput</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of Sign Commit.  <a href="struct_sign_commit_output.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gaf9004ce8832c1acae497604d1deb49cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm_module.html#gaf9004ce8832c1acae497604d1deb49cd">TpmSignCommit</a> (TpmCtx *ctx, <a class="el" href="struct_g1_elem_str.html">G1ElemStr</a> const *B_in_str, <a class="el" href="struct_sign_commit_output.html">SignCommitOutput</a> *commit_out)</td></tr>
-<tr class="memdesc:gaf9004ce8832c1acae497604d1deb49cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs the first part of the sign operation.  <a href="group___tpm_module.html#gaf9004ce8832c1acae497604d1deb49cd">More...</a><br /></td></tr>
-<tr class="separator:gaf9004ce8832c1acae497604d1deb49cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa667fb3295e4533334bb32afcd43890f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm_module.html#gaa667fb3295e4533334bb32afcd43890f">TpmSign</a> (TpmCtx *ctx, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *c_str, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> *sx_str, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> *sf_str, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> *sa_str, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> *sb_str)</td></tr>
-<tr class="memdesc:gaa667fb3295e4533334bb32afcd43890f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs the last part of the sign operation.  <a href="group___tpm_module.html#gaa667fb3295e4533334bb32afcd43890f">More...</a><br /></td></tr>
-<tr class="separator:gaa667fb3295e4533334bb32afcd43890f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga035c8ffba3182ba75a38131e23bb31c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga035c8ffba3182ba75a38131e23bb31c7">Tpm2Sign</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, void const *digest, size_t digest_len, uint16_t counter, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *k, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> *s)</td></tr>
+<tr class="memdesc:ga035c8ffba3182ba75a38131e23bb31c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs TPM2_Sign TPM command.  <a href="group___tpm2_module.html#ga035c8ffba3182ba75a38131e23bb31c7">More...</a><br /></td></tr>
+<tr class="separator:ga035c8ffba3182ba75a38131e23bb31c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac3735163276efa0da4b793ba935513bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#gac3735163276efa0da4b793ba935513bb">Tpm2ReleaseCounter</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, uint16_t counter)</td></tr>
+<tr class="memdesc:gac3735163276efa0da4b793ba935513bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Erases random r value assosiated with counter.  <a href="group___tpm2_module.html#gac3735163276efa0da4b793ba935513bb">More...</a><br /></td></tr>
+<tr class="separator:gac3735163276efa0da4b793ba935513bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>TPM signing APIs. </p>
+<div class="textblock"><p>SDK TPM Sign API. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_6048dbb18cb271412de4a010207fd345.html">tpm</a></li><li class="navelem"><a class="el" href="sign_8h.html">sign.h</a></li>
+    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_0d59f1b8006345e373e07b4691e0da76.html">tpm2</a></li><li class="navelem"><a class="el" href="sign_8h.html">sign.h</a></li>
     <li class="footer">
       &copy; 2016-2017 Intel Corporation
     </li>

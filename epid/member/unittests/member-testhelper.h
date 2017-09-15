@@ -21,6 +21,7 @@
 #ifndef EPID_MEMBER_UNITTESTS_MEMBER_TESTHELPER_H_
 #define EPID_MEMBER_UNITTESTS_MEMBER_TESTHELPER_H_
 
+#include <stdint.h>
 #include <vector>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
@@ -30,17 +31,50 @@ extern "C" {
 #include "epid/member/api.h"
 }
 
+typedef struct G1ElemStr G1ElemStr;
+/// compares G1ElemStr values
+bool operator==(G1ElemStr const& lhs, G1ElemStr const& rhs);
+
+/// compares MembershipCredential values
+bool operator==(MembershipCredential const& lhs,
+                MembershipCredential const& rhs);
+
+/// compares GroupPubKey values
+bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs);
+
 /// C++ Wrapper to manage memory for MemberCtx via RAII
 class MemberCtxObj {
  public:
   /// Create a MemberCtx
   explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
                         BitSupplier rnd_func, void* rnd_param);
+  /// Create a MemberCtx
+  explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
+                        HashAlg hash_alg, BitSupplier rnd_func,
+                        void* rnd_param);
+  /// Create a MemberCtx
+  explicit MemberCtxObj(BitSupplier rnd_func, void* rnd_param);
+  /// Create a MemberCtx
+  explicit MemberCtxObj(MemberParams const* params);
+  /// Create a MemberCtx
+  explicit MemberCtxObj(GroupPubKey const& pub_key,
+                        MembershipCredential const& cred, BitSupplier rnd_func,
+                        void* rnd_param);
   /// Create a MemberCtx given precomputation blob
   MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
                MemberPrecomp const& precomp, BitSupplier rnd_func,
                void* rnd_param);
-
+  /// Create a MemberCtx given precomputation blob
+  MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
+               HashAlg hash_alg, MemberPrecomp const& precomp,
+               BitSupplier rnd_func, void* rnd_param);
+  /// Create a MemberCtx given precomputation blob
+  MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
+               MemberPrecomp const& precomp, BitSupplier rnd_func,
+               void* rnd_param);
+  /// Create a MemberCtx given precomputation blob
+  MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
+               HashAlg hash_alg, BitSupplier rnd_func, void* rnd_param);
   // This class instances are not meant to be copied.
   // Explicitly delete copy constructor and assignment operator.
   MemberCtxObj(const MemberCtxObj&) = delete;
@@ -93,7 +127,8 @@ class EpidMemberTest : public ::testing::Test {
   static const std::vector<uint8_t> kBsn0;
   /// a basename
   static const std::vector<uint8_t> kBsn1;
-
+  /// a data with bytes [0,255]
+  static const std::vector<uint8_t> kData_0_255;
   /// a group key in group X
   static const GroupPubKey kGrpXKey;
   /// a member 0 private key in group X
@@ -116,6 +151,11 @@ class EpidMemberTest : public ::testing::Test {
 
   /// value "1" represented as an octstr constant
   static const OctStr32 kOctStr32_1;
+
+  /// EPS specific group public key
+  static const GroupPubKey kEps0GroupPublicKey;
+  /// EPS specific member private key
+  static const PrivKey kEps0MemberPrivateKey;
 
   /// setup called before each TEST_F starts
   virtual void SetUp() {}

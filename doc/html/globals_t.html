@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -60,50 +60,80 @@ $(document).ready(function(){initNavTree('globals_t.html','');});
 <div class="textblock">Here is a list of all documented functions, variables, defines, enums, and typedefs with links to the documentation:</div>
 
 <h3><a class="anchor" id="index_t"></a>- t -</h3><ul>
-<li>TpmAddPreSigs()
-: <a class="el" href="group___tpm_module.html#ga2335ec4eb78b542cf87df9b0cd15358c">presig.h</a>
+<li>Tpm2Commit()
+: <a class="el" href="group___tpm2_module.html#ga750e38b6d6cea1b05f605e476df065d9">commit.h</a>
+, <a class="el" href="group___tpm2_module.html#ga750e38b6d6cea1b05f605e476df065d9">commit.c</a>
 </li>
-<li>TpmCreate()
-: <a class="el" href="group___tpm_module.html#ga901cad19eb14a6a6a02e85f9d710d287">context.h</a>
+<li>Tpm2CreateContext()
+: <a class="el" href="group___tpm2_module.html#ga11a523e65eee3c7ad1ab21239329ce3e">context.c</a>
+, <a class="el" href="group___tpm2_module.html#ga11a523e65eee3c7ad1ab21239329ce3e">context.h</a>
 </li>
-<li>TpmDecompressKey()
-: <a class="el" href="group___tpm_module.html#gaeb9bfaa9288263af9feccd0d0543c9bc">decompress.h</a>
+<li>Tpm2CreatePrimary()
+: <a class="el" href="createprimary_8h.html#a01df38cbb1c7c7986dadefcc1295bb9e">createprimary.h</a>
+, <a class="el" href="createprimary_8c.html#a01df38cbb1c7c7986dadefcc1295bb9e">createprimary.c</a>
 </li>
-<li>TpmDelete()
-: <a class="el" href="group___tpm_module.html#ga95bc18225c1d87803be7965978e37449">context.h</a>
+<li>Tpm2DeleteContext()
+: <a class="el" href="group___tpm2_module.html#ga38f47cba4c26320db06aa50a77590ef4">context.c</a>
+, <a class="el" href="group___tpm2_module.html#ga38f47cba4c26320db06aa50a77590ef4">context.h</a>
 </li>
-<li>TpmGetNumPreSigs()
-: <a class="el" href="group___tpm_module.html#gaa53a6bd52e22808bac21596a964bdece">presig.h</a>
+<li>Tpm2FlushKey()
+: <a class="el" href="context_8c.html#a7f547c0068dc63f0a6b76ad15b1b9675">context.c</a>
 </li>
-<li>TpmInit()
-: <a class="el" href="group___tpm_module.html#ga5e62323b94837b847f3e869cf2ff3615">init.h</a>
+<li>Tpm2GetRandom()
+: <a class="el" href="group___tpm2_module.html#gae7f35aaf9045e4e21bc2ec56e384fcf6">getrandom.h</a>
+, <a class="el" href="group___tpm2_module.html#gae7f35aaf9045e4e21bc2ec56e384fcf6">getrandom.c</a>
 </li>
-<li>TpmIsKeyValid()
-: <a class="el" href="group___tpm_module.html#ga3318f97e4d1763815dace3779ae6564f">validatekey.h</a>
+<li>Tpm2LoadExternal()
+: <a class="el" href="group___tpm2_module.html#gac2507260f635a9c7abd9113cda6918f9">load_external.c</a>
+, <a class="el" href="group___tpm2_module.html#gac2507260f635a9c7abd9113cda6918f9">load_external.h</a>
 </li>
-<li>TpmJoin()
-: <a class="el" href="group___tpm_module.html#gab80c411f070858fbe019d93f5ac6a6ec">join.h</a>
+<li>Tpm2NvDefineSpace()
+: <a class="el" href="group___tpm2_module.html#gadee3a48d63f03d55ea5f02e48d169326">nv.c</a>
+, <a class="el" href="group___tpm2_module.html#gadee3a48d63f03d55ea5f02e48d169326">nv.h</a>
 </li>
-<li>TpmJoinCommit()
-: <a class="el" href="group___tpm_module.html#gae69218c9cba6a19d3ae1199c59772efc">join.h</a>
+<li>Tpm2NvRead()
+: <a class="el" href="group___tpm2_module.html#ga2ec34e65adaf46a14a78f24a7fd0e4dd">nv.c</a>
+, <a class="el" href="group___tpm2_module.html#ga2ec34e65adaf46a14a78f24a7fd0e4dd">nv.h</a>
 </li>
-<li>TpmNrProve()
-: <a class="el" href="group___tpm_module.html#ga4346d22fb9fed6a161cb1ea178b50ed2">nrprove.h</a>
+<li>Tpm2NvUndefineSpace()
+: <a class="el" href="group___tpm2_module.html#ga38ca781a9a0126223456e677f40e1d22">nv.c</a>
+, <a class="el" href="group___tpm2_module.html#ga38ca781a9a0126223456e677f40e1d22">nv.h</a>
 </li>
-<li>TpmNrProveCommit()
-: <a class="el" href="group___tpm_module.html#gace6002b520db41d8e781b02c6f538dc0">nrprove.h</a>
+<li>Tpm2NvWrite()
+: <a class="el" href="group___tpm2_module.html#gabfe5ccf53b8ecb8e2f2b367a39f6e5cc">nv.c</a>
+, <a class="el" href="group___tpm2_module.html#gabfe5ccf53b8ecb8e2f2b367a39f6e5cc">nv.h</a>
 </li>
-<li>TpmProvision()
-: <a class="el" href="group___tpm_module.html#ga42b80d485cff39fe9ec14a0b5a81426d">context.h</a>
+<li>Tpm2ReleaseCounter()
+: <a class="el" href="group___tpm2_module.html#gac3735163276efa0da4b793ba935513bb">sign.c</a>
+, <a class="el" href="group___tpm2_module.html#gac3735163276efa0da4b793ba935513bb">sign.h</a>
 </li>
-<li>TpmProvisionCompressed()
-: <a class="el" href="group___tpm_module.html#ga688441f78f68aa53c41fcae4d31c6f50">context.h</a>
+<li>Tpm2ResetContext()
+: <a class="el" href="group___tpm2_module.html#ga8ee4fed3e1a4dd0c910102430fca8c81">context.h</a>
+, <a class="el" href="group___tpm2_module.html#ga8ee4fed3e1a4dd0c910102430fca8c81">context.c</a>
 </li>
-<li>TpmSign()
-: <a class="el" href="group___tpm_module.html#gaa667fb3295e4533334bb32afcd43890f">sign.h</a>
+<li>Tpm2SetHashAlg()
+: <a class="el" href="group___tpm2_module.html#ga11cc131debbca60c0de7e53d48330b69">context.c</a>
+, <a class="el" href="group___tpm2_module.html#ga11cc131debbca60c0de7e53d48330b69">context.h</a>
 </li>
-<li>TpmSignCommit()
-: <a class="el" href="group___tpm_module.html#gaf9004ce8832c1acae497604d1deb49cd">sign.h</a>
+<li>Tpm2Sign()
+: <a class="el" href="group___tpm2_module.html#ga035c8ffba3182ba75a38131e23bb31c7">sign.h</a>
+, <a class="el" href="group___tpm2_module.html#ga035c8ffba3182ba75a38131e23bb31c7">sign.c</a>
+</li>
+<li>Tpm2toEpidHashAlg()
+: <a class="el" href="conversion_8h.html#a51507a6be8d7dfa167c9e6fb70e5ee57">conversion.h</a>
+, <a class="el" href="conversion_8c.html#a51507a6be8d7dfa167c9e6fb70e5ee57">conversion.c</a>
+</li>
+<li>TPM_ALG_NULL
+: <a class="el" href="conversion_8h.html#a3622ddd0080bf63059d26887b6ee90ac">conversion.h</a>
+</li>
+<li>TPM_ALG_SHA256
+: <a class="el" href="conversion_8h.html#ae9c66465b8109d648704268fee8cf66b">conversion.h</a>
+</li>
+<li>TPM_ALG_SHA384
+: <a class="el" href="conversion_8h.html#a85ee45736d112c61495faad4fea3dbbc">conversion.h</a>
+</li>
+<li>TPM_ALG_SHA512
+: <a class="el" href="conversion_8h.html#a8aecd28504c6511c02da2e78ecaaf5bd">conversion.h</a>
 </li>
 <li>true
 : <a class="el" href="stdtypes_8h.html#a41f9c5fb8b08eb5dc3edce4dcb37fee7">stdtypes.h</a>

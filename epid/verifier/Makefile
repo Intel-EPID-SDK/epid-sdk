@@ -22,7 +22,7 @@ VERIFIER_SRC += $(wildcard ./1.1/src/*.c)
 VERIFIER_OBJ = $(VERIFIER_SRC:.c=.o)
 VERIFIER_LIB = ./libverifier.a
 
-VERIFIER_UTEST_EXE = ./verifier-utest
+VERIFIER_UTEST_EXE = ./verifier-utest$(EXE_EXTENSION)
 VERIFIER_UTEST_SRC = $(wildcard ./unittests/*.cc)
 VERIFIER_UTEST_SRC += $(wildcard ./1.1/unittests/*.cc)
 VERIFIER_UTEST_OBJ = $(VERIFIER_UTEST_SRC:.cc=.o)

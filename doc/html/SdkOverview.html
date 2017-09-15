@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">4.0.0</span>
+&#160;<span id="projectnumber">5.0.0</span>
 </div>
   </td>
  </tr>
@@ -63,7 +63,12 @@ $(document).ready(function(){initNavTree('SdkOverview.html','');});
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#SdkOverview_Components">SDK Components</a></li>
-<li class="level1"><a href="#SdkOverview_Files">Filesystem Layout</a><ul><li class="level2"><a href="#SdkOverview_Files_SourceLayout">Source Layout</a></li>
+<li class="level1"><a href="#SdkOverview_Core">SDK Core</a></li>
+<li class="level1"><a href="#SdkOverview_Samples">Samples</a></li>
+<li class="level1"><a href="#SdkOverview_Tools">Tools</a></li>
+<li class="level1"><a href="#SdkOverview_BuildingAndValidation">Building and Validation</a></li>
+<li class="level1"><a href="#SdkOverview_Compatibility">Intel&reg; EPID 1.1 Compatibility</a></li>
+<li class="level1"><a href="#SdkOverview_Files">Folder Layout</a><ul><li class="level2"><a href="#SdkOverview_Files_SourceLayout">Source Layout</a></li>
 <li class="level2"><a href="#SdkOverview_Files_InstallLayout">Install Layout</a></li>
 </ul>
 </li>
@@ -77,6 +82,10 @@ SDK Components</h1>
 </div>
 <p><br />
  The Intel&reg; EPID SDK is divided into the following components:</p>
+<p><br />
+</p>
+<h1><a class="anchor" id="SdkOverview_Core"></a>
+SDK Core</h1>
 <p>Components in the SDK Core implement the features of Intel&reg; EPID.</p>
 <table class="doxtable">
 <tr>
@@ -92,7 +101,12 @@ SDK Components</h1>
 <tr>
 <td>IPP </td><td>A C-only non-optimized subset of Intel&reg; IPP </td></tr>
 </table>
-<p><a class="el" href="Examples.html">Examples</a> show how to use the SDK APIs in working code.</p>
+<p><br />
+</p>
+<h1><a class="anchor" id="SdkOverview_Samples"></a>
+Samples</h1>
+<p>The SDK includes <a class="el" href="IssuerMaterial.html">Test Data</a> in <code>example/data</code> that is intended to be provisioned in members and verifiers so that they can operate without real issuer material. (For information on how to work with real issuer material, refer to <a class="el" href="UsingiKGF.html">Managing Groups with iKGF</a>.)</p>
+<p>The SDK also includes signing and verification <a class="el" href="Examples.html">Examples</a> that show how to use the SDK APIs in working code.</p>
 <table class="doxtable">
 <tr>
 <th>Component </th><th>Description  </th></tr>
@@ -105,7 +119,11 @@ SDK Components</h1>
 <tr>
 <td>Sample Issuer Material </td><td>Sample keys and revocation lists </td></tr>
 </table>
-<p>Tools to interact with Intel&reg; EPID related services such those offered by the <a class="el" href="ChoosingiKGF.html">Intel&reg; Key Generation Facility</a>.</p>
+<p><br />
+</p>
+<h1><a class="anchor" id="SdkOverview_Tools"></a>
+Tools</h1>
+<p>The SDK provides tools to interact with Intel&reg; EPID related services such those offered by the <a class="el" href="IssuerMaterial.html">Intel&reg; Key Generation Facility</a>.</p>
 <table class="doxtable">
 <tr>
 <th>Component </th><th>Description  </th></tr>
@@ -120,6 +138,10 @@ SDK Components</h1>
 <tr>
 <td>revokesig </td><td>A tool to create a revocation request from a signature </td></tr>
 </table>
+<p><br />
+</p>
+<h1><a class="anchor" id="SdkOverview_BuildingAndValidation"></a>
+Building and Validation</h1>
 <p>The SDK comes with a number of other components that support building and validating the code.</p>
 <table class="doxtable">
 <tr>
@@ -132,12 +154,15 @@ SDK Components</h1>
 <td>dropt </td><td>Library for parsing command line </td></tr>
 </table>
 <p>Math primitives are implemented in the <em>math</em> sub-component of <em>common</em>. The reference math primitive implementation is based on a non-optimized Vanilla C subset of the Intel&reg; Performance Primitives. <em>Math</em> is designed so that you can replace its implementation to call custom hardware IP blocks or optimized libraries.</p>
-<h2>Intel&reg; EPID 1.1 Compatibility</h2>
+<p><br />
+</p>
+<h1><a class="anchor" id="SdkOverview_Compatibility"></a>
+Intel® EPID 1.1 Compatibility</h1>
 <p>In addition to the default Intel&reg; EPID 2.0 APIs, the <em>verifier</em> component also includes APIs that allow verification of Intel&reg; EPID 1.1 signatures.</p>
 <p>Billions of existing devices, including most Intel platforms manufactured since 2008, create signatures that need Intel&reg; EPID 1.1 verification.</p>
-<p>For details on verifying Intel&reg; EPID 1.1 signatures see <a href="group___epid11_verifier_module.html#details"><b>EPID 1.1 support</b></a> in the API Reference.</p>
+<p>For details on verifying Intel&reg; EPID 1.1 signatures see <a href="group___epid11_verifier_module.html#details"><b>Intel&reg; EPID 1.1 support</b></a> in the API Reference.</p>
 <h1><a class="anchor" id="SdkOverview_Files"></a>
-Filesystem Layout</h1>
+Folder Layout</h1>
 <p>The Intel&reg; EPID SDK has two filesystem layouts: the Source Layout and the Install Layout.</p>
 <p>The Source Layout is what you find when you download the SDK and extract it to disk. This layout contains all of the files that you need to build the libraries, samples, tests, and data generated by the SDK.</p>
 <p>The Install Layout is the layout of files under the <code>_install</code> folder after you build the SDK.</p>
@@ -148,7 +173,9 @@ Source Layout</h2>
 |__ NOTICE.txt              Legal notices
 |__ README.md               Readme
 |__ CHANGELOG.md            Change log
-|__ SConstruct              Main build configuration
+|__ SConstruct              Parts based build configuration
+|__ configure               Make based build configuration
+|__ Makefile.in             Make based build configuration
 |
 |__ doc/
 |   |__ html/               HTML format documentation
@@ -190,6 +217,7 @@ Install Layout</h2>
     |   |__ &lt;platform&gt;      Target specific static libraries for the SDK
     |
     |__example/             Sample applications and data
+    |__compressed_example/  Compressed Member Key Binary data for sample applications
     |__test/                Unit test executables (if unit tests built)
     |__tools/               Tools</pre> </div></div><!-- contents -->
 </div><!-- doc-content -->

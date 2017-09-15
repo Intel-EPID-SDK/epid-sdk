@@ -22,9 +22,9 @@
 #ifndef EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 
-#include "ext/ipp/include/ippcp.h"
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/src/bignum-internal.h"
+#include "ext/ipp/include/ippcp.h"
 
 /// Finite Field
 struct FiniteField {

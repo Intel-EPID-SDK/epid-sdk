@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2017 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,40 +17,40 @@
 /*!
  * \file
  *
- * \brief Extract member private keys from EPID key output file
+ * \brief Extract member private keys from key output file
  *
  * Not validating SHA hashes in key file
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <dropt.h>
+#include "epid/common/types.h"
+#include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-#include "util/buffutil.h"
 #include "util/strutil.h"
-#include "epid/common/types.h"
 
 #define PROGRAM_NAME "extractkeys"
 #define MANDATORY_PARAM_COUNT 2
 
 #pragma pack(1)
-/// EPID Key Output File Entry
+/// Intel(R) EPID Key Output File Entry
 typedef struct EpidKeyOutputFileKey {
   unsigned char product_id[2];  ///< 2-byte Product ID (Big Endian)
   unsigned char key_id[8];      ///< 8-byte Key Unique Id(Big Endian)
   unsigned char svn[4];  ///< 4-byte Security Version Number (SVN) (Big Endian)
-  PrivKey privkey;       ///< EPID 2.0 Private Key
+  PrivKey privkey;       ///< Intel(R) EPID 2.0 Private Key
   unsigned char hash[20];  ///< 20-byte SHA-1 of above
 } EpidKeyOutputFileKey;
 
-/// EPID Compressed Key Output File Entry
+/// Intel(R) EPID Compressed Key Output File Entry
 typedef struct EpidCompressedKeyOutputFileKey {
   unsigned char product_id[2];  ///< 2-byte Product ID (Big Endian)
   unsigned char key_id[8];      ///< 8-byte Key Unique Id(Big Endian)
   unsigned char svn[4];  ///< 4-byte Security Version Number (SVN) (Big Endian)
-  CompressedPrivKey privkey;  ///< EPID 2.0 Compressed Private Key
+  CompressedPrivKey privkey;  ///< Intel(R) EPID 2.0 Compressed Private Key
   unsigned char hash[20];     ///< 20-byte SHA-1 of above
 } EpidCompressedKeyOutputFileKey;
 #pragma pack()

@@ -9,18 +9,24 @@ LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
 TEST_INSTALL_DIR = $(epidinstalldir)/test/
 HEADERS_INSTALL_DIR :=  $(epidinstalldir)/include/epid/member/
 
-API_HEADERS_INSTALL = ./api.h
+API_HEADERS_INSTALL = $(wildcard ./*.h)
 
 MEMBER_INCLUDE_DIR = ../../
 
 MEMBER_SRC =  $(wildcard ./src/*.c)
-MEMBER_SRC +=  $(wildcard ./tpm/src/*.c)
+MEMBER_SRC +=  $(wildcard ./tpm2/src/*.c)
 MEMBER_OBJ = $(MEMBER_SRC:.c=.o)
 MEMBER_LIB = ./libmember.a
 
-MEMBER_UTEST_EXE = ./member-utest
-MEMBER_UTEST_SRC = $(wildcard ./unittests/*.cc)
+MEMBER_UTEST_EXE = ./member-utest$(EXE_EXTENSION)
+MEMBER_UTEST_SRC = $(wildcard ./unittests/*.cc) \
+	./tpm2/unittests/tpm2_wrapper-testhelper.cc
 MEMBER_UTEST_OBJ = $(MEMBER_UTEST_SRC:.cc=.o)
+MEMBER_TPM2_UTEST_EXE = ./member.tpm2-utest
+MEMBER_TPM2_TSS_UTEST_SRC = $(wildcard ./tpm2/unittests/*.cc)
+MEMBER_TPM2_UTEST_SRC = $(filter-out $(wildcard ./tpm2/unittests/*-tss-test.cc), \
+	$(MEMBER_TPM2_TSS_UTEST_SRC))
+MEMBER_TPM2_UTEST_OBJ = $(MEMBER_TPM2_UTEST_SRC:.cc=.o)
 LIB_MEMBER_DIR = .
 LIB_VERIFIER_DIR = ../verifier
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
@@ -48,6 +54,13 @@ $(MEMBER_UTEST_OBJ): %.o: %.cc
 	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(MEMBER_INCLUDE_DIR) \
 	-I$(GTEST_INCLUDE_DIR) -c $^
 
+$(MEMBER_TPM2_UTEST_EXE): $(MEMBER_TPM2_UTEST_OBJ)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(MEMBER_TPM2_UTEST_OBJ): %.o: %.cc
+	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(MEMBER_INCLUDE_DIR) \
+	-I$(GTEST_INCLUDE_DIR) -c $^
+
 build: all
 
 all: $(MEMBER_LIB)
@@ -61,12 +74,14 @@ install:
 ifneq (,$(wildcard $(MEMBER_UTEST_EXE)))
 	mkdir -p '$(TEST_INSTALL_DIR)'
 	cp $(MEMBER_UTEST_EXE) '$(TEST_INSTALL_DIR)'
+	cp $(MEMBER_TPM2_UTEST_EXE) '$(TEST_INSTALL_DIR)'
 endif
 
-utest: $(MEMBER_UTEST_EXE)
+utest: $(MEMBER_UTEST_EXE) $(MEMBER_TPM2_UTEST_EXE)
 
 run_utest:
 	$(MEMBER_UTEST_EXE) $(GTEST_FLAGS)
+	$(MEMBER_TPM2_UTEST_EXE) $(GTEST_FLAGS)
 
 check: utest run_utest
 
@@ -75,4 +90,6 @@ clean:
 		$(MEMBER_LIB) \
 		$(MEMBER_UTEST_OBJ) \
 		$(MEMBER_UTEST_EXE) \
+		$(MEMBER_TPM2_UTEST_OBJ) \
+		$(MEMBER_TPM2_UTEST_EXE) \
 		*.xml

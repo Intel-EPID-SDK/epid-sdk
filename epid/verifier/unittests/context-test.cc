@@ -19,21 +19,21 @@
  * \brief VerifierCreate unit tests.
  */
 
-#include <vector>
 #include <cstring>
+#include <vector>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
+#include "epid/common/src/endian_convert.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
-#include "epid/common/src/endian_convert.h"
 }
 
-#include "epid/verifier/unittests/verifier-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
 #include "epid/common-testhelper/errors-testhelper.h"
+#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
+#include "epid/verifier/unittests/verifier-testhelper.h"
 bool operator==(VerifierPrecomp const& lhs, VerifierPrecomp const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
@@ -991,6 +991,27 @@ TEST_F(EpidVerifierTest,
   EXPECT_EQ(rlver_expected, ver_rl->version);
   // missing K checks
 }
+TEST_F(EpidVerifierTest, BlacklistSigWorksForMsgContainingAllPossibleBytes) {
+  VerifierCtxObj verifier(this->kPubKeySigRlVerify);
+  auto sig = this->kSigGrp01Member0Sha512kBsn0Data_0_255;
+  auto msg = this->kData_0_255;
+  auto bsn = this->kBsn0;
+  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
+  THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
+  EXPECT_EQ(kEpidNoErr, EpidBlacklistSig(verifier, (EpidSignature*)sig.data(),
+                                         sig.size(), msg.data(), msg.size()));
+
+  std::vector<uint8_t> ver_rl_vec(EpidGetVerifierRlSize(verifier));
+  VerifierRl* ver_rl = (VerifierRl*)ver_rl_vec.data();
+  size_t ver_rl_size = ver_rl_vec.size();
+
+  THROW_ON_EPIDERR(EpidWriteVerifierRl(verifier, ver_rl, ver_rl_size));
+
+  OctStr32 n4_expected = {0x00, 0x00, 0x00, 0x01};
+  OctStr32 rlver_expected = {0x00, 0x00, 0x00, 0x01};
+  EXPECT_EQ(n4_expected, ver_rl->n4);
+  EXPECT_EQ(rlver_expected, ver_rl->version);
+}
 //////////////////////////////////////////////////////////////////////////
 // EpidVerifierSetHashAlg
 TEST_F(EpidVerifierTest, SetHashAlgFailsGivenNullPointer) {
@@ -1080,4 +1101,11 @@ TEST_F(EpidVerifierTest, SetBasenameResetsVerifierBlacklist) {
   EXPECT_EQ(nullptr, ctx->verifier_rl);
 }
 
+TEST_F(EpidVerifierTest, SetBasenameAcceptsBsnContainingAllPossibleBytes) {
+  VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
+  VerifierCtx* ctx = verifier;
+  auto& basename = this->kData_0_255;
+  EXPECT_EQ(kEpidNoErr,
+            EpidVerifierSetBasename(ctx, basename.data(), basename.size()));
+}
 }  // namespace

@@ -16,15 +16,15 @@
 
 /*!
  * \file
- * \brief Epid issuer material parsing utilities.
+ * \brief Intel(R) EPID issuer material parsing utilities.
  */
 #ifndef EPID_COMMON_FILE_PARSER_H_
 #define EPID_COMMON_FILE_PARSER_H_
 
 #include <stddef.h>
 
-#include "epid/common/types.h"
 #include "epid/common/errors.h"
+#include "epid/common/types.h"
 
 /// Parser for issuer material
 /*!
@@ -42,7 +42,7 @@
 typedef enum EpidVersion {
   kEpid1x,           ///< Intel(R) EPID version 1.x
   kEpid2x,           ///< Intel(R) EPID version 2.x
-  kNumEpidVersions,  ///< Maximum number of EPID versions
+  kNumEpidVersions,  ///< Maximum number of versions
 } EpidVersion;
 
 /// Encoding of issuer material Intel(R) EPID versions
@@ -94,12 +94,12 @@ typedef struct EpidCaCertificate {
   The size of buf in bytes.
 
   \param[out] epid_version
-  The extracted EPID version or kNumEpidVersions if EPID version is unknown.
-  Pass NULL to not extract.
+  The extracted Intel(R) EPID version or kNumEpidVersions if Intel(R) EPID
+  version is unknown. Pass NULL to not extract.
 
   \param[out] file_type
-  The extracted EPID file type or kNumFileTypes if file type is unknown.
-  Pass NULL to not extract.
+  The extracted Intel(R) EPID file type or kNumFileTypes if file type is
+  unknown. Pass NULL to not extract.
 
   \returns ::EpidStatus
 
