@@ -60,7 +60,7 @@ typedef struct NrProof NrProof;
  \note
  If the result is not ::kEpidNoErr, the content of proof is undefined.
 
- \see EpidMemberCreate
+ \see EpidMemberInit
  \see EpidSignBasic
  */
 EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,

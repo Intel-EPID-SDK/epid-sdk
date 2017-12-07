@@ -18,8 +18,13 @@
 #ifndef EPID_MEMBER_API_H_
 #define EPID_MEMBER_API_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include "epid/common/bitsupplier.h"
+#include "epid/common/epiddefs.h"
 #include "epid/common/errors.h"
 #include "epid/common/types.h"
 
@@ -42,16 +47,51 @@ typedef struct MemberParams MemberParams;
   @{
 */
 
-/// Creates a new member context.
+/// Allocates and initializes a new member context.
 /*!
  \param[in] params
  Implementation specific configuration parameters.
  \param[out] ctx
  Newly constructed member context.
 
+ \warning buffers allocated using this function should not be
+ initialized with ::EpidMemberInit.
+
+ \deprecated This API has been superseded by ::EpidMemberGetSize
+ and ::EpidMemberInit.
+
  \returns ::EpidStatus
  */
-EpidStatus EpidMemberCreate(MemberParams const* params, MemberCtx** ctx);
+EpidStatus EPID_API EpidMemberCreate(MemberParams const* params,
+                                     MemberCtx** ctx);
+
+/// Computes the size in bytes required for a member context
+/*!
+ \param[in] params
+ Implementation specific configuration parameters.
+ \param[out] context_size
+ Number of bytes required for a ::MemberCtx buffer
+
+ \returns ::EpidStatus
+  \see EpidMemberInit
+ */
+EpidStatus EPID_API EpidMemberGetSize(MemberParams const* params,
+                                      size_t* context_size);
+
+/// Initializes a new member context.
+/*!
+ \param[in] params
+ Implementation specific configuration parameters.
+ \param[in,out] ctx
+ An existing buffer that will be used as a ::MemberCtx.
+
+ \warning ctx must be a buffer of at least the size reported by
+ ::EpidMemberGetSize for the same parameters.
+
+ \returns ::EpidStatus
+ \see EpidMemberGetSize
+ */
+EpidStatus EPID_API EpidMemberInit(MemberParams const* params, MemberCtx* ctx);
 
 /// Creates a request to join a group.
 /*!
@@ -69,9 +109,10 @@ The join request.
 
 \returns ::EpidStatus
 */
-EpidStatus EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
-                                 IssuerNonce const* ni,
-                                 JoinRequest* join_request);
+EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
+                                          GroupPubKey const* pub_key,
+                                          IssuerNonce const* ni,
+                                          JoinRequest* join_request);
 
 /// Provisions a member context from a membership credential
 /*!
@@ -86,9 +127,9 @@ Precomputed state (implementation specific optional)
 
 \returns ::EpidStatus
 */
-EpidStatus EpidProvisionCredential(MemberCtx* ctx, GroupPubKey const* pub_key,
-                                   MembershipCredential const* credential,
-                                   MemberPrecomp const* precomp_str);
+EpidStatus EPID_API EpidProvisionCredential(
+    MemberCtx* ctx, GroupPubKey const* pub_key,
+    MembershipCredential const* credential, MemberPrecomp const* precomp_str);
 
 /// Provisions a member context from a compressed private key
 /*!
@@ -103,9 +144,10 @@ Precomputed state (implementation specific optional)
 
 \returns ::EpidStatus
 */
-EpidStatus EpidProvisionCompressed(MemberCtx* ctx, GroupPubKey const* pub_key,
-                                   CompressedPrivKey const* compressed_privkey,
-                                   MemberPrecomp const* precomp_str);
+EpidStatus EPID_API
+EpidProvisionCompressed(MemberCtx* ctx, GroupPubKey const* pub_key,
+                        CompressedPrivKey const* compressed_privkey,
+                        MemberPrecomp const* precomp_str);
 
 /// Provisions a member context from a private key
 /*!
@@ -120,9 +162,9 @@ Precomputed state (implementation specific optional)
 
 \returns ::EpidStatus
 */
-EpidStatus EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
-                            PrivKey const* priv_key,
-                            MemberPrecomp const* precomp_str);
+EpidStatus EPID_API EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
+                                     PrivKey const* priv_key,
+                                     MemberPrecomp const* precomp_str);
 
 /// Change member from setup state to normal operation
 /*!
@@ -131,7 +173,24 @@ The member context.
 
 \returns ::EpidStatus
 */
-EpidStatus EpidMemberStartup(MemberCtx* ctx);
+EpidStatus EPID_API EpidMemberStartup(MemberCtx* ctx);
+
+/// De-initializes an existing member context buffer.
+/*!
+ Must be called to safely release a member context initialized using
+ ::EpidMemberInit.
+
+ De-initializes the context.
+
+ \param[in,out] ctx
+ The member context. Can be NULL.
+
+ \warning This function should not be used on buffers allocated with
+ ::EpidMemberCreate. Those buffers should be released using ::EpidMemberDelete
+
+ \see EpidMemberInit
+ */
+void EPID_API EpidMemberDeinit(MemberCtx* ctx);
 
 /// Deletes an existing member context.
 /*!
@@ -144,13 +203,15 @@ EpidStatus EpidMemberStartup(MemberCtx* ctx);
  \param[in,out] ctx
  The member context. Can be NULL.
 
+ \deprecated This API has been superseded by ::EpidMemberDeinit.
+
  \see EpidMemberCreate
 
  \b Example
 
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
-void EpidMemberDelete(MemberCtx** ctx);
+void EPID_API EpidMemberDelete(MemberCtx** ctx);
 
 /// Sets the hash algorithm to be used by a member.
 /*!
@@ -165,14 +226,14 @@ void EpidMemberDelete(MemberCtx** ctx);
  If the result is not ::kEpidNoErr, the hash algorithm used by the member is
  undefined.
 
- \see EpidMemberCreate
+ \see EpidMemberInit
  \see ::HashAlg
 
  \b Example
 
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
+EpidStatus EPID_API EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
 
 /// Sets the signature based revocation list to be used by a member.
 /*!
@@ -204,14 +265,14 @@ EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg);
  If the result is not ::kEpidNoErr the signature based revocation list pointed
  to by the member is not changed.
 
- \see EpidMemberCreate
+ \see EpidMemberInit
 
  \b Example
 
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
-                              size_t sig_rl_size);
+EpidStatus EPID_API EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
+                                       size_t sig_rl_size);
 
 /// Computes the size in bytes required for an Intel(R) EPID signature.
 /*!
@@ -229,7 +290,7 @@ EpidStatus EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
 
  \ref UserManual_GeneratingAnIntelEpidSignature
 */
-size_t EpidGetSigSize(SigRl const* sig_rl);
+size_t EPID_API EpidGetSigSize(SigRl const* sig_rl);
 
 /// Writes an Intel(R) EPID signature.
 /*!
@@ -258,7 +319,7 @@ size_t EpidGetSigSize(SigRl const* sig_rl);
  \note
  If the result is not ::kEpidNoErr the content of sig is undefined.
 
- \see EpidMemberCreate
+ \see EpidMemberInit
  \see EpidMemberSetHashAlg
  \see EpidMemberSetSigRl
  \see EpidGetSigSize
@@ -267,9 +328,10 @@ size_t EpidGetSigSize(SigRl const* sig_rl);
 
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
-                    void const* basename, size_t basename_len,
-                    EpidSignature* sig, size_t sig_len);
+EpidStatus EPID_API EpidSign(MemberCtx const* ctx, void const* msg,
+                             size_t msg_len, void const* basename,
+                             size_t basename_len, EpidSignature* sig,
+                             size_t sig_len);
 
 /// Registers a basename with a member.
 /*!
@@ -305,8 +367,22 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
 
  \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidRegisterBaseName(MemberCtx* ctx, void const* basename,
-                                size_t basename_len);
+EpidStatus EPID_API EpidRegisterBasename(MemberCtx* ctx, void const* basename,
+                                         size_t basename_len);
+
+/// Clears registered basenames.
+/*!
+
+ Allows clearing registered basenames without recreating member.
+
+ \param[in,out] ctx
+ The member context.
+
+ \returns ::EpidStatus
+
+ \see ::EpidRegisterBasename
+ */
+EpidStatus EPID_API EpidClearRegisteredBasenames(MemberCtx* ctx);
 
 /// Extends the member's pool of pre-computed signatures.
 /*!
@@ -319,9 +395,9 @@ EpidStatus EpidRegisterBaseName(MemberCtx* ctx, void const* basename,
 
  \returns ::EpidStatus
 
- \see ::EpidMemberCreate
+ \see ::EpidMemberInit
  */
-EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs);
+EpidStatus EPID_API EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs);
 
 /// Gets the number of pre-computed signatures in the member's pool.
 /*!
@@ -331,9 +407,9 @@ EpidStatus EpidAddPreSigs(MemberCtx* ctx, size_t number_presigs);
  \returns
  Number of remaining pre-computed signatures. Returns 0 if ctx is NULL.
 
- \see ::EpidMemberCreate
+ \see ::EpidMemberInit
 */
-size_t EpidGetNumPreSigs(MemberCtx const* ctx);
+size_t EPID_API EpidGetNumPreSigs(MemberCtx const* ctx);
 
 /// Decompresses compressed member private key.
 /*!
@@ -354,10 +430,14 @@ size_t EpidGetNumPreSigs(MemberCtx const* ctx);
 
   \ref UserManual_GeneratingAnIntelEpidSignature
  */
-EpidStatus EpidDecompressPrivKey(GroupPubKey const* pub_key,
-                                 CompressedPrivKey const* compressed_privkey,
-                                 PrivKey* priv_key);
+EpidStatus EPID_API EpidDecompressPrivKey(
+    GroupPubKey const* pub_key, CompressedPrivKey const* compressed_privkey,
+    PrivKey* priv_key);
 
 /*! @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // EPID_MEMBER_API_H_

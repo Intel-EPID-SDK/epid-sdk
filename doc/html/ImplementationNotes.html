@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">5.0.0</span>
+&#160;<span id="projectnumber">6.0.0</span>
 </div>
   </td>
  </tr>
@@ -62,14 +62,22 @@ $(document).ready(function(){initNavTree('ImplementationNotes.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
-<ul><li class="level1"><a href="#ImplementationNotes_Prng">Random Number Generation</a></li>
+<ul><li class="level1"><a href="#implementationNotes_Members">Member Implementations</a></li>
+<li class="level1"><a href="#ImplementationNotes_Prng">Random Number Generation</a></li>
 <li class="level1"><a href="#ImplementationNotes_ProtectingSecrets">Protecting Secrets</a></li>
 <li class="level1"><a href="#ImplementationNotes_MathPrimitives">Replacing Math Primitives</a></li>
 <li class="level1"><a href="#ImplementationNotes_SerializedTypes">Octstring/Buffer Types</a></li>
 <li class="level1"><a href="#ImplementationNotes_FlexibleArrays">Flexible Arrays</a></li>
 </ul>
 </div>
-<div class="textblock"><p>This section is intended to provide additional guidance for users who want to modify the underlying code of the SDK. If you only want to call the SDK APIs without modifying them, you can safely ignore this section.</p>
+<div class="textblock"><h1><a class="anchor" id="implementationNotes_Members"></a>
+Member Implementations</h1>
+<p>There are three member implementations. You can use a specific compilation option to select the implementation that will be used at compile time. The implementations are:</p>
+<ol type="1">
+<li><b>Reference:</b> This default implementation gives guidance on partitioning member operations between highly sensitive ones that use the <code>f</code> value of the member private key, and less sensitive ones that can be performed in a host environment. To build in default mode, refer to <a class="el" href="BuildingSdk.html">Building from Source</a>.</li>
+<li><b>TPM:</b> This TPM member implementation uses the TPM for signing by linking to the IBM TSS. To build in TPM mode, refer to <a class="el" href="TpmConsiderations.html#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a>.</li>
+<li><b>Tiny:</b> This tiny implementation builds the SDK with a substantially reduced code size. To build in tiny mode, refer to <a class="el" href="BuildingSdk.html#BuildingSdk_Tiny">Optimizing for Code Size</a>.</li>
+</ol>
 <h1><a class="anchor" id="ImplementationNotes_Prng"></a>
 Random Number Generation</h1>
 <p>Some SDK APIs require a random number data source. A <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c" title="Generates random data. ">BitSupplier</a> provides a source of random data. This function should be a cryptographically secure random number generator.</p>
@@ -95,7 +103,8 @@ Octstring/Buffer Types</h1>
 Flexible Arrays</h1>
 <p>A common idiom in the SDK is the use of flexible array types. These types are structs with the last element being an array of size 1 of some type. Flexible array types always have a size value embedded in the struct. The name of the count and array fields differs between flexible array types.</p>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>Sample {</div><div class="line">  <a class="code" href="struct_oct_str32.html">OctStr32</a> data;        </div><div class="line">  <a class="code" href="struct_oct_str32.html">OctStr32</a> count;       </div><div class="line">  <a class="code" href="struct_g1_elem_str.html">G1ElemStr</a> array[1];   </div><div class="line">} Sample;</div></div><!-- fragment --><p>Flexible array types are expected to be in a buffer of size <code>sizeof(FA) + ((N-1) * sizeof(E))</code> where FA is the flexible array type, N is the number of elements in the array and E is the type of each element. Note that this may be smaller than <code>sizeof(FA)</code> if N is 0, in which case referencing any element is an error.</p>
-<div class="fragment"><div class="line">Sample* AllocSample(<span class="keywordtype">size_t</span> count) {</div><div class="line">  <span class="keywordflow">return</span> (Sample*)malloc(<span class="keyword">sizeof</span>(Sample)</div><div class="line">      + (count * <span class="keyword">sizeof</span>(<a class="code" href="struct_g1_elem_str.html">G1ElemStr</a>))</div><div class="line">      - <span class="keyword">sizeof</span>(<a class="code" href="struct_g1_elem_str.html">G1ElemStr</a>));</div><div class="line">}</div></div><!-- fragment --><p>In many cases, functions that accept flexible array types will also expect a buffer size that is compared against the computed size of the array as a sanity check. </p>
+<div class="fragment"><div class="line">Sample* AllocSample(<span class="keywordtype">size_t</span> count) {</div><div class="line">  <span class="keywordflow">return</span> (Sample*)malloc(<span class="keyword">sizeof</span>(Sample)</div><div class="line">      + (count * <span class="keyword">sizeof</span>(<a class="code" href="struct_g1_elem_str.html">G1ElemStr</a>))</div><div class="line">      - <span class="keyword">sizeof</span>(<a class="code" href="struct_g1_elem_str.html">G1ElemStr</a>));</div><div class="line">}</div></div><!-- fragment --><p>In many cases, functions that accept flexible array types will also expect a buffer size that is compared against the computed size of the array as a sanity check.</p>
+<p>*Other names and brands may be claimed as the property of others. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->

@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">5.0.0</span>
+&#160;<span id="projectnumber">6.0.0</span>
 </div>
   </td>
  </tr>
@@ -61,7 +61,34 @@ $(document).ready(function(){initNavTree('ChangeLog.html','');});
 <div class="title">What's New </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>[5.0.0] - 2017-09-15</h2>
+<div class="textblock"><h2>[6.0.0] - 2017-12-15</h2>
+<h3>Added</h3>
+<ul>
+<li>The member can now be built with a substantially reduced code size using a compilation option.</li>
+<li>New context lifetime management APIs have been added to member to give callers more control of memory allocation.</li>
+<li>New member API <code>EpidClearRegisteredBasenames</code> has been added to clear registered basenames without recreating the member.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><code>EpidRegisterBaseName</code> was renamed to <code>EpidRegisterBasename</code> because basename is a single word.</li>
+<li>Command-line parsing library used by samples and tools has been replaced by Argtable3.</li>
+</ul>
+<h3>Deprecated</h3>
+<ul>
+<li><code>EpidMemberCreate</code> has been deprecated. This API has been superseded by <code>EpidMemberGetSize</code> and <code>EpidMemberInit</code>.</li>
+<li><code>EpidMemberDelete</code> has been deprecated. This API has been superseded by <code>EpidMemberDeinit</code>.</li>
+</ul>
+<h3>Removed</h3>
+<ul>
+<li><code>size_optimized_release</code> build configuration has been removed. Use the compilation option to build member with reduced code size.</li>
+</ul>
+<h3>Known Issues</h3>
+<ul>
+<li>Only the SHA-256 hash algorithm is supported when using the SDK with the IBM TPM simulator due to a defect in version 532 of the simulator.</li>
+<li>Basenames are limited to 124 bytes in TPM mode.</li>
+<li>Scons build will not work natively on ARM. You can still build using <code>make</code> or cross compile.</li>
+</ul>
+<h2>[5.0.0] - 2017-09-15</h2>
 <h3>Added</h3>
 <ul>
 <li>The member implementation now has the option to support signing using a TPM, using the ECDAA capabilities of TPM 2.0.</li>

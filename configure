@@ -584,7 +584,8 @@ PACKAGE_URL=''
 ac_default_prefix=`pwd`/_install
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-CONFIG
+TINY
+TSS_PATH
 RANLIB
 ac_ct_CXX
 CXXFLAGS
@@ -615,7 +616,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -638,7 +638,8 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_config
+with_tss
+enable_tiny
 '
       ac_precious_vars='build_alias
 host_alias
@@ -689,7 +690,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -942,15 +942,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1088,7 +1079,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1241,7 +1232,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1268,13 +1258,18 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-tiny           Build size optimized member. Mutually exclusive with
+                          '--with-tss'
+
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-config=type      Choose config type. Possible options are:
-                          --with-config=release,
-                          --with-config=size_optimized_release. Default is
-                          'release' if no option is specified.
+  --with-tss              Link with TPM TSS. The TSSROOT environment variable
+                          must be set.
 
 Some influential environment variables:
   CC          C compiler command
@@ -2753,23 +2748,64 @@ CFLAGS="$CFLAGS_OLD"
 CPPFLAGS="$CPPFLAGS_OLD"
 
 
-# Check whether --with-config was given.
-if test "${with_config+set}" = set; then :
-  withval=$with_config;
+# Check whether --with-tss was given.
+if test "${with_tss+set}" = set; then :
+  withval=$with_tss;
 else
-  with_config=release
+  with_tss=no
 
 fi
 
 
-CONFIG="release"
 
-if test "x$with_config" != "xrelease"; then :
 
-  CONFIG=size_optimized_release
+if test "x$with_tss" != "xno"; then :
+  as_ac_File=`$as_echo "ac_cv_file_$TSSROOT" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $TSSROOT" >&5
+$as_echo_n "checking for $TSSROOT... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "$TSSROOT"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  TSS_PATH=$TSSROOT
+else
+
+        as_fn_error $? "Necessary environment variable not set or set incorrectly:  'TSSROOT'" "$LINENO" 5
 
 fi
 
+fi
+
+
+# Check whether --enable-tiny was given.
+if test "${enable_tiny+set}" = set; then :
+  enableval=$enable_tiny;
+else
+  enable_tiny=no
+
+fi
+
+
+
+if test "x$enable_tiny" != "xno"; then :
+  if test "x$with_tss" != "xno"; then :
+
+       as_fn_error $? "Size optimized member can not link with TPM TSS" "$LINENO" 5
+
+fi
+    TINY=yes
+fi
 # default install path is current directory
 
 ac_config_files="$ac_config_files Makefile"

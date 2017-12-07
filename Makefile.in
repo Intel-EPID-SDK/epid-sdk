@@ -9,21 +9,11 @@ CXX = @CXX@
 CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
 RANLIB = @RANLIB@
-CONFIG = @CONFIG@
+TSS_PATH = @TSS_PATH@
+TINY = @TINY@
 
 #set performance affecting flags
-ifeq ($(CONFIG),release)
-	SIZE_CFLAGS := -O2
-else
-	SIZE_CFLAGS := -Os
-	ifeq ($(findstring icc,$(CC)),icc)
-		ifeq ($(findstring -m32,$(CFLAGS)),-m32)
-			SIZE_CFLAGS := -O2
-		endif
-	endif
-	SIZE_CFLAGS += -fdata-sections -ffunction-sections
-	LDFLAGS += -Xlinker --gc-sections
-endif
+SIZE_CFLAGS := -O2
 
 #gcc flags
 CC_FLAGS := $(CFLAGS) $(SIZE_CFLAGS) -Werror -Wall -Wextra -Wno-missing-braces \
@@ -46,7 +36,7 @@ else
 	CXX11_FLAG = -std=gnu++11
 	EXE_EXTENSION = .exe
 endif
-$(info $(EXE_EXTENSION))
+
 #g++ flags
 CXX_FLAGS := $(CC_FLAGS) $(CXX11_FLAG)
 
@@ -77,8 +67,7 @@ else
 endif
 
 #set ippflags
-IPP_FLAGS := -Wno-misleading-indentation -D_IPP_v50_ -D_IPP_DEBUG \
-	-D_DISABLE_ALG_MD5_ -D_DISABLE_ALG_SM3_
+IPP_FLAGS := -D_IPP_v50_ -D_IPP_DEBUG -D_DISABLE_ALG_MD5_ -D_DISABLE_ALG_SM3_
 
 #set tools and flags depending on specified compiler
 ifeq ($(findstring icc,$(CC)),icc)
@@ -110,15 +99,16 @@ export AR RANLIB
 export epidinstalldir
 export GTEST_FLAGS GTEST_DEFINES IPP_FLAGS
 export EXE_EXTENSION
+export TSS_PATH
+export TINY
 
-#just output
+#output of the main parameters
 $(info $$ccompiler is [${CC}])
 $(info $$cxxcompiler is [${CXX}])
 $(info $$architecture is [${ARCH}])
-
 #targets part
 all:
-	$(MAKE) ipp common member verifier dropt examples_util
+	$(MAKE) ipp common member verifier argtable3 examples_util
 	$(MAKE) examples epid_tools
 
 clean:
@@ -131,7 +121,7 @@ clean:
 	$(MAKE) -C ./tools/ clean
 	$(MAKE) -C ./ext/gtest/ clean
 	$(MAKE) -C ./epid/common-testhelper/ clean
-	$(MAKE) -C ./ext/dropt/ clean
+	$(MAKE) -C ./ext/argtable3/ clean
 ifneq ("$(wildcard ./ext/google_benchmark)","")
 	$(MAKE) -C ./ext/google_benchmark/ clean
 endif
@@ -178,8 +168,8 @@ verifier_utest:
 gtest:
 	$(MAKE) -C ./ext/gtest/ all
 
-dropt:
-	$(MAKE) -C ./ext/dropt/ all
+argtable3:
+	$(MAKE) -C ./ext/argtable3/ all
 
 examples_util:
 	$(MAKE) -C ./example/util/ all

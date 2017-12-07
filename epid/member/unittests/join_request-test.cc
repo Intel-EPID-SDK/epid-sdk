@@ -168,7 +168,6 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidGroupKey) {
 
 TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
   Prng prng;
-  MemberCtx* member;
   MemberParams params = {0};
   GroupPubKey pub_key = kPubKey;
   FpElemStr f = {
@@ -184,14 +183,27 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
   JoinRequest join_request;
   EpidStatus sts;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
-  // Either Create or CreateJoinRequest should return kEpidBadArgErr for a
-  // bad f.
-  sts = EpidMemberCreate(&params, &member);
+
+  std::unique_ptr<uint8_t[]> member;
+  size_t context_size = 0;
+  sts = EpidMemberGetSize(&params, &context_size);
+  EXPECT_TRUE(kEpidNoErr == sts || kEpidBadArgErr == sts)
+      << "Actual value " << sts;
+
   if (kEpidNoErr == sts) {
-    sts = EpidCreateJoinRequest(member, &pub_key, &ni, &join_request);
-    EpidMemberDelete(&member);
+    member.reset(new uint8_t[context_size]());
+    sts = EpidMemberInit(&params, (MemberCtx*)member.get());
+    EXPECT_TRUE(kEpidNoErr == sts || kEpidBadArgErr == sts)
+        << "Actual value " << sts;
   }
-  EXPECT_EQ(kEpidBadArgErr, sts);
+
+  if (kEpidNoErr == sts) {
+    sts = EpidCreateJoinRequest((MemberCtx*)member.get(), &pub_key, &ni,
+                                &join_request);
+    EXPECT_EQ(kEpidBadArgErr, sts);
+  }
+
+  EpidMemberDeinit((MemberCtx*)member.get());
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestWorksGivenValidParameters) {

@@ -20,7 +20,7 @@
  * \brief Extract group keys from group key output file
  */
 
-#include <dropt.h>
+#include <argtable3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +33,8 @@
 #include "util/strutil.h"
 
 #define PROGRAM_NAME "extractgrps"
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 5
 
 #pragma pack(1)
 /// Intel(R) EPID Key Output File Entry
@@ -52,138 +54,118 @@ int main(int argc, char* argv[]) {
   size_t num_keys_extracted = 0;
   size_t num_keys_in_file = 0;
 
-  char* end = NULL;
   FILE* file = NULL;
 
-  unsigned int i = 0;
+  int i = 0;
   size_t bytes_read = 0;
 
-  // File to extract keys from
-  static char* keyfile_name = NULL;
-
-  // Number of keys to extract
-  static size_t num_keys_to_extract = 0;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
-  dropt_option options[] = {
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
+  struct arg_file* keyfile =
+      arg_file1(NULL, NULL, "FILE", "FILE containing keys to extract");
+  struct arg_int* num_keys_to_extract =
+      arg_int1(NULL, NULL, "NUM", "number of keys to extract");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-      {0} /* Required sentinel value. */
-  };
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = keyfile;
+  argtable[1] = num_keys_to_extract;
+  argtable[2] = help;
+  argtable[3] = verbose;
+  argtable[4] = end;
 
-  dropt_context* dropt_ctx = NULL;
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    dropt_ctx = dropt_new_context(options);
-    if (!dropt_ctx) {
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
       break;
-    } else if (argc > 0) {
-      /* Parse the arguments from argv.
-      *
-      * argv[1] is always safe to access since argv[argc] is guaranteed
-      * to be NULL and since we've established that argc > 0.
-      */
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
-        ret_value = EXIT_FAILURE;
-        break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]... [FILE] [NUM]\n"
-            "Extract the first NUM group certs from FILE to current "
-            "directory\n"
-            "\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        ret_value = EXIT_SUCCESS;
-        break;
-      } else {
-        // number of arguments rest
-        size_t rest_count = 0;
+    }
 
-        if (verbose) {
-          verbose = ToggleVerbosity();
-        }
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
 
-        // count number of arguments rest
-        while (rest[rest_count]) rest_count++;
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]... [FILE] [NUM]\n"
+          "Extract the first NUM group certs from FILE to current "
+          "directory\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      ret_value = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
 
-        if (2 != rest_count) {
-          log_error("unexpected number of arguments", *rest);
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-
-        keyfile_name = rest[0];
-
-        num_keys_to_extract = strtoul(rest[1], &end, 10);
-        if ('\0' != *end) {
-          log_error("input '%s' is invalid: not a valid number of group keys",
-                    rest[1]);
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-      }
+    if (num_keys_to_extract->ival[0] < 0) {
+      log_error("unable extract negative number of keys");
+      ret_value = EXIT_FAILURE;
+      break;
     }
 
     // check file existence
-    if (!FileExists(keyfile_name)) {
-      log_error("cannot access '%s'", keyfile_name);
+    if (!FileExists(keyfile->filename[0])) {
+      log_error("cannot access '%s'", keyfile->filename[0]);
       ret_value = EXIT_FAILURE;
       break;
     }
 
-    keyfile_size = GetFileSize(keyfile_name);
+    keyfile_size = GetFileSize(keyfile->filename[0]);
     if (0 != keyfile_size % sizeof(EpidBinaryGroupCertificate)) {
       log_error(
           "input file '%s' is invalid: does not contain integral number of "
           "group keys",
-          keyfile_name);
+          keyfile->filename[0]);
       ret_value = EXIT_FAILURE;
       break;
     }
     num_keys_in_file = keyfile_size / sizeof(EpidBinaryGroupCertificate);
 
-    if (num_keys_to_extract > num_keys_in_file) {
-      log_error("can not extract %d keys: only %d in file", num_keys_to_extract,
-                num_keys_in_file);
+    if ((unsigned int)num_keys_to_extract->ival[0] > num_keys_in_file) {
+      log_error("can not extract %d keys: only %d in file",
+                num_keys_to_extract->ival[0], num_keys_in_file);
       ret_value = EXIT_FAILURE;
       break;
     }
 
-    file = fopen(keyfile_name, "rb");
+    file = fopen(keyfile->filename[0], "rb");
     if (!file) {
-      log_error("failed read from '%s'", keyfile_name);
+      log_error("failed read from '%s'", keyfile->filename[0]);
       ret_value = EXIT_FAILURE;
       break;
     }
 
     // start extraction
-    for (i = 0; i < num_keys_to_extract; i++) {
+    for (i = 0; i < num_keys_to_extract->ival[0]; i++) {
       EpidBinaryGroupCertificate temp;
       int seek_failed = 0;
       seek_failed = fseek(file, i * sizeof(temp), SEEK_SET);
       bytes_read = fread(&temp, 1, sizeof(temp), file);
       if (seek_failed || bytes_read != sizeof(temp)) {
-        log_error("failed to extract key #%lu from '%s'", i, keyfile_name);
+        log_error("failed to extract key #%lu from '%s'", i,
+                  keyfile->filename[0]);
       } else {
         // ulong max = 4294967295
         char outkeyname[256] = {0};
@@ -192,7 +174,7 @@ int main(int argc, char* argv[]) {
             memcmp(&kEpidFileTypeCode[kGroupPubKeyFile], &temp.header.file_type,
                    sizeof(temp.header.file_type))) {
           log_error("failed to extract key #%lu from '%s': file is invalid", i,
-                    keyfile_name);
+                    keyfile->filename[0]);
           ret_value = EXIT_FAILURE;
           break;
         }
@@ -203,7 +185,8 @@ int main(int argc, char* argv[]) {
           break;
         }
         if (0 != WriteLoud(&temp, sizeof(temp), outkeyname)) {
-          log_error("failed to write key #%lu from '%s'", i, keyfile_name);
+          log_error("failed to write key #%lu from '%s'", i,
+                    keyfile->filename[0]);
         } else {
           num_keys_extracted++;
         }
@@ -221,7 +204,7 @@ int main(int argc, char* argv[]) {
     file = NULL;
   }
 
-  dropt_free_context(dropt_ctx);
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
   return ret_value;
 }

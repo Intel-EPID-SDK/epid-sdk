@@ -21,7 +21,7 @@
  *
  */
 
-#include <dropt.h>
+#include <argtable3.h>
 #include <stdlib.h>
 #include <string.h>
 #include "epid/common/file_parser.h"
@@ -36,6 +36,8 @@
 #define SIG_DEFAULT "sig.dat"
 #define GROUP_PUB_KEY_SIZE \
   (sizeof(EpidFileHeader) + sizeof(GroupPubKey) + sizeof(EcdsaSignature))
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 9
 
 #pragma pack(1)
 /// Partial signature request, includes components through sig.
@@ -107,147 +109,124 @@ int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_FAILURE;
 
-  // Signature file name parameter
-  static char* sig_file = NULL;
-
   // Message string parameter
   static char* msg_str = NULL;
   size_t msg_size = 0;
-  static char* msg_file = NULL;
   char* msg_buf = NULL;  // message loaded from msg_file
 
-  // Signature revocation request file name parameter
-  static char* req_file = NULL;
-
-  // Group public key file name parameter
-  static char* pubkey_file = NULL;
-
-  // CA certificate file name parameter
-  static char* cacert_file = NULL;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
-  dropt_option options[] = {
-      {'\0', "sig",
-       "load signature to revoke from FILE (default: " SIG_DEFAULT ")", "FILE",
-       dropt_handle_string, &sig_file},
-      {'\0', "msg", "MESSAGE used to generate signature to revoke", "MESSAGE",
-       dropt_handle_string, &msg_str},
-      {'\0', "msgfile",
-       "FILE containing message used to generate signature to revoke", "FILE",
-       dropt_handle_string, &msg_file},
-      {'\0', "gpubkey",
-       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")",
-       "FILE", dropt_handle_string, &pubkey_file},
-      {'\0', "capubkey", "load IoT Issuing CA public key from FILE", "FILE",
-       dropt_handle_string, &cacert_file},
-      {'\0', "req",
-       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
-       ")",
-       "FILE", dropt_handle_string, &req_file},
+  struct arg_file* sig_file = arg_file0(
+      NULL, "sig", "FILE",
+      "load signature to revoke from FILE (default: " SIG_DEFAULT ")");
+  struct arg_str* msg =
+      arg_str0(NULL, "msg", "MESSAGE",
+               "MESSAGE used to generate signature to revoke (default: empty)");
+  struct arg_file* msg_file =
+      arg_file0(NULL, "msgfile", "FILE",
+                "FILE containing message used to generate signature to revoke");
+  struct arg_file* pubkey_file = arg_file0(
+      NULL, "gpubkey", "FILE",
+      "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
+  struct arg_file* cacert_file = arg_file1(
+      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+  struct arg_file* req_file = arg_file0(
+      NULL, "req", "FILE",
+      "append signature revocation request to FILE (default: " REQFILE_DEFAULT
+      ")");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = sig_file;
+  argtable[1] = msg;
+  argtable[2] = msg_file;
+  argtable[3] = pubkey_file;
+  argtable[4] = cacert_file;
+  argtable[5] = req_file;
+  argtable[6] = help;
+  argtable[7] = verbose;
+  argtable[8] = end;
 
-      {0} /* Required sentinel value. */
-  };
-
-  dropt_context* dropt_ctx = NULL;
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    dropt_ctx = dropt_new_context(options);
-    if (!dropt_ctx) {
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
       break;
-    } else if (argc > 0) {
-      /* Parse the arguments from argv.
-       *
-       * argv[1] is always safe to access since argv[argc] is guaranteed
-       * to be NULL and since we've established that argc > 0.
-       */
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
-        ret_value = EXIT_FAILURE;
-        break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]...\n"
-            "Revoke Intel(R) EPID signature\n"
-            "\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        ret_value = EXIT_SUCCESS;
-        break;
-      } else if (*rest) {
-        // we have unparsed (positional) arguments
-        log_error("invalid argument: %s", *rest);
-        fprintf(stderr, "Try '%s --help' for more information.\n",
-                PROGRAM_NAME);
-        ret_value = EXIT_FAILURE;
-        break;
-      } else {
-        if (verbose) {
-          verbose = ToggleVerbosity();
-        }
-        if (!sig_file) {
-          sig_file = SIG_DEFAULT;
-        }
-
-        if (msg_str && msg_file) {
-          log_error("--msg and --msgfile cannot be used together");
-          ret_value = EXIT_FAILURE;
-          break;
-        } else if (msg_str) {
-          msg_size = strlen(msg_str);
-        } else if (msg_file) {
-          msg_buf = NewBufferFromFile(msg_file, &msg_size);
-          if (!msg_buf) {
-            ret_value = EXIT_FAILURE;
-            break;
-          }
-          msg_str = msg_buf;
-        } else {
-          msg_size = 0;
-        }
-
-        if (!pubkey_file) {
-          pubkey_file = PUBKEYFILE_DEFAULT;
-        }
-        if (!cacert_file) {
-          log_error("issuing CA public key must be specified");
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-        if (!req_file) {
-          req_file = REQFILE_DEFAULT;
-        }
-        if (verbose) {
-          log_msg("\nOption values:");
-          log_msg(" sig_file      : %s", sig_file);
-          log_msg(" msg_str       : %s", msg_str);
-          log_msg(" pubkey_file   : %s", pubkey_file);
-          log_msg(" cacert_file   : %s", cacert_file);
-          log_msg(" req_file      : %s", req_file);
-          log_msg("");
-        }
-      }
     }
 
-    ret_value = MakeRequest(cacert_file, sig_file, pubkey_file, req_file,
-                            msg_str, msg_size, verbose);
+    /* set any command line default values prior to parsing */
+    sig_file->filename[0] = SIG_DEFAULT;
+    pubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
+    req_file->filename[0] = REQFILE_DEFAULT;
+
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
+
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]...\n"
+          "Revoke Intel(R) EPID signature\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      ret_value = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+
+    if (msg->count > 0 && msg_file->count > 0) {
+      log_error("options --msg and --msgfile cannot be used together");
+      ret_value = EXIT_FAILURE;
+      break;
+    } else if (msg->count > 0) {
+      msg_str = (char*)msg->sval[0];
+      msg_size = strlen(msg_str);
+    } else if (msg_file->count > 0) {
+      msg_buf = NewBufferFromFile(msg_file->filename[0], &msg_size);
+      if (!msg_buf) {
+        ret_value = EXIT_FAILURE;
+        break;
+      }
+      msg_str = msg_buf;
+    } else {
+      msg_size = 0;
+    }
+
+    if (verbose_flag) {
+      log_msg("\nOption values:");
+      log_msg(" sig_file      : %s", sig_file->filename[0]);
+      log_msg(" msg_str       : %s", msg_str);
+      log_msg(" pubkey_file   : %s", pubkey_file->filename[0]);
+      log_msg(" cacert_file   : %s", cacert_file->filename[0]);
+      log_msg(" req_file      : %s", req_file->filename[0]);
+      log_msg("");
+    }
+
+    ret_value = MakeRequest(cacert_file->filename[0], sig_file->filename[0],
+                            pubkey_file->filename[0], req_file->filename[0],
+                            msg_str, msg_size, verbose_flag);
   } while (0);
 
   if (msg_buf) {
@@ -255,7 +234,7 @@ int main(int argc, char* argv[]) {
     msg_buf = NULL;
   }
 
-  dropt_free_context(dropt_ctx);
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
   return ret_value;
 }
@@ -389,7 +368,7 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
       log_msg("");
       log_msg(" [in]  Signature Len: %d", (int)sig_size);
       log_msg(" [in]  Signature: ");
-      PrintBuffer(&sig, sig_size);
+      PrintBuffer(sig, sig_size);
       log_msg("");
       log_msg(" [in]  Message Len: %d", (int)msg_size);
       log_msg(" [in]  Message: ");

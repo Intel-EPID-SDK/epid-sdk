@@ -38,6 +38,10 @@
 #include "owncp.h"
 #include "pcpbnumisc.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
 
 /*
 // number of leading zeros
@@ -292,3 +296,7 @@ cpSize cpToOctStr_BNU(Ipp8u* pStr, cpSize strLen, const BNU_CHUNK_T* pA, cpSize 
          return 0;
    }
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

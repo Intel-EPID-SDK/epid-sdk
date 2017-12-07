@@ -21,7 +21,7 @@
  *
  */
 
-#include <dropt.h>
+#include <argtable3.h>
 #include <stdlib.h>
 #include <string.h>
 #include "epid/common/file_parser.h"
@@ -38,7 +38,12 @@ const OctStr16 kEpidFileVersion = {2, 0};
 #define REASON_DEFAULT 0
 #define GROUP_PUB_KEY_SIZE \
   (sizeof(EpidFileHeader) + sizeof(GroupPubKey) + sizeof(EcdsaSignature))
-#define STRINGIZE(a) #a
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 7
+
+// Defined function to get defined number as string
+#define STRINGIZE_(x) #x
+#define STRINGIZE(x) STRINGIZE_(x)
 
 #pragma pack(1)
 /// Group revocation request entry
@@ -88,122 +93,103 @@ int main(int argc, char* argv[]) {
 
   // User Settings
 
-  // Group revocation request file name parameter
-  static char* req_file = NULL;
-
-  // Group public key file name parameter
-  static char* pubkey_file = NULL;
-
-  // CA certificate file name parameter
-  static char* cacert_file = NULL;
-
-  // Revocation reason
-  static uint32_t reason = REASON_DEFAULT;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
-  dropt_option options[] = {
-      {'\0', "gpubkey",
-       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")",
-       "FILE", dropt_handle_string, &pubkey_file},
-      {'\0', "capubkey", "load IoT Issuing CA public key from FILE", "FILE",
-       dropt_handle_string, &cacert_file},
-      {'\0', "reason",
-       "revocation reason (default: " STRINGIZE(REASON_DEFAULT) ")", "FILE",
-       dropt_handle_uint, &reason},
-      {'\0', "req",
-       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
-       ")",
-       "FILE", dropt_handle_string, &req_file},
+  struct arg_file* pubkey_file = arg_file0(
+      NULL, "gpubkey", "FILE",
+      "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
+  struct arg_file* cacert_file = arg_file1(
+      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+  struct arg_int* reason =
+      arg_int0(NULL, "reason", "NUM",
+               "revocation reason (default: " STRINGIZE(REASON_DEFAULT) ")");
+  struct arg_file* req_file = arg_file0(
+      NULL, "req", "FILE",
+      "append signature revocation request to FILE (default: " REQFILE_DEFAULT
+      ")");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = pubkey_file;
+  argtable[1] = cacert_file;
+  argtable[2] = reason;
+  argtable[3] = req_file;
+  argtable[4] = help;
+  argtable[5] = verbose;
+  argtable[6] = end;
 
-      {0} /* Required sentinel value. */
-  };
-  dropt_context* dropt_ctx = NULL;
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    dropt_ctx = dropt_new_context(options);
-    if (!dropt_ctx) {
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
       break;
-    } else if (argc > 0) {
-      /* Parse the arguments from argv.
-      *
-      * argv[1] is always safe to access since argv[argc] is guaranteed
-      * to be NULL and since we've established that argc > 0.
-      */
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
-        ret_value = EXIT_FAILURE;
-        break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]...\n"
-            "Revoke Intel(R) EPID group\n"
-            "\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        ret_value = EXIT_SUCCESS;
-        break;
-      } else if (*rest) {
-        // we have unparsed (positional) arguments
-        log_error("invalid argument: %s", *rest);
-        fprintf(stderr, "Try '%s --help' for more information\n", PROGRAM_NAME);
-        ret_value = EXIT_FAILURE;
-        break;
-      } else {
-        if (reason > UCHAR_MAX) {
-          log_error(
-              "unexpected reason value. Value of the reason must be lesser or "
-              "equal to %d",
-              UCHAR_MAX);
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-        if (verbose) {
-          verbose = ToggleVerbosity();
-        }
-        if (!pubkey_file) {
-          pubkey_file = PUBKEYFILE_DEFAULT;
-        }
-        if (!cacert_file) {
-          log_error("issuing CA public key must be specified");
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-        if (!req_file) {
-          req_file = REQFILE_DEFAULT;
-        }
-        if (verbose) {
-          log_msg("\nOption values:");
-          log_msg(" pubkey_file   : %s", pubkey_file);
-          log_msg(" cacert_file   : %s", cacert_file);
-          log_msg(" reason        : %d", reason);
-          log_msg(" req_file      : %s", req_file);
-          log_msg("");
-        }
-      }
     }
 
-    ret_value = MakeRequest(cacert_file, pubkey_file, req_file, (uint8_t)reason,
-                            verbose);
+    /* set any command line default values prior to parsing */
+    pubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
+    req_file->filename[0] = REQFILE_DEFAULT;
+    reason->ival[0] = REASON_DEFAULT;
+
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
+
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]...\n"
+          "Revoke Intel(R) EPID group\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      ret_value = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+    if (reason->ival[0] < 0 || reason->ival[0] > UCHAR_MAX) {
+      log_error(
+          "unexpected reason value. Value of the reason must be in a range "
+          "from 0 to %d",
+          UCHAR_MAX);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+    if (verbose_flag) {
+      log_msg("\nOption values:");
+      log_msg(" pubkey_file   : %s", pubkey_file->filename[0]);
+      log_msg(" cacert_file   : %s", cacert_file->filename[0]);
+      log_msg(" reason        : %d", reason->ival[0]);
+      log_msg(" req_file      : %s", req_file->filename[0]);
+      log_msg("");
+    }
+
+    ret_value = MakeRequest(cacert_file->filename[0], pubkey_file->filename[0],
+                            req_file->filename[0], (uint8_t)reason->ival[0],
+                            verbose_flag);
   } while (0);
-  dropt_free_context(dropt_ctx);
+
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+
   return ret_value;
 }
 

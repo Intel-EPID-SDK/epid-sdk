@@ -72,10 +72,6 @@ env.Append(CPPDEFINES=['_DISABLE_ALG_MD5_',
 
 env.ExportCPPPATH([AbsDir('sources/include/')])
 
-#disable warning for misleading indentation from GCC 6
-if env['TARGET_PLATFORM']['OS'] == 'posix':
-    env.Append(CCFLAGS='-Wno-misleading-indentation')
-
 if 'install_package' in env['MODE']:
     # All files at /ext/ipp/source/include
     env.InstallTopLevel(install_headers, sub_dir='ext/ipp/include')

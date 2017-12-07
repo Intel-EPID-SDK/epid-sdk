@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,8 +34,9 @@ if 'install_package' in env['MODE']:
 else:
     env.DependsOn([
         Component('member'),
+        Component('common'),
         Component('util'),
-        Component('dropt')
+        Component('argtable3')
     ])
 
     env.Append(CPPPATH='#/example/signmsg')

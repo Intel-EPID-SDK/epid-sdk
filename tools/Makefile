@@ -30,7 +30,7 @@ REVOKESIG_EXE = ./revokesig/src/revokesig$(EXE_EXTENSION)
 
 EPID_SDK_ROOT_DIR = ..
 EXAMPLE_DIR = $(EPID_SDK_ROOT_DIR)/example
-LIB_DROPT_DIR = $(EPID_SDK_ROOT_DIR)/ext/dropt/src
+LIB_ARGTABLE_DIR = $(EPID_SDK_ROOT_DIR)/ext/argtable3
 LIB_UTIL_DIR = $(EPID_SDK_ROOT_DIR)/example/util/src
 LIB_IPPCP_DIR = $(EPID_SDK_ROOT_DIR)/ext/ipp/sources/ippcp/src
 LIB_MEMBER_DIR = $(EPID_SDK_ROOT_DIR)/epid/member
@@ -38,11 +38,11 @@ LIB_COMMON_DIR = $(EPID_SDK_ROOT_DIR)/epid/common
 
 #set linker flags
 LDFLAGS += -L$(LIB_UTIL_DIR) \
-	-L$(LIB_DROPT_DIR) \
+	-L$(LIB_ARGTABLE_DIR) \
 	-L$(LIB_IPPCP_DIR) \
 	-L$(LIB_COMMON_DIR) \
 	-lcommon \
-	-lippcp -lutil -ldropt
+	-lippcp -lutil -largtable3
 
 $(EXTRACTGRPS_EXE): $(EXTRACTGRPS_OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -50,7 +50,7 @@ $(EXTRACTGRPS_EXE): $(EXTRACTGRPS_OBJ)
 $(EXTRACTGRPS_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
 			-I${EXAMPLE_DIR} -I$(EXTRACTGRPS_INCLUDE_DIR) \
-			-I${LIB_DROPT_DIR}/../include \
+			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
 $(EXTRACTKEYS_EXE): $(EXTRACTKEYS_OBJ)
@@ -59,7 +59,7 @@ $(EXTRACTKEYS_EXE): $(EXTRACTKEYS_OBJ)
 $(EXTRACTKEYS_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
 			-I${EXAMPLE_DIR} -I$(EXTRACTKEYS_INCLUDE_DIR) \
-			-I${LIB_DROPT_DIR}/../include \
+			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
 $(REVOKEGRP_EXE): $(REVOKEGRP_OBJ)
@@ -68,17 +68,21 @@ $(REVOKEGRP_EXE): $(REVOKEGRP_OBJ)
 $(REVOKEGRP_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
 			-I${EXAMPLE_DIR} -I$(REVOKEGRP_INCLUDE_DIR) \
-			-I${LIB_DROPT_DIR}/../include \
+			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
+MEMBER_LIBS = -lmember
+ifneq ($(TINY),)
+    MEMBER_LIBS += -lmath -ltiny_stdlib
+endif
 $(REVOKEKEY_EXE): $(REVOKEKEY_OBJ)
-	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) $(MEMBER_LIBS) $(LDFLAGS)
 
 $(REVOKEKEY_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
 			-I$(LIB_MEMBER_DIR)/../.. \
 			-I${EXAMPLE_DIR} -I$(REVOKEKEY_INCLUDE_DIR) \
-			-I${LIB_DROPT_DIR}/../include \
+			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
 $(REVOKESIG_EXE): $(REVOKESIG_OBJ)
@@ -87,7 +91,7 @@ $(REVOKESIG_EXE): $(REVOKESIG_OBJ)
 $(REVOKESIG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(EPID_SDK_ROOT_DIR) \
 			-I${EXAMPLE_DIR} -I$(REVOKESIG_INCLUDE_DIR) \
-			-I${LIB_DROPT_DIR}/../include \
+			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
 #target part

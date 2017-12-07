@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">5.0.0</span>
+&#160;<span id="projectnumber">6.0.0</span>
 </div>
   </td>
  </tr>
@@ -108,47 +108,22 @@ What Do You Need to Create a Signature?</h2>
 Signing Example</h2>
 <p>The signmsg command can be passed a number of options: </p><pre class="fragment">$ ./signmsg -h
 Usage: signmsg [OPTION]...
-Create Intel(R) EPID signature of message
+Verify signature was created by group member in good standing
 
 Options:
-  --sig=FILE
-      write signature to FILE (default: sig.dat)
-
-  --msg=MESSAGE
-      MESSAGE to sign
-
-  --msgfile=FILE
-      FILE containing message to sign
-
-  --bsn=BASENAME
-      BASENAME to sign with (default: random)
-
-  --bsnfile=FILE
-      FILE containing basename to sign with
-
-  --sigrl=FILE
-      load signature based revocation list from FILE
-
-  --gpubkey=FILE
-      load group public key from FILE (default: pubkey.bin)
-
-  --mprivkey=FILE
-      load member private key from FILE (default: mprivkey.dat)
-
-  --mprecmpi=FILE
-      load pre-computed member data from FILE
-
-  --capubkey=FILE
-      load IoT Issuing CA public key from FILE (default: cacert.bin)
-
-  --hashalg={SHA-256 | SHA-384 | SHA-512 | SHA-512/256}
-      use specified hash algorithm (default: SHA-512)
-
-  -h, --help
-      display this help and exit
-
-  -v, --verbose
-      print status messages to stdout
+  --sig=FILE                write signature to FILE (default: sig.dat)
+  --msg=MESSAGE             MESSAGE to sign
+  --msgfile=FILE            FILE containing message to sign
+  --bsn=BASENAME            BASENAME to sign with (default: random)
+  --bsnfile=FILE            FILE containing basename to sign with
+  --sigrl=FILE              load signature based revocation list from FILE
+  --gpubkey=FILE            load group public key from FILE (default: pubkey.bin)
+  --mprivkey=FILE           load member private key from FILE (default: mprivkey.dat)
+  --mprecmpi=FILE           load pre-computed member data from FILE
+  --capubkey=FILE           load IoT Issuing CA public key from FILE (default: cacert.bin)
+  --hashalg={SHA-256 | SHA-384 | SHA-512 | SHA-512/256} use specified hash algorithm (default: SHA-512)
+  --help                    display this help and exit
+  -v, --verbose             print status messages to stdout
 </pre><p>To sign a message, a group member in good standing uses the following command: </p><pre class="fragment">$ ./signmsg --msg="test0"
 </pre><p>The above command signs a message "test0". <code>signmsg</code> uses default options for the group public key, member private key, hash algorithm and IoT Issuing CA public key. All other parameters that are not given are ignored. The command produces a signature file: <code>sig.dat</code></p>
 <h1><a class="anchor" id="tutorial_verifysigOverview"></a>
@@ -175,58 +150,25 @@ What Do You Need to Verify a Signature?</h2>
 Verification Example</h2>
 <p>The verifysig command can be passed a number of options: </p><pre class="fragment">$ ./verifysig -h
 Usage: verifysig [OPTION]...
-Verify signature was created by group member in good standing
+Create Intel(R) EPID signature of message
 
 Options:
-  --sig=FILE
-      load signature from FILE (default: sig.dat)
-
-  --msg=MESSAGE
-      MESSAGE that was signed (default: empty)
-
-  --msgfile=FILE
-      FILE containing message that was signed
-
-  --bsn=BASENAME
-      BASENAME used in signature (default: random)
-
-  --bsnfile=FILE
-      FILE containing basename to sign with
-
-  --privrl=FILE
-      load private key revocation list from FILE
-
-  --sigrl=FILE
-      load signature based revocation list from FILE
-
-  --grprl=FILE
-      load group revocation list from FILE
-       (default: grprl.bin)
-
-  --verifierrl=FILE
-      load verifier revocation list from FILE
-
-  --gpubkey=FILE
-      load group public key from FILE (default: pubkey.bin)
-
-  --vprecmpi=FILE
-      load pre-computed verifier data from FILE
-
-  --vprecmpo=FILE
-      write pre-computed verifier data to FILE
-
-  --capubkey=FILE
-      load IoT Issuing CA public key from FILE
-   (default: cacert.bin)
-
-  --hashalg={SHA-256 | SHA-384 | SHA-512 | SHA-512/256}
-      use specified hash algorithm for 2.0 groups (default: SHA-512)
-
-  -h, --help
-  display this help and exit
-
-  -v, --verbose
-      print status messages to stdout
+  --sig=FILE                load signature from FILE (default: sig.dat)
+  --msg=MESSAGE             MESSAGE that was signed (default: empty)
+  --msgfile=FILE            FILE containing message that was signed
+  --bsn=BASENAME            BASENAME used in signature (default: random)
+  --bsnfile=FILE            FILE containing basename used in signature
+  --privrl=FILE             load private key revocation list from FILE
+  --sigrl=FILE              load signature based revocation list from FILE
+  --grprl=FILE              load group revocation list from FILE (default: grprl.bin)
+  --verifierrl=FILE         load verifier revocation list from FILE
+  --gpubkey=FILE            load group public key from FILE (default: pubkey.bin)
+  --vprecmpi=FILE           load pre-computed verifier data from FILE
+  --vprecmpo=FILE           write pre-computed verifier data to FILE
+  --capubkey=FILE           load IoT Issuing CA public key from FILE (default: cacert.bin)
+  --hashalg={SHA-256 | SHA-384 | SHA-512 | SHA-512/256} use specified hash algorithm for 2.0 groups (default: SHA-512)
+  --help                    display this help and exit
+  -v, --verbose             print status messages to stdout
 </pre><p>To verify that a signature is from a member in good standing, the verifier uses the following command: </p><pre class="fragment">$ ./verifysig --msg="test0"
 signature verified successfully
 </pre><p>This verifies that the default signature file <code>sig.dat</code> is generated for the message "test0" by a member in good standing. The <code>verifysig</code> example uses default inputs for group public key, hash algorithm, and IoT Issuing CA public key. All other parameters are ignored. The output <code>verifysig: signature verified successfully</code> denotes that the verification is successful.</p>

@@ -50,7 +50,6 @@ EpidStatus ProvisionCompressedAndStart(
 }
 
 TEST_F(EpidMemberTest, ProvisionCompressedFailsGivenNullParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   CompressedPrivKey priv_key = this->kGrpXMember9CompressedKey;
@@ -60,7 +59,8 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsGivenNullParameters) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
+
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionCompressed(nullptr, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
@@ -73,11 +73,9 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsGivenNullParameters) {
             EpidProvisionCompressed(member, nullptr, &priv_key, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionCompressed(member, &pub_key, nullptr, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCompressedSucceedsGivenValidParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   CompressedPrivKey priv_key = this->kGrpXMember9CompressedKey;
@@ -87,16 +85,15 @@ TEST_F(EpidMemberTest, ProvisionCompressedSucceedsGivenValidParameters) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
+
   EXPECT_EQ(kEpidNoErr,
             EpidProvisionCompressed(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidNoErr,
             EpidProvisionCompressed(member, &pub_key, &priv_key, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidGroupPubKey) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   CompressedPrivKey priv_key = this->kGrpXMember9CompressedKey;
@@ -106,7 +103,7 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidGroupPubKey) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   pub_key = this->kGrpXKey;
   pub_key.h1.x.data.data[0]++;
@@ -149,12 +146,9 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidGroupPubKey) {
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidPrivateKey) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   CompressedPrivKey priv_key = this->kGrpXMember9CompressedKey;
@@ -164,7 +158,7 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidPrivateKey) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   priv_key = this->kGrpXMember9CompressedKey;
   priv_key.ax.data.data[0]++;
@@ -179,8 +173,6 @@ TEST_F(EpidMemberTest, ProvisionCompressedFailsForInvalidPrivateKey) {
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 }  // namespace

@@ -49,6 +49,9 @@ EpidStatus EpidSign(MemberCtx const* ctx, void const* msg, size_t msg_len,
     // if basename is non-empty it must have both length and content
     return kEpidBadArgErr;
   }
+  if (!ctx->is_provisioned) {
+    return kEpidOutOfSequenceError;
+  }
   if (EpidGetSigSize(ctx->sig_rl) > sig_len) {
     return kEpidBadArgErr;
   }

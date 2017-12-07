@@ -50,6 +50,7 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
     MembershipCredential member_credential = {0};
     size_t sig_rl_size = 0;
     MemberParams params = {0};
+    size_t member_size = 0;
 
     if (!sig) {
       sts = kEpidBadArgErr;
@@ -86,7 +87,16 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
 
     SetMemberParams(&PrngGen, prng, NULL, &params);
     // create member
-    sts = EpidMemberCreate(&params, &member);
+    sts = EpidMemberGetSize(&params, &member_size);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+    member = (MemberCtx*)calloc(1, member_size);
+    if (!member) {
+      sts = kEpidNoMemErr;
+      break;
+    }
+    sts = EpidMemberInit(&params, member);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -117,7 +127,7 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
 
     // register any provided basename as allowed
     if (0 != basename_len) {
-      sts = EpidRegisterBaseName(member, basename, basename_len);
+      sts = EpidRegisterBasename(member, basename, basename_len);
       if (kEpidNoErr != sts) {
         break;
       }
@@ -177,7 +187,8 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
   } while (0);
 
   PrngDelete(&prng);
-  EpidMemberDelete(&member);
+  EpidMemberDeinit(member);
+  if (member) free(member);
 
   if (sig_rl) free(sig_rl);
 

@@ -101,10 +101,20 @@ TEST_F(EpidMemberTest, SignFailsGivenUnregisteredBasename) {
   std::vector<uint8_t> sig(EpidGetSigSize(&srl));
   THROW_ON_EPIDERR(
       EpidMemberSetSigRl(member, &srl, sizeof(srl) - sizeof(srl.bk)));
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidBadArgErr,
             EpidSign(member, msg.data(), msg.size(), bsn1.data(), bsn1.size(),
                      (EpidSignature*)sig.data(), sig.size()));
+}
+TEST_F(EpidMemberTest, SignsFailsIfNotProvisioned) {
+  Prng my_prng;
+  MemberCtxObj member(&Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  EXPECT_EQ(kEpidOutOfSequenceError,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -166,7 +176,7 @@ TEST_F(EpidMemberTest, SignaturesOfSameMessageWithSameBasenameAreDifferent) {
   std::vector<uint8_t> sig1(EpidGetSigSize(nullptr));
   std::vector<uint8_t> sig2(EpidGetSigSize(nullptr));
   // without signature based revocation list
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSign(member, msg.data(), msg.size(), bsn.data(), bsn.size(),
                      (EpidSignature*)sig1.data(), sig1.size()));
@@ -255,7 +265,7 @@ TEST_F(EpidMemberTest, SignsMessageUsingBasenameNoSigRl) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
@@ -274,7 +284,7 @@ TEST_F(EpidMemberTest, SignsMessageUsingBasenameWithSigRl) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   SigRl const* srl =
       reinterpret_cast<SigRl const*>(this->kSigRl5EntryData.data());
   size_t srl_size = this->kSigRl5EntryData.size() * sizeof(uint8_t);
@@ -297,7 +307,7 @@ TEST_F(EpidMemberTest, SignsUsingRandomBaseWithRegisteredBasenamesNoSigRl) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
@@ -313,7 +323,7 @@ TEST_F(EpidMemberTest, SignsUsingRandomBaseWithRegisteredBasenamesWithSigRl) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   SigRl const* srl =
       reinterpret_cast<SigRl const*>(this->kSigRl5EntryData.data());
   size_t srl_size = this->kSigRl5EntryData.size() * sizeof(uint8_t);
@@ -374,7 +384,7 @@ TEST_F(EpidMemberTest, SignsMessageUsingHugeBasenameNoSigRl) {
   for (size_t i = 0; i < bsn.size(); ++i) {
     bsn[i] = c++;
   }
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
@@ -396,7 +406,7 @@ TEST_F(EpidMemberTest, SignsMessageUsingHugeBasenameWithSigRl) {
   for (size_t i = 0; i < bsn.size(); ++i) {
     bsn[i] = c++;
   }
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   SigRl const* srl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
   size_t srl_size = this->kGrpXSigRl.size() * sizeof(this->kGrpXSigRl[0]);
   std::vector<uint8_t> sig_data(EpidGetSigSize(srl));
@@ -419,7 +429,7 @@ TEST_F(EpidMemberTest, SignsMsgUsingBsnContainingAllPossibleBytesNoSigRl) {
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
                                  bsn.size(), sig, sig_len));
   VerifierCtxObj ctx(this->kGroupPublicKey);
@@ -1001,7 +1011,7 @@ TEST_F(EpidMemberTest, SignsEmptyMessageNoSigRl) {
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
   size_t sig_len = sig_data.size() * sizeof(uint8_t);
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr, EpidSign(member, msg.data(), 0, bsn.data(), bsn.size(),
                                  sig, sig_len));
   VerifierCtxObj ctx(this->kGroupPublicKey);

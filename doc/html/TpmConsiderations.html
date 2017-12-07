@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">5.0.0</span>
+&#160;<span id="projectnumber">6.0.0</span>
 </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(document).ready(function(){initNavTree('TpmConsiderations.html','');});
 <li class="level1"><a href="#TpmConsiderations_Architecture">SDK Member Architecture</a></li>
 <li class="level1"><a href="#TpmConsiderations_Building">Building the SDK to Take Advantage of TPM</a><ul><li class="level2"><a href="#TpmConsiderations_Prereqs">Prerequisites to Build the SDK in TPM Mode</a></li>
 <li class="level2"><a href="#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a></li>
-<li class="level2"><a href="#TpmConsiderations_Signing">Intel&reg; EPID Signing and Verification</a></li>
+<li class="level2"><a href="#TpmConsiderations_Signing">Intel&reg; EPID Signing and Verification with a TPM</a></li>
 </ul>
 </li>
 </ul>
@@ -100,7 +100,7 @@ Provisioning TPM with Intel® EPID Key Material</h2>
 </ul>
 <p>Therefore, in order to provision the TPM with EPS, Intel supports a variation on typical <a class="el" href="Provisioning.html#Provisioning_JoinProvisioning">dynamic provisioning</a> in which manufacturers provide their own EPS.</p>
 <p>In this variation on dynamic provisioning, which we call <b>bulk-join</b>, some steps are performed in bulk and credentials for many devices can be generated at the same time. This process allows TPM devices to be provisioned during manufacturing.</p>
-<p>For bulk-dynamic provisioning, TPM device manufacturers need to do the following:</p>
+<p>For bulk-join, TPM device manufacturers need to do the following:</p>
 <ol type="1">
 <li><b>Generate a set of EPS</b>, because EPS are the seeds from which the <code>f</code> values of the member private keys are generated.</li>
 <li><b>Derive a set of <code>f</code> values</b> from the EPS values.</li>
@@ -142,17 +142,18 @@ Mapping TPM Commands to Intel® EPID</h2>
 </table>
 <h1><a class="anchor" id="TpmConsiderations_Applications"></a>
 Considerations for TPM Applications</h1>
-<p>Unlike non-TPM device manufacturers, TPM manufacturers cannot use EpidProvisionKey. TPMs are designed to protect secret values from access even by the programs that use them. Dynamic provisioning is specifically designed to allow this use case.</p>
+<p>Unlike non-TPM device manufacturers, TPM manufacturers cannot use <a class="el" href="group___epid_member_module.html#ga07094399c1e040b95ae3e58a74e7c302" title="Provisions a member context from a private key. ">EpidProvisionKey</a>. TPMs are designed to protect secret values from access even by the programs that use them. Dynamic provisioning is specifically designed to allow this use case.</p>
 <p>To get a TPM device running, TPM applications can use the following steps to join a group using a TPM protected secret:</p>
 <ol type="1">
-<li>Use <a class="el" href="group___epid_member_module.html#gae7a7b01bc0a84c44c9d14e6c311c1ba7" title="Creates a new member context. ">EpidMemberCreate</a> to create a new member context. <a class="el" href="group___epid_member_module.html#gae7a7b01bc0a84c44c9d14e6c311c1ba7" title="Creates a new member context. ">EpidMemberCreate</a> takes the parameter <a class="el" href="struct_member_params.html" title="Software only specific member parameters. ">MemberParams</a>. You will pass NULL to this struct instead of the <code>f</code> value, which indicates that <code>f</code> needs to be derived from the EPS within the TPM.</li>
+<li>Use <a class="el" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24" title="Computes the size in bytes required for a member context. ">EpidMemberGetSize</a> and <a class="el" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb" title="Initializes a new member context. ">EpidMemberInit</a> to create a new member context. Those functions take the parameter <a class="el" href="struct_member_params.html" title="Software only specific member parameters. ">MemberParams</a>. You will pass NULL to this struct instead of the <code>f</code> value, which indicates that <code>f</code> needs to be derived from the EPS within the TPM.</li>
 <li>Use <a class="el" href="group___epid_member_module.html#gac10008d8c9ba7bc5e5be899ed03c61c3" title="Creates a request to join a group. ">EpidCreateJoinRequest</a> to generate join requests using the <code>f</code> derived from EPS within the TPM. Then send the join request to the issuer to request a membership credential.</li>
-<li>After receiving the membership credential (A, x), use EpidProvisionCredential to provision it into the non-volatile memory of the TPM device.</li>
+<li>After receiving the membership credential (A, x), use <a class="el" href="group___epid_member_module.html#ga788ebc9d1ba6153c637b762484ca1140" title="Provisions a member context from a membership credential. ">EpidProvisionCredential</a> to provision it into the non-volatile memory of the TPM device.</li>
 </ol>
-<p>After the TPM device is provisioned with EpidProvisionCredential, the simplest way to get the device running is:</p>
+<p>After the TPM device is provisioned with <a class="el" href="group___epid_member_module.html#ga788ebc9d1ba6153c637b762484ca1140" title="Provisions a member context from a membership credential. ">EpidProvisionCredential</a>, the simplest way to get the device running is:</p>
 <ol type="1">
-<li><a class="el" href="group___epid_member_module.html#gae7a7b01bc0a84c44c9d14e6c311c1ba7" title="Creates a new member context. ">EpidMemberCreate</a>,</li>
-<li>EpidMemberStartup, and</li>
+<li><a class="el" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24" title="Computes the size in bytes required for a member context. ">EpidMemberGetSize</a>,</li>
+<li><a class="el" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb" title="Initializes a new member context. ">EpidMemberInit</a>,</li>
+<li><a class="el" href="group___epid_member_module.html#gaa2c85b1f0ea17a11ac5d297b21aa30f6" title="Change member from setup state to normal operation. ">EpidMemberStartup</a>, and</li>
 <li><a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a>.</li>
 </ol>
 <h1><a class="anchor" id="TpmConsiderations_Architecture"></a>
@@ -187,10 +188,15 @@ Prerequisites to Build the SDK in TPM Mode</h2>
 Building the SDK in TPM Mode</h2>
 <p>Set the TSSROOT environment variable to the <code>..\ibmtss\utils\</code> folder. Make sure this folder contains the <code>\tss2</code> folder, <code>tss.lib</code> and <code>tss.dll</code>. Example of the command for Windows: </p><pre class="fragment">&gt; set TSSROOT=C:\ibmtss\utils\
 </pre><p>To build the SDK in TPM mode, go to the SDK folder and build the SDK with the following command: </p><pre class="fragment">&gt; scons --target=x86 --use-tss
+</pre><p><br />
+</p>
+<p>To build the SDK in TPM mode using <code>make</code> command, go to the SDK folder and build the SDK with the following commands: </p><pre class="fragment">&gt; ./configure CFLAGS=-m32 --with-tss
+&gt; make all
+&gt; make utest
+&gt; make install
 </pre><p>Because the IBM TSS only supports x86 targets, you must build in x86.</p>
 <h2><a class="anchor" id="TpmConsiderations_Signing"></a>
-Intel® EPID Signing and Verification</h2>
-<p>with a TPM</p>
+Intel® EPID Signing and Verification with a TPM</h2>
 <ol type="1">
 <li>Build the IBM TSS (see above).</li>
 <li>Build the IBM TPM (see above).</li>
@@ -206,7 +212,7 @@ Intel® EPID Signing and Verification</h2>
 <p>Then run:</p>
 <pre class="fragment">&gt; verifysig --hashalg=SHA-256 --msg="test"
 -signature verified successfully
-</pre><dl class="section note"><dt>Note</dt><dd>The samples use <code>LoadExternal</code> to load keys into the TPM. In a real TPM use case, <code>CreatePrimary</code> will be used, and the SDK implementation provides functions for this use case. </dd></dl>
+</pre><dl class="section warning"><dt>Warning</dt><dd>The samples use <code>LoadExternal</code> to load keys into the TPM. In a real TPM use case, <code>CreatePrimary</code> should be used, and the SDK implementation provides functions for this use case. </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->

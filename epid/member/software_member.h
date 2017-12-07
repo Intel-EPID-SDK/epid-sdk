@@ -32,7 +32,7 @@
 /*!
  You need to use a cryptographically secure random
  number generator to create a member context using
- ::EpidMemberCreate. The ::BitSupplier is provided
+ ::EpidMemberGetSize and ::EpidMemberInit. The ::BitSupplier is provided
  as a function prototype for your own implementation
  of the random number generator.
 */

@@ -45,6 +45,10 @@
 
 #include "pcpgfpxstuff.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
 
 
 BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, IppsGFpState* pGFpx, IppBitSupplier rndFunc, void* pRndParam)
@@ -685,3 +689,7 @@ BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU
       return pR;
    }
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

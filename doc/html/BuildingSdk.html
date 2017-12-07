@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">5.0.0</span>
+&#160;<span id="projectnumber">6.0.0</span>
 </div>
   </td>
  </tr>
@@ -64,9 +64,11 @@ $(document).ready(function(){initNavTree('BuildingSdk.html','');});
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#BuildingSdk_Prerequisites">Prerequisites</a></li>
 <li class="level1"><a href="#BuildingSdk_Building_SCons">Building SDK with SCons</a></li>
-<li class="level1"><a href="#BuildingSdk_Building_Makefile">Alternate Makefile/Autoconf Based Build Approach</a></li>
+<li class="level1"><a href="#BuildingSdk_Building_Makefile">Alternate Makefile Based Build Approach</a></li>
 <li class="level1"><a href="#BuildingSdk_CommercialIpp">Improving Performance with Commercial IPP</a></li>
-<li class="level1"><a href="#BuildingSdk_SizeOptimizedBuild">Optimizing Code Size over Performance</a></li>
+<li class="level1"><a href="#BuildingSdk_Tiny">Optimizing for Code Size</a><ul><li class="level2"><a href="#implementation_TinyLimitations">Limitations</a></li>
+</ul>
+</li>
 <li class="level1"><a href="#BuildingSdk_Examples">Example Programs</a></li>
 <li class="level1"><a href="#BuildingSdk_PortingBuildSystem">Building with Other Build Systems</a></li>
 </ul>
@@ -106,8 +108,6 @@ scons
 <tr>
 <td><code>--cfg=release</code> </td><td>Build in release mode </td></tr>
 <tr>
-<td><code>--cfg=size_optimized_release</code> </td><td>Build in release mode optimized for code size </td></tr>
-<tr>
 <td><code>--target=x86</code> </td><td>Target x86 (i386) architecture </td></tr>
 <tr>
 <td><code>--target=x86_64</code> </td><td>Target x86-64 architecture </td></tr>
@@ -118,7 +118,7 @@ scons
 <tr>
 <td><code>--target=aarch64</code> </td><td>Target AArch64 (64-bit ARM) architecture </td></tr>
 <tr>
-<td><code>--tc=cl</code> </td><td>Use MSVC to compile (Microsoft&reg;* C/C++ Optimizing Compiler) </td></tr>
+<td><code>--tc=cl</code> </td><td>Use MSVC to compile (Microsoft&reg;* C/C++ Compiler) </td></tr>
 <tr>
 <td><code>--tc=gcc</code> </td><td>Use GCC to compile (GNU* Compiler Collection) </td></tr>
 <tr>
@@ -137,7 +137,7 @@ scons
 <td><code>-j N</code> or <code>--jobs=N</code> </td><td>Allow N jobs at once </td></tr>
 </table>
 <h1><a class="anchor" id="BuildingSdk_Building_Makefile"></a>
-Alternate Makefile/Autoconf Based Build Approach</h1>
+Alternate Makefile Based Build Approach</h1>
 <p>You can build with the <code>make</code> command on platforms that support Make/Autoconf.</p>
 <p>In the root directory of the SDK, run: </p><pre class="fragment">./configure
 make all
@@ -164,12 +164,25 @@ Improving Performance with Commercial IPP</h1>
 <dl class="section note"><dt>Note</dt><dd>The SDK has been validated with version 2017 (Update 2) of the cryptography library.</dd></dl>
 <p>To build the SDK using a commercial Intel&reg; IPP installation, the <code>IPPROOT</code> environment variable must be properly configured to point to the IPP installation directory, as described in Setting Environment Variables* in the <a href="https://software.intel.com/sites/default/files/managed/11/66/ipp_devguide_0.pdf">Intel&reg; IPP Developer Guide</a> (PDF link).</p>
 <p>Once the environment is configured, you can build using commercial IPP by specifying <code>--use-commercial-ipp</code> as a command line option.</p>
-<h1><a class="anchor" id="BuildingSdk_SizeOptimizedBuild"></a>
-Optimizing Code Size over Performance</h1>
-<p>To build the SDK with optimization for size you should specify <code>size_optimized_release</code> configuration.</p>
-<p>If you use scons to build the SDK use the command line option <code>config=size_optimized_release</code>.</p>
-<p>If you use a make build system, use <code>./configure --with-config=size_optimized_release</code>.</p>
-<p>This configuration will enable size reducing compiler options and other necessary optimizations that reduce the size needed to run the SDK, but may impact performance.</p>
+<h1><a class="anchor" id="BuildingSdk_Tiny"></a>
+Optimizing for Code Size</h1>
+<p>To build the SDK with a member with substantially reduced code size, you can use tiny mode.</p>
+<p>To build with SCons, go to the root directory of the SDK and run: </p><pre class="fragment">scons --prod-var=tiny
+</pre><p>To build with Make, go to the root directory of the SDK and run: </p><pre class="fragment">./configure --enable-tiny
+make all
+make check
+make install
+</pre><h2><a class="anchor" id="implementation_TinyLimitations"></a>
+Limitations</h2>
+<p>By design, a member built in tiny mode has the following limitations:</p>
+<ul>
+<li>TPM mode is not supported.</li>
+<li>Only SHA-256 and SHA-512 are supported.</li>
+<li>Signature pre-computation is not supported.</li>
+<li>Compressed keys are not supported.</li>
+<li>Commercial IPP cannot be used.</li>
+<li>The implementation prioritizes size over performance.</li>
+</ul>
 <h1><a class="anchor" id="BuildingSdk_Examples"></a>
 Example Programs</h1>
 <p>The SDK includes several examples that show you different aspects of how the Intel&reg; EPID scheme works. In the SDK build, these examples are located in <code>_install/epid-sdk/example</code>.</p>

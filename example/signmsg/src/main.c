@@ -19,7 +19,7 @@
  * \brief Signmsg example implementation.
  */
 
-#include <dropt.h>
+#include <argtable3.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -35,6 +35,8 @@
 #define SIG_DEFAULT "sig.dat"
 #define CACERT_DEFAULT "cacert.bin"
 #define HASHALG_DEFAULT "SHA-512"
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 14
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -43,26 +45,6 @@ bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   (void)data;
   (void)size;
   return true;
-}
-
-/// parses string to a hashalg type
-static dropt_error HandleHashalg(dropt_context* context,
-                                 const char* option_argument,
-                                 void* handler_data) {
-  dropt_error err = dropt_error_none;
-  HashAlg* hashalg = handler_data;
-  (void)context;
-  if (option_argument == NULL) {
-    *hashalg = kSha512;
-  } else if (option_argument[0] == '\0') {
-    err = dropt_error_insufficient_arguments;
-  } else if (StringToHashAlg(option_argument, hashalg)) {
-    err = dropt_error_none;
-  } else {
-    /* Reject the value as being inappropriate for this handler. */
-    err = dropt_error_mismatch;
-  }
-  return err;
 }
 
 /// Main entrypoint
@@ -75,41 +57,18 @@ int main(int argc, char* argv[]) {
 
   // User Settings
 
-  // Signature file name parameter
-  static char* sig_file = NULL;
-
   // Message string parameter
   static char* msg_str = NULL;
   size_t msg_size = 0;
-  static char* msg_file = NULL;
   char* msg_buf = NULL;  // message loaded from msg_file
 
   // Basename string parameter
   static char* basename_str = NULL;
   size_t basename_size = 0;
-  static char* basename_file = NULL;
   char* basename_buf = NULL;  // basename loaded from basename_file
 
-  // SigRl file name parameter
-  static char* sigrl_file = NULL;
-
-  // Group public key file name parameter
-  static char* pubkey_file = NULL;
-
-  // Member private key file name parameter
-  static char* mprivkey_file = NULL;
-
-  // Member pre-computed settings input file name parameter
-  static char* mprecmpi_file = NULL;
-
-  // CA certificate file name parameter
-  static char* cacert_file = NULL;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
   // Buffers and computed values
 
@@ -137,155 +96,163 @@ int main(int argc, char* argv[]) {
   MemberPrecomp* member_precmp_ptr = NULL;
 
   // Hash algorithm
-  static HashAlg hashalg = kSha512;
+  static HashAlg hashalg = kInvalidHashAlg;
 
-  dropt_option options[] = {
-      {'\0', "sig", "write signature to FILE (default: " SIG_DEFAULT ")",
-       "FILE", dropt_handle_string, &sig_file},
-      {'\0', "msg", "MESSAGE to sign", "MESSAGE", dropt_handle_string,
-       &msg_str},
-      {'\0', "msgfile", "FILE containing message to sign", "FILE",
-       dropt_handle_string, &msg_file},
-      {'\0', "bsn", "BASENAME to sign with (default: random)", "BASENAME",
-       dropt_handle_string, &basename_str},
-      {'\0', "bsnfile", "FILE containing basename to sign with", "FILE",
-       dropt_handle_string, &basename_file},
+  // Argument variables
+  struct arg_file* sig_file =
+      arg_file0(NULL, "sig", "FILE",
+                "write signature to FILE (default: " SIG_DEFAULT ")");
+  struct arg_str* msg = arg_str0(NULL, "msg", "MESSAGE", "MESSAGE to sign");
+  struct arg_file* msg_file =
+      arg_file0(NULL, "msgfile", "FILE", "FILE containing message to sign");
+  struct arg_str* basename = arg_str0(
+      NULL, "bsn", "BASENAME", "BASENAME to sign with (default: random)");
+  struct arg_file* basename_file = arg_file0(
+      NULL, "bsnfile", "FILE", "FILE containing basename to sign with");
+  struct arg_file* sigrl_file = arg_file0(
+      NULL, "sigrl", "FILE", "load signature based revocation list from FILE");
+  struct arg_file* pubkey_file = arg_file0(
+      NULL, "gpubkey", "FILE",
+      "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
+  struct arg_file* mprivkey_file = arg_file0(
+      NULL, "mprivkey", "FILE",
+      "load member private key from FILE (default: " MPRIVKEYFILE_DEFAULT ")");
+  struct arg_file* mprecmpi_file = arg_file0(
+      NULL, "mprecmpi", "FILE", "load pre-computed member data from FILE");
+  struct arg_file* cacert_file = arg_file0(
+      NULL, "capubkey", "FILE",
+      "load IoT Issuing CA public key from FILE (default: " CACERT_DEFAULT ")");
+  struct arg_str* hashalg_str =
+      arg_str0(NULL, "hashalg", "{SHA-256 | SHA-384 | SHA-512 | SHA-512/256}",
+               "use specified hash algorithm (default: " HASHALG_DEFAULT ")");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-      {'\0', "sigrl", "load signature based revocation list from FILE", "FILE",
-       dropt_handle_string, &sigrl_file},
-      {'\0', "gpubkey",
-       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")",
-       "FILE", dropt_handle_string, &pubkey_file},
-      {'\0', "mprivkey",
-       "load member private key from FILE "
-       "(default:" MPRIVKEYFILE_DEFAULT ")",
-       "FILE", dropt_handle_string, &mprivkey_file},
-      {'\0', "mprecmpi", "load pre-computed member data from FILE", "FILE",
-       dropt_handle_string, &mprecmpi_file},
-      {'\0', "capubkey",
-       "load IoT Issuing CA public key from FILE (default: " CACERT_DEFAULT ")",
-       "FILE", dropt_handle_string, &cacert_file},
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = sig_file;
+  argtable[1] = msg;
+  argtable[2] = msg_file;
+  argtable[3] = basename;
+  argtable[4] = basename_file;
+  argtable[5] = sigrl_file;
+  argtable[6] = pubkey_file;
+  argtable[7] = mprivkey_file;
+  argtable[8] = mprecmpi_file;
+  argtable[9] = cacert_file;
+  argtable[10] = hashalg_str;
+  argtable[11] = help;
+  argtable[12] = verbose;
+  argtable[13] = end;
 
-      {'\0', "hashalg",
-       "use specified hash algorithm (default: " HASHALG_DEFAULT ")",
-       "{SHA-256 | SHA-384 | SHA-512 | SHA-512/256}", HandleHashalg, &hashalg},
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
-
-      {0} /* Required sentinel value. */
-  };
-
-  dropt_context* dropt_ctx = NULL;
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    dropt_ctx = dropt_new_context(options);
-    if (!dropt_ctx) {
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
       break;
-    } else if (argc > 0) {
-      /* Parse the arguments from argv.
-        *
-        * argv[1] is always safe to access since argv[argc] is guaranteed
-        * to be NULL and since we've established that argc > 0.
-        */
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
+    }
+
+    /* set any command line default values prior to parsing */
+    sig_file->filename[0] = SIG_DEFAULT;
+    pubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
+    mprivkey_file->filename[0] = MPRIVKEYFILE_DEFAULT;
+    cacert_file->filename[0] = CACERT_DEFAULT;
+    hashalg_str->sval[0] = HASHALG_DEFAULT;
+
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
+
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]...\n"
+          "Create Intel(R) EPID signature of message\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      ret_value = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+
+    if (msg->count > 0 && msg_file->count > 0) {
+      log_error("options --msg and --msgfile cannot be used together");
+      ret_value = EXIT_FAILURE;
+      break;
+    } else if (msg->count > 0) {
+      msg_str = (char*)msg->sval[0];
+      msg_size = strlen(msg_str);
+    } else if (msg_file->count > 0) {
+      msg_buf = NewBufferFromFile(msg_file->filename[0], &msg_size);
+      if (!msg_buf) {
         ret_value = EXIT_FAILURE;
         break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]...\n"
-            "Create Intel(R) EPID signature of message\n"
-            "\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        ret_value = EXIT_SUCCESS;
-        break;
-      } else if (*rest) {
-        // we have unparsed (positional) arguments
-        log_error("invalid argument: %s", *rest);
-        fprintf(stderr, "Try '%s --help' for more information.\n",
-                PROGRAM_NAME);
-        ret_value = EXIT_FAILURE;
-        break;
-      } else {
-        if (verbose) {
-          verbose = ToggleVerbosity();
-        }
-        if (!sig_file) {
-          sig_file = SIG_DEFAULT;
-        }
-        if (!pubkey_file) {
-          pubkey_file = PUBKEYFILE_DEFAULT;
-        }
-        if (!mprivkey_file) {
-          mprivkey_file = MPRIVKEYFILE_DEFAULT;
-        }
-        if (!cacert_file) {
-          cacert_file = CACERT_DEFAULT;
-        }
-
-        if (msg_str && msg_file) {
-          log_error("options --msg and --msgfile cannot be used together");
-          ret_value = EXIT_FAILURE;
-          break;
-        } else if (msg_str) {
-          msg_size = strlen(msg_str);
-        } else if (msg_file) {
-          msg_buf = NewBufferFromFile(msg_file, &msg_size);
-          if (!msg_buf) {
-            ret_value = EXIT_FAILURE;
-            break;
-          }
-          msg_str = msg_buf;
-        } else {
-          msg_size = 0;
-        }
-
-        if (basename_str && basename_file) {
-          log_error("options --bsn and --bsnfile cannot be used together");
-          ret_value = EXIT_FAILURE;
-          break;
-        } else if (basename_str) {
-          basename_size = strlen(basename_str);
-        } else if (basename_file) {
-          basename_buf = NewBufferFromFile(basename_file, &basename_size);
-          if (!basename_buf) {
-            log_error("Failed in reading basename from %s", basename_file);
-            ret_value = EXIT_FAILURE;
-            break;
-          }
-          basename_str = basename_buf;
-        } else {
-          basename_size = 0;
-        }
-        if (verbose) {
-          log_msg("\nOption values:");
-          log_msg(" sig_file      : %s", sig_file);
-          log_msg(" msg_str       : %s", msg_str);
-          log_msg(" basename_str  : %s", basename_str);
-          log_msg(" pubkey_file   : %s", pubkey_file);
-          log_msg(" mprivkey_file : %s", mprivkey_file);
-          log_msg(" mprecmpi_file : %s", mprecmpi_file);
-          log_msg(" hashalg       : %s", HashAlgToString(hashalg));
-          log_msg(" cacert_file   : %s", cacert_file);
-          log_msg("");
-        }
       }
+      msg_str = msg_buf;
+    } else {
+      msg_size = 0;
+    }
+
+    if (basename->count > 0 && basename_file->count > 0) {
+      log_error("options --bsn and --bsnfile cannot be used together");
+      ret_value = EXIT_FAILURE;
+      break;
+    } else if (basename->count > 0) {
+      basename_str = (char*)basename->sval[0];
+      basename_size = strlen(basename_str);
+    } else if (basename_file->count > 0) {
+      basename_buf =
+          NewBufferFromFile(basename_file->filename[0], &basename_size);
+      if (!basename_buf) {
+        log_error("Failed in reading basename from %s", basename_file);
+        ret_value = EXIT_FAILURE;
+        break;
+      }
+      basename_str = basename_buf;
+    } else {
+      basename_size = 0;
+    }
+
+    if (!StringToHashAlg(hashalg_str->sval[0], &hashalg)) {
+      log_error("invalid hashalg: %s", hashalg_str->sval[0]);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+
+    if (verbose_flag) {
+      log_msg("\nOption values:");
+      log_msg(" sig_file      : %s", sig_file->filename[0]);
+      log_msg(" msg_str       : %s", msg_str);
+      log_msg(" basename_str  : %s", basename_str);
+      log_msg(" pubkey_file   : %s", pubkey_file->filename[0]);
+      log_msg(" mprivkey_file : %s", mprivkey_file->filename[0]);
+      log_msg(" mprecmpi_file : %s", mprecmpi_file->filename[0]);
+      log_msg(" hashalg       : %s", HashAlgToString(hashalg));
+      log_msg(" cacert_file   : %s", cacert_file->filename[0]);
+      log_msg("");
     }
     // convert command line args to usable formats
 
     // CA certificate
-    if (0 != ReadLoud(cacert_file, &cacert, sizeof(cacert))) {
+    if (0 != ReadLoud(cacert_file->filename[0], &cacert, sizeof(cacert))) {
       ret_value = EXIT_FAILURE;
       break;
     }
@@ -299,36 +266,40 @@ int main(int argc, char* argv[]) {
       break;
     }
     // SigRl
-    if (sigrl_file) {
-      if (FileExists(sigrl_file)) {
-        signed_sig_rl = NewBufferFromFile(sigrl_file, &signed_sig_rl_size);
+    if (sigrl_file->count > 0) {
+      if (FileExists(sigrl_file->filename[0])) {
+        signed_sig_rl =
+            NewBufferFromFile(sigrl_file->filename[0], &signed_sig_rl_size);
         if (!signed_sig_rl) {
           ret_value = EXIT_FAILURE;
           break;
         }
 
-        if (0 != ReadLoud(sigrl_file, signed_sig_rl, signed_sig_rl_size)) {
+        if (0 != ReadLoud(sigrl_file->filename[0], signed_sig_rl,
+                          signed_sig_rl_size)) {
           ret_value = EXIT_FAILURE;
           break;
         }
       } else {
-        log_error("SigRL file %s does not exist", sigrl_file);
+        log_error("SigRL file %s does not exist", sigrl_file->filename[0]);
         ret_value = EXIT_FAILURE;
         break;
       }
     }
     // Group public key file
-    signed_pubkey = NewBufferFromFile(pubkey_file, &signed_pubkey_size);
+    signed_pubkey =
+        NewBufferFromFile(pubkey_file->filename[0], &signed_pubkey_size);
     if (!signed_pubkey) {
       ret_value = EXIT_FAILURE;
       break;
     }
-    if (0 != ReadLoud(pubkey_file, signed_pubkey, signed_pubkey_size)) {
+    if (0 !=
+        ReadLoud(pubkey_file->filename[0], signed_pubkey, signed_pubkey_size)) {
       ret_value = EXIT_FAILURE;
       break;
     }
     // Member private key
-    mprivkey = NewBufferFromFile(mprivkey_file, &mprivkey_size);
+    mprivkey = NewBufferFromFile(mprivkey_file->filename[0], &mprivkey_size);
     if (!mprivkey) {
       ret_value = EXIT_FAILURE;
       break;
@@ -340,19 +311,20 @@ int main(int argc, char* argv[]) {
       ret_value = EXIT_FAILURE;
       break;
     }
-    if (0 != ReadLoud(mprivkey_file, mprivkey, mprivkey_size)) {
+    if (0 != ReadLoud(mprivkey_file->filename[0], mprivkey, mprivkey_size)) {
       ret_value = EXIT_FAILURE;
       break;
     }
     // Load Member pre-computed settings
-    if (mprecmpi_file) {
-      if (sizeof(MemberPrecomp) != GetFileSize(mprecmpi_file)) {
+    if (mprecmpi_file->count > 0) {
+      if (sizeof(MemberPrecomp) != GetFileSize(mprecmpi_file->filename[0])) {
         log_error("incorrect input precomp size");
         ret_value = EXIT_FAILURE;
         break;
       }
 
-      if (0 != ReadLoud(mprecmpi_file, &member_precmp, sizeof(MemberPrecomp))) {
+      if (0 != ReadLoud(mprecmpi_file->filename[0], &member_precmp,
+                        sizeof(MemberPrecomp))) {
         ret_value = EXIT_FAILURE;
         break;
       }
@@ -360,7 +332,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Report Settings
-    if (verbose) {
+    if (verbose_flag) {
       log_msg("==============================================");
       log_msg("Signing Message:");
       log_msg("");
@@ -413,7 +385,7 @@ int main(int argc, char* argv[]) {
 
     if (sig && sig_size != 0) {
       // Store signature
-      if (0 != WriteLoud(sig, sig_size, sig_file)) {
+      if (0 != WriteLoud(sig, sig_size, sig_file->filename[0])) {
         ret_value = EXIT_FAILURE;
         break;
       }
@@ -431,7 +403,7 @@ int main(int argc, char* argv[]) {
   if (signed_pubkey) free(signed_pubkey);
   if (mprivkey) free(mprivkey);
 
-  dropt_free_context(dropt_ctx);
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
   return ret_value;
 }

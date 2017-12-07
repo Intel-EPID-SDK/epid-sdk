@@ -79,7 +79,7 @@ TEST_F(EpidMemberTest, SignBasicDoesNotComputeRandomBasenameGivenBasename) {
   BigNumStr rnd_bsn = {0};
   BigNumStr zero = {0};
   BasicSignature basic_sig;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, &rnd_bsn));
@@ -108,7 +108,7 @@ TEST_F(EpidMemberTest, SignBasicFailsForUnregisteredBasename) {
   auto& msg = this->kMsg0;
   auto& bsn0 = this->kBsn0;
   auto& bsn1 = this->kBsn1;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn0.data(), bsn0.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn0.data(), bsn0.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidBadArgErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn1.data(),
@@ -139,7 +139,7 @@ TEST_F(EpidMemberTest,
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig1;
   BasicSignature basic_sig2;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig1, nullptr));
@@ -193,7 +193,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasename) {
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));
@@ -214,7 +214,7 @@ TEST_F(EpidMemberTest,
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));
@@ -237,7 +237,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingBasenameUsingIKGFData) {
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));
@@ -254,7 +254,7 @@ TEST_F(EpidMemberTest,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   BigNumStr rnd_bsn = {0};
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
@@ -286,7 +286,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingBsnContainingAllPossibleBytes) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kData_0_255;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -308,7 +308,7 @@ TEST_F(EpidMemberTest,
   auto& msg = this->kMsg0;
   auto& bsn = this->kData_0_255;
   // 0 - 123
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), 124));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), 124));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(),
                                       bsn.data(), 124, &basic_sig, nullptr));
@@ -319,7 +319,7 @@ TEST_F(EpidMemberTest,
             EpidVerifyBasicSig(ctx1, &basic_sig, msg.data(), msg.size()));
 
   // 124 - 247
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data() + 124, 124));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data() + 124, 124));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data() + 124, 124,
                           &basic_sig, nullptr));
@@ -331,7 +331,7 @@ TEST_F(EpidMemberTest,
 
   // 248 - 255
   THROW_ON_EPIDERR(
-      EpidRegisterBaseName(member, bsn.data() + 124 * 2, 256 - 124 * 2));
+      EpidRegisterBasename(member, bsn.data() + 124 * 2, 256 - 124 * 2));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data() + 124 * 2,
                           256 - 124 * 2, &basic_sig, nullptr));
@@ -350,7 +350,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha256HashAlg) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -370,7 +370,7 @@ TEST_F(EpidMemberTest,
       &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -387,7 +387,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha384HashAlg) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -404,7 +404,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512HashAlg) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -422,7 +422,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512256HashAlg) {
                       &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -442,7 +442,7 @@ TEST_F(EpidMemberTest, SignBasicConsumesPrecomputedSignatures) {
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   // use 1 precomputed signature
   ASSERT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -494,7 +494,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithoutPrecomputedSignatures) {
   auto& msg = this->kMsg0;
   BasicSignature basic_sig;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   ASSERT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));
@@ -516,7 +516,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsGivenEmptyMessage) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), 0, bsn.data(),
                                       bsn.size(), &basic_sig, nullptr));
@@ -575,7 +575,7 @@ TEST_F(EpidMemberTest, SignBasicSucceedsWithMsgContainingAllPossibleBytes) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kData_0_255;
   auto& bsn = this->kBsn0;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   BasicSignature basic_sig;
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
@@ -596,7 +596,7 @@ TEST_F(EpidMemberTest,
   auto& msg = this->kData_0_255;
   auto& bsn = this->kBsn0;
   BasicSignature basic_sig;
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));

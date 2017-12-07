@@ -151,7 +151,7 @@ common_parts = ['epid/common/common.parts']
 member_parts = ['epid/member/member.parts']
 verifier_parts = ['epid/verifier/verifier.parts']
 util_parts = ['example/util/util.parts']
-example_parts = ['ext/dropt/dropt.parts',
+example_parts = ['ext/argtable3/argtable3.parts',
                  'example/verifysig/verifysig.parts',
                  'example/signmsg/signmsg.parts',
                  'example/data/data.parts',
@@ -184,7 +184,7 @@ package_parts = ['ext/gtest/gtest.parts',
                  'ext/ipp/ippcp.parts',
                  'package.parts']
 memory_profiler_parts = ['tools/memory_profiler/memory_profiler.parts']
-internal_tools_parts = ['ext/dropt/dropt.parts',
+internal_tools_parts = ['ext/argtable3/argtable3.parts',
                         'tools/ikgfwrapper/ikgfwrapper.parts']
 epid_data = ['test/epid_data/epid_data.parts']
 perf_benchmark_parts = ['ext/google_benchmark/google_benchmark.parts',
@@ -197,7 +197,9 @@ product_variants = [
     'internal-test',
     'package-epid-sdk',
     'internal-tools',
-    'benchmark'
+    'benchmark',
+    'tiny',
+    'internal-test-tiny'
 ]
 
 default_variant = 'production'
@@ -222,6 +224,12 @@ def is_package():
 def is_benchmark():
     return GetOption("product-variant") == 'benchmark'
 
+def is_tiny():
+    return GetOption("product-variant") == 'tiny'
+
+def is_internal_test_tiny():
+    return GetOption("product-variant") == 'internal-test-tiny'
+
 
 def use_commercial_ipp():
     return GetOption("use-commercial-ipp")
@@ -233,7 +241,7 @@ def use_tss():
 
 def config_has_instrumentation():
     return any(DefaultEnvironment().isConfigBasedOn(config_name)
-               for config_name in ['instr_release', 'instr_size_optimized_release'])
+               for config_name in ['instr_release'])
 
 
 def variant_dirname():
@@ -241,6 +249,8 @@ def variant_dirname():
     if s == 'production':
         return 'epid-sdk'
     elif s == 'package-epid-sdk':
+        return 'epid-sdk'
+    elif s == 'tiny':
         return 'epid-sdk'
     else:
         return s
@@ -271,6 +281,19 @@ AddOption("--ipp-shared",
           action='store_true', dest='ipp-shared',
           default=False)
 
+AddOption("--enable-sanitizers",
+          help=("Build with sanitizers (https://github.com/google/sanitizers)."),
+          action='store_true', dest='sanitizers',
+          default=False)
+
+AddOption("--sanitizers-recover",
+          help=("Configure sanititzers to recover and continue execution "
+                "on error found. Only applicable when sanitizers are enabled."
+                "See --enable-sanitizers option."),
+          action='store_true', dest='sanitizers-recover',
+          default=False)
+
+
 SetOptionDefault("PRODUCT_VARIANT", variant_dirname())
 
 ######## End Commandline option setup ###################################
@@ -278,6 +301,48 @@ SetOptionDefault("PRODUCT_VARIANT", variant_dirname())
 
 # fix for parts 0.10.8 until we get better logic to extract ${CC}
 SetOptionDefault('PARTS_USE_SHORT_TOOL_NAMES', 1)
+
+
+def enable_sanitizers(recover):
+    """
+        Configures compiler to enable sanitizers.
+        Adds sanitizer options to default scons environment such
+        that it affects all parts.
+    Args:
+        recover: Enable sanitizers recovery from errors found when True.
+    """
+    env = DefaultEnvironment()
+    error_msg = None
+    try:
+       major = int(env.subst('$GCC_VERSION').partition('.')[0])
+    except ValueError:
+       major = 0
+
+    if major >= 6 and env['TARGET_OS'] == 'posix':
+        if 'INTELC_VERSION' not in env:
+            ccflags = ['-fsanitize=address,undefined', '-fno-sanitize=alignment',
+                       '-fno-sanitize=shift', '-fno-omit-frame-pointer']
+            if recover:
+                ccflags = ccflags + ['-fsanitize-recover=all', '-fsanitize-recover=address']
+            else:
+                ccflags = ccflags + ['-fno-sanitize-recover']
+            # Extends default flags with sanitizer options
+            SetOptionDefault('CCFLAGS', ccflags)
+            SetOptionDefault('LIBS', ['asan', 'ubsan'])
+        else:
+            error_msg = """
+                Build with sanitizers is not supported for Intel(R) C++ Compiler.
+                Try scons --toolchain=gcc_6 --target=posix
+                """
+    else:
+        # User experience with sanitizers in GCC 4.8 is not great. Use at least GCC 6.x.
+        error_msg = """
+            Build with sanitizers is only supported for GCC version greater than
+            6.x targeting posix OS. Current GCC version is "{0}" and OS target is "{1}".
+            Try scons --toolchain=gcc_6 --target=posix
+            """.format(env.get('GCC_VERSION', 'unknown'), env.get('TARGET_OS', 'unknown'))
+    if error_msg is not None:
+        env.PrintError(error_msg)
 
 
 def set_default_production_options():
@@ -324,6 +389,9 @@ def set_default_production_options():
     SetOptionDefault('PACKAGE_NAME',
                      '{PRODUCT_VARIANT}')
 
+
+if GetOption("sanitizers"):
+    enable_sanitizers(GetOption("sanitizers-recover"))
 
 if is_production():
     set_default_production_options()
@@ -394,19 +462,37 @@ if is_benchmark():
         ipp_mode.append('build_ipp_shared')
         SetOptionDefault('INSTALL_TEST_BIN',
                          '$INSTALL_ROOT/test_ipp_shared')
+        SetOptionDefault('INSTALL_LIB',
+                         '$INSTALL_ROOT/lib_ipp_shared')
+    else:
+        SetOptionDefault('INSTALL_LIB',
+                         '$INSTALL_ROOT/lib')
+
     # do not allow file links to keep previous builds intact
     SetOptionDefault('CCOPY_LOGIC', 'copy')
 
-    include_parts(ipp_parts, mode=MODE+ipp_mode, INSTALL_BIN='${INSTALL_TEST_BIN}')
+    include_parts(ipp_parts, config_independent=True, mode=MODE + ipp_mode,
+                  INSTALL_BIN='${INSTALL_TEST_BIN}')
     include_parts(example_static_parts + utest_parts + perf_benchmark_parts +
-                  common_parts + member_parts + verifier_parts +
+                  common_parts + verifier_parts +
                   sizing_parts + epid_data,
+                  config_independent=True,
                   mode=MODE,
                   INSTALL_BIN='${INSTALL_TEST_BIN}')
-    if 'use_memory_profiler' in MODE:
+
+    member_mode = ['install_lib']
+    member_cfg = ('embedded' if not DefaultEnvironment().isConfigBasedOn(
+        'debug') and not config_has_instrumentation() else DefaultEnvironment().subst('$CONFIG'))
+    Part(parts_file='epid/common/tinycommon.parts', CONFIG=member_cfg)
+    Part(parts_file='epid/member/tinymember.parts', CONFIG=member_cfg,
+         config_independent=True, mode=MODE + member_mode, INSTALL_BIN='${INSTALL_TEST_BIN}')
+
+    if config_has_instrumentation():
         include_parts(memory_benchmark_parts + memory_profiler_parts,
+                      config_independent=True,
                       mode=MODE,
                       INSTALL_BIN='${INSTALL_TEST_BIN}')
+
     Default('build::')
 
 if is_package():
@@ -415,5 +501,66 @@ if is_package():
                   mode=['install_package'],
                   INSTALL_TOP_LEVEL='${PACKAGE_ROOT}')
     Default('package')
+
+if is_tiny():
+    set_default_production_options()
+    ### Member
+    Part(parts_file='ext/gtest/gtest.parts')
+    member_mode = ['install_lib']
+    member_cfg = ('embedded'
+                  if not DefaultEnvironment().isConfigBasedOn('debug')
+                  else DefaultEnvironment().subst('$CONFIG'))
+    Part(parts_file='epid/common/tinycommon.parts', CONFIG=member_cfg)
+    Part(parts_file='epid/member/tinymember.parts', CONFIG=member_cfg,
+         config_independent=True, mode=member_mode)
+    Default('member::')
+    Default('run_utest::member::')
+    ### Verifier, samples and tools
+    verifier_mode = ['install_lib']
+    ipp_mode = ['install_lib']
+    if use_commercial_ipp():
+        ipp_mode.append('use_commercial_ipp')
+    if GetOption('ipp-shared'):
+        ipp_mode.append('build_ipp_shared')
+    include_parts(ipp_parts, mode=ipp_mode,
+                  INSTALL_INCLUDE='${INSTALL_IPP_INCLUDE}')
+    Part(parts_file='epid/common-testhelper/common-testhelper.parts',
+         config_independent=True)
+    include_parts(common_parts + verifier_parts,
+                  mode=verifier_mode,
+                  INSTALL_INCLUDE='${INSTALL_EPID_INCLUDE}')
+    include_parts(util_parts + example_parts,
+                  INSTALL_INCLUDE='${INSTALL_EPID_INCLUDE}',
+                  INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
+                  INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
+    include_parts(tools_parts,
+                  INSTALL_BIN='${INSTALL_TOOLS_BIN}',
+                  INSTALL_DATA='${INSTALL_TOOLS_DATA}')
+    Default('all')
+    Default('utest::')
+
+if is_internal_test_tiny():
+    set_default_production_options()
+    sdk_mode = []
+    ### Member
+    Part(parts_file='ext/gtest/gtest.parts')
+    member_cfg = ('embedded'
+                  if not DefaultEnvironment().isConfigBasedOn('debug')
+                  else DefaultEnvironment().subst('$CONFIG'))
+    Part(parts_file='epid/common/tinycommon.parts', CONFIG=member_cfg)
+    Part(parts_file='epid/member/tinymember.parts', CONFIG=member_cfg,
+         config_independent=True, mode=sdk_mode)
+    ### Verifier, samples and tools
+    include_parts(ipp_parts)
+    Part(parts_file='epid/common-testhelper/common-testhelper.parts',
+         config_independent=True)
+    include_parts(common_parts + verifier_parts,
+                  mode=sdk_mode)
+    include_parts(util_parts + example_parts,
+                  INSTALL_BIN='${INSTALL_SAMPLE_BIN}',
+                  INSTALL_DATA='${INSTALL_SAMPLE_DATA}')
+    include_parts(tools_parts, INSTALL_BIN='${INSTALL_TOOLS_BIN}')
+    include_parts(testbot_test_parts)
+    Default('build::')
 
 log_versions(DefaultEnvironment(), not is_package())

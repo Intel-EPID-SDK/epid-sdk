@@ -41,6 +41,10 @@
 #include "owncp.h"
 
 #include "pcpgfpecstuff.h"
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
 
 
 int gfec_MakePoint(IppsGFpECPoint* pPoint, const BNU_CHUNK_T* pElm, IppsGFpECState* pEC)
@@ -1147,3 +1151,7 @@ IppsGFpECPoint* gfec_BasePointProduct(IppsGFpECPoint* pR,
    ECP_POINT_FLAGS(pR) = gfec_IsPointAtInfinity(pR)? 0 : ECP_FINITE_POINT;
    return pR;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -15,9 +15,9 @@
 ############################################################################*/
 
 /*!
-* \file
-* \brief Provision credential unit tests.
-*/
+ * \file
+ * \brief Provision credential unit tests.
+ */
 #include <cstring>
 #include <vector>
 
@@ -51,7 +51,6 @@ EpidStatus ProvisionCredentialAndStart(MemberCtx* ctx,
 }
 
 TEST_F(EpidMemberTest, ProvisionCredentialFailsGivenNullParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -65,7 +64,7 @@ TEST_F(EpidMemberTest, ProvisionCredentialFailsGivenNullParameters) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionCredential(nullptr, &pub_key, &credential, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
@@ -78,11 +77,9 @@ TEST_F(EpidMemberTest, ProvisionCredentialFailsGivenNullParameters) {
             EpidProvisionCredential(member, nullptr, &credential, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionCredential(member, &pub_key, nullptr, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidCredential) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -97,7 +94,7 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidCredential) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   credential = base_credential;
   credential.A.x.data.data[0]++;
@@ -119,12 +116,9 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidCredential) {
                                                         &credential, &precomp));
   EXPECT_EQ(kEpidBadArgErr, ProvisionCredentialAndStart(member, &pub_key,
                                                         &credential, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidGroupKey) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -138,7 +132,7 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidGroupKey) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   pub_key = this->kGroupPublicKey;
   pub_key.h1.x.data.data[0]++;
@@ -195,12 +189,9 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsInvalidGroupKey) {
                                                         &credential, &precomp));
   EXPECT_EQ(kEpidBadArgErr, ProvisionCredentialAndStart(member, &pub_key,
                                                         &credential, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionCredentialRejectsCredentialNotInGroup) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -215,7 +206,7 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsCredentialNotInGroup) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   credential = base_credential;
   credential.gid.data[0] = ~credential.gid.data[0];
@@ -223,12 +214,9 @@ TEST_F(EpidMemberTest, ProvisionCredentialRejectsCredentialNotInGroup) {
                                                         &credential, &precomp));
   EXPECT_EQ(kEpidBadArgErr, ProvisionCredentialAndStart(member, &pub_key,
                                                         &credential, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, CanProvisionUsingMembershipCredentialPrecomp) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -242,14 +230,12 @@ TEST_F(EpidMemberTest, CanProvisionUsingMembershipCredentialPrecomp) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr, ProvisionCredentialAndStart(member, &pub_key,
                                                     &credential, &precomp));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, CanProvisionUsingMembershipCredentialNoPrecomp) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGrpXKey;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -259,15 +245,13 @@ TEST_F(EpidMemberTest, CanProvisionUsingMembershipCredentialNoPrecomp) {
   credential.x = this->kGrpXMember9PrivKey.x;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr, ProvisionCredentialAndStart(member, &pub_key,
                                                     &credential, nullptr));
-  EpidMemberDelete(&member);
 }
 
 // test that create succeeds with valid IKGF given parameters
 TEST_F(EpidMemberTest, CanProvisionUsingIKGFMembershipCredentialPrecomp) {
-  MemberCtx* member = nullptr;
   Prng prng;
   const GroupPubKey* pub_key = reinterpret_cast<const GroupPubKey*>(
       this->kGroupPublicKeyDataIkgf.data());
@@ -284,14 +268,12 @@ TEST_F(EpidMemberTest, CanProvisionUsingIKGFMembershipCredentialPrecomp) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr, ProvisionCredentialAndStart(member, pub_key,
                                                     &credential, &precomp));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, CanProvisionUsingIKGFMembershipCredentialNoPrecomp) {
-  MemberCtx* member = nullptr;
   Prng prng;
   const GroupPubKey* pub_key = reinterpret_cast<const GroupPubKey*>(
       this->kGroupPublicKeyDataIkgf.data());
@@ -304,17 +286,16 @@ TEST_F(EpidMemberTest, CanProvisionUsingIKGFMembershipCredentialNoPrecomp) {
   credential.x = priv_key->x;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
             ProvisionCredentialAndStart(member, pub_key, &credential, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest,
        ProvisionCredentialCanStoreMembershipCredentialNoPrecomp) {
   Prng prng;
   uint32_t nv_index = 0x01c10100;
-  MemberCtx* member = nullptr;
+
   MembershipCredential const orig_credential =
       *(MembershipCredential*)&this->kGrpXMember9PrivKey;
   MembershipCredential credential;
@@ -324,14 +305,14 @@ TEST_F(EpidMemberTest,
 
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr, ProvisionCredentialAndStart(member, &pub_key,
                                                     &orig_credential, nullptr));
 
-  EXPECT_EQ(kEpidNoErr, EpidNvReadMembershipCredential(
-                            member->tpm2_ctx, nv_index, &pub_key, &credential));
+  EXPECT_EQ(kEpidNoErr,
+            EpidNvReadMembershipCredential(((MemberCtx*)member)->tpm2_ctx,
+                                           nv_index, &pub_key, &credential));
   EXPECT_EQ(orig_credential, credential);
-  EpidMemberDelete(&member);
 }
 
 }  // namespace

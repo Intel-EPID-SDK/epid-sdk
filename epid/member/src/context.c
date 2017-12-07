@@ -43,92 +43,143 @@
     break;                       \
   }
 
-EpidStatus EpidMemberCreate(MemberParams const* params, MemberCtx** ctx) {
+EpidStatus EpidMemberGetSize(MemberParams const* params, size_t* context_size) {
+  if (!params || !context_size) {
+    return kEpidBadArgErr;
+  }
+  *context_size = sizeof(MemberCtx);
+  return kEpidNoErr;
+}
+
+EpidStatus EpidMemberInit(MemberParams const* params, MemberCtx* ctx) {
   EpidStatus sts = kEpidErr;
-  MemberCtx* member_ctx = NULL;
 
   if (!params || !ctx) {
     return kEpidBadArgErr;
   }
-  // Allocate memory for MemberCtx
-  member_ctx = SAFE_ALLOC(sizeof(MemberCtx));
-  if (!member_ctx) {
-    return kEpidMemAllocErr;
-  }
-
+  memset(ctx, 0, sizeof(*ctx));
   do {
     const FpElemStr* f = NULL;
 
     // set the default hash algorithm to sha512
-    member_ctx->hash_alg = kSha512;
+    ctx->hash_alg = kSha512;
 #ifdef TPM_TSS  // if build for TSS, make Sha256 default
-    member_ctx->hash_alg = kSha256;
+    ctx->hash_alg = kSha256;
 #endif
-    member_ctx->sig_rl = NULL;
-    member_ctx->precomp_ready = false;
-    member_ctx->is_initially_provisioned = false;
-    member_ctx->is_provisioned = false;
-    member_ctx->primary_key_set = false;
+    ctx->sig_rl = NULL;
+    ctx->precomp_ready = false;
+    ctx->is_initially_provisioned = false;
+    ctx->is_provisioned = false;
+    ctx->primary_key_set = false;
 
-    sts = CreateBasenames(&member_ctx->allowed_basenames);
+    sts = CreateBasenames(&ctx->allowed_basenames);
     BREAK_ON_EPID_ERROR(sts);
     // Internal representation of Epid2Params
-    sts = CreateEpid2Params(&member_ctx->epid2_params);
+    sts = CreateEpid2Params(&ctx->epid2_params);
     BREAK_ON_EPID_ERROR(sts);
 
     // create TPM2 context
-    sts = Tpm2CreateContext(params, member_ctx->epid2_params,
-                            &member_ctx->rnd_func, &member_ctx->rnd_param, &f,
-                            &member_ctx->tpm2_ctx);
+    sts = Tpm2CreateContext(params, ctx->epid2_params, &ctx->rnd_func,
+                            &ctx->rnd_param, &f, &ctx->tpm2_ctx);
     BREAK_ON_EPID_ERROR(sts);
 
-    if (!CreateStack(sizeof(PreComputedSignature), &member_ctx->presigs)) {
+    if (!CreateStack(sizeof(PreComputedSignature), &ctx->presigs)) {
       sts = kEpidMemAllocErr;
       BREAK_ON_EPID_ERROR(sts);
     }
 
-    member_ctx->f = f;
-    member_ctx->join_ctr = 0;
-    member_ctx->rf_ctr = 0;
-    member_ctx->rnu_ctr = 0;
+    ctx->f = f;
+    ctx->join_ctr = 0;
+    ctx->rf_ctr = 0;
+    ctx->rnu_ctr = 0;
 
-    sts = NewEcPoint(member_ctx->epid2_params->G1, (EcPoint**)&member_ctx->A);
+    sts = NewEcPoint(ctx->epid2_params->G1, (EcPoint**)&ctx->A);
     BREAK_ON_EPID_ERROR(sts);
-    sts =
-        NewFfElement(member_ctx->epid2_params->Fp, (FfElement**)&member_ctx->x);
-    BREAK_ON_EPID_ERROR(sts);
-
-    sts = NewEcPoint(member_ctx->epid2_params->G1, (EcPoint**)&member_ctx->h1);
-    BREAK_ON_EPID_ERROR(sts);
-    sts = NewEcPoint(member_ctx->epid2_params->G1, (EcPoint**)&member_ctx->h2);
-    BREAK_ON_EPID_ERROR(sts);
-    sts = NewEcPoint(member_ctx->epid2_params->G2, (EcPoint**)&member_ctx->w);
+    sts = NewFfElement(ctx->epid2_params->Fp, (FfElement**)&ctx->x);
     BREAK_ON_EPID_ERROR(sts);
 
-    sts = NewFfElement(member_ctx->epid2_params->GT,
-                       (FfElement**)&member_ctx->e12);
+    sts = NewEcPoint(ctx->epid2_params->G1, (EcPoint**)&ctx->h1);
     BREAK_ON_EPID_ERROR(sts);
-    sts = NewFfElement(member_ctx->epid2_params->GT,
-                       (FfElement**)&member_ctx->e22);
+    sts = NewEcPoint(ctx->epid2_params->G1, (EcPoint**)&ctx->h2);
     BREAK_ON_EPID_ERROR(sts);
-    sts = NewFfElement(member_ctx->epid2_params->GT,
-                       (FfElement**)&member_ctx->e2w);
-    BREAK_ON_EPID_ERROR(sts);
-    sts = NewFfElement(member_ctx->epid2_params->GT,
-                       (FfElement**)&member_ctx->ea2);
+    sts = NewEcPoint(ctx->epid2_params->G2, (EcPoint**)&ctx->w);
     BREAK_ON_EPID_ERROR(sts);
 
-    sts = Tpm2SetHashAlg(member_ctx->tpm2_ctx, member_ctx->hash_alg);
+    sts = NewFfElement(ctx->epid2_params->GT, (FfElement**)&ctx->e12);
     BREAK_ON_EPID_ERROR(sts);
-    member_ctx->primary_key_set = true;
-    *ctx = member_ctx;
+    sts = NewFfElement(ctx->epid2_params->GT, (FfElement**)&ctx->e22);
+    BREAK_ON_EPID_ERROR(sts);
+    sts = NewFfElement(ctx->epid2_params->GT, (FfElement**)&ctx->e2w);
+    BREAK_ON_EPID_ERROR(sts);
+    sts = NewFfElement(ctx->epid2_params->GT, (FfElement**)&ctx->ea2);
+    BREAK_ON_EPID_ERROR(sts);
+
+    sts = Tpm2SetHashAlg(ctx->tpm2_ctx, ctx->hash_alg);
+    BREAK_ON_EPID_ERROR(sts);
+    ctx->primary_key_set = true;
     sts = kEpidNoErr;
   } while (0);
   if (kEpidNoErr != sts) {
-    EpidMemberDelete(&member_ctx);
+    EpidMemberDeinit(ctx);
   }
 
   return (sts);
+}
+
+void EpidMemberDeinit(MemberCtx* ctx) {
+  size_t i = 0;
+  size_t presig_size = 0;
+  PreComputedSignature* buf = NULL;
+  if (!ctx) {
+    return;
+  }
+  presig_size = StackGetSize(ctx->presigs);
+  buf = StackGetBuf(ctx->presigs);
+  for (i = 0; i < presig_size; ++i) {
+    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, (buf++)->rf_ctr);
+  }
+  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->join_ctr);
+  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->rf_ctr);
+  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->rnu_ctr);
+  DeleteStack(&ctx->presigs);
+  ctx->rnd_param = NULL;
+  DeleteEcPoint((EcPoint**)&(ctx->h1));
+  DeleteEcPoint((EcPoint**)&(ctx->h2));
+  DeleteEcPoint((EcPoint**)&(ctx->A));
+  DeleteFfElement((FfElement**)&ctx->x);
+  DeleteEcPoint((EcPoint**)&(ctx->w));
+  DeleteFfElement((FfElement**)&ctx->e12);
+  DeleteFfElement((FfElement**)&ctx->e22);
+  DeleteFfElement((FfElement**)&ctx->e2w);
+  DeleteFfElement((FfElement**)&ctx->ea2);
+  Tpm2DeleteContext(&ctx->tpm2_ctx);
+  DeleteEpid2Params(&ctx->epid2_params);
+  DeleteBasenames(&ctx->allowed_basenames);
+}
+
+EpidStatus EpidMemberCreate(MemberParams const* params, MemberCtx** ctx) {
+  size_t context_size = 0;
+  EpidStatus sts = kEpidErr;
+  MemberCtx* member_ctx = NULL;
+  if (!params || !ctx) {
+    return kEpidBadArgErr;
+  }
+  do {
+    sts = EpidMemberGetSize(params, &context_size);
+    BREAK_ON_EPID_ERROR(sts);
+    member_ctx = SAFE_ALLOC(context_size);
+    if (!member_ctx) {
+      BREAK_ON_EPID_ERROR(kEpidMemAllocErr);
+    }
+    sts = EpidMemberInit(params, member_ctx);
+    BREAK_ON_EPID_ERROR(sts);
+  } while (0);
+  if (kEpidNoErr != sts) {
+    SAFE_FREE(member_ctx);
+    member_ctx = NULL;
+  }
+  *ctx = member_ctx;
+  return sts;
 }
 
 EpidStatus EpidMemberInitialProvision(MemberCtx* ctx) {
@@ -160,32 +211,12 @@ EpidStatus EpidMemberInitialProvision(MemberCtx* ctx) {
 }
 
 void EpidMemberDelete(MemberCtx** ctx) {
-  if (ctx && *ctx) {
-    size_t i;
-    size_t presig_size = StackGetSize((*ctx)->presigs);
-    PreComputedSignature* buf = StackGetBuf((*ctx)->presigs);
-    for (i = 0; i < presig_size; ++i) {
-      (void)Tpm2ReleaseCounter((*ctx)->tpm2_ctx, (buf++)->rf_ctr);
-    }
-    (void)Tpm2ReleaseCounter((*ctx)->tpm2_ctx, (*ctx)->join_ctr);
-    (void)Tpm2ReleaseCounter((*ctx)->tpm2_ctx, (*ctx)->rf_ctr);
-    (void)Tpm2ReleaseCounter((*ctx)->tpm2_ctx, (*ctx)->rnu_ctr);
-    DeleteStack(&(*ctx)->presigs);
-    (*ctx)->rnd_param = NULL;
-    DeleteEcPoint((EcPoint**)&((*ctx)->h1));
-    DeleteEcPoint((EcPoint**)&((*ctx)->h2));
-    DeleteEcPoint((EcPoint**)&((*ctx)->A));
-    DeleteFfElement((FfElement**)&(*ctx)->x);
-    DeleteEcPoint((EcPoint**)&((*ctx)->w));
-    DeleteFfElement((FfElement**)&(*ctx)->e12);
-    DeleteFfElement((FfElement**)&(*ctx)->e22);
-    DeleteFfElement((FfElement**)&(*ctx)->e2w);
-    DeleteFfElement((FfElement**)&(*ctx)->ea2);
-    Tpm2DeleteContext(&(*ctx)->tpm2_ctx);
-    DeleteEpid2Params(&(*ctx)->epid2_params);
-    DeleteBasenames(&(*ctx)->allowed_basenames);
-    SAFE_FREE(*ctx);
+  if (!ctx) {
+    return;
   }
+  EpidMemberDeinit(*ctx);
+  SAFE_FREE(*ctx);
+  *ctx = NULL;
 }
 
 EpidStatus EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg) {
@@ -207,6 +238,9 @@ EpidStatus EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
   if (!ctx || !sig_rl) {
     return kEpidBadArgErr;
   }
+  if (!ctx->is_provisioned) {
+    return kEpidOutOfSequenceError;
+  }
   if (!IsSigRlValid(&ctx->pub_key.gid, sig_rl, sig_rl_size)) {
     return kEpidBadArgErr;
   }
@@ -225,7 +259,7 @@ EpidStatus EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
   return kEpidNoErr;
 }
 
-EpidStatus EpidRegisterBaseName(MemberCtx* ctx, void const* basename,
+EpidStatus EpidRegisterBasename(MemberCtx* ctx, void const* basename,
                                 size_t basename_len) {
   EpidStatus sts = kEpidErr;
   if (basename_len == 0) {
@@ -241,5 +275,15 @@ EpidStatus EpidRegisterBaseName(MemberCtx* ctx, void const* basename,
 
   sts = AllowBasename(ctx->allowed_basenames, basename, basename_len);
 
+  return sts;
+}
+
+EpidStatus EpidClearRegisteredBasenames(MemberCtx* ctx) {
+  EpidStatus sts = kEpidErr;
+  if (!ctx) {
+    return kEpidBadArgErr;
+  }
+  DeleteBasenames(&ctx->allowed_basenames);
+  sts = CreateBasenames(&ctx->allowed_basenames);
   return sts;
 }

@@ -210,7 +210,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofForMsgContainingAllPossibleBytes) {
 
   NrProof proof;
 
-  THROW_ON_EPIDERR(EpidRegisterBaseName(member, bsn.data(), bsn.size()));
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
   ASSERT_EQ(kEpidNoErr,
             EpidSignBasic(member, msg.data(), msg.size(), bsn.data(),
                           bsn.size(), &basic_sig, nullptr));

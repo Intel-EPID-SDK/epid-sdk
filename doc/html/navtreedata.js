@@ -22,12 +22,14 @@ var NAVTREE =
       ] ]
     ] ],
     [ "What's Included in the SDK", "SdkOverview.html", [
-      [ "SDK Components", "SdkOverview.html#SdkOverview_Components", null ],
-      [ "SDK Core", "SdkOverview.html#SdkOverview_Core", null ],
-      [ "Samples", "SdkOverview.html#SdkOverview_Samples", null ],
-      [ "Tools", "SdkOverview.html#SdkOverview_Tools", null ],
-      [ "Building and Validation", "SdkOverview.html#SdkOverview_BuildingAndValidation", null ],
+      [ "SDK Components", "SdkOverview.html#SdkOverview_Components", [
+        [ "SDK Core", "SdkOverview.html#SdkOverview_Core", null ],
+        [ "Samples", "SdkOverview.html#SdkOverview_Samples", null ],
+        [ "Tools", "SdkOverview.html#SdkOverview_Tools", null ],
+        [ "Other Components", "SdkOverview.html#SdkOverview_BuildingAndValidation", null ]
+      ] ],
       [ "Intel® EPID 1.1 Compatibility", "SdkOverview.html#SdkOverview_Compatibility", null ],
+      [ "Member Implementations", "SdkOverview.html#SdkOverview_TPM", null ],
       [ "Folder Layout", "SdkOverview.html#SdkOverview_Files", [
         [ "Source Layout", "SdkOverview.html#SdkOverview_Files_SourceLayout", null ],
         [ "Install Layout", "SdkOverview.html#SdkOverview_Files_InstallLayout", null ]
@@ -36,9 +38,11 @@ var NAVTREE =
     [ "Building from Source", "BuildingSdk.html", [
       [ "Prerequisites", "BuildingSdk.html#BuildingSdk_Prerequisites", null ],
       [ "Building SDK with SCons", "BuildingSdk.html#BuildingSdk_Building_SCons", null ],
-      [ "Alternate Makefile/Autoconf Based Build Approach", "BuildingSdk.html#BuildingSdk_Building_Makefile", null ],
+      [ "Alternate Makefile Based Build Approach", "BuildingSdk.html#BuildingSdk_Building_Makefile", null ],
       [ "Improving Performance with Commercial IPP", "BuildingSdk.html#BuildingSdk_CommercialIpp", null ],
-      [ "Optimizing Code Size over Performance", "BuildingSdk.html#BuildingSdk_SizeOptimizedBuild", null ],
+      [ "Optimizing for Code Size", "BuildingSdk.html#BuildingSdk_Tiny", [
+        [ "Limitations", "BuildingSdk.html#implementation_TinyLimitations", null ]
+      ] ],
       [ "Example Programs", "BuildingSdk.html#BuildingSdk_Examples", null ],
       [ "Building with Other Build Systems", "BuildingSdk.html#BuildingSdk_PortingBuildSystem", null ]
     ] ],
@@ -111,6 +115,7 @@ var NAVTREE =
       [ "Name Based Signatures", "Basenames.html#name_based", null ]
     ] ],
     [ "Implementation Notes", "ImplementationNotes.html", [
+      [ "Member Implementations", "ImplementationNotes.html#implementationNotes_Members", null ],
       [ "Random Number Generation", "ImplementationNotes.html#ImplementationNotes_Prng", null ],
       [ "Protecting Secrets", "ImplementationNotes.html#ImplementationNotes_ProtectingSecrets", null ],
       [ "Replacing Math Primitives", "ImplementationNotes.html#ImplementationNotes_MathPrimitives", null ],
@@ -128,7 +133,7 @@ var NAVTREE =
       [ "Building the SDK to Take Advantage of TPM", "TpmConsiderations.html#TpmConsiderations_Building", [
         [ "Prerequisites to Build the SDK in TPM Mode", "TpmConsiderations.html#TpmConsiderations_Prereqs", null ],
         [ "Building the SDK in TPM Mode", "TpmConsiderations.html#TpmConsiderations_BuildingTpmMode", null ],
-        [ "Intel® EPID Signing and Verification", "TpmConsiderations.html#TpmConsiderations_Signing", null ]
+        [ "Intel® EPID Signing and Verification with a TPM", "TpmConsiderations.html#TpmConsiderations_Signing", null ]
       ] ]
     ] ],
     [ "Glossary", "Glossary.html", [
@@ -160,6 +165,7 @@ var NAVTREE =
       [ "Tested Libraries and Compilers", "HowValidated.html#validated_supported_compilers", null ]
     ] ],
     [ "Walkthroughs of Examples Showing API Usage", "Examples.html", "Examples" ],
+    [ "Deprecated List", "deprecated.html", null ],
     [ "API Reference", "modules.html", "modules" ]
   ] ]
 ];
@@ -167,8 +173,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Basenames.html",
-"group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d",
-"struct_fq3_elem_str.html#af1be0a4d5c9c674d75bec34f95e3c731"
+"group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2",
+"struct_fp_elem_str.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

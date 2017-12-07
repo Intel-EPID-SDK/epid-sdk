@@ -50,6 +50,11 @@
 #include "pcpbn.h"
 #include "pcptool.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
+
 /* BN(1) and reference */
 static IppsBigNumStateChunk cpChunk_BN1 = {
    {
@@ -1300,3 +1305,6 @@ IPPFUN(IppStatus, ippsModInv_BN, (IppsBigNumState* pA, IppsBigNumState* pM, Ipps
     }
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

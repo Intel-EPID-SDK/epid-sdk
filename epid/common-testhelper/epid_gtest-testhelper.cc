@@ -50,7 +50,8 @@ static const struct EpidStatusTextEntry kEnumToText[] = {
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidRandMaxIterErr),
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidDuplicateErr),
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidInconsistentBasenameSetErr),
-    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidMathQuadraticNonResidueError)};
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidMathQuadraticNonResidueError),
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidOutOfSequenceError)};
 
 const char* EpidStatusToName(EpidStatus e) {
   size_t i = 0;

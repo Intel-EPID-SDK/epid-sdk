@@ -17,7 +17,7 @@ VERIFYSIG_EXE = ./verifysig/src/verifysig$(EXE_EXTENSION)
 
 
 LIB_UTIL_DIR = ./util/src
-LIB_DROPT_DIR = ../ext/dropt/src
+LIB_ARGTABLE_DIR = ../ext/argtable3
 LIB_IPPCP_DIR = ../ext/ipp/sources/ippcp/src
 LIB_MEMBER_DIR = ../epid/member
 LIB_VERIFIER_DIR = ../epid/verifier
@@ -25,18 +25,26 @@ LIB_COMMON_DIR = ../epid/common
 
 #set linker flags
 LDFLAGS += -L$(LIB_UTIL_DIR) \
-	-L$(LIB_DROPT_DIR) \
+	-L$(LIB_ARGTABLE_DIR) \
 	-L$(LIB_IPPCP_DIR) \
 	-L$(LIB_COMMON_DIR) \
 	-lcommon \
-	-lippcp -lutil -ldropt
+	-lippcp -lutil -largtable3
+
+ifneq ($(TSS_PATH),)
+	LDFLAGS += -L$(TSS_PATH) -ltss -lcrypto
+endif
+
+ifneq ($(TINY),)
+	LDFLAGS += -L$(LIB_MEMBER_DIR) -lmath -ltiny_stdlib
+endif
 
 $(VERIFYSIG_EXE): $(VERIFYSIG_OBJ)
 	$(CC) -o $@ $^ -L$(LIB_VERIFIER_DIR) -lverifier $(LDFLAGS)
 
 $(VERIFYSIG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \
-			-I$(LIB_DROPT_DIR)/../include \
+			-I$(LIB_ARGTABLE_DIR) \
 			-I$(LIB_VERIFIER_DIR)/../.. \
 			-I$(VERIFYSIG_INCLUDE_DIR) \
 			-I$(IPP_API_INCLUDE_DIR) -c $^
@@ -47,7 +55,7 @@ $(SIGNMSG_EXE): $(SIGNMSG_OBJ)
 
 $(SIGNMSG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \
-			-I$(LIB_DROPT_DIR)/../include \
+			-I$(LIB_ARGTABLE_DIR) \
 			-I$(LIB_MEMBER_DIR)/../.. \
 			-I$(SIGNMSG_INCLUDE_DIR) \
 			-I$(IPP_API_INCLUDE_DIR) -c $^

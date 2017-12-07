@@ -50,14 +50,13 @@ EpidStatus ProvisionBulkAndStart(MemberCtx* ctx, GroupPubKey const* pub_key,
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkFailsGivenNullParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGroupPublicKey;
   PrivKey priv_key = this->kMemberPrivateKey;
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionKey(nullptr, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
@@ -70,27 +69,23 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsGivenNullParameters) {
             EpidProvisionKey(member, nullptr, &priv_key, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
             EpidProvisionKey(member, &pub_key, nullptr, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkSucceedsGivenValidParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGroupPublicKey;
   PrivKey priv_key = this->kMemberPrivateKey;
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
             EpidProvisionKey(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &pub_key, &priv_key, nullptr));
-  EpidMemberDelete(&member);
 }
 
 // test that create succeeds with valid IKGF given parameters
 TEST_F(EpidMemberTest, ProvisionBulkSucceedsGivenValidParametersUsingIKGFData) {
-  MemberCtx* member = nullptr;
   Prng prng;
   const GroupPubKey pub_key = {
 #include "epid/common-testhelper/testdata/ikgf/groupa/pubkey.inc"
@@ -104,15 +99,13 @@ TEST_F(EpidMemberTest, ProvisionBulkSucceedsGivenValidParametersUsingIKGFData) {
   };
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
             EpidProvisionKey(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &pub_key, &priv_key, nullptr));
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidGroupPubKey) {
-  MemberCtx* member = nullptr;
   Prng prng;
 
   GroupPubKey pub_key = this->kGroupPublicKey;
@@ -121,7 +114,7 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidGroupPubKey) {
   MemberParams params = {0};
 
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   pub_key = this->kGroupPublicKey;
   pub_key.h1.x.data.data[0]++;
@@ -178,12 +171,9 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidGroupPubKey) {
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidF) {
-  MemberCtx* member = nullptr;
   Prng prng;
   FpElemStr f = {
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -195,7 +185,7 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidF) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   priv_key = this->kMemberPrivateKey;
   priv_key.f = f;
@@ -203,12 +193,9 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidF) {
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidPrivateKey) {
-  MemberCtx* member = nullptr;
   Prng prng;
 
   GroupPubKey pub_key = this->kGroupPublicKey;
@@ -216,7 +203,7 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidPrivateKey) {
   MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
 
   priv_key = this->kMemberPrivateKey;
   priv_key.A.x.data.data[0]++;
@@ -231,14 +218,12 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidPrivateKey) {
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
-
-  EpidMemberDelete(&member);
 }
 
 TEST_F(EpidMemberTest, ProvisionBulkCanStoreMembershipCredential) {
   Prng prng;
   uint32_t nv_index = 0x01c10100;
-  MemberCtx* member = nullptr;
+
   GroupPubKey pub_key = this->kGroupPublicKey;
   PrivKey priv_key = this->kMemberPrivateKey;
   MembershipCredential const orig_credential{priv_key.gid, priv_key.A,
@@ -246,14 +231,14 @@ TEST_F(EpidMemberTest, ProvisionBulkCanStoreMembershipCredential) {
   MembershipCredential credential;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &priv_key.f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
-  EXPECT_EQ(kEpidNoErr, EpidNvReadMembershipCredential(
-                            member->tpm2_ctx, nv_index, &pub_key, &credential));
+  EXPECT_EQ(kEpidNoErr,
+            EpidNvReadMembershipCredential(((MemberCtx*)member)->tpm2_ctx,
+                                           nv_index, &pub_key, &credential));
   EXPECT_EQ(orig_credential, credential);
-  EpidMemberDelete(&member);
 }
 
 }  // namespace

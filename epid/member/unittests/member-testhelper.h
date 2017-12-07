@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "epid/common-testhelper/member_wrapper-testhelper.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -41,58 +42,6 @@ bool operator==(MembershipCredential const& lhs,
 
 /// compares GroupPubKey values
 bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs);
-
-/// C++ Wrapper to manage memory for MemberCtx via RAII
-class MemberCtxObj {
- public:
-  /// Create a MemberCtx
-  explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-                        BitSupplier rnd_func, void* rnd_param);
-  /// Create a MemberCtx
-  explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-                        HashAlg hash_alg, BitSupplier rnd_func,
-                        void* rnd_param);
-  /// Create a MemberCtx
-  explicit MemberCtxObj(BitSupplier rnd_func, void* rnd_param);
-  /// Create a MemberCtx
-  explicit MemberCtxObj(MemberParams const* params);
-  /// Create a MemberCtx
-  explicit MemberCtxObj(GroupPubKey const& pub_key,
-                        MembershipCredential const& cred, BitSupplier rnd_func,
-                        void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-               MemberPrecomp const& precomp, BitSupplier rnd_func,
-               void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-               HashAlg hash_alg, MemberPrecomp const& precomp,
-               BitSupplier rnd_func, void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
-               MemberPrecomp const& precomp, BitSupplier rnd_func,
-               void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
-               HashAlg hash_alg, BitSupplier rnd_func, void* rnd_param);
-  // This class instances are not meant to be copied.
-  // Explicitly delete copy constructor and assignment operator.
-  MemberCtxObj(const MemberCtxObj&) = delete;
-  MemberCtxObj& operator=(const MemberCtxObj&) = delete;
-
-  /// Destroy the MemberCtx
-  ~MemberCtxObj();
-  /// get a pointer to the stored MemberCtx
-  MemberCtx* ctx() const;
-  /// cast operator to get the pointer to the stored MemberCtx
-  operator MemberCtx*() const;
-  /// const cast operator to get the pointer to the stored MemberCtx
-  operator const MemberCtx*() const;
-
- private:
-  /// The stored MemberCtx
-  MemberCtx* ctx_;
-};
 
 /// Test fixture class for EpidMember
 class EpidMemberTest : public ::testing::Test {

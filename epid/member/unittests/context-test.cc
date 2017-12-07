@@ -49,6 +49,104 @@ bool operator==(MembershipCredential const& lhs,
                 MembershipCredential const& rhs);
 namespace {
 //////////////////////////////////////////////////////////////////////////
+// EpidMemberDeinit Tests
+TEST_F(EpidMemberTest, DeinitWorksGivenNullMemberCtx) {
+  EpidMemberDeinit(nullptr);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// EpidMemberGetSize Tests
+TEST_F(EpidMemberTest, GetSizeFailsGivenNullParams) {
+  size_t ctx_size = 0;
+  MemberParams params = {0};
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberGetSize(&params, nullptr));
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberGetSize(nullptr, &ctx_size));
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberGetSize(nullptr, nullptr));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// EpidMemberGetSize Tests
+TEST_F(EpidMemberTest, GetSizeWorksGivenValidParams) {
+  size_t ctx_size = 0;
+  Prng my_prng;
+  MemberParams params = {0};
+  SetMemberParams(&Prng::Generate, &my_prng, nullptr, &params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// EpidMemberInit Tests
+TEST_F(EpidMemberTest, InitFailsGivenNullParameters) {
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, nullptr, &params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(nullptr, nullptr));
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(&params, nullptr));
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(nullptr, ctx));
+}
+
+TEST_F(EpidMemberTest, InitFailsGivenInvalidParameters) {
+  FpElemStr f = {
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  };
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, &f, &params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(&params, ctx));
+}
+
+TEST_F(EpidMemberTest, InitSucceedsGivenValidParameters) {
+  FpElemStr f = {
+      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  };
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, &f, &params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidNoErr, EpidMemberInit(&params, ctx));
+  EpidMemberDeinit(ctx);
+}
+
+TEST_F(EpidMemberTest, InitSucceedsGivenValidParametersWithNoF) {
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, nullptr, &params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidNoErr, EpidMemberInit(&params, ctx));
+  EpidMemberDeinit(ctx);
+}
+
+//////////////////////////////////////////////////////////////////////////
 // EpidMemberDelete Tests
 TEST_F(EpidMemberTest, DeleteWorksGivenNullMemberCtx) {
   EpidMemberDelete(nullptr);
@@ -111,23 +209,21 @@ TEST_F(EpidMemberTest, StartupFailsGivenNullParameters) {
 }
 
 TEST_F(EpidMemberTest, StartupSucceedsGivenValidParameters) {
-  MemberCtx* member = nullptr;
   Prng prng;
   GroupPubKey pub_key = this->kGroupPublicKey;
   PrivKey priv_key = this->kMemberPrivateKey;
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
+  MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &pub_key, &priv_key, nullptr));
-  MembershipCredential credential_expected = member->credential;
+  MembershipCredential credential_expected = ((MemberCtx*)member)->credential;
   // reset member credential to test if startup reads them from NV memory
   // correctly
-  member->pub_key = {0};
-  member->credential = {0};
+  ((MemberCtx*)member)->pub_key = {0};
+  ((MemberCtx*)member)->credential = {0};
   EXPECT_EQ(kEpidNoErr, EpidMemberStartup(member));
-  EXPECT_EQ(pub_key, member->pub_key);
-  EXPECT_EQ(credential_expected, member->credential);
-  EpidMemberDelete(&member);
+  EXPECT_EQ(pub_key, ((MemberCtx*)member)->pub_key);
+  EXPECT_EQ(credential_expected, ((MemberCtx*)member)->credential);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -226,7 +322,7 @@ TEST_F(EpidMemberTest, SetSigRlFailsGivenBadGroupId) {
   EXPECT_EQ(kEpidBadArgErr,
             EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
 }
-TEST_F(EpidMemberTest, SetPrivRlFailsGivenEmptySigRlFromDifferentGroup) {
+TEST_F(EpidMemberTest, SetSigRlFailsGivenEmptySigRlFromDifferentGroup) {
   Prng my_prng;
   MemberCtxObj member_ctx(this->kGroupPublicKey, this->kMemberPrivateKey,
                           &Prng::Generate, &my_prng);
@@ -305,17 +401,35 @@ TEST_F(EpidMemberTest, SetSigRlWorksGivenSigRlWithOneEntry) {
   size_t sig_rl_size = this->kGrpXSigRlSingleEntry.size();
   EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
 }
+TEST_F(EpidMemberTest, SetSigRlFailsIfNotProvisioned) {
+  Prng my_prng;
+  MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
+  uint8_t sig_rl_data[] = {
+      // gid
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01,
+      // version
+      0x00, 0x00, 0x00, 0x00,
+      // n2
+      0x0, 0x00, 0x00, 0x00,
+      // not bk's
+  };
+  SigRl* sig_rl = reinterpret_cast<SigRl*>(sig_rl_data);
+  size_t sig_rl_size = sizeof(sig_rl_data);
+  EXPECT_EQ(kEpidOutOfSequenceError,
+            EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
+}
 //////////////////////////////////////////////////////////////////////////
-// EpidRegisterBaseName
+// EpidRegisterBasename
 TEST_F(EpidMemberTest, RegisterBaseNameFailsGivenNullPtr) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   std::vector<uint8_t> basename = {'_', 'b', 'a', 's', 'e', 'n', 'a', 'm', 'e'};
   EXPECT_EQ(kEpidBadArgErr,
-            EpidRegisterBaseName(member, nullptr, basename.size()));
+            EpidRegisterBasename(member, nullptr, basename.size()));
   EXPECT_EQ(kEpidBadArgErr,
-            EpidRegisterBaseName(nullptr, basename.data(), basename.size()));
+            EpidRegisterBasename(nullptr, basename.data(), basename.size()));
 }
 TEST_F(EpidMemberTest, RegisterBaseNameFailsGivenDuplicateBaseName) {
   Prng my_prng;
@@ -323,9 +437,9 @@ TEST_F(EpidMemberTest, RegisterBaseNameFailsGivenDuplicateBaseName) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   std::vector<uint8_t> basename = {'d', 'b', 'a', 's', 'e', 'n', 'a', 'm', 'e'};
   EXPECT_EQ(kEpidNoErr,
-            EpidRegisterBaseName(member, basename.data(), basename.size()));
+            EpidRegisterBasename(member, basename.data(), basename.size()));
   EXPECT_EQ(kEpidDuplicateErr,
-            EpidRegisterBaseName(member, basename.data(), basename.size()));
+            EpidRegisterBasename(member, basename.data(), basename.size()));
 }
 TEST_F(EpidMemberTest, RegisterBaseNameFailsGivenInvalidBaseName) {
   Prng my_prng;
@@ -334,8 +448,8 @@ TEST_F(EpidMemberTest, RegisterBaseNameFailsGivenInvalidBaseName) {
   std::vector<uint8_t> basename = {};
   std::vector<uint8_t> basename2 = {'b', 's', 'n'};
   EXPECT_EQ(kEpidBadArgErr,
-            EpidRegisterBaseName(member, basename.data(), basename.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidRegisterBaseName(member, basename2.data(), 0));
+            EpidRegisterBasename(member, basename.data(), basename.size()));
+  EXPECT_EQ(kEpidBadArgErr, EpidRegisterBasename(member, basename2.data(), 0));
 }
 TEST_F(EpidMemberTest, RegisterBaseNameSucceedsGivenUniqueBaseName) {
   Prng my_prng;
@@ -343,7 +457,7 @@ TEST_F(EpidMemberTest, RegisterBaseNameSucceedsGivenUniqueBaseName) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   std::vector<uint8_t> basename = {'b', 's', 'n', '0', '1'};
   EXPECT_EQ(kEpidNoErr,
-            EpidRegisterBaseName(member, basename.data(), basename.size()));
+            EpidRegisterBasename(member, basename.data(), basename.size()));
 }
 TEST_F(EpidMemberTest, RegisterBaseNameSucceedsGivenMultipleUniqueBaseNames) {
   Prng my_prng;
@@ -353,26 +467,71 @@ TEST_F(EpidMemberTest, RegisterBaseNameSucceedsGivenMultipleUniqueBaseNames) {
   std::vector<uint8_t> basename2 = {'b', 's', 'n', '0', '2'};
   std::vector<uint8_t> basename3 = {'b', 's', 'n', '0', '3'};
   EXPECT_EQ(kEpidNoErr,
-            EpidRegisterBaseName(member, basename1.data(), basename1.size()));
+            EpidRegisterBasename(member, basename1.data(), basename1.size()));
   EXPECT_EQ(kEpidNoErr,
-            EpidRegisterBaseName(member, basename2.data(), basename2.size()));
+            EpidRegisterBasename(member, basename2.data(), basename2.size()));
   EXPECT_EQ(kEpidNoErr,
-            EpidRegisterBaseName(member, basename3.data(), basename3.size()));
+            EpidRegisterBasename(member, basename3.data(), basename3.size()));
   // Verify that basenames registered succesfully
   EXPECT_EQ(kEpidDuplicateErr,
-            EpidRegisterBaseName(member, basename1.data(), basename1.size()));
+            EpidRegisterBasename(member, basename1.data(), basename1.size()));
   EXPECT_EQ(kEpidDuplicateErr,
-            EpidRegisterBaseName(member, basename2.data(), basename2.size()));
+            EpidRegisterBasename(member, basename2.data(), basename2.size()));
   EXPECT_EQ(kEpidDuplicateErr,
-            EpidRegisterBaseName(member, basename3.data(), basename3.size()));
+            EpidRegisterBasename(member, basename3.data(), basename3.size()));
 }
 TEST_F(EpidMemberTest,
        RegisterBaseNameSucceedsGivenBsnContainingAllPossibleBytes) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
-  EXPECT_EQ(kEpidNoErr, EpidRegisterBaseName(member, this->kData_0_255.data(),
+  EXPECT_EQ(kEpidNoErr, EpidRegisterBasename(member, this->kData_0_255.data(),
                                              this->kData_0_255.size()));
+}
+//////////////////////////////////////////////////////////////////////////
+// EpidClearRegisteredBasenames
+TEST_F(EpidMemberTest, EpidClearRegisteredBasenamesFailsGivenNullPtr) {
+  EXPECT_EQ(kEpidBadArgErr, EpidClearRegisteredBasenames(nullptr));
+}
+TEST_F(EpidMemberTest, EpidClearRegisteredBasenamesClearsBasenames) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  THROW_ON_EPIDERR(
+      EpidRegisterBasename(member, this->kBsn0.data(), this->kBsn0.size()));
+  EXPECT_EQ(kEpidNoErr, EpidClearRegisteredBasenames(member));
+  // check, that after clearing EpidRegisterBasename works correctly
+  THROW_ON_EPIDERR(
+      EpidRegisterBasename(member, this->kBsn0.data(), this->kBsn0.size()));
+}
+TEST_F(EpidMemberTest, EpidClearRegisteredBasenamesClearsAllBasenames) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  for (int i = 0; i < 3; ++i) {
+    THROW_ON_EPIDERR(EpidRegisterBasename(member, &i, sizeof(i)));
+  }
+  EXPECT_EQ(kEpidNoErr, EpidClearRegisteredBasenames(member));
+  for (int i = 0; i < 3; ++i) {
+    THROW_ON_EPIDERR(EpidRegisterBasename(member, &i, sizeof(i)));
+  }
+}
+TEST_F(EpidMemberTest,
+       EpidClearRegisteredBasenamesCausesSignWithBasenameAfterItToFail) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  auto& msg = this->kMsg0;
+  auto& bsn = this->kBsn0;
+  THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+  THROW_ON_EPIDERR(EpidSign(member, msg.data(), msg.size(), bsn.data(),
+                            bsn.size(), sig, sig_len));
+  THROW_ON_EPIDERR(EpidClearRegisteredBasenames(member));
+  ASSERT_EQ(kEpidBadArgErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
+                                     bsn.size(), sig, sig_len));
 }
 //////////////////////////////////////////////////////////////////////////
 // EpidMemberWritePrecomp
@@ -414,17 +573,16 @@ TEST_F(EpidMemberTest, DefaultHashAlgIsSha512) {
   MemberCtx* ctx = member;
   EXPECT_EQ(kSha512, ctx->hash_alg);
 }
-
+#ifdef TPM_TSS
 //////////////////////////////////////////////////////////////////////////
 // MemberCanLoadMembershipCredentialFromTpm
-TEST_F(EpidMemberTest, DISABLED_MemberCanLoadMembershipCredentialFromTpm) {
+TEST_F(EpidMemberTest,
+       MemberCanLoadPreviouslyProvisionedMembershipCredentialFromTpm) {
   // Not clear that this test is valid or in the right place.
   Prng prng;
   Epid2ParamsObj epid2params;
-  Tpm2CtxObj tpm(&Prng::Generate, &prng, nullptr, epid2params);
 
   uint32_t const nv_index = 0x01c10100;
-  MemberCtx* member = nullptr;
   GroupPubKey pub_key_expected = this->kGrpXKey;
   GroupPubKey pub_key;
   FpElemStr f = this->kGrpXMember9PrivKey.f;
@@ -432,22 +590,31 @@ TEST_F(EpidMemberTest, DISABLED_MemberCanLoadMembershipCredentialFromTpm) {
                                               this->kGrpXMember9PrivKey.A,
                                               this->kGrpXMember9PrivKey.x};
   MembershipCredential credential;
-  // write credentials
-  THROW_ON_EPIDERR(EpidNvWriteMembershipCredential(
-      tpm, &pub_key_expected, &credential_expected, nv_index));
+  // Tpm2CtxObj calls Tpm2CreateContext() and sets
+  // is_context_already_created=true. To call this function in
+  // EpidMemberInit() successfully Tpm2DeleteContext() must be called.
+  // Putting creation of Tpm2CtxObj object in a block solves it
+  {
+    // write credentials
+    Tpm2CtxObj tpm(&Prng::Generate, &prng, nullptr, epid2params);
+    THROW_ON_EPIDERR(EpidNvWriteMembershipCredential(
+        tpm, &pub_key_expected, &credential_expected, nv_index));
 
-  // read credentials
-  EXPECT_EQ(kEpidNoErr, EpidNvReadMembershipCredential(tpm, nv_index, &pub_key,
-                                                       &credential));
-  EXPECT_EQ(pub_key_expected, pub_key);
-  EXPECT_EQ(credential_expected, credential);
+    // read credentials to confirm that credential has been really inserted
+    EXPECT_EQ(kEpidNoErr, EpidNvReadMembershipCredential(
+                              tpm, nv_index, &pub_key, &credential));
+    EXPECT_EQ(pub_key_expected, pub_key);
+    EXPECT_EQ(credential_expected, credential);
+  }
 
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, &f, &params);
-  EXPECT_EQ(kEpidNoErr, EpidMemberCreate(&params, &member));
-  EXPECT_EQ(kEpidNoErr,
-            EpidProvisionCredential(member, &pub_key, &credential, nullptr));
-  EpidMemberDelete(&member);
-  Tpm2NvUndefineSpace(tpm, nv_index);
+  MemberCtxObj member(&params);
+  EXPECT_EQ(kEpidNoErr, EpidMemberStartup(member));
+  EXPECT_EQ(pub_key_expected, ((MemberCtx*)member)->pub_key);
+  EXPECT_EQ(credential_expected, ((MemberCtx*)member)->credential);
+
+  Tpm2NvUndefineSpace(((MemberCtx*)member)->tpm2_ctx, nv_index);
 }
+#endif
 }  // namespace

@@ -23,6 +23,10 @@ LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest -L$(LIB_COMMON_TESTHELPER_DIR) \
 	-L$(LIB_COMMON_DIR) -L$(LIB_IPPCP_DIR) \
 	-lgtest -lcommon-testhelper -lcommon -lippcp
 
+ifneq ($(TSS_PATH),)
+	CXXFLAGS += -DTPM_TSS
+endif
+
 #target part
 $(COMMON_TESTHELPER_LIB): $(COMMON_TESTHELPER_OBJ)
 	$(AR) rc $(COMMON_TESTHELPER_LIB) $(COMMON_TESTHELPER_OBJ)

@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <dropt.h>
+#include <argtable3.h>
 #include "epid/common/types.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
@@ -33,7 +33,8 @@
 #include "util/strutil.h"
 
 #define PROGRAM_NAME "extractkeys"
-#define MANDATORY_PARAM_COUNT 2
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 6
 
 #pragma pack(1)
 /// Intel(R) EPID Key Output File Entry
@@ -71,111 +72,89 @@ int main(int argc, char* argv[]) {
   size_t num_keys_extracted = 0;
   size_t num_keys_in_file = 0;
 
-  char* end = NULL;
   FILE* file = NULL;
 
-  // File to extract keys from
-  static char* keyfile_name = NULL;
-
-  // Number of keys to extract
-  static size_t num_keys_to_extract = 0;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
-  // Compressed flag parameter
-  static bool compressed = false;
-
-  unsigned int i = 0;
+  int i = 0;
   size_t bytes_read = 0;
 
-  dropt_option options[] = {
-      {'c', "compressed", "extract compressed keys", NULL, dropt_handle_bool,
-       &compressed},
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
+  struct arg_file* keyfile =
+      arg_file1(NULL, NULL, "FILE", "FILE containing keys to extract");
+  struct arg_int* num_keys_to_extract =
+      arg_int1(NULL, NULL, "NUM", "number of keys to extract");
+  struct arg_lit* compressed =
+      arg_lit0("c", "compressed", "extract compressed keys");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-      {0} /* Required sentinel value. */
-  };
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = keyfile;
+  argtable[1] = num_keys_to_extract;
+  argtable[2] = compressed;
+  argtable[3] = help;
+  argtable[4] = verbose;
+  argtable[5] = end;
 
-  dropt_context* dropt_ctx = NULL;
-  (void)argc;
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
-
   do {
-    dropt_ctx = dropt_new_context(options);
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
 
-    if (dropt_ctx && argc > 0) {
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
 
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
-        ret_value = EXIT_FAILURE;
-        break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]... [FILE] [NUM]\n"
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]... [FILE] [NUM]\n"
+          "Extract the first NUM private keys from FILE to current "
+          "directory.\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      ret_value = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      ret_value = EXIT_FAILURE;
+      break;
+    }
 
-            "Extract the first NUM private keys from FILE to current "
-            "directory.\n\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        ret_value = EXIT_SUCCESS;
-        break;
-      } else {
-        size_t rest_count = 0;
-        if (verbose) verbose = ToggleVerbosity();
-
-        // count number of arguments rest
-        while (rest[rest_count]) rest_count++;
-        if (rest_count != MANDATORY_PARAM_COUNT) {
-          log_error(
-              "%s arguments: found %i positional arguments, expected %i",
-              (rest_count < MANDATORY_PARAM_COUNT) ? "missing" : "too many",
-              rest_count, MANDATORY_PARAM_COUNT);
-
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-
-        keyfile_name = *(rest);
-
-        num_keys_to_extract = strtoul(*(rest + 1), &end, 10);
-        if ('\0' != *end) {
-          log_error("input '%s' is invalid: not a valid number of keys",
-                    *(rest + 1));
-          ret_value = EXIT_FAILURE;
-          break;
-        }
-      }
-
-    } else {
+    if (num_keys_to_extract->ival[0] < 0) {
+      log_error("unable extract negative number of keys");
       ret_value = EXIT_FAILURE;
       break;
     }
 
     // check file existence
-    if (!FileExists(keyfile_name)) {
-      log_error("cannot access '%s'", keyfile_name);
+    if (!FileExists(keyfile->filename[0])) {
+      log_error("cannot access '%s'", keyfile->filename[0]);
       ret_value = EXIT_FAILURE;
       break;
     }
 
-    keyfile_size = GetFileSize(keyfile_name);
-    if (compressed) {
+    keyfile_size = GetFileSize(keyfile->filename[0]);
+    if (compressed->count > 0) {
       privkey_size = sizeof(CompressedPrivKey);
       privkey = &(((EpidCompressedKeyOutputFileKey*)&temp[0])->privkey);
       keyfile_entry_size = sizeof(EpidCompressedKeyOutputFileKey);
@@ -189,34 +168,35 @@ int main(int argc, char* argv[]) {
       log_error(
           "input file '%s' is invalid: does not contain integral number of "
           "keys",
-          keyfile_name);
+          keyfile->filename[0]);
       ret_value = EXIT_FAILURE;
       break;
     }
     num_keys_in_file = keyfile_size / keyfile_entry_size;
 
-    if (num_keys_to_extract > num_keys_in_file) {
-      log_error("can not extract %d keys: only %d in file", num_keys_to_extract,
-                num_keys_in_file);
+    if ((unsigned int)num_keys_to_extract->ival[0] > num_keys_in_file) {
+      log_error("can not extract %d keys: only %d in file",
+                num_keys_to_extract->ival[0], num_keys_in_file);
       ret_value = EXIT_FAILURE;
       break;
     }
 
-    file = fopen(keyfile_name, "rb");
+    file = fopen(keyfile->filename[0], "rb");
     if (!file) {
-      log_error("failed read from '%s'", keyfile_name);
+      log_error("failed read from '%s'", keyfile->filename[0]);
 
       ret_value = EXIT_FAILURE;
       break;
     }
 
     // start extraction
-    for (i = 0; i < num_keys_to_extract; ++i) {
+    for (i = 0; i < num_keys_to_extract->ival[0]; ++i) {
       int seek_failed = 0;
       seek_failed = fseek(file, (int)(i * keyfile_entry_size), SEEK_SET);
       bytes_read = fread(&temp, 1, keyfile_entry_size, file);
       if (seek_failed || bytes_read != keyfile_entry_size) {
-        log_error("failed to extract key #%lu from '%s'", i, keyfile_name);
+        log_error("failed to extract key #%lu from '%s'", i,
+                  keyfile->filename[0]);
       } else {
         char outkeyname[256] = {0};
         snprintf(outkeyname, sizeof(outkeyname), "mprivkey%010u.dat", i);
@@ -227,7 +207,8 @@ int main(int argc, char* argv[]) {
           break;
         }
         if (0 != WriteLoud(privkey, privkey_size, outkeyname)) {
-          log_error("failed to write key #%lu from '%s'", i, keyfile_name);
+          log_error("failed to write key #%lu from '%s'", i,
+                    keyfile->filename[0]);
         } else {
           num_keys_extracted++;
         }
@@ -245,8 +226,7 @@ int main(int argc, char* argv[]) {
     file = NULL;
   }
 
-  dropt_free_context(dropt_ctx);
-  dropt_ctx = NULL;
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
   return ret_value;
 }

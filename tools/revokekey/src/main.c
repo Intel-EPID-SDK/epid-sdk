@@ -21,7 +21,7 @@
  *
  */
 
-#include <dropt.h>
+#include <argtable3.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -38,6 +38,8 @@ const OctStr16 kEpidFileVersion = {2, 0};
 #define PRIVKEY_DEFAULT "mprivkey.dat"
 #define REQFILE_DEFAULT "privreq.dat"
 #define PUBKEYFILE_DEFAULT "pubkey.bin"
+#define ARGPARSE_ERROR_MAX 20
+#define ARGTABLE_SIZE 8
 
 /// Partial signature request, includes all but message.
 typedef struct PrivRlRequestTop {
@@ -237,120 +239,104 @@ int MakeRequest(PrivKey const* priv_key, char const* req_file, bool verbose) {
 int main(int argc, char* argv[]) {
   int retval = EXIT_FAILURE;
 
-  // User Settings
-  // Private key file name parameter
-  static char* privkey_file = NULL;
-  static char* gpubkey_file = NULL;
-  static char* capubkey_file = NULL;
-
-  // Private key revocation request file name parameter
-  static char* req_file = NULL;
-
-  // help flag parameter
-  static bool show_help = false;
-
   // Verbose flag parameter
-  static bool verbose = false;
+  static bool verbose_flag = false;
 
   // Private key
   PrivKey priv_key;
 
-  dropt_option options[] = {
-      {'\0', "mprivkey",
-       "load private key to revoke from FILE (default: " PRIVKEY_DEFAULT ")",
-       "FILE", dropt_handle_string, &privkey_file},
-      {'\0', "req",
-       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
-       ")",
-       "FILE", dropt_handle_string, &req_file},
-      {'h', "help", "display this help and exit", NULL, dropt_handle_bool,
-       &show_help, dropt_attr_halt},
-      {'v', "verbose", "print status messages to stdout", NULL,
-       dropt_handle_bool, &verbose},
-      {'\0', '\0', "The following options are only needed for compressed keys:",
-       NULL, dropt_handle_string, NULL},
-      {'\0', "gpubkey",
-       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")",
-       "FILE", dropt_handle_string, &gpubkey_file},
-      {'\0', "capubkey", "load IoT Issuing CA public key from FILE", "FILE",
-       dropt_handle_string, &capubkey_file},
-      {0} /* Required sentinel value. */
-  };
+  struct arg_file* privkey_file = arg_file0(
+      NULL, "mprivkey", "FILE",
+      "load private key to revoke from FILE (default: " PRIVKEY_DEFAULT ")");
+  struct arg_file* req_file = arg_file0(
+      NULL, "req", "FILE",
+      "append signature revocation request to FILE (default: " REQFILE_DEFAULT
+      ")");
+  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* verbose =
+      arg_lit0("v", "verbose", "print status messages to stdout");
+  struct arg_rem* comment_line = arg_rem(
+      NULL, "The following options are only needed for compressed keys:");
+  struct arg_file* gpubkey_file = arg_file0(
+      NULL, "gpubkey", "FILE",
+      "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
+  struct arg_file* capubkey_file = arg_file0(
+      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+  struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
+  void* argtable[ARGTABLE_SIZE];
+  int nerrors;
 
-  dropt_context* dropt_ctx = NULL;
+  /* initialize the argtable array with ptrs to the arg_xxx structures
+   * constructed above */
+  argtable[0] = privkey_file;
+  argtable[1] = req_file;
+  argtable[2] = help;
+  argtable[3] = verbose;
+  argtable[4] = comment_line;
+  argtable[5] = gpubkey_file;
+  argtable[6] = capubkey_file;
+  argtable[7] = end;
 
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
-
   do {
-    dropt_ctx = dropt_new_context(options);
-    if (!dropt_ctx) {
+    /* verify the argtable[] entries were allocated sucessfully */
+    if (arg_nullcheck(argtable) != 0) {
+      /* NULL entries were detected, some allocations must have failed */
+      printf("%s: insufficient memory\n", PROGRAM_NAME);
       retval = EXIT_FAILURE;
       break;
-    } else if (argc > 0) {
-      /* Parse the arguments from argv.
-      *
-      * argv[1] is always safe to access since argv[argc] is guaranteed
-      * to be NULL and since we've established that argc > 0.
-      */
-      char** rest = dropt_parse(dropt_ctx, -1, &argv[1]);
-      if (dropt_get_error(dropt_ctx) != dropt_error_none) {
-        log_error(dropt_get_error_message(dropt_ctx));
-        if (dropt_error_invalid_option == dropt_get_error(dropt_ctx)) {
-          fprintf(stderr, "Try '%s --help' for more information.\n",
-                  PROGRAM_NAME);
-        }
-        retval = EXIT_FAILURE;
-        break;
-      } else if (show_help) {
-        log_fmt(
-            "Usage: %s [OPTION]...\n"
-            "Revoke Intel(R) EPID signature\n"
-            "\n"
-            "Options:\n",
-            PROGRAM_NAME);
-        dropt_print_help(stdout, dropt_ctx, NULL);
-        retval = EXIT_SUCCESS;
-        break;
-      } else if (*rest) {
-        // we have unparsed (positional) arguments
-        log_error("invalid argument: %s", *rest);
-        fprintf(stderr, "Try '%s --help' for more information.\n",
-                PROGRAM_NAME);
-        retval = EXIT_FAILURE;
-        break;
-      } else {
-        if (verbose) {
-          verbose = ToggleVerbosity();
-        }
-        if (!privkey_file) {
-          privkey_file = PRIVKEY_DEFAULT;
-        }
-        if (!gpubkey_file) {
-          gpubkey_file = PUBKEYFILE_DEFAULT;
-        }
-        if (!req_file) {
-          req_file = REQFILE_DEFAULT;
-        }
-        if (verbose) {
-          log_msg("\nOption values:");
-          log_msg(" mprivkey  : %s", privkey_file);
-          log_msg(" req       : %s", req_file);
-          log_msg(" gpubkey   : %s", gpubkey_file);
-          log_msg(" capubkey  : %s", capubkey_file);
-          log_msg("");
-        }
-      }
     }
 
-    retval = OpenKey(privkey_file, gpubkey_file, capubkey_file, &priv_key);
+    /* set any command line default values prior to parsing */
+    privkey_file->filename[0] = PRIVKEY_DEFAULT;
+    gpubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
+    req_file->filename[0] = REQFILE_DEFAULT;
+    capubkey_file->filename[0] = NULL;
+
+    /* Parse the command line as defined by argtable[] */
+    nerrors = arg_parse(argc, argv, argtable);
+
+    if (help->count > 0) {
+      log_fmt(
+          "Usage: %s [OPTION]...\n"
+          "Revoke Intel(R) EPID signature\n"
+          "\n"
+          "Options:\n",
+          PROGRAM_NAME);
+      arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+      retval = EXIT_SUCCESS;
+      break;
+    }
+    if (verbose->count > 0) {
+      verbose_flag = ToggleVerbosity();
+    }
+    /* If the parser returned any errors then display them and exit */
+    if (nerrors > 0) {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stderr, end, PROGRAM_NAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n", PROGRAM_NAME);
+      retval = EXIT_FAILURE;
+      break;
+    }
+    if (verbose_flag) {
+      log_msg("\nOption values:");
+      log_msg(" mprivkey  : %s", privkey_file->filename[0]);
+      log_msg(" req       : %s", req_file->filename[0]);
+      log_msg(" gpubkey   : %s", gpubkey_file->filename[0]);
+      log_msg(" capubkey  : %s", capubkey_file->filename[0]);
+      log_msg("");
+    }
+
+    retval = OpenKey(privkey_file->filename[0], gpubkey_file->filename[0],
+                     capubkey_file->filename[0], &priv_key);
     if (EXIT_SUCCESS != retval) {
       break;
     }
-    retval = MakeRequest(&priv_key, req_file, verbose);
+    retval = MakeRequest(&priv_key, req_file->filename[0], verbose_flag);
   } while (0);
 
-  dropt_free_context(dropt_ctx);
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
   return retval;
 }

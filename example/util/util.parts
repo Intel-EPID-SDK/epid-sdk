@@ -43,7 +43,8 @@ if 'install_package' in env['MODE']:
     env.InstallTopLevel(makefile, sub_dir='example/${PART_SHORT_NAME}')
 else:
     env.DependsOn(
-        [Component('common', requires=REQ.HEADERS), Component('member')])
+        [Component('common', requires=REQ.HEADERS),
+         Component('member', requires=REQ.HEADERS)])
 
     env.Append(CPPPATH='#/example')
 

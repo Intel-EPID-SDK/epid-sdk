@@ -60,7 +60,7 @@ typedef struct BigNumStr BigNumStr;
  \note
  If the result is not ::kEpidNoErr the content of sig, is undefined.
 
- \see EpidMemberCreate
+ \see EpidMemberInit
  \see EpidNrProve
  */
 EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
