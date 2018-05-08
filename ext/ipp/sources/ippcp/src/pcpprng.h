@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -56,5 +56,16 @@ struct _cpPRNG {
 
 #define cpPRNGen OWNAPI(cpPRNGen)
 int cpPRNGen(Ipp32u* pBuffer, cpSize bitLen, IppsPRNGState* pCtx);
+
+#define cpPRNGenPattern OWNAPI(cpPRNGenPattern)
+int cpPRNGenPattern(BNU_CHUNK_T* pRand, int bitSize,
+                    BNU_CHUNK_T botPattern, BNU_CHUNK_T topPattern,
+                    IppBitSupplier rndFunc, void* pRndParam);
+
+#define cpPRNGenRange OWNAPI(cpPRNGenRange)
+int cpPRNGenRange(BNU_CHUNK_T* pRand,
+            const BNU_CHUNK_T* pLo, cpSize loLen,
+            const BNU_CHUNK_T* pHi, cpSize hiLen,
+                  IppBitSupplier rndFunc, void* pRndParam);
 
 #endif /* _CP_PRNG_H */

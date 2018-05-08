@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 2002-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -65,9 +65,9 @@ struct _cpBigNum
 
 /* pack-unpack context */
 #define cpPackBigNumCtx OWNAPI(cpPackBigNumCtx)
-void cpPackBigNumCtx(const IppsBigNumState* pBN, Ipp8u* pBuffer);
+   void cpPackBigNumCtx(const IppsBigNumState* pBN, Ipp8u* pBuffer);
 #define cpUnpackBigNumCtx OWNAPI(cpUnpackBigNumCtx)
-void cpUnpackBigNumCtx(const Ipp8u* pBuffer, IppsBigNumState* pBN);
+   void cpUnpackBigNumCtx(const Ipp8u* pBuffer, IppsBigNumState* pBN);
 
 /* copy BN */
 __INLINE IppsBigNumState* cpBN_copy(IppsBigNumState* pDst, const IppsBigNumState* pSrc)
@@ -194,15 +194,15 @@ typedef struct _ippcpBigNumChunk {
 } IppsBigNumStateChunk;
 
 /* reference to BN(1) and BN(2) */
-#define cpBN_OneRef OWNAPI(cpBN_OneRef)
+#define          cpBN_OneRef OWNAPI(cpBN_OneRef)
 IppsBigNumState* cpBN_OneRef(void);
-#define cpBN_TwoRef OWNAPI(cpBN_TwoRef)
+#define          cpBN_TwoRef OWNAPI(cpBN_TwoRef)
 IppsBigNumState* cpBN_TwoRef(void);
-#define cpBN_ThreeRef OWNAPI(cpBN_ThreeRef)
+#define          cpBN_ThreeRef OWNAPI(cpBN_ThreeRef)
 IppsBigNumState* cpBN_ThreeRef(void);
 
-#define BN_ONE_REF()  cpBN_OneRef()
-#define BN_TWO_REF()  cpBN_TwoRef()
-#define BN_THREE_REF()  cpBN_ThreeRef()
+#define BN_ONE_REF()   cpBN_OneRef()
+#define BN_TWO_REF()   cpBN_TwoRef()
+#define BN_THREE_REF() cpBN_ThreeRef()
 
 #endif /* _CP_BN_H */

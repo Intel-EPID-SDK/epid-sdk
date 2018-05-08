@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -31,10 +31,7 @@
 
 /* number of leading/trailing zeros */
 #define cpNLZ_BNU32 OWNAPI(cpNLZ_BNU32)
-cpSize cpNLZ_BNU32(Ipp32u x);
-#if 0
-cpSize cpNTZ_BNU32(Ipp32u x);
-#endif
+cpSize  cpNLZ_BNU32(Ipp32u x);
 
 /* most significant BNU bit */
 __INLINE int cpMSBit_BNU32(const Ipp32u* pA, cpSize nsA)
@@ -59,16 +56,10 @@ __INLINE int cpCmp_BNU32(const Ipp32u* pA, cpSize nsA, const Ipp32u* pB, cpSize 
    }
 }
 
-/* logical shift left/right */
-#if 0
-cpSize cpLSL_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, cpSize nBits);
-cpSize cpLSR_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, cpSize nBits);
-#endif
-
 /* to/from oct string conversion */
 #define cpToOctStr_BNU32 OWNAPI(cpToOctStr_BNU32)
-cpSize cpToOctStr_BNU32(Ipp8u* pStr, cpSize strLen, const Ipp32u* pBNU, cpSize bnuSize);
+cpSize  cpToOctStr_BNU32(Ipp8u* pStr, cpSize strLen, const Ipp32u* pBNU, cpSize bnuSize);
 #define cpFromOctStr_BNU32 OWNAPI(cpFromOctStr_BNU32)
-cpSize cpFromOctStr_BNU32(Ipp32u* pBNU, const Ipp8u* pOctStr, cpSize strLen);
+cpSize  cpFromOctStr_BNU32(Ipp32u* pBNU, const Ipp8u* pOctStr, cpSize strLen);
 
 #endif /* _CP_BNU32_MISC_H */

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -100,20 +100,23 @@ IppStatus ECCPSetDP(const IppsGFpMethod* method,
    {
       IppsGFpState *   pGF = ECP_GFP(pEC);
 
-      IppStatus sts;
+      IppStatus sts = ippStsNoErr;
       IppsBigNumState P, H;
-      //int primeBitSize = GFP_FEBITLEN(pGF);
-      cpConstructBN(&P, pLen, (BNU_CHUNK_T*)pP, NULL);
-      sts = cpGFpSetGFp(&P, method, pGF);
+      int primeBitSize = BITSIZE_BNU(pP, pLen);
+      //cpConstructBN(&P, pLen, (BNU_CHUNK_T*)pP, NULL);
+      //sts = cpGFpSetGFp(&P, primeBitSize, method, pGF);
+      cpGFpSetGFp(pP, primeBitSize, method, pGF);
 
       if(ippStsNoErr==sts) {
+         gsModEngine* pGFE = GFP_PMA(pGF);
+
          do {
-            int elemLen = GFP_FELEN(pGF);
+            int elemLen = GFP_FELEN(pGFE);
             IppsGFpElement elmA, elmB;
 
             /* convert A ans B coeffs into GF elements */
-            cpGFpElementConstruct(&elmA, cpGFpGetPool(1, pGF), elemLen);
-            cpGFpElementConstruct(&elmB, cpGFpGetPool(1, pGF), elemLen);
+            cpGFpElementConstruct(&elmA, cpGFpGetPool(1, pGFE), elemLen);
+            cpGFpElementConstruct(&elmB, cpGFpGetPool(1, pGFE), elemLen);
             sts = ippsGFpSetElement((Ipp32u*)pA, BITS2WORD32_SIZE(BITSIZE_BNU(pA,aLen)), &elmA, pGF);
             if(ippStsNoErr!=sts) break;
             sts = ippsGFpSetElement((Ipp32u*)pB, BITS2WORD32_SIZE(BITSIZE_BNU(pB,bLen)), &elmB, pGF);
@@ -133,7 +136,7 @@ IppStatus ECCPSetDP(const IppsGFpMethod* method,
             sts = ippsGFpECSetSubgroup(&elmA, &elmB, &P, &H, pEC);
          } while(0);
 
-         cpGFpReleasePool(2, pGF);
+         cpGFpReleasePool(2, pGFE);
       }
 
       return sts;
@@ -156,7 +159,7 @@ IPPFUN(IppStatus, ippsECCPSet, (const IppsBigNumState* pPrime,
    IPP_BAD_PTR1_RET(pPrime);
    pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, BN_ALIGNMENT) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET((cpBN_bitsize(pPrime)>GFP_FEBITLEN(ECP_GFP(pEC))), ippStsRangeErr);
+   IPP_BADARG_RET((cpBN_bitsize(pPrime)>GFP_FEBITLEN(GFP_PMA(ECP_GFP(pEC)))), ippStsRangeErr);
 
    /* test pA and pB */
    IPP_BAD_PTR2_RET(pA,pB);
@@ -196,6 +199,106 @@ IPPFUN(IppStatus, ippsECCPSet, (const IppsBigNumState* pPrime,
                         (BNU_CHUNK_T)cofactor,
                         pEC);
 }
+
+
+/*F*
+//    Name: ippsECCPSetStd
+//
+// Purpose: Set Standard ECC Domain Parameter.
+//
+// Returns:                Reason:
+//    ippStsNullPtrErr        NULL == pECC
+//
+//    ippStsContextMatchErr   illegal pECC->idCtx
+//
+//    ippStsECCInvalidFlagErr invalid flag
+//
+//    ippStsNoErr             no errors
+//
+// Parameters:
+//    flag     specify standard ECC parameter(s) to be setup
+//    pECC     pointer to the ECC context
+//
+*F*/
+IPPFUN(IppStatus, ippsECCPSetStd, (IppECCType flag, IppsECCPState* pEC))
+{
+   /* test pEC */
+   IPP_BAD_PTR1_RET(pEC);
+   /* use aligned EC context */
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+   switch(flag) {
+      case IppECCPStd112r1:
+         return ECCPSetDP(ippsGFpMethod_pArb(),
+                  BITS_BNU_CHUNK(112), secp112r1_p,
+                  BITS_BNU_CHUNK(112), secp112r1_a,
+                  BITS_BNU_CHUNK(112), secp112r1_b,
+                  BITS_BNU_CHUNK(112), secp112r1_gx,
+                  BITS_BNU_CHUNK(112), secp112r1_gy,
+                  BITS_BNU_CHUNK(112), secp112r1_r,
+                  secp112r1_h, pEC);
+
+      case IppECCPStd112r2:
+         return ECCPSetDP(ippsGFpMethod_pArb(),
+                  BITS_BNU_CHUNK(112), secp112r2_p,
+                  BITS_BNU_CHUNK(112), secp112r2_a,
+                  BITS_BNU_CHUNK(112), secp112r2_b,
+                  BITS_BNU_CHUNK(112), secp112r2_gx,
+                  BITS_BNU_CHUNK(112), secp112r2_gy,
+                  BITS_BNU_CHUNK(112), secp112r2_r,
+                  secp112r2_h, pEC);
+
+      case IppECCPStd128r1: return ippsECCPSetStd128r1(pEC);
+
+      case IppECCPStd128r2: return ippsECCPSetStd128r2(pEC);
+
+      case IppECCPStd160r1:
+         return ECCPSetDP(ippsGFpMethod_pArb(),
+                  BITS_BNU_CHUNK(160), secp160r1_p,
+                  BITS_BNU_CHUNK(160), secp160r1_a,
+                  BITS_BNU_CHUNK(160), secp160r1_b,
+                  BITS_BNU_CHUNK(160), secp160r1_gx,
+                  BITS_BNU_CHUNK(160), secp160r1_gy,
+                  BITS_BNU_CHUNK(161), secp160r1_r,
+                  secp160r1_h, pEC);
+
+      case IppECCPStd160r2:
+         return ECCPSetDP(ippsGFpMethod_pArb(),
+               BITS_BNU_CHUNK(160), secp160r2_p,
+               BITS_BNU_CHUNK(160), secp160r2_a,
+               BITS_BNU_CHUNK(160), secp160r2_b,
+               BITS_BNU_CHUNK(160), secp160r2_gx,
+               BITS_BNU_CHUNK(160), secp160r2_gy,
+               BITS_BNU_CHUNK(161), secp160r2_r,
+               secp160r2_h, pEC);
+
+      case IppECCPStd192r1: return ippsECCPSetStd192r1(pEC);
+
+      case IppECCPStd224r1: return ippsECCPSetStd224r1(pEC);
+
+      case IppECCPStd256r1: return ippsECCPSetStd256r1(pEC);
+
+      case IppECCPStd384r1: return ippsECCPSetStd384r1(pEC);
+
+      case IppECCPStd521r1: return ippsECCPSetStd521r1(pEC);
+
+      case ippEC_TPM_BN_P256:
+         return ECCPSetDP(ippsGFpMethod_pArb(),
+                  BITS_BNU_CHUNK(256), tpmBN_p256p_p,
+                  BITS_BNU_CHUNK(32),  tpmBN_p256p_a,
+                  BITS_BNU_CHUNK(32),  tpmBN_p256p_b,
+                  BITS_BNU_CHUNK(32),  tpmBN_p256p_gx,
+                  BITS_BNU_CHUNK(32),  tpmBN_p256p_gy,
+                  BITS_BNU_CHUNK(256), tpmBN_p256p_r,
+                  tpmBN_p256p_h, pEC);
+
+      case ippECPstdSM2: return ippsECCPSetStdSM2(pEC);
+
+      default:
+         return ippStsECCInvalidFlagErr;
+   }
+}
+
 
 /*F*
 //    Name: ippsECCPGet
@@ -244,17 +347,23 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
                                 int* cofactor,
                                 IppsECCPState* pEC))
 {
+   IppsGFpState*  pGF;
+   gsModEngine* pGFE;
+
    /* test pECC */
    IPP_BAD_PTR1_RET(pEC);
    /* use aligned EC context */
    pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
    IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
 
+   pGF = ECP_GFP(pEC);
+   pGFE = GFP_PMA(pGF);
+
    /* test pPrime */
    IPP_BAD_PTR1_RET(pPrime);
    pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET(BN_ROOM(pPrime)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pPrime)<GFP_FELEN(pGFE), ippStsRangeErr);
 
    /* test pA and pB */
    IPP_BAD_PTR2_RET(pA,pB);
@@ -262,8 +371,8 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
    pB = (IppsBigNumState*)( IPP_ALIGNED_PTR(pB, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pA), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pB), ippStsContextMatchErr);
-   IPP_BADARG_RET(BN_ROOM(pA)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
-   IPP_BADARG_RET(BN_ROOM(pB)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pA)<GFP_FELEN(pGFE), ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pB)<GFP_FELEN(pGFE), ippStsRangeErr);
 
    /* test pG and pGorder pointers */
    IPP_BAD_PTR3_RET(pGX,pGY, pOrder);
@@ -273,39 +382,38 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
    IPP_BADARG_RET(!BN_VALID_ID(pGX),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pGY),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pOrder), ippStsContextMatchErr);
-   IPP_BADARG_RET(BN_ROOM(pGX)<GFP_FELEN(ECP_GFP(pEC)),    ippStsRangeErr);
-   IPP_BADARG_RET(BN_ROOM(pGY)<GFP_FELEN(ECP_GFP(pEC)),    ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pGX)<GFP_FELEN(pGFE),    ippStsRangeErr);
+   IPP_BADARG_RET(BN_ROOM(pGY)<GFP_FELEN(pGFE),    ippStsRangeErr);
    IPP_BADARG_RET((BN_ROOM(pOrder)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITSIZE(pEC)), ippStsRangeErr);
 
    /* test cofactor */
    IPP_BAD_PTR1_RET(cofactor);
 
    {
-      IppsGFpState* pGF = ECP_GFP(pEC);
-      gfdecode  decode = pGF->decode;  /* gf decode method  */
-      BNU_CHUNK_T* tmp = cpGFpGetPool(1, pGF);
+      mod_decode  decode = GFP_METHOD(pGFE)->decode;  /* gf decode method  */
+      BNU_CHUNK_T* tmp = cpGFpGetPool(1, pGFE);
 
       /* retrieve EC parameter */
-      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)GFP_MODULUS(pGF), pPrime);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)GFP_MODULUS(pGFE), pPrime);
 
-      decode(tmp, ECP_A(pEC), pGF);
-      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pA);
-      decode(tmp, ECP_B(pEC), pGF);
-      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pB);
+      decode(tmp, ECP_A(pEC), pGFE);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)tmp, pA);
+      decode(tmp, ECP_B(pEC), pGFE);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)tmp, pB);
 
-      decode(tmp, ECP_G(pEC), pGF);
-      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pGX);
-      decode(tmp, ECP_G(pEC)+GFP_FELEN(pGF), pGF);
-      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)tmp, pGY);
+      decode(tmp, ECP_G(pEC), pGFE);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)tmp, pGX);
+      decode(tmp, ECP_G(pEC)+GFP_FELEN(pGFE), pGFE);
+      ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)tmp, pGY);
 
       {
-         IppsMontState* pR = ECP_MONT_R(pEC);
-         ippsSet_BN(ippBigNumPOS, MNT_SIZE(pR)*sizeof(BNU_CHUNK_T)/sizeof(Ipp32u), (Ipp32u*)MNT_MODULUS(pR), pOrder);
+         gsModEngine* pR = ECP_MONT_R(pEC);
+         ippsSet_BN(ippBigNumPOS, MOD_LEN(pR)*sizeof(BNU_CHUNK_T)/sizeof(Ipp32u), (Ipp32u*)MOD_MODULUS(pR), pOrder);
       }
 
       *cofactor = (int)ECP_COFACTOR(pEC)[0];
 
-      cpGFpReleasePool(1, pGF);
+      cpGFpReleasePool(1, pGFE);
       return ippStsNoErr;
    }
 }

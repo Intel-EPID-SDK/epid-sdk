@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2005-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -59,20 +59,21 @@
       #define _ALG_AES_SAFE_   _ALG_AES_SAFE_COMPOSITE_GF_
    #else
       #define _ALG_AES_SAFE_   _ALG_AES_SAFE_COMPACT_SBOX_
+      //#define _ALG_AES_SAFE_   _ALG_AES_SAFE_COMPOSITE_GF_
    #endif
 #endif
 
 
 /*
-// set/reset _SHA_NI_ENABLING_
+// if there is no outside assignment
+// set _SHA_NI_ENABLING_ based on CPU specification
 */
+#if !defined(_SHA_NI_ENABLING_)
 #if (_IPP>=_IPP_P8) || (_IPP32E>=_IPP32E_Y8)
-   #if !defined(_SHA_NI_ENABLING_)
-      #define _SHA_NI_ENABLING_  _FEATURE_TICKTOCK_
-   #endif
+   #define _SHA_NI_ENABLING_  _FEATURE_TICKTOCK_
 #else
-   #undef  _SHA_NI_ENABLING_
    #define _SHA_NI_ENABLING_  _FEATURE_OFF_
+#endif
 #endif
 
 /*
@@ -211,6 +212,7 @@
    #define _USE_WINDOW_EXP_   /*     use fixed window exponentiation */
 #endif
 
+
 /*
 // RSA:
 //    - do/don't use Ernie's style mitigation of CBA
@@ -221,14 +223,6 @@
 #define _USE_GRES_CBA_MITIGATION_   /*     use (Gres)  mitigation of CBA */
 #define xUSE_FOLD_MONT512_          /*     use foding technique in RSA-1024 case */
 
-#if (_IPP>=_IPP_W7)
-#define _RSA_SSE2
-#define _RSA_SSE2_PUBLIC_
-#endif
-
-#if (_IPP32E>=_IPP32E_L9)
-#define _RSA_AVX2
-#endif
 
 /*
 // IPP supports different implementation of NIST's (standard) EC over GF(0):
@@ -394,30 +388,6 @@
 #else
 #  define _ECP_GENERAL_ _ECP_IMPL_NONE_
 #endif
-
-//#define _ECP_128_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_192_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_224_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_256_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_384_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_521_    _ECP_IMPL_SPECIFIC_
-//#define _ECP_SM2_    _ECP_IMPL_SPECIFIC_
-
-//#if (_IPP32E >= _IPP32E_M7)
-//#undef  _ECP_192_
-//#undef  _ECP_224_
-//#undef  _ECP_256_
-//#undef  _ECP_384_
-//#undef  _ECP_521_
-//#undef  _ECP_SM2_
-
-//#define _ECP_192_    _ECP_IMPL_MFM_
-//#define _ECP_224_    _ECP_IMPL_MFM_
-//#define _ECP_256_    _ECP_IMPL_MFM_
-//#define _ECP_384_    _ECP_IMPL_MFM_
-//#define _ECP_521_    _ECP_IMPL_MFM_
-//#define _ECP_SM2_    _ECP_IMPL_MFM_
-//#endif
 
 
 /*

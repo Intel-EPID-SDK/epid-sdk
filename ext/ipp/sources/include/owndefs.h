@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 1999-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,16 +13,6 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/* 
-//   Author(s): Alexey Korchuganov
-//              Anatoly Pluzhnikov
-//              Igor Astakhov
-//              Dmitry Kozhaev
-// 
-//   Created: 27-Jul-1999 20:27
-// 
-*/
 
 #ifndef __OWNDEFS_H__
 #define __OWNDEFS_H__
@@ -51,9 +41,6 @@
 #if defined( IPP_W32DLL )
   #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
     #define IPPDEF(type) __declspec(dllexport) type
-    #undef IPPAPI
-    #define IPPAPI( type,name,arg ) \
-                   __declspec(dllexport)   type __STDCALL name arg;
   #else
     #define IPPDEF(type) type
   #endif
@@ -110,11 +97,13 @@ typedef struct{
     #define __ALIGN16 __declspec (align(16))
     #define __ALIGN32 __declspec (align(32))
     #define __ALIGN64 __declspec (align(64))
+#elif defined(__GNUC__)
+    #define __ALIGN8  __attribute__((aligned(8)))
+    #define __ALIGN16 __attribute__((aligned(16)))
+    #define __ALIGN32 __attribute__((aligned(32)))
+    #define __ALIGN64 __attribute__((aligned(64)))
 #else
-    #define __ALIGN8
-    #define __ALIGN16
-    #define __ALIGN32
-    #define __ALIGN64
+   #error Intel, MS or GNU C compiler required
 #endif
 
 #if defined ( _M5 ) /* Quark (Pentium) - x86+x87 ia32                */
@@ -249,12 +238,12 @@ typedef struct{
 
   #if defined( IPP_W32DLL )
     #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
-      #define IPPFUN(type,name,arg) __declspec(dllexport) type __STDCALL name arg
+      #define IPPFUN(type,name,arg) __declspec(dllexport) type IPP_STDCALL name arg
     #else
-      #define IPPFUN(type,name,arg)                extern type __STDCALL name arg
+      #define IPPFUN(type,name,arg)                extern type IPP_STDCALL name arg
     #endif
   #else
-    #define   IPPFUN(type,name,arg)                extern type __STDCALL name arg
+    #define   IPPFUN(type,name,arg)                extern type IPP_STDCALL name arg
   #endif
 
 #define _IPP_ARCH_IA32    1
@@ -486,6 +475,7 @@ typedef enum {
     idCtxFIRMRStream_16s= IPP_CONTEXT( 'F', 'I', '3', '2'),
     idCtxFIRSRStream_32f= IPP_CONTEXT( 'F', 'I', '3', '3'),
     idCtxFIRMRStream_32f= IPP_CONTEXT( 'F', 'I', '3', '4'),
+    idCtxFIRMR32f_32fc  = IPP_CONTEXT( 'F', 'I', '3', '5'),
     idCtxRLMS32s_16s    = IPP_CONTEXT( 'L', 'M', 'S', 'R'),
     idCtxCLMS32s_16s    = IPP_CONTEXT( 'L', 'M', 'S', 'C'),
     idCtxEncode_JPEG2K,
@@ -600,7 +590,11 @@ typedef enum {
     idCtxFastN,
     idCtxHash,
     idCtxSM3,
-    idCtxAESXTS
+    idCtxAESXTS,
+    idCtxWarpAffine,
+    idCtxWarpAffine_L,
+    idCtxWarpPerspective,
+    idCtxWarpPerspective_L
 } IppCtxId;
 
 
@@ -710,13 +704,17 @@ typedef enum {
     ippnomore
 } IppDomain;
 
-int __CDECL ownGetNumThreads( void );
-int __CDECL ownGetFeature( Ipp64u MaskOfFeature ); /* the main function of tick-tock dispatcher */
+int IPP_CDECL ownGetNumThreads( void );
+int IPP_CDECL ownGetFeature( Ipp64u MaskOfFeature ); /* the main function of tick-tock dispatcher */
 
 #ifdef _IPP_DYNAMIC
-typedef IppStatus (__STDCALL *DYN_RELOAD)( int );
-void __CDECL ownRegisterLib( IppDomain, DYN_RELOAD );
-void __CDECL ownUnregisterLib( IppDomain );
+typedef IppStatus (IPP_STDCALL *DYN_RELOAD)( int );
+void IPP_CDECL ownRegisterLib( IppDomain, DYN_RELOAD );
+void IPP_CDECL ownUnregisterLib( IppDomain );
+IPP_INT64  IPP_CDECL ippStartTscp (void);
+IPP_INT64  IPP_CDECL ippStopTscp (void);
+IPP_INT64  IPP_CDECL ippStartTsc (void);
+IPP_INT64  IPP_CDECL ippStopTsc (void);
 #endif
 
 /*     the number of threads available for any ipp function that uses OMP;     */
@@ -885,6 +883,20 @@ extern double            __intel_castu64_f64(unsigned __int64 val);
 #define _zpi2zps _mm512_castsi512_ps
 #define _zpd2zps _mm512_castpd_ps
 #define _zps2zpd _mm512_castps_pd
+
+#define _zps2ps _mm512_castps512_ps128
+#define _zpi2pi _mm512_castsi512_si128
+#define _zpd2pd _mm512_castpd512_pd128
+#define _ps2zps _mm512_castps128_ps512
+#define _pi2zpi _mm512_castsi128_si512
+#define _pd2zpd _mm512_castpd128_pd512
+
+#define _zps2yps _mm512_castps512_ps256
+#define _zpi2ypi _mm512_castsi512_si256
+#define _zpd2ypd _mm512_castpd512_pd256
+#define _yps2zps _mm512_castps256_ps512
+#define _ypi2zpi _mm512_castsi256_si512
+#define _ypd2zpd _mm512_castpd256_pd512
 
 
 #if defined(__INTEL_COMPILER)

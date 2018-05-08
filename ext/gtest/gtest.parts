@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,13 +36,15 @@ if 'install_package' in env['MODE']:
     env.InstallTopLevel(makefile,sub_dir='ext/gtest')
 else:
     env.Append(CPPPATH=[AbsDir('..')])
-    
+
 
     #defines
     env.Append(CPPDEFINES = ['GTEST_HAS_PTHREAD=0',
-                             '_VARIADIC_MAX=10'])
+                             '_VARIADIC_MAX=10',
+                             '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING'])
     env.ExportCPPDEFINES(['GTEST_HAS_PTHREAD=0',
-                          '_VARIADIC_MAX=10'])
+                          '_VARIADIC_MAX=10',
+                          '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING'])
 
     outputs = env.Library('${PART_NAME}', cpp_files)
     sdk_outs = env.Sdk(outputs)

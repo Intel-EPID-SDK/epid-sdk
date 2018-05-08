@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,15 +20,19 @@
 // 
 //     Context:
 //        ippsGFpGetSize()
+//        ippsGFpInitArbitrary()
+//        ippsGFpInitFixed()
 //        ippsGFpInit()
 // 
 //        ippsGFpElementGetSize()
 //        ippsGFpElementInit()
 // 
 //        ippsGFpSetElement()
+//        ippsGFpSetElementRegular()
 //        ippsGFpSetElementOctString()
 //        ippsGFpSetElementRandom()
 //        ippsGFpSetElementHash()
+//        ippsGFpSetElementHash_rmf
 //        ippsGFpCpyElement()
 //        ippsGFpGetElement()
 //        ippsGFpGetElementOctString()
@@ -63,160 +67,138 @@
 #include "pcpgfpstuff.h"
 #include "pcpgfpxstuff.h"
 #include "pcphash.h"
+#include "pcphash_rmf.h"
+#include "pcptool.h"
+
+//gres: temporary excluded: #include <assert.h>
 
 
-int cpGFpGetSize(int bitSize)
+/*
+// size of GFp engine context (Montgomery)
+*/
+int cpGFpGetSize(int feBitSize, int peBitSize, int numpe)
 {
    int ctxSize = 0;
-   int elemLen = BITS_BNU_CHUNK(bitSize);
-   int poolelemLen = elemLen + 1;
+   int elemLen = BITS_BNU_CHUNK(feBitSize);
+   int pelmLen = BITS_BNU_CHUNK(peBitSize);
+   
+   /* size of GFp engine */
+   ctxSize = sizeof(gsModEngine)
+            + elemLen*sizeof(BNU_CHUNK_T)    /* modulus  */
+            + elemLen*sizeof(BNU_CHUNK_T)    /* mont_R   */
+            + elemLen*sizeof(BNU_CHUNK_T)    /* mont_R^2 */
+            + elemLen*sizeof(BNU_CHUNK_T)    /* half of modulus */
+            + elemLen*sizeof(BNU_CHUNK_T)    /* quadratic non-residue */
+            + pelmLen*sizeof(BNU_CHUNK_T)*numpe; /* pool */
 
-   int montgomeryCtxSize;
-   int elemLen32 = BITS2WORD32_SIZE(bitSize);
-
-   ippsMontGetSize(ippBinaryMethod, elemLen32, &montgomeryCtxSize);
-   montgomeryCtxSize -= MONT_ALIGNMENT-1;
-
-   ctxSize = sizeof(IppsGFpState)                           /* sizeof(IppsGFPState)*/
-            +elemLen*sizeof(BNU_CHUNK_T)                    /* modulus */
-            +elemLen*sizeof(BNU_CHUNK_T)                    /* half of modulus */
-            +elemLen*sizeof(BNU_CHUNK_T)                    /* quadratic non-residue */
-            +montgomeryCtxSize                              /* montgomery engine */
-            +CACHE_LINE_SIZE                              /* pool padding */
-            +poolelemLen*sizeof(BNU_CHUNK_T)*GF_POOL_SIZE;  /* pool */
+   ctxSize += sizeof(IppsGFpState);   /* size of IppsGFPState */
    return ctxSize;
 }
 
-#if 0
-IPPFUN(IppStatus, ippsGFpGetSize,(int bitSize, int* pSizeInBytes))
+IPPFUN(IppStatus, ippsGFpGetSize,(int feBitSize, int* pSize))
 {
-   IPP_BAD_PTR1_RET(pSizeInBytes);
-   IPP_BADARG_RET((bitSize < 2) || (bitSize > GF_MAX_BITSIZE), ippStsSizeErr);
+   IPP_BAD_PTR1_RET(pSize);
+   IPP_BADARG_RET((feBitSize < 2) || (feBitSize > GFP_MAX_BITSIZE), ippStsSizeErr);
 
-   {
-      int elemLen32 = BITS2WORD32_SIZE(bitSize);
-      int elemLen = BITS_BNU_CHUNK(bitSize);
-      int poolelemLen = elemLen + 1;
-
-      int montgomeryCtxSize;
-      ippsMontGetSize(ippBinaryMethod, elemLen32, &montgomeryCtxSize);
-
-      *pSizeInBytes = sizeof(IppsGFpState)                           /* sizeof(IppsGFPState)*/
-                     +elemLen*sizeof(BNU_CHUNK_T)                    /* modulus */
-                     +elemLen*sizeof(BNU_CHUNK_T)                    /* half of modulus */
-                     +elemLen*sizeof(BNU_CHUNK_T)                    /* quadratic non-residue */
-                     +montgomeryCtxSize                              /* montgomery engine */
-                     +CACHE_LINE_SIZE-1                              /* pool padding */
-                     +poolelemLen*sizeof(BNU_CHUNK_T)*GF_POOL_SIZE   /* pool */
-                     +GFP_ALIGNMENT-1;                               /* context padding */
-      return ippStsNoErr;
-   }
-}
-#endif
-IPPFUN(IppStatus, ippsGFpGetSize,(int bitSize, int* pSizeInBytes))
-{
-   IPP_BAD_PTR1_RET(pSizeInBytes);
-   IPP_BADARG_RET((bitSize < 2) || (bitSize > GF_MAX_BITSIZE), ippStsSizeErr);
-
-   *pSizeInBytes = cpGFpGetSize(bitSize)
-                  +GFP_ALIGNMENT;
+   *pSize = cpGFpGetSize(feBitSize, feBitSize+BITSIZE(BNU_CHUNK_T), GFP_POOL_SIZE)
+          + GFP_ALIGNMENT;
    return ippStsNoErr;
 }
 
 
-#if 0
-static void gfpInitSqrt(IppsGFpState* pGF)
+/*
+// init GFp engine context (Montgomery)
+*/
+static void cpGFEInit(gsModEngine* pGFE, int modulusBitSize, int peBitSize, int numpe)
 {
-   int elemLen = GFP_FELEN(pGF);
-   BNU_CHUNK_T* e = cpGFpGetPool(1, pGF);
-   BNU_CHUNK_T* t = cpGFpGetPool(1, pGF);
-   BNU_CHUNK_T* pMont1 = cpGFpGetPool(1, pGF);
+   int modLen  = BITS_BNU_CHUNK(modulusBitSize);
+   int pelmLen = BITS_BNU_CHUNK(peBitSize);
 
-   cpGFpElementCopyPadd(pMont1, elemLen, MNT_1(GFP_MONT(pGF)), elemLen);
+   Ipp8u* ptr = (Ipp8u*)pGFE;
+
+   /* clear whole context */
+   PaddBlock(0, ptr, sizeof(gsModEngine));
+   ptr += sizeof(gsModEngine);
+
+   GFP_PARENT(pGFE)    = NULL;
+   GFP_EXTDEGREE(pGFE) = 1;
+   GFP_FEBITLEN(pGFE)  = modulusBitSize;
+   GFP_FELEN(pGFE)     = modLen;
+   GFP_FELEN32(pGFE)   = BITS2WORD32_SIZE(modulusBitSize);
+   GFP_PELEN(pGFE)     = pelmLen;
+ //GFP_METHOD(pGFE)    = method;
+   GFP_MODULUS(pGFE)   = (BNU_CHUNK_T*)(ptr);   ptr += modLen*sizeof(BNU_CHUNK_T);
+   GFP_MNT_R(pGFE)     = (BNU_CHUNK_T*)(ptr);   ptr += modLen*sizeof(BNU_CHUNK_T);
+   GFP_MNT_RR(pGFE)    = (BNU_CHUNK_T*)(ptr);   ptr += modLen*sizeof(BNU_CHUNK_T);
+   GFP_HMODULUS(pGFE)  = (BNU_CHUNK_T*)(ptr);   ptr += modLen*sizeof(BNU_CHUNK_T);
+   GFP_QNR(pGFE)       = (BNU_CHUNK_T*)(ptr);   ptr += modLen*sizeof(BNU_CHUNK_T);
+   GFP_POOL(pGFE)      = (BNU_CHUNK_T*)(ptr);/* ptr += modLen*sizeof(BNU_CHUNK_T);*/
+   GFP_MAXPOOL(pGFE)   = numpe;
+   GFP_USEDPOOL(pGFE)  = 0;
+
+   cpGFpElementPadd(GFP_MODULUS(pGFE), modLen, 0);
+   cpGFpElementPadd(GFP_MNT_R(pGFE), modLen, 0);
+   cpGFpElementPadd(GFP_MNT_RR(pGFE), modLen, 0);
+   cpGFpElementPadd(GFP_HMODULUS(pGFE), modLen, 0);
+   cpGFpElementPadd(GFP_QNR(pGFE), modLen, 0);
+}
+
+static void cpGFEqnr(gsModEngine* pGFE)
+{
+   BNU_CHUNK_T* pQnr = GFP_QNR(pGFE);
+
+   int elemLen = GFP_FELEN(pGFE);
+   BNU_CHUNK_T* e = cpGFpGetPool(3, pGFE);
+   BNU_CHUNK_T* t = e+elemLen;
+   BNU_CHUNK_T* p1 = t+elemLen;
+   //gres: temporary excluded: assert(NULL!=e);
+
+   cpGFpElementCopyPadd(p1, elemLen, GFP_MNT_R(pGFE), elemLen);
 
    /* (modulus-1)/2 */
-   cpLSR_BNU(e, GFP_MODULUS(pGF), elemLen, 1);
+   cpLSR_BNU(e, GFP_MODULUS(pGFE), elemLen, 1);
 
    /* find a non-square g, where g^{(modulus-1)/2} = -1 */
-   cpGFpElementCopy(GFP_QNR(pGF), pMont1, elemLen);
+   cpGFpElementCopy(pQnr, p1, elemLen);
    do {
-      cpGFpAdd(GFP_QNR(pGF), pMont1, GFP_QNR(pGF), pGF);
-      cpGFpExp(t, GFP_QNR(pGF), e, elemLen, pGF);
-      cpGFpNeg(t, t, pGF);
-   } while( !GFP_EQ(pMont1, t, elemLen) );
+      cpGFpAdd(pQnr, pQnr, p1, pGFE);
+      cpGFpExp(t, pQnr, e, elemLen, pGFE);
+      cpGFpNeg(t, t, pGFE);
+   } while( !GFP_EQ(p1, t, elemLen) );
 
-   cpGFpReleasePool(3, pGF);
+   cpGFpReleasePool(3, pGFE);
 }
 
-IPPFUN(IppStatus, ippsGFpInit,(const IppsBigNumState* pPrime, int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF))
+static void cpGFESet(gsModEngine* pGFE, const BNU_CHUNK_T* pPrime, int primeBitSize, const gsModMethod* method)
 {
-   IPP_BAD_PTR3_RET(pPrime, method, pGF);
-   IPP_BADARG_RET((primeBitSize< IPP_MIN_GF_BITSIZE) || (primeBitSize> IPP_MAX_GF_BITSIZE), ippStsSizeErr);
+   int primeLen = BITS_BNU_CHUNK(primeBitSize);
 
-   pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, BN_ALIGNMENT) );
-   IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET(BN_SIGN(pPrime)!= IppsBigNumPOS, ippStsBadArgErr);
-   IPP_BADARG_RET(BITSIZE_BNU(BN_NUMBER(pPrime),BN_SIZE(pPrime)) != primeBitSize, ippStsBadArgErr);
-   IPP_BADARG_RET((BN_SIZE(pPrime)==1) && (BN_NUMBER(pPrime)[0]<IPP_MIN_GF_CHAR), ippStsBadArgErr);
+   /* arithmetic methods */
+   GFP_METHOD(pGFE) = method;
 
-   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   /* store modulus */
+   COPY_BNU(GFP_MODULUS(pGFE), pPrime, primeLen);
 
-   {
-      Ipp8u* ptr = (Ipp8u*)pGF;
+   /* montgomery factor */
+   GFP_MNT_FACTOR(pGFE) = gsMontFactor(GFP_MODULUS(pGFE)[0]);
 
-      int elemLen32 = BITS2WORD32_SIZE(primeBitSize);
-      int elemLen = BITS_BNU_CHUNK(primeBitSize);
-      int poolelemLen = elemLen + 1;
-      int montgomeryCtxSize;
-      ippsMontGetSize(ippBinaryMethod, elemLen32, &montgomeryCtxSize);
+   /* montgomery identity (R) */
+   ZEXPAND_BNU(GFP_MNT_R(pGFE), 0, primeLen);
+   GFP_MNT_R(pGFE)[primeLen] = 1;
+   cpMod_BNU(GFP_MNT_R(pGFE), primeLen+1, GFP_MODULUS(pGFE), primeLen);
 
-      GFP_ID(pGF)      = idCtxGFP;
-      GFP_DEGREE(pGF)  = 1;
-      GFP_FEBITLEN(pGF)= primeBitSize;
-      GFP_FELEN(pGF)   = elemLen;
-      GFP_FELEN32(pGF) = elemLen32;
-      GFP_PELEN(pGF)   = poolelemLen;
-      FIELD_POLY_TYPE(pGF) = ARBITRARY;
-      GFP_GROUNDGF(pGF)= pGF;
+   /* montgomery domain converter (RR) */
+   ZEXPAND_BNU(GFP_MNT_RR(pGFE), 0, primeLen);
+   COPY_BNU(GFP_MNT_RR(pGFE)+primeLen, GFP_MNT_R(pGFE), primeLen);
+   cpMod_BNU(GFP_MNT_RR(pGFE), 2*primeLen, GFP_MODULUS(pGFE), primeLen);
 
-      /* set up methods */
-      pGF->add = method->add;
-      pGF->sub = method->sub;
-      pGF->neg = method->neg;
-      pGF->div2= method->div2;
-      pGF->mul2= method->mul2;
-      pGF->mul3= method->mul3;
-      pGF->mul = method->mul;
-      pGF->sqr = method->sqr;
-      pGF->encode = method->encode;
-      pGF->decode = method->decode;
+   /* half of modulus */
+   cpLSR_BNU(GFP_HMODULUS(pGFE), GFP_MODULUS(pGFE), primeLen, 1);
 
-      ptr += sizeof(IppsGFpState);
-      GFP_MODULUS(pGF)  = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_HMODULUS(pGF) = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_QNR(pGF)      = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_MONT(pGF)     = (IppsMontState*)( IPP_ALIGNED_PTR((ptr), (MONT_ALIGNMENT)) ); ptr += montgomeryCtxSize;
-      GFP_POOL(pGF)     = (BNU_CHUNK_T*)(IPP_ALIGNED_PTR(ptr, (int)sizeof(BNU_CHUNK_T)));
-
-      ippsMontInit(ippBinaryMethod, elemLen32, GFP_MONT(pGF));
-      ippsMontSet((Ipp32u*)BN_NUMBER(pPrime), elemLen32, GFP_MONT(pGF));
-
-      /* modulus */
-      cpGFpElementPadd(GFP_MODULUS(pGF), elemLen, 0);
-      COPY_BNU((Ipp32u*)GFP_MODULUS(pGF), (Ipp32u*)BN_NUMBER(pPrime), elemLen32);
-      /* half of modulus */
-      cpGFpElementPadd(GFP_HMODULUS(pGF), elemLen, 0);
-      cpLSR_BNU(GFP_HMODULUS(pGF), GFP_MODULUS(pGF), elemLen, 1);
-
-      /* do some additional initialization to make sqrt operation faster */
-      cpGFpElementPadd(GFP_QNR(pGF), elemLen, 0);
-      gfpInitSqrt(pGF);
-
-      return ippStsNoErr;
-   }
+   /* set qnr value */
+   cpGFEqnr(pGFE);
 }
-#endif
-//#if 0
+
 IppStatus cpGFpInitGFp(int primeBitSize, IppsGFpState* pGF)
 {
    IPP_BADARG_RET((primeBitSize< IPP_MIN_GF_BITSIZE) || (primeBitSize> IPP_MAX_GF_BITSIZE), ippStsSizeErr);
@@ -226,115 +208,197 @@ IppStatus cpGFpInitGFp(int primeBitSize, IppsGFpState* pGF)
    {
       Ipp8u* ptr = (Ipp8u*)pGF;
 
-      int elemLen32 = BITS2WORD32_SIZE(primeBitSize);
-      int elemLen = BITS_BNU_CHUNK(primeBitSize);
-      int poolelemLen = elemLen + 1;
-      int montgomeryCtxSize;
-      ippsMontGetSize(ippBinaryMethod, elemLen32, &montgomeryCtxSize);
-
       GFP_ID(pGF)      = idCtxGFP;
-      GFP_FEBITLEN(pGF)= primeBitSize;
-      GFP_FELEN(pGF)   = elemLen;
-      GFP_FELEN32(pGF) = elemLen32;
-      GFP_PELEN(pGF)   = poolelemLen;
-      GFP_DEGREE(pGF)  = 1;
-      FIELD_POLY_TYPE(pGF) = ARBITRARY;
-      GFP_GROUNDGF(pGF)= pGF;
-
-      ptr += sizeof(IppsGFpState);
-      GFP_MODULUS(pGF)  = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_HMODULUS(pGF) = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_QNR(pGF)      = (BNU_CHUNK_T*)(ptr);    ptr += elemLen*sizeof(BNU_CHUNK_T);
-      GFP_MONT(pGF)     = (IppsMontState*)( IPP_ALIGNED_PTR((ptr), (MONT_ALIGNMENT)) ); ptr += montgomeryCtxSize;
-      GFP_POOL(pGF)     = (BNU_CHUNK_T*)(IPP_ALIGNED_PTR(ptr, (int)sizeof(BNU_CHUNK_T)));
-
-      cpGFpElementPadd(GFP_MODULUS(pGF), elemLen, 0);
-      cpGFpElementPadd(GFP_HMODULUS(pGF), elemLen, 0);
-      cpGFpElementPadd(GFP_QNR(pGF), elemLen, 0);
-
-      ippsMontInit(ippBinaryMethod, elemLen32, GFP_MONT(pGF));
+      GFP_PMA(pGF) = (gsModEngine*)(ptr+sizeof(IppsGFpState));
+      cpGFEInit(GFP_PMA(pGF), primeBitSize, primeBitSize+BITSIZE(BNU_CHUNK_T), GFP_POOL_SIZE);
 
       return ippStsNoErr;
    }
 }
 
-IppStatus cpGFpSetGFp(const IppsBigNumState* pPrime, const IppsGFpMethod* method, IppsGFpState* pGF)
+IppStatus cpGFpSetGFp(const BNU_CHUNK_T* pPrime, int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF)
 {
-   IPP_BAD_PTR3_RET(pPrime, method, pGF);
+   cpGFESet(GFP_PMA(pGF), pPrime, primeBitSize, method->arith);
+   return ippStsNoErr;
+}
+
+/*F*
+// Name: ippsGFpInitFixed
+//
+// Purpose: initializes prime finite field GF(p)
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == method
+//                               NULL == pGF
+//
+//    ippStsBadArgErr            method != ippsGFpMethod_pXXX() any fixed prime method
+//                               primeBitSize != sizeof modulus defined by fixed method
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    primeBitSize   length of prime in bits
+//    method         pointer to the basic arithmetic metods
+//    pGF            pointer to Finite Field context is being initialized
+*F*/
+IPPFUN(IppStatus, ippsGFpInitFixed,(int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF))
+{
+   IPP_BAD_PTR2_RET(method, pGF);
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
 
-   pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, BN_ALIGNMENT) );
-   IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
-   IPP_BADARG_RET(BN_SIGN(pPrime)!= IppsBigNumPOS, ippStsBadArgErr);
-   IPP_BADARG_RET(BITSIZE_BNU(BN_NUMBER(pPrime),BN_SIZE(pPrime)) != GFP_FEBITLEN(pGF), ippStsBadArgErr);
-   IPP_BADARG_RET((BN_SIZE(pPrime)==1) && (BN_NUMBER(pPrime)[0]<IPP_MIN_GF_CHAR), ippStsBadArgErr);
+   /* test method is prime based */
+   IPP_BADARG_RET(cpID_Prime!=(method->modulusID & cpID_Prime), ippStsBadArgErr);
+   /* test if method is not prime based arbitrary */
+   IPP_BADARG_RET(!method->modulus, ippStsBadArgErr);
+   /* size of the underlying prime must be equal to primeBitSize parameter*/
+   IPP_BADARG_RET(method->modulusBitDeg!=primeBitSize, ippStsBadArgErr);
 
    {
-      int elemLen = GFP_FELEN(pGF);
-      int elemLen32 = GFP_FELEN32(pGF);
+      /* init GF */
+      IppStatus sts = cpGFpInitGFp(primeBitSize, pGF);
 
-      /* set up methods */
-      pGF->add = method->add;
-      pGF->sub = method->sub;
-      pGF->neg = method->neg;
-      pGF->div2= method->div2;
-      pGF->mul2= method->mul2;
-      pGF->mul3= method->mul3;
-      pGF->mul = method->mul;
-      pGF->sqr = method->sqr;
-      pGF->encode = method->encode;
-      pGF->decode = method->decode;
+      /* set up GF engine */
+      if(ippStsNoErr==sts) {
+         gsModEngine* pGFE = GFP_PMA(pGF);
+         cpGFESet(pGFE, method->modulus, primeBitSize, method->arith);
+      }
 
-      /* modulus */
-      COPY_BNU((Ipp32u*)GFP_MODULUS(pGF), (Ipp32u*)BN_NUMBER(pPrime), elemLen32);
-      /* half of modulus */
-      cpLSR_BNU(GFP_HMODULUS(pGF), GFP_MODULUS(pGF), elemLen, 1);
-
-      /* set up mont engine */
-      ippsMontSet((Ipp32u*)BN_NUMBER(pPrime), elemLen32, GFP_MONT(pGF));
-
-      return ippStsNoErr;
+      return sts;
    }
 }
 
-static void gfpInitSqrt(IppsGFpState* pGF)
+/*F*
+// Name: ippsGFpInitArbitrary
+//
+// Purpose: initializes prime finite field GF(p)
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == pPrime
+//                               NULL == pGF
+//
+//    ippStsSizeErr              !(IPP_MIN_GF_BITSIZE <= primeBitSize <=IPP_MAX_GF_BITSIZE)
+//
+//    ippStsContextMatchErr      incorrect pPrime context ID
+//
+//    ippStsBadArgErr            prime <0
+//                               bitsize(prime) != primeBitSize
+//                               prime <IPP_MIN_GF_CHAR
+//                               prime is even
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pPrimeBN       pointer to the prime context
+//    primeBitSize   length of prime in bits
+//    pGF            pointer to Finite Field context is being initialized
+*F*/
+IPPFUN(IppStatus, ippsGFpInitArbitrary,(const IppsBigNumState* pPrimeBN, int primeBitSize, IppsGFpState* pGF))
 {
-   int elemLen = GFP_FELEN(pGF);
-   BNU_CHUNK_T* e = cpGFpGetPool(1, pGF);
-   BNU_CHUNK_T* t = cpGFpGetPool(1, pGF);
-   BNU_CHUNK_T* pMont1 = cpGFpGetPool(1, pGF);
+   IPP_BAD_PTR1_RET(pGF);
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
 
-   cpGFpElementCopyPadd(pMont1, elemLen, MNT_1(GFP_MONT(pGF)), elemLen);
+   IPP_BADARG_RET((primeBitSize< IPP_MIN_GF_BITSIZE) || (primeBitSize> IPP_MAX_GF_BITSIZE), ippStsSizeErr);
 
-   /* (modulus-1)/2 */
-   cpLSR_BNU(e, GFP_MODULUS(pGF), elemLen, 1);
+   IPP_BAD_PTR1_RET(pPrimeBN);
+   pPrimeBN = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrimeBN, BN_ALIGNMENT) );
+   IPP_BADARG_RET(!BN_VALID_ID(pPrimeBN), ippStsContextMatchErr);
+   IPP_BADARG_RET(BN_SIGN(pPrimeBN)!= IppsBigNumPOS, ippStsBadArgErr);                                   /* prime is negative */
+   IPP_BADARG_RET(BITSIZE_BNU(BN_NUMBER(pPrimeBN),BN_SIZE(pPrimeBN)) != primeBitSize, ippStsBadArgErr);  /* primeBitSize == bitsize(prime) */
+   IPP_BADARG_RET((BN_SIZE(pPrimeBN)==1) && (BN_NUMBER(pPrimeBN)[0]<IPP_MIN_GF_CHAR), ippStsBadArgErr);  /* prime < 3 */
+   IPP_BADARG_RET(0==(BN_NUMBER(pPrimeBN)[0] & 1), ippStsBadArgErr);                                     /* prime is even */
 
-   /* find a non-square g, where g^{(modulus-1)/2} = -1 */
-   cpGFpElementCopy(GFP_QNR(pGF), pMont1, elemLen);
-   do {
-      cpGFpAdd(GFP_QNR(pGF), pMont1, GFP_QNR(pGF), pGF);
-      cpGFpExp(t, GFP_QNR(pGF), e, elemLen, pGF);
-      cpGFpNeg(t, t, pGF);
-   } while( !GFP_EQ(pMont1, t, elemLen) );
+   {
+      /* init GF */
+      IppStatus sts = cpGFpInitGFp(primeBitSize, pGF);
 
-   cpGFpReleasePool(3, pGF);
+      /* set up GF engine */
+      if(ippStsNoErr==sts) {
+         gsModEngine* pGFE = GFP_PMA(pGF);
+         cpGFESet(pGFE, BN_NUMBER(pPrimeBN), primeBitSize, ippsGFpMethod_pArb()->arith);
+      }
+
+      return sts;
+   }
 }
 
-IPPFUN(IppStatus, ippsGFpInit,(const IppsBigNumState* pPrime, int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF))
+/*F*
+// Name: ippsGFpInit
+//
+// Purpose: initializes prime finite field GF(p)
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == method
+//                               NULL == pGF
+//
+//    ippStsSizeErr              !(IPP_MIN_GF_BITSIZE <= primeBitSize <=IPP_MAX_GF_BITSIZE
+//
+//    ippStsContextMatchErr      invalid pPrime->idCtx
+//
+//    ippStsBadArgErr            method != ippsGFpMethod_pXXX() or != ippsGFpMethod_pArb()
+//                               prime != method->modulus
+//                               prime <0
+//                               bitsize(prime) != primeBitSize
+//                               prime <IPP_MIN_GF_CHAR
+//                               prime is even
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pPrimeBN       pointer to the data representation Finite Field element
+//    primeBitSize   length of Finite Field data representation array
+//    method         pointer to Finite Field Element context
+//    pGF            pointer to Finite Field context is being initialized
+*F*/
+IPPFUN(IppStatus, ippsGFpInit,(const IppsBigNumState* pPrimeBN, int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF))
 {
-   IppStatus sts;
-   do {
+   IPP_BADARG_RET(!pPrimeBN && !method, ippStsNullPtrErr);
+
+   IPP_BADARG_RET((primeBitSize< IPP_MIN_GF_BITSIZE) || (primeBitSize> IPP_MAX_GF_BITSIZE), ippStsSizeErr);
+
+   /* use ippsGFpInitFixed() if NULL==pPrimeBN */
+   if(!pPrimeBN)
+      return ippsGFpInitFixed(primeBitSize, method, pGF);
+
+   /* use ippsGFpInitArbitrary() if NULL==method */
+   if(!method)
+      return ippsGFpInitArbitrary(pPrimeBN, primeBitSize, pGF);
+
+   /* test parameters if both pPrimeBN and method are defined */
+   else {
+      IppStatus sts;
+
+      /* test input prime */
+      pPrimeBN = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrimeBN, BN_ALIGNMENT) );
+      IPP_BADARG_RET(!BN_VALID_ID(pPrimeBN), ippStsContextMatchErr);
+      IPP_BADARG_RET(BN_SIGN(pPrimeBN)!= IppsBigNumPOS, ippStsBadArgErr);                                   /* prime is negative */
+      IPP_BADARG_RET(BITSIZE_BNU(BN_NUMBER(pPrimeBN),BN_SIZE(pPrimeBN)) != primeBitSize, ippStsBadArgErr);  /* primeBitSize == bitsize(prime) */
+      IPP_BADARG_RET((BN_SIZE(pPrimeBN)==1) && (BN_NUMBER(pPrimeBN)[0]<IPP_MIN_GF_CHAR), ippStsBadArgErr);  /* prime < 3 */
+      IPP_BADARG_RET(0==(BN_NUMBER(pPrimeBN)[0] & 1), ippStsBadArgErr);                                     /* prime is even */
+
+      /* test if method is prime based */
+      IPP_BADARG_RET(cpID_Prime!=(method->modulusID & cpID_Prime), ippStsBadArgErr);
+
+      /* test if size of the prime is matched to method's prime  */
+      IPP_BADARG_RET(method->modulusBitDeg && (primeBitSize!=method->modulusBitDeg), ippStsBadArgErr);
+
+      /* if method assumes fixed prime value */
+      if(method->modulus) {
+         int primeLen = BITS_BNU_CHUNK(primeBitSize);
+         IPP_BADARG_RET(cpCmp_BNU(BN_NUMBER(pPrimeBN), primeLen, method->modulus, primeLen), ippStsBadArgErr);
+      }
+
+      /* init GF */
       sts = cpGFpInitGFp(primeBitSize, pGF);
-      if(ippStsNoErr!=sts) break;
-      sts = cpGFpSetGFp(pPrime, method, pGF);
-      if(ippStsNoErr!=sts) break;
-      /* do some additional initialization to make sqrt operation faster */
-      gfpInitSqrt(pGF);
-   } while(0);
-   return sts;
-}
-//#endif
 
+      /* set up GF  and find quadratic nonresidue */
+      if(ippStsNoErr==sts) {
+         gsModEngine* pGFE = GFP_PMA(pGF);
+         cpGFESet(pGFE, BN_NUMBER(pPrimeBN), primeBitSize, method->arith);
+      }
+
+      return sts;
+   }
+}
 
 IPPFUN(IppStatus, ippsGFpScratchBufferSize,(int nExponents, int ExpBitSize, const IppsGFpState* pGF, int* pBufferSize))
 {
@@ -346,7 +410,7 @@ IPPFUN(IppStatus, ippsGFpScratchBufferSize,(int nExponents, int ExpBitSize, cons
    IPP_BADARG_RET( 0>=ExpBitSize, ippStsBadArgErr);
 
    {
-      int elmDataSize = GFP_FELEN(pGF)*sizeof(BNU_CHUNK_T);
+      int elmDataSize = GFP_FELEN(GFP_PMA(pGF))*sizeof(BNU_CHUNK_T);
 
       /* get window_size */
       int w = (nExponents==1)? cpGFpGetOptimalWinSize(ExpBitSize) : /* use optimal window size, if single-scalar operation */
@@ -368,7 +432,7 @@ IPPFUN(IppStatus, ippsGFpElementGetSize,(const IppsGFpState* pGF, int* pElementS
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
 
    *pElementSize = sizeof(IppsGFpElement)
-                  +GFP_FELEN(pGF)*sizeof(BNU_CHUNK_T);
+                  +GFP_FELEN(GFP_PMA(pGF))*sizeof(BNU_CHUNK_T);
    return ippStsNoErr;
 }
 
@@ -382,7 +446,7 @@ IPPFUN(IppStatus, ippsGFpElementInit,(const Ipp32u* pA, int nsA, IppsGFpElement*
    IPP_BADARG_RET(0>nsA, ippStsSizeErr);
 
    {
-      int elemLen = GFP_FELEN(pGF);
+      int elemLen = GFP_FELEN(GFP_PMA(pGF));
 
       Ipp8u* ptr = (Ipp8u*)pR;
       ptr += sizeof(IppsGFpElement);
@@ -391,6 +455,32 @@ IPPFUN(IppStatus, ippsGFpElementInit,(const Ipp32u* pA, int nsA, IppsGFpElement*
    }
 }
 
+/*F*
+// Name: ippsGFpSetElement
+//
+// Purpose: Set GF Element
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == pGF
+//                               NULL == pElm
+//                               NULL == pDataA && nsA>0
+//
+//    ippStsContextMatchErr      invalid pGF->idCtx
+//                               invalid pElm->idCtx
+//
+//    ippStsSizeErr              pDataA && !(0<=nsA && nsA<GFP_FELEN32())
+//
+//    ippStsOutOfRangeErr        GFPE_ROOM() != GFP_FELEN()
+//                               BNU representation of pDataA[i]..pDataA[i+GFP_FELEN32()-1] >= modulus
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pDataA      pointer to the data representation Finite Field element
+//    nsA         length of Finite Field data representation array
+//    pElm        pointer to Finite Field Element context
+//    pGF         pointer to Finite Field context
+*F*/
 IPPFUN(IppStatus, ippsGFpSetElement,(const Ipp32u* pDataA, int nsA, IppsGFpElement* pElm, IppsGFpState* pGF))
 {
    IPP_BAD_PTR2_RET(pElm, pGF);
@@ -399,35 +489,65 @@ IPPFUN(IppStatus, ippsGFpSetElement,(const Ipp32u* pDataA, int nsA, IppsGFpEleme
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr );
 
    IPP_BADARG_RET( !pDataA && (0<nsA), ippStsNullPtrErr);
-   IPP_BADARG_RET( pDataA && !(0<=nsA && nsA<=GFP_FELEN32(pGF)), ippStsSizeErr );
-///IPP_BADARG_RET( pDataA && !(0<nsA && BITS2WORD32_SIZE(BITSIZE_BNU32(pDataA,nsA))<=GFP_FEBITLEN(pGF)), ippStsSizeErr );
-
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
+   IPP_BADARG_RET( pDataA && !(0<=nsA && nsA<=GFP_FELEN32(GFP_PMA(pGF))), ippStsSizeErr );
+   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(GFP_PMA(pGF)), ippStsOutOfRangeErr );
 
    {
       IppStatus sts = ippStsNoErr;
 
-   ///int elemLen32 = GFP_FELEN32(pGF);
-   ///if(pDataA) FIX_BNU(pDataA, nsA);
-   ///if(pDataA && (nsA>elemLen32)) IPP_ERROR_RET(ippStsOutOfRangeErr);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      int elemLen = GFP_FELEN(pGFE);
+      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+      //gres: temporary excluded: assert(NULL!=pTmp);
 
-      {
-         BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGF);
-         int elemLen = GFP_FELEN(pGF);
-         ZEXPAND_BNU(pTmp, 0, elemLen);
-         if(pDataA && nsA)
-            cpGFpxCopyToChunk(pTmp, pDataA, nsA, pGF);
+      ZEXPAND_BNU(pTmp, 0, elemLen);
+      if(pDataA && nsA)
+         cpGFpxCopyToChunk(pTmp, pDataA, nsA, pGFE);
 
-         if(!cpGFpxSet(GFPE_DATA(pElm), pTmp, elemLen, pGF))
-            sts = ippStsOutOfRangeErr;
+      if(!cpGFpxSet(GFPE_DATA(pElm), pTmp, elemLen, pGFE))
+         sts = ippStsOutOfRangeErr;
 
-         cpGFpReleasePool(1, pGF);
-      }
-
+      cpGFpReleasePool(1, pGFE);
       return sts;
    }
 }
 
+IPPFUN(IppStatus, ippsGFpSetElementRegular,(const IppsBigNumState* pBN, IppsGFpElement* pElm, IppsGFpState* pGF))
+{
+   IPP_BAD_PTR1_RET(pBN);
+   pBN = (IppsBigNumState*)( IPP_ALIGNED_PTR(pBN, BN_ALIGNMENT) );
+   IPP_BADARG_RET( !BN_VALID_ID(pBN), ippStsContextMatchErr );
+   IPP_BADARG_RET( !BN_POSITIVE(pBN), ippStsOutOfRangeErr);
+
+   return ippsGFpSetElement((Ipp32u*)BN_NUMBER(pBN), BITS2WORD32_SIZE( BITSIZE_BNU(BN_NUMBER((pBN)),BN_SIZE((pBN)))), pElm, pGF);
+}
+
+/*F*
+// Name: ippsGFpSetElementOctString
+//
+// Purpose: Set GF Element
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == pGF
+//                               NULL == pElm
+//                               NULL == pStr && strSize>0
+//
+//    ippStsContextMatchErr      invalid pGF->idCtx
+//                               invalid pElm->idCtx
+//
+//    ippStsSizeErr              pDataA && !(0<=nsA && nsA<GFP_FELEN32())
+//
+//    ippStsOutOfRangeErr        GFPE_ROOM() != GFP_FELEN()
+//                               BNU representation of pStr[] >= modulus
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pDataA      pointer to the data representation Finite Field element
+//    nsA         length of Finite Field data representation array
+//    pElm        pointer to Finite Field Element context
+//    pGF         pointer to Finite Field context
+*F*/
 IPPFUN(IppStatus, ippsGFpSetElementOctString,(const Ipp8u* pStr, int strSize, IppsGFpElement* pElm, IppsGFpState* pGF))
 {
    IPP_BAD_PTR2_RET(pElm, pGF);
@@ -436,26 +556,27 @@ IPPFUN(IppStatus, ippsGFpSetElementOctString,(const Ipp8u* pStr, int strSize, Ip
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr );
 
    IPP_BADARG_RET( (!pStr && 0<strSize), ippStsNullPtrErr);
-   IPP_BADARG_RET( (pStr && !(0<strSize && strSize<=(int)(GFP_FELEN32(pGF)*sizeof(Ipp32u)))), ippStsSizeErr );
+   IPP_BADARG_RET(!(0<strSize && strSize<=(int)(GFP_FELEN32(GFP_PMA(pGF))*sizeof(Ipp32u))), ippStsSizeErr );
 
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
+   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(GFP_PMA(pGF)), ippStsOutOfRangeErr);
 
    {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGF);
-      int basicDeg = cpGFpBasicDegreeExtension(pGF);
-      int basicElemLen = GFP_FELEN(pBasicGF);
-      int basicSize = BITS2WORD8_SIZE(BITSIZE_BNU(GFP_MODULUS(pBasicGF),GFP_FELEN(pBasicGF)));
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      gsModEngine* pBasicGFE = cpGFpBasic(pGFE);
+      int basicDeg = cpGFpBasicDegreeExtension(pGFE);
+      int basicElemLen = GFP_FELEN(pBasicGFE);
+      int basicSize = BITS2WORD8_SIZE(BITSIZE_BNU(GFP_MODULUS(pBasicGFE),GFP_FELEN(pBasicGFE)));
 
       BNU_CHUNK_T* pDataElm = GFPE_DATA(pElm);
 
       int deg, error;
       /* set element to zero */
-      cpGFpElementPadd(pDataElm, GFP_FELEN(pGF), 0);
+      cpGFpElementPadd(pDataElm, GFP_FELEN(pGFE), 0);
 
       /* convert oct string to element (from low to high) */
       for(deg=0, error=0; deg<basicDeg && !error; deg++) {
          int size = IPP_MIN(strSize, basicSize);
-         error = NULL == cpGFpSetOctString(pDataElm, pStr, size, pBasicGF);
+         error = NULL == cpGFpSetOctString(pDataElm, pStr, size, pBasicGFE);
 
          pDataElm += basicElemLen;
          strSize -= size;
@@ -467,19 +588,44 @@ IPPFUN(IppStatus, ippsGFpSetElementOctString,(const Ipp8u* pStr, int strSize, Ip
 }
 
 
+/*F*
+// Name: ippsGFpSetElementRandom
+//
+// Purpose: Set GF Element Random
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == pGF
+//                               NULL == pElm
+//                               NULL == rndFunc
+//
+//    ippStsContextMatchErr      invalid pGF->idCtx
+//                               invalid pElm->idCtx
+//
+//    ippStsOutOfRangeErr        GFPE_ROOM() != GFP_FELEN()
+//
+//    ippStsErr                  internal error caused by call of rndFunc()
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pDataA      pointer to the data representation Finite Field element
+//    nsA         length of Finite Field data representation array
+//    pElm        pointer to Finite Field Element context
+//    pGF         pointer to Finite Field context
+*F*/
 IPPFUN(IppStatus, ippsGFpSetElementRandom,(IppsGFpElement* pElm, IppsGFpState* pGF,
                                            IppBitSupplier rndFunc, void* pRndParam))
 {
-   IPP_BAD_PTR2_RET(rndFunc, pRndParam);
-   IPP_BAD_PTR2_RET(pElm, pGF);
+   IPP_BAD_PTR3_RET(pElm, pGF, rndFunc);
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr );
 
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
-
-   cpGFpxRand(GFPE_DATA(pElm), pGF, rndFunc, pRndParam);
-   return ippStsNoErr;
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      return cpGFpxRand(GFPE_DATA(pElm), pGFE, rndFunc, pRndParam)? ippStsNoErr : ippStsErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpCpyElement, (const IppsGFpElement* pElmA, IppsGFpElement* pElmR, IppsGFpState* pGF))
@@ -489,12 +635,12 @@ IPPFUN(IppStatus, ippsGFpCpyElement, (const IppsGFpElement* pElmA, IppsGFpElemen
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-
-   cpGFpElementCopy(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFP_FELEN(pGF));
-   return ippStsNoErr;
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      cpGFpElementCopy(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFP_FELEN(pGFE));
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpGetElement, (const IppsGFpElement* pElm, Ipp32u* pDataA, int nsA, IppsGFpState* pGF))
@@ -503,19 +649,22 @@ IPPFUN(IppStatus, ippsGFpGetElement, (const IppsGFpElement* pElm, Ipp32u* pDataA
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( !(0<nsA && nsA>=GFP_FELEN32(pGF)), ippStsSizeErr );
-
    {
-      int elemLen = GFP_FELEN(pGF);
-      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( !(0<nsA && nsA>=GFP_FELEN32(pGFE)), ippStsSizeErr );
 
-      cpGFpxGet(pTmp, elemLen, GFPE_DATA(pElm), pGF);
-      cpGFpxCopyFromChunk(pDataA, pTmp, pGF);
+      {
+         int elemLen = GFP_FELEN(pGFE);
+         BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+         //gres: temporary excluded: assert(NULL!=pTmp);
 
-      cpGFpReleasePool(1, pGF);
-      return ippStsNoErr;
+         cpGFpxGet(pTmp, elemLen, GFPE_DATA(pElm), pGFE);
+         cpGFpxCopyFromChunk(pDataA, pTmp, pGFE);
+
+         cpGFpReleasePool(1, pGFE);
+         return ippStsNoErr;
+      }
    }
 }
 
@@ -525,29 +674,29 @@ IPPFUN(IppStatus, ippsGFpGetElementOctString,(const IppsGFpElement* pElm, Ipp8u*
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
    IPP_BADARG_RET( 0>=strSize, ippStsSizeErr );
-
    {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGF);
-      int basicDeg = cpGFpBasicDegreeExtension(pGF);
-      int basicElemLen = GFP_FELEN(pBasicGF);
-      int basicSize = BITS2WORD8_SIZE(BITSIZE_BNU(GFP_MODULUS(pBasicGF),GFP_FELEN(pBasicGF)));
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      {
+         gsModEngine* pBasicGFE = cpGFpBasic(pGFE);
+         int basicDeg = cpGFpBasicDegreeExtension(pGFE);
+         int basicElemLen = GFP_FELEN(pBasicGFE);
+         int basicSize = BITS2WORD8_SIZE(BITSIZE_BNU(GFP_MODULUS(pBasicGFE),GFP_FELEN(pBasicGFE)));
 
-      BNU_CHUNK_T* pDataElm = GFPE_DATA(pElm);
+         BNU_CHUNK_T* pDataElm = GFPE_DATA(pElm);
+         int deg;
+         for(deg=0; deg<basicDeg; deg++) {
+            int size = IPP_MIN(strSize, basicSize);
+            cpGFpGetOctString(pStr, size, pDataElm, pBasicGFE);
 
-      int deg;
-      for(deg=0; deg<basicDeg; deg++) {
-         int size = IPP_MIN(strSize, basicSize);
-         cpGFpGetOctString(pStr, size, pDataElm, pBasicGF);
+            pDataElm += basicElemLen;
+            pStr += size;
+            strSize -= size;
+         }
 
-         pDataElm += basicElemLen;
-         pStr += size;
-         strSize -= size;
+         return ippStsNoErr;
       }
-
-      return ippStsNoErr;
    }
 }
 
@@ -560,16 +709,17 @@ IPPFUN(IppStatus, ippsGFpCmpElement,(const IppsGFpElement* pElmA, const IppsGFpE
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmB), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
    {
-      int flag = cpGFpElementCmp(GFPE_DATA(pElmA), GFPE_DATA(pElmB), GFP_FELEN(pGF));
-      if( GFP_IS_BASIC(pGF) )
-         *pResult = (0==flag)? IPP_IS_EQ : (0<flag)? IPP_IS_GT : IPP_IS_LT;
-      else
-         *pResult = (0==flag)? IPP_IS_EQ : IPP_IS_NE;
-      return ippStsNoErr;
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      {
+         int flag = cpGFpElementCmp(GFPE_DATA(pElmA), GFPE_DATA(pElmB), GFP_FELEN(pGFE));
+         if( GFP_IS_BASIC(pGFE) )
+            *pResult = (0==flag)? IPP_IS_EQ : (0<flag)? IPP_IS_GT : IPP_IS_LT;
+         else
+            *pResult = (0==flag)? IPP_IS_EQ : IPP_IS_NE;
+         return ippStsNoErr;
+      }
    }
 }
 
@@ -581,13 +731,14 @@ IPPFUN(IppStatus, ippsGFpIsZeroElement,(const IppsGFpElement* pElmA,
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( GFPE_ROOM(pElmA)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
-
    {
-      int flag = GFP_IS_ZERO(GFPE_DATA(pElmA), GFP_FELEN(pGF));
-      *pResult = (1==flag)? IPP_IS_EQ : IPP_IS_NE;
-      return ippStsNoErr;
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      {
+         int flag = GFP_IS_ZERO(GFPE_DATA(pElmA), GFP_FELEN(pGFE));
+         *pResult = (1==flag)? IPP_IS_EQ : IPP_IS_NE;
+         return ippStsNoErr;
+      }
    }
 }
 
@@ -599,23 +750,24 @@ IPPFUN(IppStatus, ippsGFpIsUnityElement,(const IppsGFpElement* pElmA,
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
-
-   IPP_BADARG_RET( GFPE_ROOM(pElmA)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
-
    {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGF);
-      int basicElmLen = GFP_FELEN(pBasicGF);
-      BNU_CHUNK_T* pUnity = MNT_1(GFP_MONT(pBasicGF));
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      {
+         gsModEngine* pBasicGFE = cpGFpBasic(pGFE);
+         int basicElmLen = GFP_FELEN(pBasicGFE);
+         BNU_CHUNK_T* pUnity = GFP_MNT_R(pBasicGFE);
 
-      int elmLen = GFP_FELEN(pGF);
-      int flag;
+         int elmLen = GFP_FELEN(pGFE);
+         int flag;
 
-      FIX_BNU(pUnity, basicElmLen);
-      FIX_BNU(GFPE_DATA(pElmA), elmLen);
+         FIX_BNU(pUnity, basicElmLen);
+         FIX_BNU(GFPE_DATA(pElmA), elmLen);
 
-      flag = (basicElmLen==elmLen) && (0 == cpGFpElementCmp(GFPE_DATA(pElmA), pUnity, elmLen));
-      *pResult = (1==flag)? IPP_IS_EQ : IPP_IS_NE;
-      return ippStsNoErr;
+         flag = (basicElmLen==elmLen) && (0 == cpGFpElementCmp(GFPE_DATA(pElmA), pUnity, elmLen));
+         *pResult = (1==flag)? IPP_IS_EQ : IPP_IS_NE;
+         return ippStsNoErr;
+      }
    }
 }
 
@@ -627,12 +779,14 @@ IPPFUN(IppStatus, ippsGFpConj,(const IppsGFpElement* pElmA,
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( 2!=GFP_EXTDEGREE(pGFE), ippStsBadArgErr )
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( 2!=GFP_DEGREE(pGF), ippStsBadArgErr )
-
-   cpGFpxConj(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGF);
-   return ippStsNoErr;
+      cpGFpxConj(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpNeg,(const IppsGFpElement* pElmA,
@@ -643,11 +797,13 @@ IPPFUN(IppStatus, ippsGFpNeg,(const IppsGFpElement* pElmA,
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   pGF->neg(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGF);
-   return ippStsNoErr;
+      GFP_METHOD(pGFE)->neg(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 
@@ -659,11 +815,13 @@ IPPFUN(IppStatus, ippsGFpInv,(const IppsGFpElement* pElmA,
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( GFP_IS_ZERO(GFPE_DATA(pElmA),GFP_FELEN(pGFE)), ippStsDivByZeroErr );
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( GFP_IS_ZERO(GFPE_DATA(pElmA),GFP_FELEN(pGF)), ippStsDivByZeroErr );
-
-   return NULL != cpGFpxInv(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGF)? ippStsNoErr : ippStsBadArgErr;
+      return NULL != cpGFpxInv(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGFE)? ippStsNoErr : ippStsBadArgErr;
+   }
 }
 
 
@@ -673,13 +831,15 @@ IPPFUN(IppStatus, ippsGFpSqrt,(const IppsGFpElement* pElmA,
    IPP_BAD_PTR3_RET(pElmA, pElmR, pGF);
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
-   IPP_BADARG_RET( !GFP_IS_BASIC(pGF), ippStsBadArgErr )
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( !GFP_IS_BASIC(pGFE), ippStsBadArgErr )
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   return cpGFpSqrt(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGF)? ippStsNoErr : ippStsQuadraticNonResidueErr;
+      return cpGFpSqrt(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGFE)? ippStsNoErr : ippStsQuadraticNonResidueErr;
+   }
 }
 
 
@@ -692,11 +852,13 @@ IPPFUN(IppStatus, ippsGFpAdd,(const IppsGFpElement* pElmA, const IppsGFpElement*
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   pGF->add(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB), pGF);
-   return ippStsNoErr;
+      GFP_METHOD(pGFE)->add(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 
@@ -709,11 +871,13 @@ IPPFUN(IppStatus, ippsGFpSub,(const IppsGFpElement* pElmA, const IppsGFpElement*
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   pGF->sub(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB), pGF);
-   return ippStsNoErr;
+      GFP_METHOD(pGFE)->sub(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpMul,(const IppsGFpElement* pElmA, const IppsGFpElement* pElmB,
@@ -725,11 +889,13 @@ IPPFUN(IppStatus, ippsGFpMul,(const IppsGFpElement* pElmA, const IppsGFpElement*
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmB)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   pGF->mul(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB), pGF);
-   return ippStsNoErr;
+      GFP_METHOD(pGFE)->mul(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pElmB),pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpSqr,(const IppsGFpElement* pElmA,
@@ -740,11 +906,13 @@ IPPFUN(IppStatus, ippsGFpSqr,(const IppsGFpElement* pElmA,
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   pGF->sqr(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGF);
-   return ippStsNoErr;
+      GFP_METHOD(pGFE)->sqr(GFPE_DATA(pElmR), GFPE_DATA(pElmA), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpAdd_PE,(const IppsGFpElement* pElmA, const IppsGFpElement* pParentElmB,
@@ -756,14 +924,15 @@ IPPFUN(IppStatus, ippsGFpAdd_PE,(const IppsGFpElement* pElmA, const IppsGFpEleme
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pParentElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFP_IS_BASIC(pGFE), ippStsBadArgErr )
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_PARENT(pGFE))), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( GFP_IS_BASIC(pGF), ippStsBadArgErr )
-
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_GROUNDGF(pGF))), ippStsOutOfRangeErr);
-
-   cpGFpxAdd_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGF);
-   return ippStsNoErr;
+      cpGFpxAdd_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpSub_PE,(const IppsGFpElement* pElmA, const IppsGFpElement* pParentElmB,
@@ -775,14 +944,15 @@ IPPFUN(IppStatus, ippsGFpSub_PE,(const IppsGFpElement* pElmA, const IppsGFpEleme
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pParentElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFP_IS_BASIC(pGFE), ippStsBadArgErr )
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_PARENT(pGFE))), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( GFP_IS_BASIC(pGF), ippStsBadArgErr )
-
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_GROUNDGF(pGF))), ippStsOutOfRangeErr);
-
-   cpGFpxSub_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGF);
-   return ippStsNoErr;
+      cpGFpxSub_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpMul_PE,(const IppsGFpElement* pElmA, const IppsGFpElement* pParentElmB,
@@ -794,14 +964,15 @@ IPPFUN(IppStatus, ippsGFpMul_PE,(const IppsGFpElement* pElmA, const IppsGFpEleme
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pParentElmB), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( GFP_IS_BASIC(pGFE), ippStsBadArgErr )
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_PARENT(pGFE))), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( GFP_IS_BASIC(pGF), ippStsBadArgErr )
-
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( (GFPE_ROOM(pParentElmB)!=GFP_FELEN(GFP_GROUNDGF(pGF))), ippStsOutOfRangeErr);
-
-   cpGFpxMul_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGF);
-   return ippStsNoErr;
+      cpGFpxMul_GFE(GFPE_DATA(pElmR), GFPE_DATA(pElmA), GFPE_DATA(pParentElmB), pGFE);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpExp,(const IppsGFpElement* pElmA, const IppsBigNumState* pE,
@@ -816,13 +987,13 @@ IPPFUN(IppStatus, ippsGFpExp,(const IppsGFpElement* pElmA, const IppsBigNumState
 
    pE = (IppsBigNumState*)( IPP_ALIGNED_PTR(pE, BN_ALIGNMENT) );
    IPP_BADARG_RET( !BN_VALID_ID(pE), ippStsContextMatchErr );
-   //IPP_BADARG_RET( BN_SIZE(pE) > GFP_FELEN(pGF), ippStsRangeErr );
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
 
-   IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-
-   cpGFpxExp(GFPE_DATA(pElmR), GFPE_DATA(pElmA), BN_NUMBER(pE), BN_SIZE(pE), pGF, pScratchBuffer);
-
-   return ippStsNoErr;
+      cpGFpxExp(GFPE_DATA(pElmR), GFPE_DATA(pElmA), BN_NUMBER(pE), BN_SIZE(pE), pGFE, pScratchBuffer);
+      return ippStsNoErr;
+   }
 }
 
 IPPFUN(IppStatus, ippsGFpMultiExp,(const IppsGFpElement* const ppElmA[], const IppsBigNumState* const ppE[], int nItems,
@@ -835,8 +1006,6 @@ IPPFUN(IppStatus, ippsGFpMultiExp,(const IppsGFpElement* const ppElmA[], const I
       return ippsGFpExp(ppElmA[0], ppE[0], pElmR, pGF, pScratchBuffer);
 
    else {
-      int n;
-
       /* test number of exponents */
       IPP_BADARG_RET(1>nItems || nItems>IPP_MAX_EXPONENT_NUM, ippStsBadArgErr);
 
@@ -845,48 +1014,83 @@ IPPFUN(IppStatus, ippsGFpMultiExp,(const IppsGFpElement* const ppElmA[], const I
       pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
       IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
       IPP_BADARG_RET( !GFPE_TEST_ID(pElmR), ippStsContextMatchErr );
+      {
+         int n;
 
-      IPP_BADARG_RET( GFPE_ROOM(pElmR)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
+         gsModEngine* pGFE = GFP_PMA(pGF);
+         IPP_BADARG_RET( GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
 
-      /* test all ppElmA[] and ppE[] pairs */
-      for(n=0; n<nItems; n++) {
-         const IppsGFpElement* pElmA = ppElmA[n];
-         const IppsBigNumState* pE = ppE[n];
-         IPP_BAD_PTR2_RET(pElmA, pE);
-
-         IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
-         pE = (IppsBigNumState*)( IPP_ALIGNED_PTR(pE, BN_ALIGNMENT) );
-         IPP_BADARG_RET( !BN_VALID_ID(pE), ippStsContextMatchErr );
-         //IPP_BADARG_RET( BN_SIZE(pE) > GFP_FELEN(pGF), ippStsRangeErr );
-
-         IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGF)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGF)), ippStsOutOfRangeErr);
-      }
-
-      if(NULL==pScratchBuffer) {
-         BNU_CHUNK_T* pTmpR = cpGFpGetPool(1, pGF);
-         cpGFpxExp(GFPE_DATA(pElmR), GFPE_DATA(ppElmA[0]), BN_NUMBER(ppE[0]), BN_SIZE(ppE[0]), pGF, 0);
-         for(n=1; n<nItems; n++) {
-            cpGFpxExp(pTmpR, GFPE_DATA(ppElmA[n]), BN_NUMBER(ppE[n]), BN_SIZE(ppE[n]), pGF, 0);
-            pGF->mul(GFPE_DATA(pElmR), GFPE_DATA(pElmR), pTmpR, pGF);
-         }
-         cpGFpReleasePool(1, pGF);
-      }
-
-      else {
-         const BNU_CHUNK_T* ppAdata[IPP_MAX_EXPONENT_NUM];
-         const BNU_CHUNK_T* ppEdata[IPP_MAX_EXPONENT_NUM];
-         int nsEdataLen[IPP_MAX_EXPONENT_NUM];
+         /* test all ppElmA[] and ppE[] pairs */
          for(n=0; n<nItems; n++) {
-            ppAdata[n] = GFPE_DATA(ppElmA[n]);
-            ppEdata[n] = BN_NUMBER(ppE[n]);
-            nsEdataLen[n] = BN_SIZE(ppE[n]);
+            const IppsGFpElement* pElmA = ppElmA[n];
+            const IppsBigNumState* pE = ppE[n];
+            IPP_BAD_PTR2_RET(pElmA, pE);
+
+            IPP_BADARG_RET( !GFPE_TEST_ID(pElmA), ippStsContextMatchErr );
+            pE = (IppsBigNumState*)( IPP_ALIGNED_PTR(pE, BN_ALIGNMENT) );
+            IPP_BADARG_RET( !BN_VALID_ID(pE), ippStsContextMatchErr );
+
+            IPP_BADARG_RET( (GFPE_ROOM(pElmA)!=GFP_FELEN(pGFE)) || (GFPE_ROOM(pElmR)!=GFP_FELEN(pGFE)), ippStsOutOfRangeErr);
          }
-         cpGFpxMultiExp(GFPE_DATA(pElmR), ppAdata, ppEdata, nsEdataLen, nItems, pGF, pScratchBuffer);
+
+         if(NULL==pScratchBuffer) {
+            mod_mul mulF = GFP_METHOD(pGFE)->mul;
+
+            BNU_CHUNK_T* pTmpR = cpGFpGetPool(1, pGFE);
+            //gres: temporary excluded: assert(NULL!=pTmpR);
+
+            cpGFpxExp(GFPE_DATA(pElmR), GFPE_DATA(ppElmA[0]), BN_NUMBER(ppE[0]), BN_SIZE(ppE[0]), pGFE, 0);
+            for(n=1; n<nItems; n++) {
+               cpGFpxExp(pTmpR, GFPE_DATA(ppElmA[n]), BN_NUMBER(ppE[n]), BN_SIZE(ppE[n]), pGFE, 0);
+               mulF(GFPE_DATA(pElmR), GFPE_DATA(pElmR), pTmpR, pGFE);
+            }
+   
+            cpGFpReleasePool(1, pGFE);
+         }
+
+         else {
+            const BNU_CHUNK_T* ppAdata[IPP_MAX_EXPONENT_NUM];
+            const BNU_CHUNK_T* ppEdata[IPP_MAX_EXPONENT_NUM];
+            int nsEdataLen[IPP_MAX_EXPONENT_NUM];
+            for(n=0; n<nItems; n++) {
+               ppAdata[n] = GFPE_DATA(ppElmA[n]);
+               ppEdata[n] = BN_NUMBER(ppE[n]);
+               nsEdataLen[n] = BN_SIZE(ppE[n]);
+            }
+            cpGFpxMultiExp(GFPE_DATA(pElmR), ppAdata, ppEdata, nsEdataLen, nItems, pGFE, pScratchBuffer);
+         }
+
+         return ippStsNoErr;
       }
-      return ippStsNoErr;
    }
 }
 
+/*F*
+// Name: ippsGFpSetElementHash
+//
+// Purpose: Set GF Element Hash of the Message
+//
+// Returns:                   Reason:
+//    ippStsNullPtrErr           NULL == pGF
+//                               NULL == pElm
+//                               NULL == pMsg if msgLen>0
+//
+//    ippStsNotSupportedModeErr  hashID is not supported
+//
+//    ippStsContextMatchErr      invalid pGF->idCtx
+//                               invalid pElm->idCtx
+//
+//    ippStsOutOfRangeErr        GFPE_ROOM() != GFP_FELEN()
+//
+//    ippStsNoErr                no error
+//
+// Parameters:
+//    pMsg     pointer to the message is beinh hashed
+//    msgLen   length of the message above
+//    pElm     pointer to Finite Field Element context
+//    pGF      pointer to Finite Field context
+//    hashID   applied hash algothith ID
+*F*/
 IPPFUN(IppStatus, ippsGFpSetElementHash,(const Ipp8u* pMsg, int msgLen, IppsGFpElement* pElm, IppsGFpState* pGF, IppHashAlgId hashID))
 {
    /* get algorithm id */
@@ -901,22 +1105,61 @@ IPPFUN(IppStatus, ippsGFpSetElementHash,(const Ipp8u* pMsg, int msgLen, IppsGFpE
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr);
    IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr);
-   IPP_BADARG_RET( !GFP_IS_BASIC(pGF), ippStsBadArgErr);
-
-   IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGF), ippStsOutOfRangeErr);
-
    {
-      Ipp8u md[IPP_SHA512_DIGEST_BITSIZE/BYTESIZE];
-      BNU_CHUNK_T hashVal[IPP_SHA512_DIGEST_BITSIZE/BITSIZE(BNU_CHUNK_T)+1]; /* +1 to meet cpMod_BNU() implementtaion specific */
-      IppStatus sts = ippsHashMessage(pMsg, msgLen, md, hashID);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( !GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
 
-      if(ippStsNoErr==sts) {
-         int elemLen = GFP_FELEN(pGF);
-         int hashLen = cpHashAlgAttr[hashID].hashSize;
-         int hashValLen = cpFromOctStr_BNU(hashVal, md, hashLen);
-         hashValLen = cpMod_BNU(hashVal, hashValLen, GFP_MODULUS(pGF), elemLen);
-         cpGFpSet(GFPE_DATA(pElm), hashVal, hashValLen, pGF);
+      {
+         Ipp8u md[MAX_HASH_SIZE];
+         BNU_CHUNK_T hashVal[(MAX_HASH_SIZE*8)/BITSIZE(BNU_CHUNK_T)+1]; /* +1 to meet cpMod_BNU() implementtaion specific */
+         IppStatus sts = ippsHashMessage(pMsg, msgLen, md, hashID);
+
+         if(ippStsNoErr==sts) {
+            int elemLen = GFP_FELEN(pGFE);
+            int hashLen = cpHashAlgAttr[hashID].hashSize;
+            int hashValLen = cpFromOctStr_BNU(hashVal, md, hashLen);
+            hashValLen = cpMod_BNU(hashVal, hashValLen, GFP_MODULUS(pGFE), elemLen);
+            cpGFpSet(GFPE_DATA(pElm), hashVal, hashValLen, pGFE);
+         }
+
+         return sts;
       }
-      return sts;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpSetElementHash_rmf,(const Ipp8u* pMsg, int msgLen, IppsGFpElement* pElm, IppsGFpState* pGF, const IppsHashMethod* pMethod))
+{
+   /* test method pointer */
+   IPP_BAD_PTR1_RET(pMethod);
+
+   /* test message length and pointer */
+   IPP_BADARG_RET((msgLen<0), ippStsLengthErr);
+   IPP_BADARG_RET((msgLen && !pMsg), ippStsNullPtrErr);
+
+   IPP_BAD_PTR2_RET(pElm, pGF);
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr);
+   IPP_BADARG_RET( !GFPE_TEST_ID(pElm), ippStsContextMatchErr);
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      IPP_BADARG_RET( !GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      IPP_BADARG_RET( GFPE_ROOM(pElm)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+
+      {
+         Ipp8u md[MAX_HASH_SIZE];
+         BNU_CHUNK_T hashVal[(MAX_HASH_SIZE*8)/BITSIZE(BNU_CHUNK_T)+1]; /* +1 to meet cpMod_BNU() implementtaion specific */
+         IppStatus sts = ippsHashMessage_rmf(pMsg, msgLen, md, pMethod);
+
+         if(ippStsNoErr==sts) {
+            int elemLen = GFP_FELEN(pGFE);
+            int hashLen = pMethod->hashLen;
+            int hashValLen = cpFromOctStr_BNU(hashVal, md, hashLen);
+            hashValLen = cpMod_BNU(hashVal, hashValLen, GFP_MODULUS(pGFE), elemLen);
+            cpGFpSet(GFPE_DATA(pElm), hashVal, hashValLen, pGFE);
+         }
+
+         return sts;
+      }
    }
 }

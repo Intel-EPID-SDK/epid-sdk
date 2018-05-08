@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 /*
 //     Intel(R) Performance Primitives. Cryptography Primitives.
-//     Internal operations over GF(p).
+//     Internal operations over prime GF(p).
 //
 //     Context:
-//        cpGFpCmpare
-//
 //        cpGFpRand
 //        cpGFpSet
 //        cpGFpGet
@@ -31,145 +29,151 @@
 //        cpGFpAdd
 //        cpGFpSub
 //        cpGFpMul
+//        cpGFpSqr
 //        cpGFpExp, cpGFpExp2
 //        cpGFpSqrt
 //
 */
-#include "owndefs.h"
 #include "owncp.h"
 
+#include "pcpbn.h"
 #include "pcpgfpstuff.h"
-#include "pcpgfpmethod.h"
 
+//gres: temporary excluded: #include <assert.h>
 
-BNU_CHUNK_T* cpGFpSet(BNU_CHUNK_T* pElm, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpRand(BNU_CHUNK_T* pR, gsModEngine* pGFE, IppBitSupplier rndFunc, void* pRndParam)
 {
-   const BNU_CHUNK_T* pModulus = GFP_MODULUS(pGFp);
-   int elemLen = GFP_FELEN(pGFp);
+   int elemLen = GFP_FELEN(pGFE);
+   int reqBitSize = GFP_FEBITLEN(pGFE)+GFP_RAND_ADD_BITS;
+   int nsR = (reqBitSize +BITSIZE(BNU_CHUNK_T)-1)/BITSIZE(BNU_CHUNK_T);
+
+   int internal_err;
+
+   BNU_CHUNK_T* pPool = cpGFpGetPool(2, pGFE);
+   //gres: temporary excluded: assert(pPool!=NULL);
+
+   cpGFpElementPadd(pPool, nsR, 0);
+
+   internal_err = ippStsNoErr != rndFunc((Ipp32u*)pPool, reqBitSize, pRndParam);
+
+   if(!internal_err) {
+      nsR = cpMod_BNU(pPool, nsR, GFP_MODULUS(pGFE), elemLen);
+      cpGFpElementPadd(pPool+nsR, elemLen-nsR, 0);
+      GFP_METHOD(pGFE)->encode(pR, pPool, pGFE);
+   }
+
+   cpGFpReleasePool(2, pGFE);
+   return internal_err? NULL : pR;
+}
+
+BNU_CHUNK_T* cpGFpSet(BNU_CHUNK_T* pElm, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFE)
+{
+   const BNU_CHUNK_T* pModulus = GFP_MODULUS(pGFE);
+   int elemLen = GFP_FELEN(pGFE);
 
    if(0 <= cpCmp_BNU(pDataA, nsA, pModulus, elemLen))
       return NULL;
    else {
-      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFp);
+      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+      //gres: temporary excluded: assert(pTmp !=NULL);
+
       ZEXPAND_COPY_BNU(pTmp, elemLen, pDataA, nsA);
-      pGFp->encode(pElm, pTmp, pGFp);
-      cpGFpReleasePool(1, pGFp);
+      GFP_METHOD(pGFE)->encode(pElm, pTmp, pGFE);
+
+      cpGFpReleasePool(1, pGFE);
       return pElm;
    }
 }
 
-BNU_CHUNK_T* cpGFpGet(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pElm, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpGet(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pElm, gsModEngine* pGFE)
 {
-   int elemLen = GFP_FELEN(pGFp);
-   BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFp);
+   int elemLen = GFP_FELEN(pGFE);
 
-   pGFp->decode(pTmp, pElm, pGFp);
+   BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+   //gres: temporary excluded: assert(pTmp !=NULL);
+
+   GFP_METHOD(pGFE)->decode(pTmp, pElm, pGFE);
    ZEXPAND_COPY_BNU(pDataA, nsA, pTmp, elemLen);
-   cpGFpReleasePool(1, pGFp);
+
+   cpGFpReleasePool(1, pGFE);
    return pDataA;
 }
 
-BNU_CHUNK_T* cpGFpSetOctString(BNU_CHUNK_T* pElm, const Ipp8u* pStr, int strSize, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpSetOctString(BNU_CHUNK_T* pElm, const Ipp8u* pStr, int strSize, gsModEngine* pGFE)
 {
-   int elemLen = GFP_FELEN(pGFp);
+   int elemLen = GFP_FELEN(pGFE);
 
    if((int)(elemLen*sizeof(BNU_CHUNK_T)) < strSize)
       return NULL;
 
-   else {
-      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFp);
+   {
+      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+      //gres: temporary excluded: assert(pTmp !=NULL);
+      {
+         int nsTmp = cpFromOctStr_BNU(pTmp, pStr, strSize);
+         BNU_CHUNK_T* ret = cpGFpSet(pElm, pTmp, nsTmp, pGFE);
 
-      int len = cpFromOctStr_BNU(pTmp, pStr, strSize);
-      ZEXPAND_BNU(pTmp+len, elemLen-len, 0);
-      //pElm = pGFp->encode(pElm, pTmp, pGFp);
-      pGFp->encode(pElm, pTmp, pGFp);
-
-      cpGFpReleasePool(1, pGFp);
-      return pElm;
+         cpGFpReleasePool(1, pGFE);
+         return ret==NULL? NULL : pElm;
+      }
    }
 }
 
-Ipp8u* cpGFpGetOctString(Ipp8u* pStr, int strSize, const BNU_CHUNK_T* pElm, IppsGFpState* pGFp)
+Ipp8u* cpGFpGetOctString(Ipp8u* pStr, int strSize, const BNU_CHUNK_T* pElm, gsModEngine* pGFE)
 {
-   BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFp);
-   int elemLen = GFP_FELEN(pGFp);
+   int elemLen = GFP_FELEN(pGFE);
 
-   pGFp->decode(pTmp, pElm, pGFp);
+   BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFE);
+   //gres: temporary excluded: assert(pTmp !=NULL);
+
+   GFP_METHOD(pGFE)->decode(pTmp, pElm, pGFE);
    cpToOctStr_BNU(pStr, strSize, pTmp, elemLen);
 
-   cpGFpReleasePool(1, pGFp);
+   cpGFpReleasePool(1, pGFE);
    return pStr;
 }
 
-BNU_CHUNK_T* cpGFpAdd(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpAdd(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE)
 {
-   return pGFp->add(pR, pA, pB, pGFp);
+   return GFP_METHOD(pGFE)->add(pR, pA, pB, pGFE);
 }
 
-
-BNU_CHUNK_T* cpGFpSub(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpSub(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE)
 {
-   return pGFp->sub(pR, pA, pB, pGFp);
+   return GFP_METHOD(pGFE)->sub(pR, pA, pB, pGFE);
 }
 
-BNU_CHUNK_T* cpGFpNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE)
 {
-   return pGFp->neg(pR, pA, pGFp);
+   return GFP_METHOD(pGFE)->neg(pR, pA, pGFE);
 }
 
-BNU_CHUNK_T* cpGFpMul(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpMul(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE)
 {
-   return pGFp->mul(pR, pA, pB, pGFp);
+   return GFP_METHOD(pGFE)->mul(pR, pA, pB, pGFE);
 }
 
-BNU_CHUNK_T* cpGFpSqr(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpSqr(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE)
 {
-   return pGFp->sqr(pR, pA, pGFp);
+   return GFP_METHOD(pGFE)->sqr(pR, pA, pGFE);
 }
 
-BNU_CHUNK_T* cpGFpHalve(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpHalve(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE)
 {
-   return pGFp->div2(pR, pA, pGFp);
+   return GFP_METHOD(pGFE)->div2(pR, pA, pGFE);
 }
 
-
-BNU_CHUNK_T* cpGFpInv(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpInv(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE)
 {
-   BNU_CHUNK_T* pModulus = GFP_MODULUS(pGFp);
-   int elemLen   = GFP_FELEN(pGFp);
-   int poolelementLen= GFP_PELEN(pGFp);
-
-   BNU_CHUNK_T* tmpM = cpGFpGetPool(4, pGFp);
-   BNU_CHUNK_T* tmpX1= tmpM +poolelementLen;
-   BNU_CHUNK_T* tmpX2= tmpX1+poolelementLen;
-   BNU_CHUNK_T* tmpX3= tmpX2+poolelementLen;
-   int nsR;
-
-   cpGFpElementCopy(tmpM, pModulus, elemLen);
-   nsR = cpModInv_BNU(pR, pA,elemLen, tmpM, elemLen, tmpX1,tmpX2,tmpX3);
-   cpGFpReleasePool(4, pGFp);
-
-   cpGFpElementPadd(pR+nsR, elemLen-nsR, 0);
-   return pGFp->mul(pR, pR, MNT_CUBE_R(GFP_MONT(pGFp)), pGFp);
+   GFP_METHOD(pGFE)->decode(pR, pA, pGFE);
+   gs_mont_inv(pR, pR, pGFE);
+   return pR;
 }
 
-BNU_CHUNK_T* cpGFpExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, IppsGFpState* pGFp)
+BNU_CHUNK_T* cpGFpExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, gsModEngine* pGFE)
 {
-   IppsBigNumState A;
-   IppsBigNumState E;
-   IppsBigNumState R;
-
-   BNU_CHUNK_T* pPool = cpGFpGetPool(3, pGFp);
-   int poolElemLen = GFP_PELEN(pGFp);
-   int elemLen = GFP_FELEN(pGFp);
-
-   cpGFpSetBigNum(&A, elemLen, pA, pPool+0*poolElemLen);
-   cpGFpSetBigNum(&E, nsE, pE, pPool+1*poolElemLen);
-   cpGFpInitBigNum(&R,elemLen, pR, pPool+2*poolElemLen);
-
-   cpMontExpBin_BN(&R, &A, &E, GFP_MONT(pGFp));
-
-   cpGFpReleasePool(3, pGFp);
+   int elemLen = GFP_FELEN(pGFE);
+   cpMontExpBin_BNU(pR, pA,cpFix_BNU(pA, elemLen), pE,cpFix_BNU(pE, nsE), pGFE);
    return pR;
 }
 
@@ -198,11 +202,11 @@ static int factor2(BNU_CHUNK_T* pA, int nsA)
    return factor;
 }
 
-static BNU_CHUNK_T* cpGFpExp2(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, int e, IppsGFpState* pGFp)
+static BNU_CHUNK_T* cpGFpExp2(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, int e, gsModEngine* pGFE)
 {
-   cpGFpElementCopy(pR, pA, GFP_FELEN(pGFp));
+   cpGFpElementCopy(pR, pA, GFP_FELEN(pGFE));
    while(e--) {
-      pGFp->sqr(pR, pR, pGFp);
+      GFP_METHOD(pGFE)->sqr(pR, pR, pGFE);
    }
    return pR;
 }
@@ -211,10 +215,10 @@ static BNU_CHUNK_T* cpGFpExp2(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, int e, Ipp
    0, if a - qnr
    1, if sqrt is found
 */
-int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
+int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE)
 {
-   int elemLen = GFP_FELEN(pGFp);
-   int poolelementLen = GFP_PELEN(pGFp);
+   int elemLen = GFP_FELEN(pGFE);
+   int poolelementLen = GFP_PELEN(pGFE);
    int resultFlag = 1;
 
    /* case A==0 */
@@ -223,18 +227,20 @@ int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
 
    /* general case */
    else {
-      BNU_CHUNK_T* q = cpGFpGetPool(4, pGFp);
+      BNU_CHUNK_T* q = cpGFpGetPool(4, pGFE);
       BNU_CHUNK_T* x = q + poolelementLen;
       BNU_CHUNK_T* y = x + poolelementLen;
       BNU_CHUNK_T* z = y + poolelementLen;
 
       int s;
 
+      //gres: temporary excluded: assert(q!=NULL);
+
       /* z=1 */
       GFP_ONE(z, elemLen);
 
       /* (modulus-1) = 2^s*q */
-      cpSub_BNU(q, GFP_MODULUS(pGFp), z, elemLen);
+      cpSub_BNU(q, GFP_MODULUS(pGFE), z, elemLen);
       s = factor2(q, elemLen);
 
       /*
@@ -242,24 +248,24 @@ int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
       */
 
       /* y = qnr^q */
-      cpGFpExp(y, GFP_QNR(pGFp), q,elemLen, pGFp);
+      cpGFpExp(y, GFP_QNR(pGFE), q,elemLen, pGFE);
       /* x = a^((q-1)/2) */
       cpSub_BNU(q, q, z, elemLen);
       cpLSR_BNU(q, q, elemLen, 1);
-      cpGFpExp(x, pA, q, elemLen, pGFp);
+      cpGFpExp(x, pA, q, elemLen, pGFE);
       /* z = a*x^2 */
-      pGFp->mul(z, x, x, pGFp);
-      pGFp->mul(z, pA, z, pGFp);
+      GFP_METHOD(pGFE)->mul(z, x, x, pGFE);
+      GFP_METHOD(pGFE)->mul(z, pA, z, pGFE);
       /* R = a*x */
-      pGFp->mul(pR, pA, x, pGFp);
+      GFP_METHOD(pGFE)->mul(pR, pA, x, pGFE);
 
-      while( !GFP_EQ(z, MNT_1(GFP_MONT(pGFp)), elemLen) ) {
+      while( !GFP_EQ(z, MOD_MNT_R(pGFE), elemLen) ) {
          int m = 0;
          cpGFpElementCopy(q, z, elemLen);
 
          for(m=1; m<s; m++) {
-            pGFp->mul(q, q, q, pGFp);
-            if( GFP_EQ(q, MNT_1(GFP_MONT(pGFp)), elemLen) )
+            GFP_METHOD(pGFE)->mul(q, q, q, pGFE);
+            if( GFP_EQ(q, MOD_MNT_R(pGFE), elemLen) )
                break;
          }
 
@@ -270,42 +276,21 @@ int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFp)
          }
          else {
             /* exponent reduction */
-            cpGFpExp2(q, y, (s-m-1), pGFp);   /* q = y^(2^(s-m-1)) */
-            pGFp->mul(y, q, q, pGFp);          /* y = q^2 */
-            pGFp->mul(pR, q, pR, pGFp);        /* R = q*R */
-            pGFp->mul(z, y, z, pGFp);          /* z = z*y */
+            cpGFpExp2(q, y, (s-m-1), pGFE);           /* q = y^(2^(s-m-1)) */
+            GFP_METHOD(pGFE)->mul(y, q, q, pGFE);     /* y = q^2 */
+            GFP_METHOD(pGFE)->mul(pR, q, pR, pGFE);   /* R = q*R */
+            GFP_METHOD(pGFE)->mul(z, y, z, pGFE);     /* z = z*y */
             s = m;
          }
       }
 
       /* choose smallest between R and (modulus-R) */
-      pGFp->decode(q, pR, pGFp);
-      if(GFP_GT(q, GFP_HMODULUS(pGFp), elemLen))
-         pGFp->neg(pR, pR, pGFp);
+      GFP_METHOD(pGFE)->decode(q, pR, pGFE);
+      if(GFP_GT(q, GFP_HMODULUS(pGFE), elemLen))
+         GFP_METHOD(pGFE)->neg(pR, pR, pGFE);
 
-      cpGFpReleasePool(4, pGFp);
+      cpGFpReleasePool(4, pGFE);
    }
 
    return resultFlag;
-}
-
-
-BNU_CHUNK_T* cpGFpRand(BNU_CHUNK_T* pR, IppsGFpState* pGFp, IppBitSupplier rndFunc, void* pRndParam)
-{
-   int elemLen = GFP_FELEN(pGFp);
-///int reqBitSize = GFP_FEBITSIZE(pGFp)+GF_RAND_ADD_BITS;
-   int reqBitSize = GFP_FEBITLEN(pGFp)+GF_RAND_ADD_BITS;
-   int nsR = (reqBitSize +BITSIZE(BNU_CHUNK_T)-1)/BITSIZE(BNU_CHUNK_T);
-
-   BNU_CHUNK_T* pPool = cpGFpGetPool(2, pGFp);
-   cpGFpElementPadd(pPool, nsR, 0);
-   rndFunc((Ipp32u*)pPool, reqBitSize, pRndParam);
-
-   nsR = cpMod_BNU(pPool, nsR, GFP_MODULUS(pGFp), elemLen);
-   cpGFpElementPadd(pPool+nsR, elemLen-nsR, 0);
-
-   pGFp->encode(pR, pPool, pGFp);
-
-   cpGFpReleasePool(2, pGFp);
-   return pR;
 }

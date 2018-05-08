@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ Import('*')
 
 import os
 
-env.PartVersion("2017.0.2")
+env.PartVersion("2018.2.208")
 env.PartName("ippcp")
 ipp_libname = '${PART_SHORT_NAME}'
 
@@ -46,7 +46,7 @@ common_headers = Pattern(src_dir='include/',
 #files
 ippcp_files = Pattern(src_dir='sources/ippcp/src/',
                       includes=[
-                          'pcp*.c',
+                          '*.c',
                       ],
                       excludes=[],
                       recursive=True)
@@ -97,7 +97,7 @@ else:
     if 'use_commercial_ipp' in env['MODE']:
         env['CCOPY_LOGIC'] = 'copy'
         try:
-            IPPROOT = os.environ['IPPROOT']
+            IPPCRYPTOROOT = os.environ['IPPCRYPTOROOT']
         except KeyError, e:
             env.PrintError("Necessary environment variable not set: ",
                            e, show_stack=False)
@@ -115,11 +115,9 @@ else:
             archdir = 'intel64/'
 
         ippcp_libname = libpre + 'ippcp' + IPP_TH_SYMBOL + libpost
-        ippcore_libname = libpre + 'ippcore' + IPP_TH_SYMBOL + libpost
-        ipp_dir = IPPROOT + '/lib/' + archdir
-        env.SdkLib(ipp_dir + ippcp_libname)
-        env.SdkLib(ipp_dir + ippcore_libname)
-        env.SdkInclude(IPPROOT + '/include/ippcore.h')
+        ippcp_libdir = IPPCRYPTOROOT + '/lib/' + archdir
+        env.SdkLib(ippcp_libdir + ippcp_libname)
+
     else:
         all_c_files = ippcp_files.files()
         if 'build_ipp_shared' in env['MODE']:

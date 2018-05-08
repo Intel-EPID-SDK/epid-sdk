@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -110,13 +110,6 @@ __INLINE void FillBlock16(Ipp8u filler, const void* pSrc, void* pDst, int len)
    for(; n<16; n++) ((Ipp8u*)pDst)[n] = filler;
 }
 
-#if 0
-void FillBlock8 (Ipp8u filler, const void* pSrc, void* pDst, int len);
-void FillBlock16(Ipp8u filler, const void* pSrc, void* pDst, int len);
-void FillBlock24(Ipp8u filler, const void* pSrc, void* pDst, int len);
-void FillBlock32(Ipp8u filler, const void* pSrc, void* pDst, int len);
-#endif
-
 /* xor block */
 __INLINE void XorBlock(const void* pSrc1, const void* pSrc2, void* pDst, int len)
 {
@@ -195,10 +188,6 @@ __INLINE int EquBlock(const void* pSrc1, const void* pSrc2, int len)
 }
 
 
-#if 0
-int  TestPadding(Ipp8u filler, void* pSrc, int len);
-#endif
-
 /* addition functions for CTR mode of diffenent block ciphers */
 __INLINE void StdIncrement(Ipp8u* pCounter, int blkSize, int numSize)
 {
@@ -244,7 +233,6 @@ __INLINE void ompStdIncrement64( void* pInitCtrVal, void* pCurrCtrVal,
     }
     else
     {
-        /* gres: Ipp64u mask = ( Ipp64u )0xFFFFFFFFFFFFFFFF >> ( 64 - ctrNumBitSize ); */
         Ipp64u mask = CONST_64(0xFFFFFFFFFFFFFFFF) >> ( 64 - ctrNumBitSize );
         Ipp64u save = cntr & ( ~mask );
         Ipp64u bndr = ( Ipp64u )1 << ctrNumBitSize;

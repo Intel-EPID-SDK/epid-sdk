@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -70,11 +70,12 @@ IPPFUN(IppStatus, ippsECCPGenKeyPair, (IppsBigNumState* pPrivate, IppsECCPPointS
    IPP_BADARG_RET((BN_ROOM(pPrivate)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITSIZE(pEC)), ippStsSizeErr);
 
    IPP_BADARG_RET( !ECP_POINT_TEST_ID(pPublic), ippStsContextMatchErr );
-   IPP_BADARG_RET(ECP_POINT_FELEN(pPublic)<GFP_FELEN(ECP_GFP(pEC)), ippStsRangeErr);
+   IPP_BADARG_RET(ECP_POINT_FELEN(pPublic)<GFP_FELEN(GFP_PMA(ECP_GFP(pEC))), ippStsRangeErr);
 
    {
       /* generate random private key X:  0 < X < R */
-      BNU_CHUNK_T* pOrder = MNT_MODULUS(ECP_MONT_R(pEC));
+      gsModEngine* pModEngine =ECP_MONT_R(pEC);
+      BNU_CHUNK_T* pOrder = MOD_MODULUS(pModEngine);
       int orderBitLen = ECP_ORDBITSIZE(pEC);
       int orderLen = BITS_BNU_CHUNK(orderBitLen);
 
@@ -82,11 +83,17 @@ IPPFUN(IppStatus, ippsECCPGenKeyPair, (IppsBigNumState* pPrivate, IppsECCPPointS
       int nsX = BITS_BNU_CHUNK(orderBitLen);
       BNU_CHUNK_T xMask = MASK_BNU_CHUNK(orderBitLen);
 
+      IppStatus sts;
       do {
-         rndFunc((Ipp32u*)pX, orderBitLen, pRndParam);
+         sts = rndFunc((Ipp32u*)pX, orderBitLen, pRndParam);
+         if(ippStsNoErr != sts)
+            break;
          pX[nsX-1] &= xMask;
       } while( (1 == cpEqu_BNU_CHUNK(pX, nsX, 0)) ||
                (0 <= cpCmp_BNU(pX, nsX, pOrder, orderLen)) );
+
+      if(ippStsNoErr != sts)
+         return ippStsErr;
 
       /* set up private */
       BN_SIGN(pPrivate) = ippBigNumPOS;

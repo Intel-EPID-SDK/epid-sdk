@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -38,10 +38,6 @@
 #include "owncp.h"
 #include "pcpbnumisc.h"
 
-#if defined(__GNUC__) && (__GNUC__ >= 6)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
 
 /*
 // number of leading zeros
@@ -96,51 +92,6 @@ cpSize cpNTZ_BNU(BNU_CHUNK_T x)
 }
 
 /*
-// Logical shift left  (including inplace)
-//
-// Returns new length
-//
-*/
-#if 0
-cpSize cpLSL_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA, cpSize nBits)
-{
-   cpSize nlz = cpNLZ_BNU(pA[nsA-1]);
-   cpSize nw = nBits/BNU_CHUNK_BITS;
-   cpSize n;
-
-   pR += nw;
-
-   nBits %= BNU_CHUNK_BITS;
-   if(nBits) {
-      BNU_CHUNK_T hi,lo;
-
-      if(nlz < nBits )
-         hi = 0;
-      else
-         hi = pA[--nsA];
-
-      for(n=nsA; n>0; n--) {
-         lo = pA[n-1];
-         pR[n] = (hi<<nBits) | (lo>>(BNU_CHUNK_BITS-nBits));
-         hi = lo;
-      }
-      pR[0] = (hi<<nBits);
-   }
-
-   else {
-      for(n=nsA; n>0; n--)
-         pR[n-1] = pA[n-1];
-   }
-
-   pR--;
-   for(n=0; n<nw; n++)
-      pR[n] = 0;
-
-   return nsA+nw;
-}
-#endif
-
-/*
 // Logical shift right (including inplace)
 //
 // Returns new length
@@ -176,30 +127,6 @@ cpSize cpLSR_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize nsA, cpSize nBit
 
    return nsA+nw;
 }
-
-
-/*
-// Returns Last Significant Bit of the BNU
-// Note:
-//    if BNU==0, than 32*size will return
-*/
-#if 0
-int cpLSBit_BNU(const BNU_CHUNK_T* pA, cpSize nsA)
-{
-   int lsb = 0;
-
-   cpSize n;
-   for(n=0; n<nsA; n++) {
-      if(0==pA[n])
-         lsb += BNU_CHUNK_BITS;
-      else {
-         lsb += cpNTZ_BNU( pA[n] );
-         return lsb;
-      }
-   }
-   return lsb;
-}
-#endif
 
 /*
 // Returns Most Significant Bit of the BNU
@@ -296,7 +223,3 @@ cpSize cpToOctStr_BNU(Ipp8u* pStr, cpSize strLen, const BNU_CHUNK_T* pA, cpSize 
          return 0;
    }
 }
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

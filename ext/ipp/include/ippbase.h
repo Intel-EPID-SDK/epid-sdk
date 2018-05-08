@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 1999-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,23 +22,23 @@
 */
 
 
-#ifndef __IPPBASE_H__
-#define __IPPBASE_H__
+#ifndef IPPBASE_H__
+#define IPPBASE_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #if defined( _WIN32 ) || defined ( _WIN64 )
-  #define __STDCALL  __stdcall
-  #define __CDECL    __cdecl
-  #define __INT64    __int64
-  #define __UINT64    unsigned __int64
+  #define IPP_STDCALL  __stdcall
+  #define IPP_CDECL    __cdecl
+  #define IPP_INT64    __int64
+  #define IPP_UINT64    unsigned __int64
 #else
-  #define __STDCALL
-  #define __CDECL
-  #define __INT64    long long
-  #define __UINT64    unsigned long long
+  #define IPP_STDCALL
+  #define IPP_CDECL
+  #define IPP_INT64    long long
+  #define IPP_UINT64    unsigned long long
 #endif
 
 #define IPP_PI    ( 3.14159265358979323846 )  /* ANSI C does not support M_PI */
@@ -110,8 +110,8 @@ typedef signed char    Ipp8s;
 typedef signed short   Ipp16s;
 typedef signed int     Ipp32s;
 typedef float          Ipp32f;
-typedef __INT64        Ipp64s;
-typedef __UINT64       Ipp64u;
+typedef IPP_INT64        Ipp64s;
+typedef IPP_UINT64       Ipp64u;
 typedef double         Ipp64f;
 typedef Ipp16s         Ipp16f;
 
@@ -184,5 +184,5 @@ typedef enum {
 }
 #endif
 
-#endif /* __IPPBASE_H__ */
+#endif /* IPPBASE_H__ */
 

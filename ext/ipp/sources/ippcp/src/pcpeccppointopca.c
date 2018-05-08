@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -96,11 +96,12 @@ IPPFUN(IppStatus, ippsECCPSetPoint,(const IppsBigNumState* pX,
       IppStatus sts;
 
       IppsGFpState* pGF = ECP_GFP(pEC);
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      int elemLen = GFP_FELEN(pGFE);
       IppsGFpElement elmX, elmY;
 
-      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGF), elemLen);
-      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGF), elemLen);
+      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGFE), elemLen);
+      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGFE), elemLen);
       do {
          BNU_CHUNK_T* pData = BN_NUMBER(pX);
          int ns = BN_SIZE(pX);
@@ -113,7 +114,7 @@ IPPFUN(IppStatus, ippsECCPSetPoint,(const IppsBigNumState* pX,
          sts = ippsGFpECSetPoint(&elmX, &elmY, pPoint, pEC);
       } while(0);
 
-      cpGFpReleasePool(2, pGF);
+      cpGFpReleasePool(2, pGFE);
       return sts;
    }
 }
@@ -193,29 +194,32 @@ IPPFUN(IppStatus, ippsECCPGetPoint,(IppsBigNumState* pX, IppsBigNumState* pY,
       IppStatus sts;
 
       IppsGFpState* pGF = ECP_GFP(pEC);
-      gfdecode  decode = pGF->decode;  /* gf decode method  */
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      int elemLen = GFP_FELEN(pGFE);
+
+      mod_decode decode = GFP_METHOD(pGFE)->decode;  /* gf decode method  */
+
       IppsGFpElement elmX, elmY;
 
-      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGF), elemLen);
-      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGF), elemLen);
+      cpGFpElementConstruct(&elmX, cpGFpGetPool(1, pGFE), elemLen);
+      cpGFpElementConstruct(&elmY, cpGFpGetPool(1, pGFE), elemLen);
       do {
          sts = ippsGFpECGetPoint(pPoint, pX? &elmX:NULL, pY? &elmY:NULL, pEC);
          if(ippStsNoErr!=sts) break;
 
          if(pX) {
-            decode(elmX.pData, elmX.pData, pGF);
-            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)elmX.pData, pX);
+            decode(elmX.pData, elmX.pData, pGFE);
+            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)elmX.pData, pX);
             if(ippStsNoErr!=sts) break;
          }
          if(pY) {
-            decode(elmY.pData, elmY.pData, pGF);
-            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGF), (Ipp32u*)elmY.pData, pY);
+            decode(elmY.pData, elmY.pData, pGFE);
+            sts = ippsSet_BN(ippBigNumPOS, GFP_FELEN32(pGFE), (Ipp32u*)elmY.pData, pY);
             if(ippStsNoErr!=sts) break;
          }
       } while(0);
 
-      cpGFpReleasePool(2, pGF);
+      cpGFpReleasePool(2, pGFE);
       return sts;
    }
 }

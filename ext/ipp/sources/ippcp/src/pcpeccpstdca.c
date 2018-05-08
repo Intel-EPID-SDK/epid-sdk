@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@
 
 #include "owndefs.h"
 #include "owncp.h"
-#include "pcpeccp.h"
 
+#include "pcpgfpstuff.h"
 
 #if defined( _IPP_DATA )
 
@@ -336,120 +336,5 @@ const BNU_CHUNK_T tpmSM2_p256_r[] = {
    LL(0x39D54123, 0x53BBF409), LL(0x21C6052B, 0x7203DF6B), LL(0xFFFFFFFF, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFFE)};
 #endif
 BNU_CHUNK_T tpmSM2_p256_h = 1;
-
-#if 0
-/*
-// premultiplied secp128r{1|2}_p (for spesial implementation)
-*/
-static const BNU_CHUNK_T secp128_x2[] = {LL(0xFFFFFFFE, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFFB), L_(0x01)};
-static const BNU_CHUNK_T secp128_x3[] = {LL(0xFFFFFFFD, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFF9), L_(0x02)};
-static const BNU_CHUNK_T secp128_x4[] = {LL(0xFFFFFFFC, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFF7), L_(0x03)};
-static const BNU_CHUNK_T secp128_x5[] = {LL(0xFFFFFFFB, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFF5), L_(0x04)};
-static const BNU_CHUNK_T secp128_x6[] = {LL(0xFFFFFFFA, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFF3), L_(0x05)};
-static const BNU_CHUNK_T secp128_x7[] = {LL(0xFFFFFFF9, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFF1), L_(0x06)};
-static const BNU_CHUNK_T secp128_x8[] = {LL(0xFFFFFFF8, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFEF), L_(0x07)};
-static const BNU_CHUNK_T secp128_x9[] = {LL(0xFFFFFFF7, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFED), L_(0x08)};
-static const BNU_CHUNK_T secp128_xA[] = {LL(0xFFFFFFF6, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFEB), L_(0x09)};
-static const BNU_CHUNK_T secp128_xB[] = {LL(0xFFFFFFF5, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFE9), L_(0x0A)};
-static const BNU_CHUNK_T secp128_xC[] = {LL(0xFFFFFFF4, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFE7), L_(0x0B)};
-static const BNU_CHUNK_T secp128_xD[] = {LL(0xFFFFFFF3, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFE5), L_(0x0C)};
-static const BNU_CHUNK_T secp128_xE[] = {LL(0xFFFFFFF2, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFE3), L_(0x0D)};
-static const BNU_CHUNK_T secp128_xF[] = {LL(0xFFFFFFF1, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFE1), L_(0x0E)};
-static const BNU_CHUNK_T secp128_x10[]= {LL(0xFFFFFFF0, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFDF), L_(0x0F)};
-static const BNU_CHUNK_T secp128_x11[]= {LL(0xFFFFFFEF, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFDD), L_(0x10)};
-static const BNU_CHUNK_T secp128_x12[]= {LL(0xFFFFFFEE, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFDB), L_(0x11)};
-static const BNU_CHUNK_T secp128_x13[]= {LL(0xFFFFFFED, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFD9), L_(0x12)};
-static const BNU_CHUNK_T secp128_x14[]= {LL(0xFFFFFFEC, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFD7), L_(0x13)};
-static const BNU_CHUNK_T secp128_x15[]= {LL(0xFFFFFFEB, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFD5), L_(0x14)};
-static const BNU_CHUNK_T secp128_x16[]= {LL(0xFFFFFFEA, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFD3), L_(0x15)};
-static const BNU_CHUNK_T secp128_x17[]= {LL(0xFFFFFFE9, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFD1), L_(0x16)};
-static const BNU_CHUNK_T secp128_x18[]= {LL(0xFFFFFFE8, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFCF), L_(0x17)};
-static const BNU_CHUNK_T secp128_x19[]= {LL(0xFFFFFFE7, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFCD), L_(0x18)};
-static const BNU_CHUNK_T secp128_x1A[]= {LL(0xFFFFFFE6, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFCB), L_(0x19)};
-static const BNU_CHUNK_T secp128_x1B[]= {LL(0xFFFFFFE5, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFC9), L_(0x1A)};
-static const BNU_CHUNK_T secp128_x1C[]= {LL(0xFFFFFFE4, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFC7), L_(0x1B)};
-static const BNU_CHUNK_T secp128_x1D[]= {LL(0xFFFFFFE3, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFC5), L_(0x1C)};
-static const BNU_CHUNK_T secp128_x1E[]= {LL(0xFFFFFFE2, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFC3), L_(0x1D)};
-static const BNU_CHUNK_T secp128_x1F[]= {LL(0xFFFFFFE1, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFC1), L_(0x1E)};
-static const BNU_CHUNK_T secp128_x20[]= {LL(0xFFFFFFE0, 0xFFFFFFFF), LL(0xFFFFFFFF, 0xFFFFFFBF), L_(0x1F)};
-
-#define MAX_MUL (32)
-const BNU_CHUNK_T* secp128_mx[MAX_MUL] = {
-   secp128r1_p,   /*  1*secp128r1_p */
-   secp128_x2,    /*  2*secp128r1_p */
-   secp128_x3,    /*  3*secp128r1_p */
-   secp128_x4,    /*  4*secp128r1_p */
-   secp128_x5,    /*  5*secp128r1_p */
-   secp128_x6,    /*  6*secp128r1_p */
-   secp128_x7,    /*  7*secp128r1_p */
-   secp128_x8,    /*  8*secp128r1_p */
-   secp128_x9,    /*  9*secp128r1_p */
-   secp128_xA,    /* 10*secp128r1_p */
-   secp128_xB,    /* 11*secp128r1_p */
-   secp128_xC,    /* 12*secp128r1_p */
-   secp128_xD,    /* 13*secp128r1_p */
-   secp128_xE,    /* 14*secp128r1_p */
-   secp128_xF,    /* 15*secp128r1_p */
-   secp128_x10,   /* 16*secp128r1_p */
-   secp128_x11,   /* 17*secp128r1_p */
-   secp128_x12,   /* 18*secp128r1_p */
-   secp128_x13,   /* 19*secp128r1_p */
-   secp128_x14,   /* 20*secp128r1_p */
-   secp128_x15,   /* 21*secp128r1_p */
-   secp128_x16,   /* 22*secp128r1_p */
-   secp128_x17,   /* 23*secp128r1_p */
-   secp128_x18,   /* 24*secp128r1_p */
-   secp128_x19,   /* 25*secp128r1_p */
-   secp128_x1A,   /* 26*secp128r1_p */
-   secp128_x1B,   /* 27*secp128r1_p */
-   secp128_x1C,   /* 28*secp128r1_p */
-   secp128_x1D,   /* 29*secp128r1_p */
-   secp128_x1E,   /* 30*secp128r1_p */
-   secp128_x1F,   /* 31*secp128r1_p */
-   secp128_x20    /* 32*secp128r1_p */
-};
-#endif
-
-#if 0
-/*
-// premultiplied SM2 modulus (for spesial implementation)
-*/
-static const BNU_CHUNK_T tpmSM2_p256_p_x1[] = {LL(0xFFFFFFFF,0xFFFFFFFF),LL(0x00000000,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFE),L_(0x00000000)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x2[] = {LL(0xFFFFFFFE,0xFFFFFFFF),LL(0x00000001,0xFFFFFFFE),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFD),L_(0x00000001)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x3[] = {LL(0xFFFFFFFD,0xFFFFFFFF),LL(0x00000002,0xFFFFFFFD),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFC),L_(0x00000002)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x4[] = {LL(0xFFFFFFFC,0xFFFFFFFF),LL(0x00000003,0xFFFFFFFC),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFB),L_(0x00000003)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x5[] = {LL(0xFFFFFFFB,0xFFFFFFFF),LL(0x00000004,0xFFFFFFFB),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFFA),L_(0x00000004)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x6[] = {LL(0xFFFFFFFA,0xFFFFFFFF),LL(0x00000005,0xFFFFFFFA),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF9),L_(0x00000005)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x7[] = {LL(0xFFFFFFF9,0xFFFFFFFF),LL(0x00000006,0xFFFFFFF9),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF8),L_(0x00000006)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x8[] = {LL(0xFFFFFFF8,0xFFFFFFFF),LL(0x00000007,0xFFFFFFF8),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF7),L_(0x00000007)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x9[] = {LL(0xFFFFFFF7,0xFFFFFFFF),LL(0x00000008,0xFFFFFFF7),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF6),L_(0x00000008)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xA[] = {LL(0xFFFFFFF6,0xFFFFFFFF),LL(0x00000009,0xFFFFFFF6),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF5),L_(0x00000009)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xB[] = {LL(0xFFFFFFF5,0xFFFFFFFF),LL(0x0000000A,0xFFFFFFF5),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF4),L_(0x0000000A)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xC[] = {LL(0xFFFFFFF4,0xFFFFFFFF),LL(0x0000000B,0xFFFFFFF4),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF3),L_(0x0000000B)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xD[] = {LL(0xFFFFFFF3,0xFFFFFFFF),LL(0x0000000C,0xFFFFFFF3),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF2),L_(0x0000000C)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xE[] = {LL(0xFFFFFFF2,0xFFFFFFFF),LL(0x0000000D,0xFFFFFFF2),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF1),L_(0x0000000D)};
-static const BNU_CHUNK_T tpmSM2_p256_p_xF[] = {LL(0xFFFFFFF1,0xFFFFFFFF),LL(0x0000000E,0xFFFFFFF1),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFF0),L_(0x0000000E)};
-static const BNU_CHUNK_T tpmSM2_p256_p_x10[]= {LL(0xFFFFFFF0,0xFFFFFFFF),LL(0x0000000F,0xFFFFFFF0),LL(0xFFFFFFFF,0xFFFFFFFF),LL(0xFFFFFFFF,0xFFFFFFEF),L_(0x0000000F)};
-
-#define SM2_MAX_MUL (16)
-const BNU_CHUNK_T* tpmSM2_p256_p_mx[SM2_MAX_MUL] = {
-   tpmSM2_p256_p_x1, /* x1*tpmSM2_p256_p */
-   tpmSM2_p256_p_x2, /* x2*tpmSM2_p256_p */
-   tpmSM2_p256_p_x3, /* x3*tpmSM2_p256_p */
-   tpmSM2_p256_p_x4, /* x4*tpmSM2_p256_p */
-   tpmSM2_p256_p_x5, /* x5*tpmSM2_p256_p */
-   tpmSM2_p256_p_x6, /* x6*tpmSM2_p256_p */
-   tpmSM2_p256_p_x7, /* x7*tpmSM2_p256_p */
-   tpmSM2_p256_p_x8, /* x8*tpmSM2_p256_p */
-   tpmSM2_p256_p_x9, /* x9*tpmSM2_p256_p */
-   tpmSM2_p256_p_xA, /* xA*tpmSM2_p256_p */
-   tpmSM2_p256_p_xB, /* xB*tpmSM2_p256_p */
-   tpmSM2_p256_p_xC, /* xC*tpmSM2_p256_p */
-   tpmSM2_p256_p_xD, /* xD*tpmSM2_p256_p */
-   tpmSM2_p256_p_xE, /* xE*tpmSM2_p256_p */
-   tpmSM2_p256_p_xF, /* xF*tpmSM2_p256_p */
-   tpmSM2_p256_p_x10 /*x10*tpmSM2_p256_p */
-};
-#endif
 
 #endif /* _IPP_DATA */

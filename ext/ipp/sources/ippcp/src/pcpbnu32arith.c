@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 2002-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -111,22 +111,6 @@ Ipp32u cpMulDgt_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, Ipp32u val)
     }
     return carry;
 }
-
-/*
-// BNU32 mul_by_digit_accumulate
-*/
-#if 0
-Ipp32u cpAddMulDgt_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, Ipp32u val)
-{
-   Ipp32u extension = 0;
-   for(; nsA>0; nsA--) {
-      Ipp64u r = (Ipp64u)*pR + (Ipp64u)(*pA++) * val + extension;
-      *pR++  = LODWORD(r);
-      extension = HIDWORD(r);
-   }
-   return extension;
-}
-#endif
 
 /*
 // BNU32 mul_by_digit_subtract
@@ -294,73 +278,3 @@ int cpDiv_BNU32(Ipp32u* pQ, cpSize* sizeQ,
       (R)[bidx+aidx] = c; \
    } \
 }
-
-#if 0
-#if !((_IPP==_IPP_W7) || \
-      (_IPP==_IPP_T7) || \
-      (_IPP==_IPP_V8) || \
-      (_IPP==_IPP_P8) || \
-      (_IPP>=_IPP_G9) || \
-      (_IPP==_IPP_S8) || \
-      (_IPP32E==_IPP32E_M7) || \
-      (_IPP32E==_IPP32E_U8) || \
-      (_IPP32E==_IPP32E_Y8) || \
-      (_IPP32E>=_IPP32E_E9) || \
-      (_IPP32E==_IPP32E_N8))
-void cpMul_BNU8(const Ipp32u* pA, const Ipp32u* pB, Ipp32u* pR)
-{
-   FE_MUL(pR, pA, pB, 8)
-}
-#endif
-#endif
-
-#if 0
-#if !((_IPP32E==_IPP32E_M7) || \
-      (_IPP32E==_IPP32E_U8) || \
-      (_IPP32E==_IPP32E_Y8) || \
-      (_IPP32E>=_IPP32E_E9) || \
-      (_IPP32E==_IPP32E_N8))
-void cpMul_BNU4(const Ipp32u* pA, const Ipp32u* pB, Ipp32u* pR)
-{
-   FE_MUL(pR, pA, pB, 4)
-}
-#endif
-#endif
-
-#if 0
-#if !((_IPP==_IPP_W7) || \
-      (_IPP==_IPP_T7) || \
-      (_IPP==_IPP_V8) || \
-      (_IPP==_IPP_P8) || \
-      (_IPP>=_IPP_G9) || \
-      (_IPP==_IPP_S8) || \
-      (_IPP32E==_IPP32E_M7) || \
-      (_IPP32E==_IPP32E_U8) || \
-      (_IPP32E==_IPP32E_Y8) || \
-      (_IPP32E>=_IPP32E_E9) || \
-      (_IPP32E==_IPP32E_N8))
-void cpSqr_BNU8(const Ipp32u* pA, Ipp32u* pR)
-{
-   FE_MUL(pR, pA, pA, 8)
-}
-#endif
-#endif
-
-#if 0
-#if !((_IPP==_IPP_W7) || \
-      (_IPP==_IPP_T7) || \
-      (_IPP==_IPP_V8) || \
-      (_IPP==_IPP_P8) || \
-      (_IPP>=_IPP_G9) || \
-      (_IPP==_IPP_S8) || \
-      (_IPP32E==_IPP32E_M7) || \
-      (_IPP32E==_IPP32E_U8) || \
-      (_IPP32E==_IPP32E_Y8) || \
-      (_IPP32E>=_IPP32E_E9) || \
-      (_IPP32E==_IPP32E_N8))
-void cpSqr_BNU4(const Ipp32u* pA, Ipp32u* pR)
-{
-   FE_MUL(pR, pA, pA, 4)
-}
-#endif
-#endif

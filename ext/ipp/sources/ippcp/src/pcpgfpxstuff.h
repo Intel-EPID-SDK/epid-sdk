@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,17 +27,6 @@
 #include "pcpgfpstuff.h"
 
 
-//#define _EXTENSION_2_BINOMIAL_SUPPORT_  // move to cmd-line
-//#define _EXTENSION_3_BINOMIAL_SUPPORT_  // move to cmd-line
-
-#if defined(_EXTENSION_2_BINOMIAL_SUPPORT_) && defined(_EXTENSION_3_BINOMIAL_SUPPORT_)
-   /* EPID specific:
-      (Fq2) GF(q^2) generating polynomial is g(t) = t^2 + beta, beta = 1
-      
-   */
-   #define _EPID20_GF_PARAM_SPECIFIC_
-#endif
-
 /* GF(p^d) pool */
 #define GFPX_PESIZE(pGF)   GFP_FELEN((pGF))
 #define GFPX_POOL_SIZE     (14) //(8)   /* Number of temporary variables in pool */
@@ -46,30 +35,29 @@
 #define GFPX_IDX_ELEMENT(pxe, idx, eleSize) ((pxe)+(eleSize)*(idx))
 
 
-__INLINE int degree(const BNU_CHUNK_T* pE, const IppsGFpState* pGFpx)
+__INLINE int degree(const BNU_CHUNK_T* pE, const gsModEngine* pGFEx)
 {
-    int groundElemLen = GFP_FELEN( (IppsGFpState*)GFP_GROUNDGF(pGFpx) );
+    int groundElemLen = GFP_FELEN(GFP_PARENT(pGFEx));
     int deg;
-    for(deg=GFP_DEGREE(pGFpx)-1; deg>=0; deg-- ) {
+    for(deg=GFP_EXTDEGREE(pGFEx)-1; deg>=0; deg-- ) {
         if(!GFP_IS_ZERO(pE+groundElemLen*deg, groundElemLen)) break;
     }
     return deg;
 }
 
-__INLINE IppsGFpState* cpGFpBasic(const IppsGFpState* pGFp)
+__INLINE gsModEngine* cpGFpBasic(const gsModEngine* pGFEx)
 {
-   while( !GFP_IS_BASIC(pGFp) ) {
-      pGFp = GFP_GROUNDGF(pGFp);
+   while( !GFP_IS_BASIC(pGFEx) ) {
+      pGFEx = GFP_PARENT(pGFEx);
    }
-   return (IppsGFpState*)pGFp;
+   return (gsModEngine*)pGFEx;
 }
-__INLINE int cpGFpBasicDegreeExtension(const IppsGFpState* pGFp)
+__INLINE int cpGFpBasicDegreeExtension(const gsModEngine* pGFEx)
 {
-   int degree = GFP_DEGREE(pGFp);
-   while( !GFP_IS_BASIC(pGFp) ) {
-      IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFp);
-      degree *= GFP_DEGREE(pGroundGF);
-      pGFp = pGroundGF;
+   int degree = GFP_EXTDEGREE(pGFEx);
+   while( !GFP_IS_BASIC(pGFEx) ) {
+      pGFEx = GFP_PARENT(pGFEx);
+      degree *= GFP_EXTDEGREE(pGFEx);
    }
    return degree;
 }
@@ -77,12 +65,12 @@ __INLINE int cpGFpBasicDegreeExtension(const IppsGFpState* pGFp)
 /* convert external data (Ipp32u) => internal element (BNU_CHUNK_T) representation
    returns length of element (in BNU_CHUNK_T)
 */
-__INLINE int cpGFpxCopyToChunk(BNU_CHUNK_T* pElm, const Ipp32u* pA, int nsA, const IppsGFpState* pGFpx)
+__INLINE int cpGFpxCopyToChunk(BNU_CHUNK_T* pElm, const Ipp32u* pA, int nsA, const gsModEngine* pGFEx)
 {
-   IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-   int basicExtension = cpGFpBasicDegreeExtension(pGFpx);
-   int basicElmLen32 = GFP_FELEN32(pBasicGF);
-   int basicElmLen = GFP_FELEN(pBasicGF);
+   gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+   int basicExtension = cpGFpBasicDegreeExtension(pGFEx);
+   int basicElmLen32 = GFP_FELEN32(pBasicGFE);
+   int basicElmLen = GFP_FELEN(pBasicGFE);
    int deg;
    for(deg=0; deg<basicExtension && nsA>0; deg++, nsA -= basicElmLen32) {
       int srcLen = IPP_MIN(nsA, basicElmLen32);
@@ -96,12 +84,12 @@ __INLINE int cpGFpxCopyToChunk(BNU_CHUNK_T* pElm, const Ipp32u* pA, int nsA, con
 /* convert internal element (BNU_CHUNK_T) => external data (Ipp32u) representation
    returns length of data (in Ipp32u)
 */
-__INLINE int cpGFpxCopyFromChunk(Ipp32u* pA, const BNU_CHUNK_T* pElm, const IppsGFpState* pGFpx)
+__INLINE int cpGFpxCopyFromChunk(Ipp32u* pA, const BNU_CHUNK_T* pElm, const gsModEngine* pGFEx)
 {
-   IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-   int basicExtension = cpGFpBasicDegreeExtension(pGFpx);
-   int basicElmLen32 = GFP_FELEN32(pBasicGF);
-   int basicElmLen = GFP_FELEN(pBasicGF);
+   gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+   int basicExtension = cpGFpBasicDegreeExtension(pGFEx);
+   int basicElmLen32 = GFP_FELEN32(pBasicGFE);
+   int basicElmLen = GFP_FELEN(pBasicGFE);
    int deg;
    for(deg=0; deg<basicExtension; deg++) {
       COPY_BNU(pA, (Ipp32u*)pElm, basicElmLen32);
@@ -111,69 +99,63 @@ __INLINE int cpGFpxCopyFromChunk(Ipp32u* pA, const BNU_CHUNK_T* pElm, const Ipps
    return basicElmLen32*deg;
 }
 
-/*
-// cpScramblePut/cpScrambleGet
-// stores to/retrieves from pScrambleEntry position
-// pre-computed data if fixed window method is used
-*/
-__INLINE void cpScramblePut(Ipp8u* pScrambleEntry, int scale, const Ipp8u* pData, int dataSize)
-{
-   int i;
-   for(i=0; i<dataSize; i++)
-      pScrambleEntry[i*scale] = pData[i];
-}
 
-__INLINE void cpScrambleGet(Ipp8u* pData, int dataSize, const Ipp8u* pScrambleEntry, int scale)
-{
-   int i;
-   for(i=0; i<dataSize; i++)
-      pData[i] = pScrambleEntry[i*scale];
-}
+#define      cpGFpxRand OWNAPI(cpGFpxRand)
+BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, gsModEngine* pGFEx, IppBitSupplier rndFunc, void* pRndParam);
 
-#define cpGFpxCompare OWNAPI(cpGFpxCompare)
-int cpGFpxCompare(const IppsGFpState* pGFpx1, const IppsGFpState* pGFpx2);
+#define      cpGFpxSet OWNAPI(cpGFpxSet)
+BNU_CHUNK_T* cpGFpxSet (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx);
 
-#define cpGFpxRand OWNAPI(cpGFpxRand)
-BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, IppsGFpState* pGFpx, IppBitSupplier rndFunc, void* pRndParam);
-#define cpGFpxSet OWNAPI(cpGFpxSet)
-BNU_CHUNK_T* cpGFpxSet (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGFpx);
-#define cpGFpxGet OWNAPI(cpGFpxGet)
-BNU_CHUNK_T* cpGFpxGet (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, IppsGFpState* pGFpx);
+#define      cpGFpxGet OWNAPI(cpGFpxGet)
+BNU_CHUNK_T* cpGFpxGet (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, gsModEngine* pGFEx);
 
-#define cpGFpxSetPolyTerm OWNAPI(cpGFpxSetPolyTerm)
-BNU_CHUNK_T* cpGFpxSetPolyTerm (BNU_CHUNK_T* pR, int deg, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGFpx);
-#define cpGFpxGetPolyTerm OWNAPI(cpGFpxGetPolyTerm)
-BNU_CHUNK_T* cpGFpxGetPolyTerm (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, int deg, IppsGFpState* pGFpx);
+#define      cpGFpxSetPolyTerm OWNAPI(cpGFpxSetPolyTerm)
+BNU_CHUNK_T* cpGFpxSetPolyTerm (BNU_CHUNK_T* pR, int deg, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx);
 
-#define cpGFpxAdd OWNAPI(cpGFpxAdd)
-BNU_CHUNK_T* cpGFpxAdd     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFpx);
-#define cpGFpxSub OWNAPI(cpGFpxSub)
-BNU_CHUNK_T* cpGFpxSub     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFpx);
-#define cpGFpxMul OWNAPI(cpGFpxMul)
-BNU_CHUNK_T* cpGFpxMul     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGFpx);
-#define cpGFpxSqr OWNAPI(cpGFpxSqr)
-BNU_CHUNK_T* cpGFpxSqr     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx);
-#define cpGFpxAdd_GFE OWNAPI(cpGFpxAdd_GFE)
-BNU_CHUNK_T* cpGFpxAdd_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx);
-#define cpGFpxSub_GFE OWNAPI(cpGFpxSub_GFE)
-BNU_CHUNK_T* cpGFpxSub_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx);
-#define cpGFpxMul_GFE OWNAPI(cpGFpxMul_GFE)
-BNU_CHUNK_T* cpGFpxMul_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx);
+#define      cpGFpxGetPolyTerm OWNAPI(cpGFpxGetPolyTerm)
+BNU_CHUNK_T* cpGFpxGetPolyTerm (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, int deg, gsModEngine* pGFEx);
+
+#define      cpGFpxAdd OWNAPI(cpGFpxAdd)
+BNU_CHUNK_T* cpGFpxAdd     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
+
+#define      cpGFpxSub OWNAPI(cpGFpxSub)
+BNU_CHUNK_T* cpGFpxSub     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
+
+#define      cpGFpxMul OWNAPI(cpGFpxMul)
+BNU_CHUNK_T* cpGFpxMul     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
+
+#define      cpGFpxSqr OWNAPI(cpGFpxSqr)
+BNU_CHUNK_T* cpGFpxSqr     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
+
+#define      cpGFpxAdd_GFE OWNAPI(cpGFpxAdd_GFE)
+BNU_CHUNK_T* cpGFpxAdd_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
+
+#define      cpGFpxSub_GFE OWNAPI(cpGFpxSub_GFE)
+BNU_CHUNK_T* cpGFpxSub_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
+
+#define      cpGFpxMul_GFE OWNAPI(cpGFpxMul_GFE)
+BNU_CHUNK_T* cpGFpxMul_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
+
 #define cpGFpGetOptimalWinSize OWNAPI(cpGFpGetOptimalWinSize)
-int cpGFpGetOptimalWinSize(int bitsize);
-#define cpGFpxExp OWNAPI(cpGFpxExp)
-BNU_CHUNK_T* cpGFpxExp     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, IppsGFpState* pGFpx, Ipp8u* pScratchBuffer);
-#define cpGFpxMultiExp OWNAPI(cpGFpxMultiExp)
-BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems,
-                          IppsGFpState* pGFpx, Ipp8u* pScratchBuffer);
+int     cpGFpGetOptimalWinSize(int bitsize);
 
-#define cpGFpxConj OWNAPI(cpGFpxConj)
-BNU_CHUNK_T* cpGFpxConj(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx);
-#define cpGFpxNeg OWNAPI(cpGFpxNeg)
-BNU_CHUNK_T* cpGFpxNeg (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx);
-#define cpGFpxInv OWNAPI(cpGFpxInv)
-BNU_CHUNK_T* cpGFpxInv (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx);
-#define cpGFpxHalve OWNAPI(cpGFpxHalve)
-BNU_CHUNK_T* cpGFpxHalve (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx);
+#define      cpGFpxExp OWNAPI(cpGFpxExp)
+BNU_CHUNK_T* cpGFpxExp     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, gsModEngine* pGFEx, Ipp8u* pScratchBuffer);
+
+#define      cpGFpxMultiExp OWNAPI(cpGFpxMultiExp)
+BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems,
+                          gsModEngine* pGFEx, Ipp8u* pScratchBuffer);
+
+#define      cpGFpxConj OWNAPI(cpGFpxConj)
+BNU_CHUNK_T* cpGFpxConj(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
+
+#define      cpGFpxNeg OWNAPI(cpGFpxNeg)
+BNU_CHUNK_T* cpGFpxNeg (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
+
+#define      cpGFpxInv OWNAPI(cpGFpxInv)
+BNU_CHUNK_T* cpGFpxInv (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
+
+#define      cpGFpxHalve OWNAPI(cpGFpxHalve)
+BNU_CHUNK_T* cpGFpxHalve (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
 
 #endif /* _PCP_GFPEXT_H_ */

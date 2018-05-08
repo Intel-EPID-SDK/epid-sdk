@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,9 +21,24 @@
 //     Context:
 //        ippsGFpECGetSize()
 //        ippsGFpECInit()
+//
+//        ippsGFpECInitStd192r1
+//        ippsGFpECInitStd224r1
+//        ippsGFpECInitStd256r1
+//        ippsGFpECInitStd384r1
+//        ippsGFpECInitStd521r1
+//        ippsGFpECInitStdSM2
+//        ippsGFpECInitStdBN256
 // 
 //        ippsGFpECSet()
 //        ippsGFpECSetSubgroup()
+//
+//        ippsGFpECBindGxyTblStd192r1
+//        ippsGFpECBindGxyTblStd224r1
+//        ippsGFpECBindGxyTblStd256r1
+//        ippsGFpECBindGxyTblStd384r1
+//        ippsGFpECBindGxyTblStd521r1
+//        ippsGFpECBindGxyTblStdSM2
 //
 //        ippsGFpECGet()
 //        ippsGFpECGetSubgroup()
@@ -37,6 +52,9 @@
 #include "owncp.h"
 
 #include "pcpgfpecstuff.h"
+#include "pcpeccp.h"
+
+//gres: temporary excluded: #include <assert.h>
 
 int cpGFpECGetSize(int basicDeg, int basicElmBitSize)
 {
@@ -44,14 +62,12 @@ int cpGFpECGetSize(int basicDeg, int basicElmBitSize)
    int elemLen = basicDeg*BITS_BNU_CHUNK(basicElmBitSize);
 
    int maxOrderBits = 1+ basicDeg*basicElmBitSize;
-   int maxOrderLen32 = BITS2WORD32_SIZE(maxOrderBits);
    #if defined(_LEGACY_ECCP_SUPPORT_)
    int maxOrderLen = BITS_BNU_CHUNK(maxOrderBits);
    #endif
 
-   int montgomeryCtxSize;
-   if(ippStsNoErr==ippsMontGetSize(ippBinaryMethod, maxOrderLen32, &montgomeryCtxSize)) {
-      montgomeryCtxSize -= MONT_ALIGNMENT-1;
+   int modEngineCtxSize;
+   if(ippStsNoErr==gsModEngineGetSize(maxOrderBits, MONT_DEFAULT_POOL_LENGTH, &modEngineCtxSize)) {
 
       ctxSize = sizeof(IppsGFpECState)
                +elemLen*sizeof(BNU_CHUNK_T)    /* EC coeff    A */
@@ -59,7 +75,7 @@ int cpGFpECGetSize(int basicDeg, int basicElmBitSize)
                +elemLen*sizeof(BNU_CHUNK_T)    /* generator G.x */
                +elemLen*sizeof(BNU_CHUNK_T)    /* generator G.y */
                +elemLen*sizeof(BNU_CHUNK_T)    /* generator G.z */
-               +montgomeryCtxSize              /* mont engine (R) */
+               +modEngineCtxSize               /* mont engine (R) */
                +elemLen*sizeof(BNU_CHUNK_T)    /* cofactor */
                #if defined(_LEGACY_ECCP_SUPPORT_)
                +2*elemLen*3*sizeof(BNU_CHUNK_T)    /* regular and ephemeral public  keys */
@@ -70,15 +86,18 @@ int cpGFpECGetSize(int basicDeg, int basicElmBitSize)
    return ctxSize;
 }
 
-IPPFUN(IppStatus, ippsGFpECGetSize,(const IppsGFpState* pGF, int* pCtxSizeInBytes))
+IPPFUN(IppStatus, ippsGFpECGetSize,(const IppsGFpState* pGF, int* pCtxSize))
 {
-   IPP_BAD_PTR2_RET(pGF, pCtxSizeInBytes);
+   IPP_BAD_PTR2_RET(pGF, pCtxSize);
    pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
    IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
 
-   *pCtxSizeInBytes = cpGFpECGetSize(cpGFpBasicDegreeExtension(pGF), GFP_FEBITLEN(cpGFpBasic(pGF)))
-                     +ECGFP_ALIGNMENT;
-   return ippStsNoErr;
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      *pCtxSize = cpGFpECGetSize(cpGFpBasicDegreeExtension(pGFE), GFP_FEBITLEN(cpGFpBasic(pGFE)))
+                + ECGFP_ALIGNMENT;
+      return ippStsNoErr;
+   }
 }
 
 
@@ -96,17 +115,16 @@ IPPFUN(IppStatus, ippsGFpECInit,(const IppsGFpState* pGF,
    {
       Ipp8u* ptr = (Ipp8u*)pEC;
 
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      int elemLen = GFP_FELEN(pGFE);
 
-      int maxOrderBits = 1+ cpGFpBasicDegreeExtension(pGF) * GFP_FEBITLEN(cpGFpBasic(pGF));
-      int maxOrderLen32 = BITS2WORD32_SIZE(maxOrderBits);
+      int maxOrderBits = 1+ cpGFpBasicDegreeExtension(pGFE) * GFP_FEBITLEN(cpGFpBasic(pGFE));
       #if defined(_LEGACY_ECCP_SUPPORT_)
       int maxOrdLen = BITS_BNU_CHUNK(maxOrderBits);
       #endif
 
-      int montgomeryCtxSize;
-      ippsMontGetSize(ippBinaryMethod, maxOrderLen32, &montgomeryCtxSize);
-      montgomeryCtxSize -= MONT_ALIGNMENT-1;
+      int modEngineCtxSize;
+      gsModEngineGetSize(maxOrderBits, MONT_DEFAULT_POOL_LENGTH, &modEngineCtxSize);
 
       ECP_ID(pEC) = idCtxGFPEC;
       ECP_GFP(pEC) = (IppsGFpState*)(IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT));
@@ -119,7 +137,7 @@ IPPFUN(IppStatus, ippsGFpECInit,(const IppsGFpState* pGF,
       ECP_B(pEC) = (BNU_CHUNK_T*)(ptr);  ptr += elemLen*sizeof(BNU_CHUNK_T);
       ECP_G(pEC) = (BNU_CHUNK_T*)(ptr);  ptr += ECP_POINTLEN(pEC)*sizeof(BNU_CHUNK_T);
       ECP_PREMULBP(pEC) = (cpPrecompAP*)NULL;
-      ECP_MONT_R(pEC) = (IppsMontState*)( IPP_ALIGNED_PTR((ptr), (MONT_ALIGNMENT)) ); ptr += montgomeryCtxSize;
+      ECP_MONT_R(pEC) = (gsModEngine*)( IPP_ALIGNED_PTR((ptr), (MONT_ALIGNMENT)) ); ptr += modEngineCtxSize;
       ECP_COFACTOR(pEC) = (BNU_CHUNK_T*)(ptr); ptr += elemLen*sizeof(BNU_CHUNK_T);
       #if defined(_LEGACY_ECCP_SUPPORT_)
       ECP_PUBLIC(pEC)   = (BNU_CHUNK_T*)(ptr); ptr += 3*elemLen*sizeof(BNU_CHUNK_T);
@@ -133,7 +151,8 @@ IPPFUN(IppStatus, ippsGFpECInit,(const IppsGFpState* pGF,
       cpGFpElementPadd(ECP_A(pEC), elemLen, 0);
       cpGFpElementPadd(ECP_B(pEC), elemLen, 0);
       cpGFpElementPadd(ECP_G(pEC), elemLen*3, 0);
-      ippsMontInit(ippBinaryMethod, maxOrderLen32, ECP_MONT_R(pEC));
+      gsModEngineInit(ECP_MONT_R(pEC), NULL, maxOrderBits, MONT_DEFAULT_POOL_LENGTH, gsModArithMont());
+
       cpGFpElementPadd(ECP_COFACTOR(pEC), elemLen, 0);
 
       cpGFpElementPadd(ECP_POOL(pEC), elemLen*3*EC_POOL_SIZE, 0);
@@ -157,13 +176,13 @@ IPPFUN(IppStatus, ippsGFpECSet,(const IppsGFpElement* pA,
    IPP_BAD_PTR2_RET(pA, pB);
    IPP_BADARG_RET( !GFPE_TEST_ID(pA), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pB), ippStsContextMatchErr );
-      
-   IPP_BADARG_RET( GFPE_ROOM(pA)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( GFPE_ROOM(pB)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
 
    {
-      IppsGFpState* pGF = ECP_GFP(pEC);
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(ECP_GFP(pEC));
+      int elemLen = GFP_FELEN(pGFE);
+
+      IPP_BADARG_RET( GFPE_ROOM(pA)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( GFPE_ROOM(pB)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
 
       /* copy A */
       cpGFpElementPadd(ECP_A(pEC), elemLen, 0);
@@ -173,8 +192,8 @@ IPPFUN(IppStatus, ippsGFpECSet,(const IppsGFpElement* pA,
          ECP_SPECIFIC(pEC) = ECP_EPID2;
 
       cpGFpElementSetChunk(ECP_B(pEC), elemLen, 3);
-      pGF->encode(ECP_B(pEC), ECP_B(pEC), pGF);
-      pGF->add(ECP_B(pEC), ECP_A(pEC), ECP_B(pEC), pGF);
+      GFP_METHOD(pGFE)->encode(ECP_B(pEC), ECP_B(pEC), pGFE);
+      GFP_METHOD(pGFE)->add(ECP_B(pEC), ECP_A(pEC), ECP_B(pEC), pGFE);
       if(GFP_IS_ZERO(ECP_B(pEC), elemLen))
          ECP_SPECIFIC(pEC) = ECP_STD;
 
@@ -202,8 +221,6 @@ IPPFUN(IppStatus, ippsGFpECSetSubgroup,(const IppsGFpElement* pX, const IppsGFpE
    IPP_BAD_PTR2_RET(pX, pY);
    IPP_BADARG_RET( !GFPE_TEST_ID(pX), ippStsContextMatchErr );
    IPP_BADARG_RET( !GFPE_TEST_ID(pY), ippStsContextMatchErr );
-   IPP_BADARG_RET( GFPE_ROOM(pX)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
-   IPP_BADARG_RET( GFPE_ROOM(pY)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
 
    IPP_BAD_PTR2_RET(pOrder, pCofactor);
    pOrder = (IppsBigNumState*)( IPP_ALIGNED_PTR(pOrder, BN_ALIGNMENT) );
@@ -215,30 +232,22 @@ IPPFUN(IppStatus, ippsGFpECSetSubgroup,(const IppsGFpElement* pX, const IppsGFpE
    IPP_BADARG_RET(BN_SIGN(pCofactor)!= IppsBigNumPOS, ippStsBadArgErr);
 
    {
-      IppsGFpState* pGF = ECP_GFP(pEC);
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(ECP_GFP(pEC));
+      int elemLen = GFP_FELEN(pGFE);
 
-#if 0
-      /* set base point at infinity */
-      cpGFpElementPadd(ECP_G(pEC), elemLen*3, 0);
-      if(!GFP_IS_ZERO(GFPE_DATA(pX), elemLen) || !GFP_IS_ZERO(GFPE_DATA(pY), elemLen)) {
-         /* reset base point as infine */
-         cpGFpElementCopy(ECP_G(pEC), GFPE_DATA(pX), elemLen);
-         cpGFpElementCopy(ECP_G(pEC)+elemLen, GFPE_DATA(pY), elemLen);
-         cpGFpElementCopyPadd(ECP_G(pEC)+elemLen*2, elemLen, MNT_1(GFP_MONT(cpGFpBasic(pGF))), GFP_FELEN(cpGFpBasic(pGF)));
-      }
-#endif
+      IPP_BADARG_RET( GFPE_ROOM(pX)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+      IPP_BADARG_RET( GFPE_ROOM(pY)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
+
       gfec_SetPoint(ECP_G(pEC), GFPE_DATA(pX), GFPE_DATA(pY), pEC);
 
       {
-      ///int maxOrderBits = 1+ cpGFpBasicDegreeExtension(pGF) * GFP_FEBITSIZE(cpGFpBasic(pGF));
-         int maxOrderBits = 1+ cpGFpBasicDegreeExtension(pGF) * GFP_FEBITLEN(cpGFpBasic(pGF));
+         int maxOrderBits = 1+ cpGFpBasicDegreeExtension(pGFE) * GFP_FEBITLEN(cpGFpBasic(pGFE));
          BNU_CHUNK_T* pOrderData = BN_NUMBER(pOrder);
          int orderLen= BN_SIZE(pOrder);
          int orderBitSize = BITSIZE_BNU(pOrderData, orderLen);
          IPP_BADARG_RET(orderBitSize>maxOrderBits, ippStsRangeErr)
          ECP_ORDBITSIZE(pEC) = orderBitSize;
-         ippsMontSet((Ipp32u*)pOrderData, BITS2WORD32_SIZE(orderBitSize), ECP_MONT_R(pEC));
+         gsModEngineInit(ECP_MONT_R(pEC),(Ipp32u*)pOrderData, orderBitSize, MONT_DEFAULT_POOL_LENGTH, gsModArithMont());
       }
 
       {
@@ -253,6 +262,311 @@ IPPFUN(IppStatus, ippsGFpECSetSubgroup,(const IppsGFpElement* pX, const IppsGFpE
    }
 }
 
+
+static void cpGFpECSetStd(int aLen, const BNU_CHUNK_T* pA,
+                          int bLen, const BNU_CHUNK_T* pB,
+                          int xLen, const BNU_CHUNK_T* pX,
+                          int yLen, const BNU_CHUNK_T* pY,
+                          int rLen, const BNU_CHUNK_T* pR,
+                          BNU_CHUNK_T h,
+                          IppsGFpECState* pEC)
+{
+   IppsGFpState* pGF = ECP_GFP(pEC);
+   gsModEngine* pGFE = GFP_PMA(pGF);
+   int elemLen = GFP_FELEN(pGFE);
+
+   IppsGFpElement elmA, elmB;
+   IppsBigNumState R, H;
+
+   /* convert A ans B coeffs into GF elements */
+   cpGFpElementConstruct(&elmA, cpGFpGetPool(1, pGFE), elemLen);
+   cpGFpElementConstruct(&elmB, cpGFpGetPool(1, pGFE), elemLen);
+   ippsGFpSetElement((Ipp32u*)pA, BITS2WORD32_SIZE(BITSIZE_BNU(pA,aLen)), &elmA, pGF);
+   ippsGFpSetElement((Ipp32u*)pB, BITS2WORD32_SIZE(BITSIZE_BNU(pB,bLen)), &elmB, pGF);
+   /* and set EC */
+   ippsGFpECSet(&elmA, &elmB, pEC);
+
+   /* construct R and H */
+   cpConstructBN(&R, rLen, (BNU_CHUNK_T*)pR, NULL);
+   cpConstructBN(&H, 1, &h, NULL);
+   /* convert GX ans GY coeffs into GF elements */
+   ippsGFpSetElement((Ipp32u*)pX, BITS2WORD32_SIZE(BITSIZE_BNU(pX,xLen)), &elmA, pGF);
+   ippsGFpSetElement((Ipp32u*)pY, BITS2WORD32_SIZE(BITSIZE_BNU(pY,yLen)), &elmB, pGF);
+   /* and init EC subgroup */
+   ippsGFpECSetSubgroup(&elmA, &elmB, &R, &H, pEC);
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd128r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp128r1_p, BITS_BNU_CHUNK(128), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(128)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(128), secp128r1_a,
+                    BITS_BNU_CHUNK(128), secp128r1_b,
+                    BITS_BNU_CHUNK(128), secp128r1_gx,
+                    BITS_BNU_CHUNK(128), secp128r1_gy,
+                    BITS_BNU_CHUNK(128), secp128r1_r,
+                    secp128r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd128r2,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp128r2_p, BITS_BNU_CHUNK(128), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(128)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(128), secp128r2_a,
+                    BITS_BNU_CHUNK(128), secp128r2_b,
+                    BITS_BNU_CHUNK(128), secp128r2_gx,
+                    BITS_BNU_CHUNK(128), secp128r2_gy,
+                    BITS_BNU_CHUNK(128), secp128r2_r,
+                    secp128r2_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd192r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp192r1_p, BITS_BNU_CHUNK(192), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(192)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(192), secp192r1_a,
+                    BITS_BNU_CHUNK(192), secp192r1_b,
+                    BITS_BNU_CHUNK(192), secp192r1_gx,
+                    BITS_BNU_CHUNK(192), secp192r1_gy,
+                    BITS_BNU_CHUNK(192), secp192r1_r,
+                    secp192r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd224r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp224r1_p, BITS_BNU_CHUNK(224), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(224)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(224), secp224r1_a,
+                    BITS_BNU_CHUNK(224), secp224r1_b,
+                    BITS_BNU_CHUNK(224), secp224r1_gx,
+                    BITS_BNU_CHUNK(224), secp224r1_gy,
+                    BITS_BNU_CHUNK(224), secp224r1_r,
+                    secp224r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd256r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+   /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp256r1_p, BITS_BNU_CHUNK(256), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(256)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(256), secp256r1_a,
+                    BITS_BNU_CHUNK(256), secp256r1_b,
+                    BITS_BNU_CHUNK(256), secp256r1_gx,
+                    BITS_BNU_CHUNK(256), secp256r1_gy,
+                    BITS_BNU_CHUNK(256), secp256r1_r,
+                    secp256r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd384r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp384r1_p, BITS_BNU_CHUNK(384), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(384)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(384), secp384r1_a,
+                    BITS_BNU_CHUNK(384), secp384r1_b,
+                    BITS_BNU_CHUNK(384), secp384r1_gx,
+                    BITS_BNU_CHUNK(384), secp384r1_gy,
+                    BITS_BNU_CHUNK(384), secp384r1_r,
+                    secp384r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStd521r1,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(secp521r1_p, BITS_BNU_CHUNK(521), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(521)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(521), secp521r1_a,
+                    BITS_BNU_CHUNK(521), secp521r1_b,
+                    BITS_BNU_CHUNK(521), secp521r1_gx,
+                    BITS_BNU_CHUNK(521), secp521r1_gy,
+                    BITS_BNU_CHUNK(521), secp521r1_r,
+                    secp521r1_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStdSM2,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(tpmSM2_p256_p, BITS_BNU_CHUNK(256), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(256)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(256), tpmSM2_p256_a,
+                    BITS_BNU_CHUNK(256), tpmSM2_p256_b,
+                    BITS_BNU_CHUNK(256), tpmSM2_p256_gx,
+                    BITS_BNU_CHUNK(256), tpmSM2_p256_gy,
+                    BITS_BNU_CHUNK(256), tpmSM2_p256_r,
+                    tpmSM2_p256_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECInitStdBN256,(const IppsGFpState* pGF, IppsGFpECState* pEC))
+{
+   IPP_BAD_PTR2_RET(pGF, pEC);
+
+   pGF = (IppsGFpState*)( IPP_ALIGNED_PTR(pGF, GFP_ALIGNMENT) );
+   IPP_BADARG_RET( !GFP_TEST_ID(pGF), ippStsContextMatchErr );
+
+   {
+      gsModEngine* pGFE = GFP_PMA(pGF);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(tpmBN_p256p_p, BITS_BNU_CHUNK(256), GFP_MODULUS(pGFE), BITS_BNU_CHUNK(256)), ippStsBadArgErr);
+
+      pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+
+      ippsGFpECInit(pGF, NULL, NULL, pEC);
+      cpGFpECSetStd(BITS_BNU_CHUNK(BNU_CHUNK_BITS), tpmBN_p256p_a,
+                    BITS_BNU_CHUNK(BNU_CHUNK_BITS), tpmBN_p256p_b,
+                    BITS_BNU_CHUNK(BNU_CHUNK_BITS), tpmBN_p256p_gx,
+                    BITS_BNU_CHUNK(BNU_CHUNK_BITS), tpmBN_p256p_gy,
+                    BITS_BNU_CHUNK(256),            tpmBN_p256p_r,
+                    tpmBN_p256p_h,
+                    pEC);
+
+      return ippStsNoErr;
+   }
+}
+
+
 IPPFUN(IppStatus, ippsGFpECGet,(IppsGFpState** const ppGF,
                                 IppsGFpElement* pA, IppsGFpElement* pB,
                                 const IppsGFpECState* pEC))
@@ -263,7 +577,8 @@ IPPFUN(IppStatus, ippsGFpECGet,(IppsGFpState** const ppGF,
 
    {
       const IppsGFpState* pGF = ECP_GFP(pEC);
-      Ipp32u elementSize = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      Ipp32u elementSize = GFP_FELEN(pGFE);
 
       if(ppGF) {
          *ppGF = (IppsGFpState*)pGF;
@@ -271,12 +586,12 @@ IPPFUN(IppStatus, ippsGFpECGet,(IppsGFpState** const ppGF,
 
       if(pA) {
          IPP_BADARG_RET( !GFPE_TEST_ID(pA), ippStsContextMatchErr );
-         IPP_BADARG_RET( GFPE_ROOM(pA)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
+         IPP_BADARG_RET( GFPE_ROOM(pA)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
          cpGFpElementCopy(GFPE_DATA(pA), ECP_A(pEC), elementSize);
       }
       if(pB) {
          IPP_BADARG_RET( !GFPE_TEST_ID(pB), ippStsContextMatchErr );
-         IPP_BADARG_RET( GFPE_ROOM(pB)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
+         IPP_BADARG_RET( GFPE_ROOM(pB)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
          cpGFpElementCopy(GFPE_DATA(pB), ECP_B(pEC), elementSize);
       }
 
@@ -296,7 +611,8 @@ IPPFUN(IppStatus, ippsGFpECGetSubgroup,(IppsGFpState** const ppGF,
 
    {
       const IppsGFpState* pGF = ECP_GFP(pEC);
-      Ipp32u elementSize = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      Ipp32u elementSize = GFP_FELEN(pGFE);
 
       if(ppGF) {
          *ppGF = (IppsGFpState*)pGF;
@@ -304,17 +620,17 @@ IPPFUN(IppStatus, ippsGFpECGetSubgroup,(IppsGFpState** const ppGF,
 
       if(pX) {
          IPP_BADARG_RET( !GFPE_TEST_ID(pX), ippStsContextMatchErr );
-         IPP_BADARG_RET( GFPE_ROOM(pX)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
+         IPP_BADARG_RET( GFPE_ROOM(pX)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
          cpGFpElementCopy(GFPE_DATA(pX), ECP_G(pEC), elementSize);
       }
       if(pY) {
          IPP_BADARG_RET( !GFPE_TEST_ID(pY), ippStsContextMatchErr );
-         IPP_BADARG_RET( GFPE_ROOM(pY)!=GFP_FELEN(ECP_GFP(pEC)), ippStsOutOfRangeErr);
+         IPP_BADARG_RET( GFPE_ROOM(pY)!=GFP_FELEN(pGFE), ippStsOutOfRangeErr);
          cpGFpElementCopy(GFPE_DATA(pY), ECP_G(pEC)+elementSize, elementSize);
       }
 
       if(pOrder) {
-         BNU_CHUNK_T* pOrderData = MNT_MODULUS(ECP_MONT_R(pEC));
+         BNU_CHUNK_T* pOrderData = MOD_MODULUS(ECP_MONT_R(pEC));
          int orderBitSize = ECP_ORDBITSIZE(pEC);
          int orderLen = BITS_BNU_CHUNK(orderBitSize);
          FIX_BNU(pOrderData, orderLen);
@@ -344,6 +660,110 @@ IPPFUN(IppStatus, ippsGFpECGetSubgroup,(IppsGFpState** const ppGF,
 
       return ippStsNoErr;
    }
+}
+
+static IppStatus cpGFpECBindGxyTbl(const BNU_CHUNK_T* pPrime,
+                                   const cpPrecompAP* preComp,
+                                   IppsGFpECState* pEC)
+{
+   IPP_BAD_PTR1_RET(pEC);
+   /* use aligned EC context */
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
+
+   {
+      IppsGFpState* pGF = ECP_GFP(pEC);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      Ipp32u elemLen = GFP_FELEN(pGFE);
+
+      /* test if GF is prime GF */
+      IPP_BADARG_RET(!GFP_IS_BASIC(pGFE), ippStsBadArgErr);
+      /* test underlying prime value*/
+      IPP_BADARG_RET(cpCmp_BNU(pPrime, elemLen, GFP_MODULUS(pGFE), elemLen), ippStsBadArgErr);
+
+      {
+         BNU_CHUNK_T* pbp_ec = ECP_G(pEC);
+         int cmpFlag;
+         BNU_CHUNK_T* pbp_tbl = cpEcGFpGetPool(1, pEC);
+
+         selectAP select_affine_point = preComp->select_affine_point;
+         const BNU_CHUNK_T* pTbl = preComp->pTbl;
+         select_affine_point(pbp_tbl, pTbl, 1);
+
+         /* check if EC's and G-table's Base Point is the same */
+         cmpFlag = cpCmp_BNU(pbp_ec, elemLen*2, pbp_tbl, elemLen*2);
+
+         cpEcGFpReleasePool(1, pEC);
+
+         return cmpFlag? ippStsBadArgErr : ippStsNoErr;
+      }
+   }
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStd192r1,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(secp192r1_p, gfpec_precom_nistP192r1_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_nistP192r1_fun();
+
+   return sts;
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStd224r1,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(secp224r1_p, gfpec_precom_nistP224r1_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_nistP224r1_fun();
+
+   return sts;
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStd256r1,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(secp256r1_p, gfpec_precom_nistP256r1_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_nistP256r1_fun();
+
+   return sts;
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStd384r1,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(secp384r1_p, gfpec_precom_nistP384r1_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_nistP384r1_fun();
+
+   return sts;
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStd521r1,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(secp521r1_p, gfpec_precom_nistP521r1_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_nistP521r1_fun();
+
+   return sts;
+}
+
+IPPFUN(IppStatus, ippsGFpECBindGxyTblStdSM2,(IppsGFpECState* pEC))
+{
+   IppStatus sts = cpGFpECBindGxyTbl(tpmSM2_p256_p, gfpec_precom_sm2_fun(), pEC);
+
+   /* setup pre-computed g-table and point access function */
+   if(ippStsNoErr==sts)
+      ECP_PREMULBP(pEC) = gfpec_precom_sm2_fun();
+
+   return sts;
 }
 
 IPPFUN(IppStatus, ippsGFpECScratchBufferSize,(int nScalars, const IppsGFpECState* pEC, int* pBufferSize))
@@ -378,34 +798,40 @@ IPPFUN(IppStatus, ippsGFpECVerify,(IppECResult* pResult, IppsGFpECState* pEC, Ip
 
    {
       IppsGFpState* pGF = ECP_GFP(pEC);
-      int elemLen = GFP_FELEN(pGF);
+      gsModEngine* pGFE = GFP_PMA(pGF);
+      int elemLen = GFP_FELEN(pGFE);
+
+      mod_mul mulF = GFP_METHOD(pGFE)->mul;
+      mod_sqr sqrF = GFP_METHOD(pGFE)->sqr;
+      mod_add addF = GFP_METHOD(pGFE)->add;
 
       /*
       // check discriminant ( 4*A^3 + 27*B^2 != 0 mod P)
       */
       if(ippECValid == *pResult) {
-         BNU_CHUNK_T* pT = cpGFpGetPool(1, pGF);
-         BNU_CHUNK_T* pU = cpGFpGetPool(1, pGF);
+         BNU_CHUNK_T* pT = cpGFpGetPool(1, pGFE);
+         BNU_CHUNK_T* pU = cpGFpGetPool(1, pGFE);
+         //gres: temporary excluded: assert(NULL!=pT && NULL!=pU);
 
          if(ECP_SPECIFIC(pEC)==ECP_EPID2)
-            cpGFpElementPadd(pT, elemLen, 0);            /* T = 4*A^3 = 0 */
+            cpGFpElementPadd(pT, elemLen, 0);         /* T = 4*A^3 = 0 */
          else {
-            pGF->add(pT, ECP_A(pEC), ECP_A(pEC), pGF);   /* T = 4*A^3 */
-            pGF->sqr(pT, pT, pGF);
-            pGF->mul(pT, ECP_A(pEC), pT, pGF);
+            addF(pT, ECP_A(pEC), ECP_A(pEC), pGFE);   /* T = 4*A^3 */
+            sqrF(pT, pT, pGFE);
+            mulF(pT, ECP_A(pEC), pT, pGFE);
          }
 
-         pGF->add(pU, ECP_B(pEC), ECP_B(pEC), pGF);      /* U = 9*B^2 */
-         pGF->add(pU, pU, ECP_B(pEC), pGF);
-         pGF->sqr(pU, pU, pGF);
+         addF(pU, ECP_B(pEC), ECP_B(pEC), pGFE);      /* U = 9*B^2 */
+         addF(pU, pU, ECP_B(pEC), pGFE);
+         sqrF(pU, pU, pGFE);
 
-         pGF->add(pT, pU, pT, pGF);                      /* T += 3*U */
-         pGF->add(pT, pU, pT, pGF);
-         pGF->add(pT, pU, pT, pGF);
+         addF(pT, pU, pT, pGFE);                      /* T += 3*U */
+         addF(pT, pU, pT, pGFE);
+         addF(pT, pU, pT, pGFE);
 
          *pResult = GFP_IS_ZERO(pT, elemLen)? ippECIsZeroDiscriminant: ippECValid;
 
-         cpGFpReleasePool(2, pGF);
+         cpGFpReleasePool(2, pGFE);
       }
 
       /*
@@ -428,7 +854,7 @@ IPPFUN(IppStatus, ippsGFpECVerify,(IppECResult* pResult, IppsGFpECState* pEC, Ip
             cpEcGFpInitPoint(&T, cpEcGFpGetPool(1, pEC),0, pEC);
 
             //gfec_MulPoint(&T, &G, MNT_MODULUS(ECP_MONT_R(pEC)), BITS_BNU_CHUNK(ECP_ORDBITSIZE(pEC)), pEC, pScratchBuffer);
-            gfec_MulBasePoint(&T, MNT_MODULUS(ECP_MONT_R(pEC)), BITS_BNU_CHUNK(ECP_ORDBITSIZE(pEC)), pEC, pScratchBuffer);
+            gfec_MulBasePoint(&T, MOD_MODULUS(ECP_MONT_R(pEC)), BITS_BNU_CHUNK(ECP_ORDBITSIZE(pEC)), pEC, pScratchBuffer);
 
             *pResult = gfec_IsPointAtInfinity(&T)? ippECValid : ippECInvalidOrder;
 
@@ -440,13 +866,12 @@ IPPFUN(IppStatus, ippsGFpECVerify,(IppECResult* pResult, IppsGFpECState* pEC, Ip
       // check order==P
       */
       if(ippECValid == *pResult) {
-         IppsGFpState* pGF_local = ECP_GFP(pEC);
-         BNU_CHUNK_T* pPrime = GFP_MODULUS(pGF_local);
-         int primeLen = GFP_FELEN(pGF_local);
+         BNU_CHUNK_T* pPrime = GFP_MODULUS(pGFE);
+         int primeLen = GFP_FELEN(pGFE);
 
-         IppsMontState* pR = ECP_MONT_R(pEC);
-         BNU_CHUNK_T* pOrder = MNT_MODULUS(pR);
-         int orderLen = MNT_SIZE(pR);
+         gsModEngine* pR = ECP_MONT_R(pEC);
+         BNU_CHUNK_T* pOrder = MOD_MODULUS(pR);
+         int orderLen = MOD_LEN(pR);
 
          *pResult = (primeLen==orderLen && GFP_EQ(pPrime, pOrder, primeLen))? ippECIsWeakSSSA : ippECValid;
       }

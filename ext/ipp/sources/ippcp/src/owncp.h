@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 2002-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
   #include "owndefs.h"
 #endif
 
-#ifndef __IPPCP_H__
+#ifndef IPPCP_H__
   #include "ippcp.h"
 #endif
 
@@ -45,7 +45,12 @@
 //#define _XMM7560_
 #if defined(_XMM7560_)
 #  include "pcpvariant_xmm7560.h"
-#  pragma message ("standard configuration (pcpvariant.h) will be changed")
+//#  pragma message ("standard configuration (pcpvariant.h) will be changed")
+#endif
+
+//#define _TXT_ACM_
+#if defined(_TXT_ACM_)
+#  include "pcpvariant_txt_acm.h"
 #endif
 
 #include "pcpvariant.h"
@@ -135,10 +140,14 @@ typedef int cpSize;
 #define ROL64(x, nBits) ROR64((x),(64-(nBits)))
 
 /* change endian */
-#if defined(_MSC_VER) && !defined( __ICL )
+#if defined(_MSC_VER)
 #  define ENDIANNESS(x)   _byteswap_ulong((x))
 #  define ENDIANNESS32(x)  ENDIANNESS((x))
 #  define ENDIANNESS64(x) _byteswap_uint64((x))
+#elif defined(__ICL)
+#  define ENDIANNESS(x)   _bswap((x))
+#  define ENDIANNESS32(x)  ENDIANNESS((x))
+#  define ENDIANNESS64(x) _bswap64((x))
 #else
 #  define ENDIANNESS(x) ((ROR32((x), 24) & 0x00ff00ff) | (ROR32((x), 8) & 0xff00ff00))
 #  define ENDIANNESS32(x) ENDIANNESS((x))
@@ -174,11 +183,16 @@ typedef int cpSize;
 #define RDRAND_NI_ENABLED     (ippCPUID_RDRAND)
 #define RDSEED_NI_ENABLED     (ippCPUID_RDSEED)
 
+int cpGetFeature( Ipp64u Feature );
 /* test CPU crypto features */
 __INLINE Ipp32u IsFeatureEnabled(Ipp64u niMmask)
 {
-   return ownGetFeature(niMmask);
+   return cpGetFeature(niMmask);
 }
+
+#define IPPCP_GET_NUM_THREADS() ( ippcpGetEnabledNumThreads() )
+#define IPPCP_OMP_NUM_THREADS() num_threads( IPPCP_GET_NUM_THREADS() )
+#define IPPCP_OMP_LIMIT_MAX_NUM_THREADS(n)  num_threads( IPP_MIN(IPPCP_GET_NUM_THREADS(),(n)))
 
 /* copy under mask */
 #define MASKED_COPY_BNU(dst, mask, src1, src2, len) { \

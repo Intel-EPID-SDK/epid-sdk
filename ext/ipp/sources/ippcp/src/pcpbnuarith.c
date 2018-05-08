@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -49,6 +49,11 @@
 
 
 /* Function cpAdd_BNU - addition of 2 BNU */
+#if defined(_USE_C_cpAdd_BNU_)
+#pragma message ("C version of cpAdd_BNU: ON")
+#else
+//#pragma message ("C version of cpAdd_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -75,6 +80,11 @@ BNU_CHUNK_T cpAdd_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T*
 #endif
 
 /* Function cpSub_BNU - subtraction of 2 BNU */
+#if defined(_USE_C_cpSub_BNU_)
+#pragma message ("C version of cpSub_BNU: ON")
+#else
+//#pragma message ("C version of cpSub_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -101,6 +111,11 @@ BNU_CHUNK_T cpSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T*
 #endif
 
 /* Function cpInc_BNU - increment BNU */
+#if defined(_USE_C_cpInc_BNU_)
+#pragma message ("C version of cpInc_BNU: ON")
+#else
+//#pragma message ("C version of cpInc_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -207,6 +222,11 @@ BNU_CHUNK_T cpAddSub_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK
 
 
 /* Function cpAddMulDgt_BNU - multiply-and-add BNU */
+#if defined(_USE_C_cpAddMulDgt_BNU_)
+#pragma message ("C version of cpAddMulDgt_BNU: ON")
+#else
+//#pragma message ("C version of cpAddMulDgt_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -237,6 +257,11 @@ BNU_CHUNK_T cpAddMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, B
 
 
 /* Function cpSubMulDgt_BNU - multiply-and-sub BNU */
+#if defined(_USE_C_cpSubMulDgt_BNU_)
+#pragma message ("C version of cpSubMulDgt_BNU: ON")
+#else
+//#pragma message ("C version of cpSubMulDgt_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -268,6 +293,11 @@ BNU_CHUNK_T cpSubMulDgt_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, cpSize ns, B
 
 
 /* Function cpMulAdc_BNU_school - multiply BNU */
+#if defined(_USE_C_cpMulAdc_BNU_school_)
+#pragma message ("C version of cpMulAdc_BNU_school: ON")
+#else
+//#pragma message ("C version of cpMulAdc_BNU_school: OFF")
+#endif
 
 #if !((_IPP==_IPP_V8) || \
       (_IPP==_IPP_P8) || \
@@ -310,6 +340,11 @@ BNU_CHUNK_T cpMulAdc_BNU_school(BNU_CHUNK_T* pR,
 
 
 /* Function cpSqrAdc_BNU_school - sqr BNU */
+#if defined(_USE_C_cpSqrAdc_BNU_school_)
+#pragma message ("C version of cpSqrAdc_BNU_school: ON")
+#else
+//#pragma message ("C version of cpSqrAdc_BNU_school: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \
@@ -426,25 +461,6 @@ static int cpMac_BNU(BNU_CHUNK_T* pR, cpSize nsR,
       }
    }
 }
-
-#if 0
-#include <stdio.h>
-static void Print_BNU(const char* note, const BNU_CHUNK_T* pData, int len)
-{
-   if(note)
-      printf("%s", note);
-   {
-      int n;
-      Ipp32u* pDataT = (Ipp32u*)pData;
-      len *= (sizeof(BNU_CHUNK_T)/sizeof(Ipp32u));
-      for(n=len; n>0; n--) {
-         Ipp32u x = pDataT[n-1];
-         printf("%08x ", x);
-      }
-      printf("\n");
-   }
-}
-#endif
 
 int cpModInv_BNU(BNU_CHUNK_T* pInv,
             const BNU_CHUNK_T* pA, cpSize nsA,

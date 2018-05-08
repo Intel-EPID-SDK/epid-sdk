@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2014-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,12 @@
 #include "owncp.h"
 #include "pcpbnuarith.h"
 
+
+#if defined(_USE_C_cpMontRedAdc_BNU_)
+#pragma message ("C version of cpMontRedAdc_BNU: ON")
+#else
+//#pragma message ("C version of cpMontRedAdc_BNU: OFF")
+#endif
 
 #if !((_IPP==_IPP_W7) || \
       (_IPP==_IPP_T7) || \

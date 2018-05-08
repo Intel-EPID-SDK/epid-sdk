@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2004-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -135,6 +135,61 @@ int cpPRNGen(Ipp32u* pRand, cpSize nBits, IppsPRNGState* pRnd)
    }
 
    return nBits;
+}
+
+/* generates random string of specified bitSize length
+
+   returns:
+      1 random bit string generated
+     -1 detected internal error (ippStsNoErr != rndFunc())
+*/
+int cpPRNGenPattern(BNU_CHUNK_T* pRand, int bitSize,
+                    BNU_CHUNK_T botPattern, BNU_CHUNK_T topPattern,
+                    IppBitSupplier rndFunc, void* pRndParam)
+{
+   BNU_CHUNK_T topMask = MASK_BNU_CHUNK(bitSize);
+   cpSize randLen = BITS_BNU_CHUNK(bitSize);
+
+   IppStatus sts = rndFunc((Ipp32u*)pRand, bitSize, pRndParam);
+   if(ippStsNoErr!=sts) return -1;
+
+   pRand[randLen-1] &= topMask;
+   pRand[0] |= botPattern;
+   pRand[randLen-1] |= topPattern;
+   return 1;
+}
+
+/* generates random string of specified bitSize length
+   within specified ragnge lo < r < Hi
+
+   returns:
+      0 random bit string not generated
+      1 random bit string generated
+     -1 detected internal error (ippStsNoErr != rndFunc())
+*/
+int cpPRNGenRange(BNU_CHUNK_T* pRand,
+            const BNU_CHUNK_T* pLo, cpSize loLen,
+            const BNU_CHUNK_T* pHi, cpSize hiLen,
+                  IppBitSupplier rndFunc, void* pRndParam)
+{
+   int bitSize = BITSIZE_BNU(pHi,hiLen);
+   BNU_CHUNK_T topMask = MASK_BNU_CHUNK(bitSize);
+
+   #define MAX_COUNT (1000)
+   int n;
+   for(n=0; n<MAX_COUNT; n++) {
+      cpSize randLen;
+      IppStatus sts = rndFunc((Ipp32u*)pRand, bitSize, pRndParam);
+      if(ippStsNoErr!=sts) return -1;
+
+      pRand[hiLen-1] &= topMask;
+      randLen = cpFix_BNU(pRand, hiLen);
+      if((0 < cpCmp_BNU(pRand, randLen, pLo, loLen)) && (0 < cpCmp_BNU(pHi, hiLen, pRand, randLen)))
+         return 1;
+   }
+   #undef MAX_COUNT
+
+   return 0; /* no random matched to (Lo,Hi) */
 }
 
 

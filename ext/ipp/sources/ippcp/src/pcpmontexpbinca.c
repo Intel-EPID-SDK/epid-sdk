@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -28,77 +28,8 @@
 #include "pcpbn.h"
 #include "pcpmontgomery.h"
 
+//gres: temporary excluded: #include <assert.h>
 
-#if 0
-/*
-// Exponentiation
-//    Y = X^e
-// X and Y belongs Montgomery Domain
-*/
-void cpMontExp_32u(IppsBigNumState* pY,
-             const IppsBigNumState* pX, Ipp32u e,
-                   IppsMontState* pMont)
-{
-   if(pY!=pX)  /* copy base */
-      BN_copy(pX, pY);
-
-   {
-      int j, back_step;
-
-      /* Montgomery engine data */
-      Ipp32u* pModulus = BN_NUMBER(MNT_MODULO(pMont));
-      int mSize = BN_SIZE(MNT_MODULO(pMont));
-      Ipp32u* pHelper = MNT_HELPER(pMont);
-
-      /* result and base of exponent */
-      Ipp32u* dataY = BN_NUMBER(pY);
-      Ipp32u* dataX = BN_BUFFER(pY);
-      int ySize = BN_SIZE(pY);
-
-      /* temporary buffers */
-      Ipp32u* dataT   = BN_NUMBER(MNT_PRODUCT(pMont));
-      Ipp32u* pBuffer = BN_BUFFER(MNT_PRODUCT(pMont));
-
-      /* expand result */
-      ZEXPAND_BNU(dataY,ySize, mSize);
-      /* copy base */
-      COPY_BNU(dataY,dataX, mSize);
-
-      j = 32-NLZ32u(e)-1;
-
-      back_step = 0;
-      for(j-=1; j>=0; j--) {
-         int i;
-         Ipp32u mask_pattern = (Ipp32u)(back_step-1);
-
-         /* T = (Y[] and mask_pattern) or (X[] and ~mask_pattern) */
-         for(i=0; i<mSize; i++)
-            dataT[i] = (dataY[i] & mask_pattern) | (dataX[i] & ~mask_pattern);
-
-         /* squaring/multiplication Y = Y*T mod Modulus */
-         #if defined(_USE_NN_MONTMUL_)
-         cpMontMul(dataY,    ySize,
-                   dataT,    mSize,
-                   pModulus, mSize,
-                   dataY,   &ySize,
-                   pHelper, pBuffer);
-         #else
-         cpMontMul(dataY,    ySize,
-                   dataT,    mSize,
-                   pModulus, mSize,
-                   dataY,   &ySize,
-                   pHelper, pBuffer, MNT_BUFFER(pMont));
-         #endif
-
-         /* update back_step and j */
-         back_step = ((e>>j) & 0x01) & (back_step^1);
-         j += back_step;
-      }
-
-      BN_SIZE(pY) = ySize;
-   }
-}
-#endif
 
 /*
 // Binary method of Exponentiation
@@ -197,7 +128,6 @@ void cpSafeMontExp_Binary(IppsBigNumState* pY,
                          pMont->n->number, pMont->n->size,
                          r_number,&r_size, pMont->n0, pMont->wb->number, pMont->pBuffer);
                #endif
-               //gres: powd = ((power >> j) & 0x1) * (powd ^ 1);
                powd = ((power >> j) & 0x1) & (powd ^ 1);
                j += powd;
             }
@@ -394,9 +324,9 @@ void cpSafeMontExp_Binary(IppsBigNumState* pY,
 cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* dataY,
                        const BNU_CHUNK_T* dataX, cpSize nsX,
                        const BNU_CHUNK_T* dataE, cpSize nsE,
-                             IppsMontState* pMont)
+                             gsModEngine* pMont)
 {
-   cpSize nsM = MNT_SIZE(pMont);
+   cpSize nsM = MOD_LEN(pMont);
 
    /*
    // test for special cases:
@@ -404,7 +334,7 @@ cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* dataY,
    //    0^e = 0
    */
    if( cpEqu_BNU_CHUNK(dataE, nsE, 0) ) {
-      COPY_BNU(dataY, MNT_1(pMont), nsM);
+      COPY_BNU(dataY, MOD_MNT_R(pMont), nsM);
    }
       else if( cpEqu_BNU_CHUNK(dataX, nsX, 0) ) {
       ZEXPAND_BNU(dataY, 0, nsM);
@@ -412,71 +342,42 @@ cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* dataY,
 
    /* general case */
    else {
-      BNU_CHUNK_T* dataM = MNT_MODULUS(pMont);
-      BNU_CHUNK_T m0 = MNT_HELPER(pMont);
-
       /* Montgomery engine buffers */
-      BNU_CHUNK_T* pKBuffer = MNT_KBUFFER(pMont);
-      BNU_CHUNK_T* pProduct = MNT_PRODUCT(pMont);
-
-      BNU_CHUNK_T* dataT = MNT_TBUFFER(pMont);
-      BNU_CHUNK_T* sscmBuffer = MNT_SBUFFER(pMont);
-
-      cpSize i;
-      BNU_CHUNK_T mask_pattern;
-
-      /* execute most significant part pE */
-      BNU_CHUNK_T eValue = dataE[nsE-1];
-      int j = BNU_CHUNK_BITS - cpNLZ_BNU(eValue)-1;
+      const int usedPoolLen = 2;
+      BNU_CHUNK_T* dataT      = gsModPoolAlloc(pMont, usedPoolLen);
+      BNU_CHUNK_T* sscmBuffer = dataT + nsM;
+      //gres: temporary excluded: assert(NULL!=dataT);
 
       int back_step = 0;
 
-      /* expand base and init result */
+      /* copy base */
       ZEXPAND_COPY_BNU(dataT, nsM, dataX, nsX);
-      COPY_BNU(dataY, dataT, nsM);
+      /* init result, Y=1 */
+      COPY_BNU(dataY, MOD_MNT_R(pMont), nsM);
 
-      for(j-=1; j>=0; j--) {
-         mask_pattern = (BNU_CHUNK_T)(back_step-1);
+     /* execute bits of E */
+     for(; nsE>0; nsE--) {
+         BNU_CHUNK_T eValue = dataE[nsE-1];
 
-         /* safeBuffer = (Y[] and mask_pattern) or (X[] and ~mask_pattern) */
-         for(i=0; i<nsM; i++)
-            sscmBuffer[i] = (dataY[i] & mask_pattern) | (dataT[i] & ~mask_pattern);
-
-         /* squaring/multiplication: R = R*T mod Modulus */
-         cpMontMul_BNU(dataY,
-                       dataY, nsM,
-                       sscmBuffer, nsM,
-                       dataM,  nsM, m0,
-                       pProduct,  pKBuffer);
-
-         /* update back_step and j */
-         back_step = ((eValue>>j) & 0x1) & (back_step^1);
-         j += back_step;
-      }
-
-      /* execute rest bits of E */
-      for(--nsE; nsE>0; nsE--) {
-         eValue = dataE[nsE-1];
-
+         int j;
          for(j=BNU_CHUNK_BITS-1; j>=0; j--) {
-            mask_pattern = (BNU_CHUNK_T)(back_step-1);
+            BNU_CHUNK_T mask_pattern = (BNU_CHUNK_T)(back_step-1);
 
             /* safeBuffer = (Y[] and mask_pattern) or (X[] and ~mask_pattern) */
+            int i;
             for(i=0; i<nsM; i++)
                sscmBuffer[i] = (dataY[i] & mask_pattern) | (dataT[i] & ~mask_pattern);
 
             /* squaring/multiplication: R = R*T mod Modulus */
-            cpMontMul_BNU(dataY,
-                          dataY, nsM,
-                          sscmBuffer, nsM,
-                          dataM,  nsM, m0,
-                          pProduct,  pKBuffer);
+            cpMontMul_BNU(dataY, dataY, sscmBuffer, pMont);
 
             /* update back_step and j */
             back_step = ((eValue>>j) & 0x1) & (back_step^1);
             j += back_step;
          }
       }
+
+      gsModPoolFree(pMont, usedPoolLen);
    }
 
    return nsM;
@@ -487,9 +388,9 @@ cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* dataY,
 cpSize cpMontExpBin_BNU(BNU_CHUNK_T* dataY,
                   const BNU_CHUNK_T* dataX, cpSize nsX,
                   const BNU_CHUNK_T* dataE, cpSize nsE,
-                        IppsMontState* pMont)
+                        gsModEngine* pModEngine)
 {
-   cpSize nsM = MNT_SIZE(pMont);
+   cpSize nsM = MOD_LEN( pModEngine );
 
    /*
    // test for special cases:
@@ -497,65 +398,53 @@ cpSize cpMontExpBin_BNU(BNU_CHUNK_T* dataY,
    //    0^e = 0
    */
    if( cpEqu_BNU_CHUNK(dataE, nsE, 0) ) {
-      COPY_BNU(dataY, MNT_1(pMont), nsM);
+      COPY_BNU(dataY, MOD_MNT_R( pModEngine ), nsM);
    }
    else if( cpEqu_BNU_CHUNK(dataX, nsX, 0) ) {
       ZEXPAND_BNU(dataY, 0, nsM);
    }
-
+   
    /* general case */
    else {
-      BNU_CHUNK_T* dataM = MNT_MODULUS(pMont);
-      BNU_CHUNK_T m0 = MNT_HELPER(pMont);
-
       /* Montgomery engine buffers */
-      BNU_CHUNK_T* pKBuffer = MNT_KBUFFER(pMont);
-      BNU_CHUNK_T* pProduct = MNT_PRODUCT(pMont);
+      const int usedPoolLen = 1;
+      BNU_CHUNK_T* dataT = gsModPoolAlloc(pModEngine, usedPoolLen);
+      //gres: temporary excluded: assert(NULL!=dataT);
 
-      BNU_CHUNK_T* dataT = MNT_TBUFFER(pMont);
+      {
+         /* execute most significant part pE */
+         BNU_CHUNK_T eValue = dataE[nsE-1];
+         int n = cpNLZ_BNU(eValue)+1;
 
-      /* execute most significant part pE */
-      BNU_CHUNK_T eValue = dataE[nsE-1];
-      int n = cpNLZ_BNU(eValue)+1;
+         /* expand base and init result */
+         ZEXPAND_COPY_BNU(dataT, nsM, dataX, nsX);
+         COPY_BNU(dataY, dataT, nsM);
 
-      /* expand base and init result */
-      ZEXPAND_COPY_BNU(dataT, nsM, dataX, nsX);
-      COPY_BNU(dataY, dataT, nsM);
+         eValue <<= n;
+         for(; n<BNU_CHUNK_BITS; n++, eValue<<=1) {
+            /* squaring R = R*R mod Modulus */
+            MOD_METHOD( pModEngine )->sqr(dataY, dataY, pModEngine);
 
-      eValue <<= n;
-      for(; n<BNU_CHUNK_BITS; n++, eValue<<=1) {
-         /* squaring R = R*R mod Modulus */
-         cpMontSqr_BNU(dataY,
-                       dataY, nsM,
-                       dataM, nsM, m0,
-                       pProduct, pKBuffer);
-         /* and multiply R = R*X mod Modulus */
-         if(eValue & ((BNU_CHUNK_T)1<<(BNU_CHUNK_BITS-1)))
-            cpMontMul_BNU(dataY,
-                          dataY, nsM,
-                          dataT, nsM,
-                          dataM, nsM, m0,
-                          pProduct, pKBuffer);
-      }
-
-      /* execute rest bits of E */
-      for(--nsE; nsE>0; nsE--) {
-         eValue = dataE[nsE-1];
-
-         for(n=0; n<BNU_CHUNK_BITS; n++, eValue<<=1) {
-            /* squaring: R = R*R mod Modulus */
-            cpMontSqr_BNU(dataY,
-                          dataY, nsM,
-                          dataM, nsM, m0,
-                          pProduct, pKBuffer);
+            /* and multiply R = R*X mod Modulus */
             if(eValue & ((BNU_CHUNK_T)1<<(BNU_CHUNK_BITS-1)))
-               cpMontMul_BNU(dataY,
-                             dataY, nsM,
-                             dataT, nsM,
-                             dataM, nsM, m0,
-                             pProduct, pKBuffer);
+               MOD_METHOD( pModEngine )->mul(dataY, dataY, dataT, pModEngine);
+         }
+
+         /* execute rest bits of E */
+         for(--nsE; nsE>0; nsE--) {
+            eValue = dataE[nsE-1];
+
+            for(n=0; n<BNU_CHUNK_BITS; n++, eValue<<=1) {
+               /* squaring: R = R*R mod Modulus */
+               MOD_METHOD( pModEngine )->sqr(dataY, dataY, pModEngine);
+
+               if(eValue & ((BNU_CHUNK_T)1<<(BNU_CHUNK_BITS-1)))
+                  MOD_METHOD( pModEngine )->mul(dataY, dataY, dataT, pModEngine);
+            }
          }
       }
+
+      gsModPoolFree(pModEngine, usedPoolLen);
    }
 
    return nsM;

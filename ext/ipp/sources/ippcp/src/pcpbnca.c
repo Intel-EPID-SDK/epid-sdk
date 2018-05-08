@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 2002-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -49,11 +49,6 @@
 #include "owncp.h"
 #include "pcpbn.h"
 #include "pcptool.h"
-
-#if defined(__GNUC__) && (__GNUC__ >= 6)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
 
 /* BN(1) and reference */
 static IppsBigNumStateChunk cpChunk_BN1 = {
@@ -803,7 +798,6 @@ IPPFUN(IppStatus, ippsMAC_BN_I, (IppsBigNumState* pA, IppsBigNumState* pB, IppsB
       cpSize nsP = BITS_BNU_CHUNK(bitSizeA+bitSizeB);
 
       /* test if multiplicant/multiplier is zero */
-      //gres: mistaken condition: if(!nsP) return ippStsNoErr;
       if(!bitSizeA || !bitSizeB) return ippStsNoErr;
       /* test if product can't fit to the result */
       IPP_BADARG_RET(BN_ROOM(pR)<nsP, ippStsOutOfRangeErr);
@@ -916,12 +910,10 @@ IPPFUN(IppStatus, ippsDiv_BN, (IppsBigNumState* pA, IppsBigNumState* pB, IppsBig
       COPY_BNU(pDataR, pDataA, nsR);
 
       BN_SIGN(pQ) = BN_SIGN(pA)==BN_SIGN(pB)? ippBigNumPOS : ippBigNumNEG;
-      //gres: leading zeros are removed by cpDiv_BNU: FIX_BNU(pDataQ, nsQ);
       BN_SIZE(pQ) = nsQ;
       if(nsQ==1 && pDataQ[0]==0) BN_SIGN(pQ) = ippBigNumPOS;
 
       BN_SIGN(pR) = BN_SIGN(pA);
-      //gres: leading zeros are removed by cpDiv_BNU: FIX_BNU(pDataR, nsR);
       BN_SIZE(pR) = nsR;
       if(nsR==1 && pDataR[0]==0) BN_SIGN(pR) = ippBigNumPOS;
 
@@ -1102,8 +1094,6 @@ IPPFUN(IppStatus, ippsGcd_BN, (IppsBigNumState* pA, IppsBigNumState* pB, IppsBig
          FIX_BNU(yData, nsY);
 
          /* init buffers */
-         //gres: seems length parameters mistaken exchaged: ZEXPAND_COPY_BNU(xBuffer, nsX, xData, nsXmax);
-         //gres: seems length parameters mistaken exchaged: ZEXPAND_COPY_BNU(yBuffer, nsY, yData, nsYmax);
          ZEXPAND_COPY_BNU(xBuffer, nsXmax, xData, nsX);
          ZEXPAND_COPY_BNU(yBuffer, nsYmax, yData, nsY);
 
@@ -1305,6 +1295,3 @@ IPPFUN(IppStatus, ippsModInv_BN, (IppsBigNumState* pA, IppsBigNumState* pM, Ipps
     }
 }
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

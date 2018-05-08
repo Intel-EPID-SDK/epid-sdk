@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@
 #if !defined(_PCP_GFP_H_)
 #define _PCP_GFP_H_
 
-#include "pcpbn.h"
+#include "owncp.h"
+//#include "pcpbn.h"
 #include "pcpgfpmethod.h"
 #include "pcpmontgomery.h"
 
@@ -44,80 +45,46 @@ typedef struct _cpGFpElement {
 
 
 /* GF(p) context */
-typedef struct _cpGFp cpGF_T;
-
 typedef struct _cpGFp {
-   IppCtxId       idCtx;         /* GFp spec ident    */
-   int            elemBitLen;    /* size of field element (in bits) */
-   int            elemLen;       /* size of field element (in BNU_CHUNK_T) */
-   int            elemLen32;     /* sizeof of field element (in Ipp32u) */
-   int            pelemLen;      /* sizeof pool element (in BNU_CHUNK_T) */
-   int            gfdegree;      /* degree of extension (==1 means basic GF(p)) */
-   int            modulusTypeSpc;/* modulus type specific */
-   int            epidParams;    /* EPID 2.0 specific parameters */
-   cpGF_T*        pGroundGF;     /* ground GF (refference on itself if basic GF(p)) */
-                                 /* = methods: = */
-   gfadd          add;           /*    - gf add  */
-   gfsub          sub;           /*    - gf sub  */
-   gfneg          neg;           /*    - gf neg  */
-   gfdiv2         div2;          /*    - gf div by 2 */
-   gfmul2         mul2;          /*    - gf mul by 2 */
-   gfmul3         mul3;          /*    - gf mul by 3 */
-   gfmul          mul;           /*    - gf mul  */
-   gfsqr          sqr;           /*    - gf sqr  */
-   gfencode       encode;        /*    - to internal representation */
-   gfencode       decode;        /*    - from internal representation */
-                                 /* ============ */
-   BNU_CHUNK_T*   pModulus;      /* modulus or irreducible polypomial (without hight order term ==1) */
-   BNU_CHUNK_T*   pHalfModulus;  /* modulus/2 if basic, NULL if extension */
-   BNU_CHUNK_T*   pQnr;          /* quadratic non-residue if basic, NULL if extension */
-   IppsMontState* pMontState;    /* montgomery engine if basic, NULL if extension */
-   BNU_CHUNK_T*   pElemPool;     /* pool of temporary field elements */
+   IppCtxId       idCtx;   /* GFp spec ident     */
+   gsModEngine*   pGFE;    /* arithmethic engine */
 } cpGFp;
 
 #define GFP_ALIGNMENT   ((int)(sizeof(void*)))
 
 /* Local definitions */
-#define GF_MAX_BITSIZE      (IPP_MAX_GF_BITSIZE)      /* max bitsize for GF element */
-#define GF_POOL_SIZE        (IPP_MAX_EXPONENT_NUM+3)  /* num of elements into the pool */
-#define GF_RAND_ADD_BITS    (128)                     /* parameter of random element generation ?? == febits/2 */
+#define GFP_MAX_BITSIZE       (IPP_MAX_GF_BITSIZE)      /* max bitsize for GF element */
+#define GFP_POOL_SIZE         (16)//(IPP_MAX_EXPONENT_NUM+3)  /* num of elements into the pool */
+#define GFP_RAND_ADD_BITS     (128)                     /* parameter of random element generation ?? == febits/2 */
 
 #define GFP_ID(pCtx)          ((pCtx)->idCtx)
-#define GFP_FEBITLEN(pCtx)    ((pCtx)->elemBitLen)
-#define GFP_FELEN(pCtx)       ((pCtx)->elemLen)
-#define GFP_FELEN32(pCtx)     ((pCtx)->elemLen32) /////????!!!!
-#define GFP_PELEN(pCtx)       ((pCtx)->pelemLen)
-#define GFP_DEGREE(pCtx)      ((pCtx)->gfdegree)
-#define FIELD_POLY_TYPE(pCtx) ((pCtx)->modulusTypeSpc)
-#define GFP_GROUNDGF(pCtx)    ((pCtx)->pGroundGF)
-#define GFP_MODULUS(pCtx)     ((pCtx)->pModulus)
-#define GFP_HMODULUS(pCtx)    ((pCtx)->pHalfModulus) /* for Sqrt() function only */
-#define GFP_QNR(pCtx)         ((pCtx)->pQnr)
-#define GFP_POOL(pCtx)        ((pCtx)->pElemPool)
-#define GFP_MONT(pCtx)        ((pCtx)->pMontState)
+#define GFP_PMA(pCtx)         ((pCtx)->pGFE)
 
-/* type of field polynomial: */
-#define ARBITRARY (0)   /* arbitrary */
-#define BINOMIAL  (1)   /* binomial */
+#define GFP_PARENT(pCtx)      MOD_PARENT((pCtx))
+#define GFP_EXTDEGREE(pCtx)   MOD_EXTDEG((pCtx))
+#define GFP_FEBITLEN(pCtx)    MOD_BITSIZE((pCtx))
+#define GFP_FELEN(pCtx)       MOD_LEN((pCtx))
+#define GFP_FELEN32(pCtx)     MOD_LEN32((pCtx))
+#define GFP_PELEN(pCtx)       MOD_PELEN((pCtx))
+#define GFP_METHOD(pCtx)      MOD_METHOD((pCtx))
+#define GFP_MODULUS(pCtx)     MOD_MODULUS((pCtx))
+#define GFP_MNT_FACTOR(pCtx)  MOD_MNT_FACTOR((pCtx))
+#define GFP_MNT_R(pCtx)       MOD_MNT_R((pCtx))
+#define GFP_MNT_RR(pCtx)      MOD_MNT_R2((pCtx))
+#define GFP_HMODULUS(pCtx)    MOD_HMODULUS((pCtx))
+#define GFP_QNR(pCtx)         MOD_QNR((pCtx))
+#define GFP_POOL(pCtx)        MOD_POOL_BUF((pCtx))
+#define GFP_MAXPOOL(pCtx)     MOD_MAXPOOL((pCtx))
+#define GFP_USEDPOOL(pCtx)    MOD_USEDPOOL((pCtx))
 
-//#define GFP_FEBITSIZE(pCtx)   (BITSIZE_BNU(GFP_MODULUS((pCtx)),GFP_FELEN((pCtx))))
-#define GFP_IS_BASIC(pCtx)    (GFP_GROUNDGF((pCtx))==(pCtx))
+#define GFP_IS_BASIC(pCtx)    (GFP_PARENT((pCtx))==NULL)
 #define GFP_TEST_ID(pCtx)     (GFP_ID((pCtx))==idCtxGFP)
 
 /*
 // get/release n element from/to the pool
 */
-__INLINE BNU_CHUNK_T* cpGFpGetPool(int n, IppsGFpState* pGF)
-{
-   BNU_CHUNK_T* pPool = GFP_POOL(pGF);
-   GFP_POOL(pGF) += n*GFP_PELEN(pGF);
-   return pPool;
-}
-__INLINE void cpGFpReleasePool(int n, IppsGFpState* pGF)
-{
-   GFP_POOL(pGF) -= n*GFP_PELEN(pGF);
-}
-
+#define cpGFpGetPool(n, gfe)     gsModPoolAlloc((gfe), (n))
+#define cpGFpReleasePool(n, gfe) gsModPoolFree((gfe), (n))
 
 
 __INLINE int cpGFpElementLen(const BNU_CHUNK_T* pE, int nsE)
@@ -150,11 +117,20 @@ __INLINE int cpGFpElementCmp(const BNU_CHUNK_T* pE, const BNU_CHUNK_T* pX, int n
       ;
    return pE[nsE-1]==pX[nsE-1]? 0 : pE[nsE-1]>pX[nsE-1]? 1:-1;
 }
+
+#define CP_CT_MSB(a) ((a)>>((sizeof((a))*8 -1)))
+#define CP_CT_IS_ZERO(a) CP_CT_MSB(~(a) & ((a)-1))
+
 __INLINE int cpGFpElementIsEquChunk(const BNU_CHUNK_T* pE, int nsE, BNU_CHUNK_T x)
 {
-   int isEqu = (pE[0] == x);
-   return isEqu && (1==cpGFpElementLen(pE, nsE));
+   int i;
+   BNU_CHUNK_T accum = pE[0] ^ x;
+   for (i = 1; i < nsE; i++) {
+    accum |= pE[i];
+   }
+   return CP_CT_IS_ZERO(accum); /*(accum == 0); */
 }
+
 __INLINE BNU_CHUNK_T* cpGFpElementSetChunk(BNU_CHUNK_T* pR, int nsR, BNU_CHUNK_T x)
 {
    return cpGFpElementCopyPadd(pR, nsR, &x, 1);
@@ -174,24 +150,6 @@ __INLINE BNU_CHUNK_T* cpGFpElementSetChunk(BNU_CHUNK_T* pR, int nsR, BNU_CHUNK_T
 #define GFP_IS_EVEN(a)  (0==((a)[0]&1))
 #define GFP_IS_ODD(a)   (1==((a)[0]&1))
 
-__INLINE IppsBigNumState* cpGFpInitBigNum(IppsBigNumState* pBN, int len, BNU_CHUNK_T* pNumBuffer, BNU_CHUNK_T* pTmpBuffer)
-{
-   BN_ID(pBN)     = idCtxBigNum;
-   BN_SIGN(pBN)   = ippBigNumPOS;
-   BN_NUMBER(pBN) = pNumBuffer;
-   BN_BUFFER(pBN) = pTmpBuffer;
-   BN_ROOM(pBN)   = len;
-   BN_SIZE(pBN)   = 0;
-   return pBN;
-}
-
-__INLINE IppsBigNumState* cpGFpSetBigNum(IppsBigNumState* pBN, int len, const BNU_CHUNK_T* pBNU, BNU_CHUNK_T* pTmpBuffer)
-{
-   cpGFpInitBigNum(pBN, len, (BNU_CHUNK_T*)pBNU, pTmpBuffer);
-   FIX_BNU(pBNU, len);
-   BN_SIZE(pBN) = len;
-   return pBN;
-}
 
 /* construct GF element */
 __INLINE IppsGFpElement* cpGFpElementConstruct(IppsGFpElement* pR, BNU_CHUNK_T* pDataBufer, int ns)
@@ -204,57 +162,55 @@ __INLINE IppsGFpElement* cpGFpElementConstruct(IppsGFpElement* pR, BNU_CHUNK_T* 
 
 
 /* size of GFp context, init and setup */
-int cpGFpGetSize(int bitSize);
+#define cpGFpGetSize OWNAPI(cpGFpGetSize)
+int     cpGFpGetSize(int feBitSize, int peBitSize, int numpe);
+
+#define   cpGFpInitGFp OWNAPI(cpGFpInitGFp)
 IppStatus cpGFpInitGFp(int primeBitSize, IppsGFpState* pGF);
-IppStatus cpGFpSetGFp(const IppsBigNumState* pPrime, const IppsGFpMethod* method, IppsGFpState* pGF);
+#define   cpGFpSetGFp OWNAPI(cpGFpSetGFp)
+IppStatus cpGFpSetGFp(const BNU_CHUNK_T* pPrime, int primeBitSize, const IppsGFpMethod* method, IppsGFpState* pGF);
 
 /* operations */
-BNU_CHUNK_T* cpGFpRand(BNU_CHUNK_T* pR, IppsGFpState* pGF, IppBitSupplier rndFunc, void* pRndParam);
-#define cpGFpSet OWNAPI(cpGFpSet)
-BNU_CHUNK_T* cpGFpSet (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGF);
-#define cpGFpGet OWNAPI(cpGFpGet)
-BNU_CHUNK_T* cpGFpGet (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, IppsGFpState* pGF);
-#define cpGFpSetOctString OWNAPI(cpGFpSetOctString)
-BNU_CHUNK_T* cpGFpSetOctString(BNU_CHUNK_T* pR, const Ipp8u* pStr, int strSize, IppsGFpState* pGF);
+#define      cpGFpRand OWNAPI(cpGFpRand)
+BNU_CHUNK_T* cpGFpRand(BNU_CHUNK_T* pR, gsModEngine* pGFE, IppBitSupplier rndFunc, void* pRndParam);
+
+#define      cpGFpSet OWNAPI(cpGFpSet)
+BNU_CHUNK_T* cpGFpSet (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFE);
+
+#define      cpGFpGet OWNAPI(cpGFpGet)
+BNU_CHUNK_T* cpGFpGet (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, gsModEngine* pGFE);
+
+#define      cpGFpSetOctString OWNAPI(cpGFpSetOctString)
+BNU_CHUNK_T* cpGFpSetOctString(BNU_CHUNK_T* pR, const Ipp8u* pStr, int strSize, gsModEngine* pGFE);
+
 #define cpGFpGetOctString OWNAPI(cpGFpGetOctString)
-Ipp8u*       cpGFpGetOctString(Ipp8u* pStr, int strSize, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
+Ipp8u*  cpGFpGetOctString(Ipp8u* pStr, int strSize, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
 
-#define cpGFpNeg OWNAPI(cpGFpNeg)
-BNU_CHUNK_T* cpGFpNeg  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cpGFpInv OWNAPI(cpGFpInv)
-BNU_CHUNK_T* cpGFpInv  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cpGFpHalve OWNAPI(cpGFpHalve)
-BNU_CHUNK_T* cpGFpHalve(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cpGFpAdd OWNAPI(cpGFpAdd)
-BNU_CHUNK_T* cpGFpAdd  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cpGFpSub OWNAPI(cpGFpSub)
-BNU_CHUNK_T* cpGFpSub  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cpGFpMul OWNAPI(cpGFpMul)
-BNU_CHUNK_T* cpGFpMul  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cpGFpSqr OWNAPI(cpGFpSqr)
-BNU_CHUNK_T* cpGFpSqr  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cpGFpExp OWNAPI(cpGFpExp)
-BNU_CHUNK_T* cpGFpExp  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, IppsGFpState* pGF);
-          int cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
+#define      cpGFpNeg OWNAPI(cpGFpNeg)
+BNU_CHUNK_T* cpGFpNeg  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
 
-#if(_IPP32E >= _IPP32E_M7)
-#define cp256pAdd OWNAPI(cp256pAdd)
-BNU_CHUNK_T* cp256pAdd(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cp256pSub OWNAPI(cp256pSub)
-BNU_CHUNK_T* cp256pSub(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cp256pNeg OWNAPI(cp256pNeg)
-BNU_CHUNK_T* cp256pNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cp256pMul OWNAPI(cp256pMul)
-BNU_CHUNK_T* cp256pMul(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, IppsGFpState* pGF);
-#define cp256pSqr OWNAPI(cp256pSqr)
-BNU_CHUNK_T* cp256pSqr(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#define cp256pHalve OWNAPI(cp256pHalve)
-BNU_CHUNK_T* cp256pHalve(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF);
-#endif
+#define      cpGFpInv OWNAPI(cpGFpInv)
+BNU_CHUNK_T* cpGFpInv  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
 
-#define cpGFpInitBigNum OWNAPI(cpGFpInitBigNum)
-IppsBigNumState* cpGFpInitBigNum(IppsBigNumState* pBN, int len, BNU_CHUNK_T* pNumBuffer, BNU_CHUNK_T* pTmpBuffer);
-#define cpGFpSetBigNum OWNAPI(cpGFpSetBigNum)
-IppsBigNumState* cpGFpSetBigNum(IppsBigNumState* pBN, int len, const BNU_CHUNK_T* pBNU, BNU_CHUNK_T* pTmpBuffer);
+#define      cpGFpHalve OWNAPI(cpGFpHalve)
+BNU_CHUNK_T* cpGFpHalve(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
+
+#define      cpGFpAdd OWNAPI(cpGFpAdd)
+BNU_CHUNK_T* cpGFpAdd  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE);
+
+#define      cpGFpSub OWNAPI(cpGFpSub)
+BNU_CHUNK_T* cpGFpSub  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE);
+
+#define      cpGFpMul OWNAPI(cpGFpMul)
+BNU_CHUNK_T* cpGFpMul  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFE);
+
+#define      cpGFpSqr OWNAPI(cpGFpSqr)
+BNU_CHUNK_T* cpGFpSqr  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
+
+#define      cpGFpExp OWNAPI(cpGFpExp)
+BNU_CHUNK_T* cpGFpExp  (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, gsModEngine* pGFE);
+
+#define cpGFpSqrt OWNAPI(cpGFpSqrt)
+int     cpGFpSqrt(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFE);
 
 #endif /* _PCP_GFP_H_ */

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -80,28 +80,28 @@ __INLINE void hashInit(Ipp32u* pHash, const Ipp32u* iv)
    pHash[6] = iv[6];
    pHash[7] = iv[7];
 }
-void sha256_hashInit(void* pHash)
+static void sha256_hashInit(void* pHash)
 {
    hashInit((Ipp32u*)pHash, sha256_iv);
 }
-void sha224_hashInit(void* pHash)
+static void sha224_hashInit(void* pHash)
 {
    hashInit((Ipp32u*)pHash, sha224_iv);
 }
 
-void sha256_hashUpdate(void* pHash, const Ipp8u* pMsg, int msgLen)
+static void sha256_hashUpdate(void* pHash, const Ipp8u* pMsg, int msgLen)
 {
    UpdateSHA256(pHash, pMsg, msgLen, sha256_cnt);
 }
 #if (_SHA_NI_ENABLING_==_FEATURE_TICKTOCK_ || _SHA_NI_ENABLING_==_FEATURE_ON_)
-void sha256_ni_hashUpdate(void* pHash, const Ipp8u* pMsg, int msgLen)
+static void sha256_ni_hashUpdate(void* pHash, const Ipp8u* pMsg, int msgLen)
 {
    UpdateSHA256ni(pHash, pMsg, msgLen, sha256_cnt);
 }
 #endif
 
 /* convert hash into big endian */
-void sha256_hashOctString(Ipp8u* pMD, void* pHashVal)
+static void sha256_hashOctString(Ipp8u* pMD, void* pHashVal)
 {
    /* convert hash into big endian */
    ((Ipp32u*)pMD)[0] = ENDIANNESS32(((Ipp32u*)pHashVal)[0]);
@@ -113,7 +113,7 @@ void sha256_hashOctString(Ipp8u* pMD, void* pHashVal)
    ((Ipp32u*)pMD)[6] = ENDIANNESS32(((Ipp32u*)pHashVal)[6]);
    ((Ipp32u*)pMD)[7] = ENDIANNESS32(((Ipp32u*)pHashVal)[7]);
 }
-void sha224_hashOctString(Ipp8u* pMD, void* pHashVal)
+static void sha224_hashOctString(Ipp8u* pMD, void* pHashVal)
 {
    /* convert hash into big endian */
    ((Ipp32u*)pMD)[0] = ENDIANNESS32(((Ipp32u*)pHashVal)[0]);
@@ -125,7 +125,7 @@ void sha224_hashOctString(Ipp8u* pMD, void* pHashVal)
    ((Ipp32u*)pMD)[6] = ENDIANNESS32(((Ipp32u*)pHashVal)[6]);
 }
 
-void sha256_msgRep(Ipp8u* pDst, Ipp64u lenLo, Ipp64u lenHi)
+static void sha256_msgRep(Ipp8u* pDst, Ipp64u lenLo, Ipp64u lenHi)
 {
    UNREFERENCED_PARAMETER(lenHi);
    lenLo = ENDIANNESS64(lenLo<<3);
@@ -384,7 +384,7 @@ IPPFUN(IppStatus, ippsSHA256Update,(const Ipp8u* pSrc, int len, IppsSHA256State*
 
          /* update digest if buffer full */
          if( MBS_SHA256 == idx) {
-            updateFunc(HASH_VALUE(pState), pBuffer, MBS_SHA256, SHA256_cnt);
+            updateFunc(HASH_VALUE(pState), pBuffer, MBS_SHA256, sha256_cnt);
             idx = 0;
          }
       }
@@ -798,12 +798,12 @@ IPPFUN( const IppsHashMethod*, ippsHashMethod_SHA224_TT, (void) )
 {
    static IppsHashMethod method = {
       ippHashAlg_SHA224,
-      IPP_SHA256_DIGEST_BITSIZE/8,
+      IPP_SHA224_DIGEST_BITSIZE/8,
       MBS_SHA256,
       MLR_SHA256,
-      sha256_hashInit,
+      sha224_hashInit,
       sha256_hashUpdate,
-      sha256_hashOctString,
+      sha224_hashOctString,
       sha256_msgRep
    };
    #if (_SHA_NI_ENABLING_==_FEATURE_TICKTOCK_ || _SHA_NI_ENABLING_==_FEATURE_ON_)

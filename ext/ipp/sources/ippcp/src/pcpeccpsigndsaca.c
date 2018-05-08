@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -103,9 +103,9 @@ IPPFUN(IppStatus, ippsECCPSignDSA,(const IppsBigNumState* pMsgDigest,
    IPP_BADARG_RET((BN_ROOM(pSignY)*BITSIZE(BNU_CHUNK_T)<ECP_ORDBITSIZE(pEC)), ippStsRangeErr);
 
    {
-      IppsMontState* pMontR = ECP_MONT_R(pEC);
-      BNU_CHUNK_T* pOrder = MNT_MODULUS(pMontR);
-      int orderLen = MNT_SIZE(pMontR);
+      gsModEngine* pMontR = ECP_MONT_R(pEC);
+      BNU_CHUNK_T* pOrder = MOD_MODULUS(pMontR);
+      int orderLen = MOD_LEN(pMontR);
 
       BNU_CHUNK_T* pMsgData = BN_NUMBER(pMsgDigest);
       int msgLen = BN_SIZE(pMsgDigest);
@@ -127,9 +127,12 @@ IPPFUN(IppStatus, ippsECCPSignDSA,(const IppsBigNumState* pMsgDigest,
          IppStatus sts = ippStsEphemeralKeyErr;
 
          IppsGFpState* pGF = ECP_GFP(pEC);
-         int elmLen = GFP_FELEN(pGF);
-         int pelmLen = GFP_PELEN(pGF);
-         BNU_CHUNK_T* pC = cpGFpGetPool(3, pGF);
+         gsModEngine* pGFE = GFP_PMA(pGF);
+
+         int elmLen = GFP_FELEN(pGFE);
+         int pelmLen = GFP_PELEN(pGFE);
+
+         BNU_CHUNK_T* pC = cpGFpGetPool(3, pGFE);
          BNU_CHUNK_T* pF = pC + pelmLen;
          BNU_CHUNK_T* pS = pF + pelmLen;
 
@@ -139,7 +142,7 @@ IPPFUN(IppStatus, ippsECCPSignDSA,(const IppsBigNumState* pMsgDigest,
 
          /* ephPublic.x  */
          gfec_GetPoint(pC, NULL, &ephPublic, pEC);
-         pGF->decode(pC, pC, pGF);
+         GFP_METHOD(pGFE)->decode(pC, pC, pGFE);
 
          /* signX = int(ephPublic.x) (mod order) */
          elmLen = cpMod_BNU(pC, elmLen, pOrder, orderLen);
@@ -150,21 +153,17 @@ IPPFUN(IppStatus, ippsECCPSignDSA,(const IppsBigNumState* pMsgDigest,
             // signY = (1/ephPrivate)*(pMsgDigest + private*signX) (mod order)
             */
             /* S = mont(private) * mont(signX) */
-            cpMontEnc_BNU(pF, pC, orderLen, pMontR);
-            cpMontEnc_BNU(pS, BN_NUMBER(pPrivate), BN_SIZE(pPrivate), pMontR);
-            cpMontMul_BNU(pS, pS,orderLen, pF,orderLen,
-                          pOrder,orderLen,
-                          MNT_HELPER(pMontR), MNT_PRODUCT(pMontR), NULL);
+            cpMontEnc_BNU_EX(pF, pC, orderLen, pMontR);
+            cpMontEnc_BNU_EX(pS, BN_NUMBER(pPrivate), BN_SIZE(pPrivate), pMontR);
+            cpMontMul_BNU(pS, pS, pF, pMontR);
             /* S = (S+ mont(msg) mod order */
             cpGFpElementCopyPadd(pF, orderLen, pMsgData, msgLen);
-            cpMontEnc_BNU(pF, pF, orderLen, pMontR);
+            cpMontEnc_BNU_EX(pF, pF, orderLen, pMontR);
             cpModAdd_BNU(pS, pS, pF, pOrder, orderLen, pF);
 
             /* S = S*(ephPrivate^-1) */
             cpGFpElementCopyPadd(pF, orderLen, BN_NUMBER(pSignY), BN_SIZE(pSignY));
-            cpMontMul_BNU(pS, pS,orderLen, pF,orderLen,
-                          pOrder,orderLen,
-                          MNT_HELPER(pMontR), MNT_PRODUCT(pMontR), NULL);
+            cpMontMul_BNU(pS, pS, pF, pMontR);
 
             if(!GFP_IS_ZERO(pS, orderLen)) {
                BNU_CHUNK_T* pSignXdata = BN_NUMBER(pSignX);
@@ -188,7 +187,7 @@ IPPFUN(IppStatus, ippsECCPSignDSA,(const IppsBigNumState* pMsgDigest,
             }
          }
 
-         cpGFpReleasePool(3, pGF);
+         cpGFpReleasePool(3, pGFE);
          return sts;
       }
    }

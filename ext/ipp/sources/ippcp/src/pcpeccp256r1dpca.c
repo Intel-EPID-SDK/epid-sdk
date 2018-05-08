@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -47,4 +47,17 @@ IPPFUN(IppStatus, ippsECCPSetStd256r1, (IppsECCPState* pEC))
                         BITS_BNU_CHUNK(256), secp256r1_r,
                         secp256r1_h,
                         pEC);
+}
+
+IPPFUN(IppStatus, ippsECCPBindGxyTblStd256r1,(IppsECCPState* pEC))
+{
+   /* test pEC */
+   IPP_BAD_PTR1_RET(pEC);
+   /* use aligned EC context */
+   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
+   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
+
+   ECP_PREMULBP(pEC) = gfpec_precom_nistP256r1_fun();
+
+   return ippStsNoErr;
 }

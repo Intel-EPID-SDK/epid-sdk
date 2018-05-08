@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2002-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -37,10 +37,6 @@
 #include "pcpbnumisc.h"
 #include "pcpbnu32misc.h"
 
-#if defined(__GNUC__) && (__GNUC__ >= 6)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
 
 /*
 // number of leading zeros
@@ -58,109 +54,6 @@ cpSize cpNLZ_BNU32(Ipp32u x)
    }
    return nlz;
 }
-
-/*
-// number of trailing zeros
-*/
-#if 0
-cpSize cpNTZ_BNU32(Ipp32u x)
-{
-   cpSize ntz = BITSIZE(Ipp32u);
-   if(x) {
-      ntz = 0;
-      if( 0==(x & 0x0000FFFF) )         { ntz+=16; x>>=16; }
-      if( 0==(x & 0x000000FF) )         { ntz+= 8; x>>= 8; }
-      if( 0==(x & 0x0000000F) )         { ntz+= 4; x>>= 4; }
-      if( 0==(x & 0x00000003) )         { ntz+= 2; x>>= 2; }
-      if( 0==(x & 0x00000001) )         { ntz++; }
-   }
-   return ntz;
-}
-#endif
-
-/*
-// Logical shift left (including inplace)
-//
-// Returns new length
-*/
-#if 0
-cpSize cpLSL_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, cpSize nBits)
-{
-   cpSize nlz = cpNLZ_BNU32(pA[nsA-1]);
-   cpSize nw = nBits/BNU_CHUNK_32BIT;
-   cpSize n;
-
-   pR += nw;
-
-   nBits %= BNU_CHUNK_32BIT;
-   if(nBits) {
-      Ipp32u hi,lo;
-
-      if(nlz < nBits )
-         hi = 0;
-      else
-         hi = pA[--nsA];
-
-      for(n=nsA; n>0; n--) {
-         lo = pA[n-1];
-         pR[n] = (hi<<nBits) | (lo>>(BNU_CHUNK_32BIT-nBits));
-         hi = lo;
-      }
-      pR[0] = (hi<<nBits);
-   }
-
-   else {
-      for(n=nsA; n>0; n--)
-         pR[n-1] = pA[n-1];
-   }
-
-   pR--;
-   for(n=0; n<nw; n++)
-      pR[n] = 0;
-
-   return nsA+nw;
-}
-#endif
-
-/*
-// Logical shift right (including inplace)
-//
-// Returns new length
-*/
-#if 0
-cpSize cpLSR_BNU32(Ipp32u* pR, const Ipp32u* pA, cpSize nsA, cpSize nBits)
-{
-   cpSize cnz = BNU_CHUNK_32BIT - cpNLZ_BNU32(pA[nsA-1]);
-   cpSize nw = nBits/BNU_CHUNK_32BIT;
-   cpSize n;
-
-   pA += nw;
-   nsA -= nw;
-
-   nBits %= BNU_CHUNK_32BIT;
-   if(nBits) {
-      Ipp32u hi;
-      Ipp32u lo = pA[0];
-
-      for(n=0; n<(nsA-1); n++) {
-         hi = pA[n+1];
-         pR[n] = (lo>>nBits) | (hi<<(BNU_CHUNK_32BIT-nBits));
-         lo = hi;
-      }
-      if(cnz > nBits)
-         pR[nsA-1] = (lo>>nBits);
-      else
-         nsA--;
-   }
-
-   else {
-      for(n=0; n<nsA; n++)
-         pR[n] = pA[n];
-   }
-
-   return nsA;
-}
-#endif
 
 /*
 // Convert Oct String into BNU representation
@@ -231,7 +124,3 @@ cpSize cpToOctStr_BNU32(Ipp8u* pStr, cpSize strLen, const Ipp32u* pBNU, cpSize b
          return 0;
    }
 }
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

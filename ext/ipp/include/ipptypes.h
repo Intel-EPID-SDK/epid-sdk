@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 1999-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef __IPPTYPES_H__
-#define __IPPTYPES_H__
+#ifndef IPPTYPES_H__
+#define IPPTYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,47 +37,53 @@ extern "C" {
 /*****************************************************************************/
 #if !defined( _OWN_BLDPCS )
 
-#define   ippCPUID_MMX        0x00000001   /* Intel Architecture MMX technology supported  */
-#define   ippCPUID_SSE        0x00000002   /* Streaming SIMD Extensions                    */
-#define   ippCPUID_SSE2       0x00000004   /* Streaming SIMD Extensions 2                  */
-#define   ippCPUID_SSE3       0x00000008   /* Streaming SIMD Extensions 3                  */
-#define   ippCPUID_SSSE3      0x00000010   /* Supplemental Streaming SIMD Extensions 3     */
-#define   ippCPUID_MOVBE      0x00000020   /* The processor supports MOVBE instruction     */
-#define   ippCPUID_SSE41      0x00000040   /* Streaming SIMD Extensions 4.1                */
-#define   ippCPUID_SSE42      0x00000080   /* Streaming SIMD Extensions 4.2                */
-#define   ippCPUID_AVX        0x00000100   /* Advanced Vector Extensions instruction set   */
-#define   ippAVX_ENABLEDBYOS  0x00000200   /* The operating system supports AVX            */
-#define   ippCPUID_AES        0x00000400   /* AES instruction                              */
-#define   ippCPUID_CLMUL      0x00000800   /* PCLMULQDQ instruction                        */
-#define   ippCPUID_ABR        0x00001000   /* Reserved                                     */
-#define   ippCPUID_RDRAND     0x00002000   /* Read Random Number instructions              */
-#define   ippCPUID_F16C       0x00004000   /* Float16 instructions                         */
-#define   ippCPUID_AVX2       0x00008000   /* Advanced Vector Extensions 2 instruction set */
-#define   ippCPUID_ADCOX      0x00010000   /* ADCX and ADOX instructions                   */
-#define   ippCPUID_RDSEED     0x00020000   /* The RDSEED instruction                       */
-#define   ippCPUID_PREFETCHW  0x00040000   /* The PREFETCHW instruction                    */
-#define   ippCPUID_SHA        0x00080000   /* Intel (R) SHA Extensions                     */
-#define   ippCPUID_AVX512F    0x00100000   /* AVX-512 Foundation instructions              */
-#define   ippCPUID_AVX512CD   0x00200000   /* AVX-512 Conflict Detection instructions      */
-#define   ippCPUID_AVX512ER   0x00400000   /* AVX-512 Exponential & Reciprocal instructions*/
-#define   ippCPUID_AVX512PF   0x00800000   /* AVX-512 Prefetch instructions                */
-#define   ippCPUID_AVX512BW   0x01000000   /* AVX-512 Byte & Word instructions             */
-#define   ippCPUID_AVX512DQ   0x02000000   /* AVX-512 DWord & QWord instructions           */
-#define   ippCPUID_AVX512VL   0x04000000   /* AVX-512 Vector Length extensions             */
-#define   ippCPUID_AVX512VBMI 0x08000000   /* AVX-512 Vector Length extensions             */
-#define   ippCPUID_MPX        0x10000000   /* Intel MPX (Memory Protection Extensions)     */
-#define   ippCPUID_KNC        0x80000000   /* Intel(R) Xeon Phi(TM) Coprocessor            */
-#if defined( _WIN32 ) || defined ( _WIN64 )
-  #define   ippCPUID_NOCHECK    0x8000000000000000L   /* Force ippSetCpuFeatures to set CPU features without check */
-#else
-  #define   ippCPUID_NOCHECK    0x8000000000000000LL
-#endif
+#ifndef IPP_CPU_FEATURES__
+#define IPP_CPU_FEATURES__
 
+#define   ippCPUID_MMX             0x00000001   /* Intel(R) Architecture MMX technology supported                              */
+#define   ippCPUID_SSE             0x00000002   /* Intel(R) Streaming SIMD Extensions                                          */
+#define   ippCPUID_SSE2            0x00000004   /* Intel(R) Streaming SIMD Extensions 2                                        */
+#define   ippCPUID_SSE3            0x00000008   /* Intel(R) Streaming SIMD Extensions 3                                        */
+#define   ippCPUID_SSSE3           0x00000010   /* Supplemental Streaming SIMD Extensions 3                                    */
+#define   ippCPUID_MOVBE           0x00000020   /* Intel(R) MOVBE instruction                                                  */
+#define   ippCPUID_SSE41           0x00000040   /* Intel(R) Streaming SIMD Extensions 4.1                                      */
+#define   ippCPUID_SSE42           0x00000080   /* Intel(R) Streaming SIMD Extensions 4.2                                      */
+#define   ippCPUID_AVX             0x00000100   /* Intel(R) Advanced Vector Extensions instruction set                         */
+#define   ippAVX_ENABLEDBYOS       0x00000200   /* Intel(R) Advanced Vector Extensions instruction set is supported by OS      */
+#define   ippCPUID_AES             0x00000400   /* Intel(R) AES New Instructions                                               */
+#define   ippCPUID_CLMUL           0x00000800   /* Intel(R) CLMUL instruction                                                  */
+#define   ippCPUID_ABR             0x00001000   /* Reserved                                                                    */
+#define   ippCPUID_RDRAND          0x00002000   /* Intel(R) RDRAND instruction                                                 */
+#define   ippCPUID_F16C            0x00004000   /* Intel(R) F16C new instructions                                              */
+#define   ippCPUID_AVX2            0x00008000   /* Intel(R) Advanced Vector Extensions 2 instruction set                       */
+#define   ippCPUID_ADCOX           0x00010000   /* Intel(R) ADOX/ADCX new instructions                                         */
+#define   ippCPUID_RDSEED          0x00020000   /* Intel(R) RDSEED instruction                                                 */
+#define   ippCPUID_PREFETCHW       0x00040000   /* Intel(R) PREFETCHW instruction                                              */
+#define   ippCPUID_SHA             0x00080000   /* Intel(R) SHA new instructions                                               */
+#define   ippCPUID_AVX512F         0x00100000   /* Intel(R) Advanced Vector Extensions 512 Foundation instruction set          */
+#define   ippCPUID_AVX512CD        0x00200000   /* Intel(R) Advanced Vector Extensions 512 CD instruction set                  */
+#define   ippCPUID_AVX512ER        0x00400000   /* Intel(R) Advanced Vector Extensions 512 ER instruction set                  */
+#define   ippCPUID_AVX512PF        0x00800000   /* Intel(R) Advanced Vector Extensions 512 PF instruction set                  */
+#define   ippCPUID_AVX512BW        0x01000000   /* Intel(R) Advanced Vector Extensions 512 BW instruction set                  */
+#define   ippCPUID_AVX512DQ        0x02000000   /* Intel(R) Advanced Vector Extensions 512 DQ instruction set                  */
+#define   ippCPUID_AVX512VL        0x04000000   /* Intel(R) Advanced Vector Extensions 512 VL instruction set                  */
+#define   ippCPUID_AVX512VBMI      0x08000000   /* Intel(R) Advanced Vector Extensions 512 Bit Manipulation instructions       */
+#define   ippCPUID_MPX             0x10000000   /* Intel(R) Memory Protection Extensions                                       */
+#define   ippCPUID_AVX512_4FMADDPS 0x20000000   /* Intel(R) Advanced Vector Extensions 512 DL floating-point single precision  */
+#define   ippCPUID_AVX512_4VNNIW   0x40000000   /* Intel(R) Advanced Vector Extensions 512 DL enhanced word variable precision */
+#define   ippCPUID_KNC             0x80000000   /* Intel(R) Xeon Phi(TM) Coprocessor                                           */
 #if defined( _WIN32 ) || defined ( _WIN64 )
-  #define   ippCPUID_GETINFO_A  0x616f666e69746567L   /* Force ipp_GetCpuFeatures to work as cpuid instruction */
+  #define INT64_SUFFIX(name) name##L
 #else
-  #define   ippCPUID_GETINFO_A  0x616f666e69746567LL
+  #define INT64_SUFFIX(name) name##LL
 #endif
+ #define   ippCPUID_AVX512IFMA   INT64_SUFFIX(0x100000000)        /* Intel(R) Advanced Vector Extensions 512 IFMA (PMADD52) instruction set      */
+ #define   ippCPUID_NOCHECK      INT64_SUFFIX(0x8000000000000000) /* Force ippSetCpuFeatures to set CPU features without check                   */
+ #define   ippCPUID_GETINFO_A    INT64_SUFFIX(0x616f666e69746567) /* Force ippGetCpuFeatures to work as cpuid instruction                        */
+ #define   ippAVX512_ENABLEDBYOS INT64_SUFFIX(0x200000000)        /* Intel(R) Advanced Vector Extensions 512 is supported by OS                  */
+
+
+#endif /* IPP_CPU_FEATURES__ */
 
 #define IPP_COUNT_OF( obj )  (sizeof(obj)/sizeof(obj[0]))
 
@@ -222,6 +228,7 @@ typedef struct FIRSpec_32f        IppsFIRSpec_32f;
 typedef struct FIRSpec_64f        IppsFIRSpec_64f;
 typedef struct FIRSpec_32fc       IppsFIRSpec_32fc;
 typedef struct FIRSpec_64fc       IppsFIRSpec_64fc;
+typedef struct FIRSpec32f_32fc    IppsFIRSpec32f_32fc;
 
 typedef struct FIRLMSState_32f    IppsFIRLMSState_32f;
 typedef struct FIRLMSState32f_16s IppsFIRLMSState32f_16s;
@@ -295,7 +302,11 @@ typedef enum _IppiBorderType {
     ippBorderInMem        =  ippBorderInMemLeft|ippBorderInMemTop|ippBorderInMemRight|ippBorderInMemBottom,
 
     /* Flags to use source image memory pixels from outside of the border for first stage only in multi-stage filters */
-    ippBorderFirstStageInMem = 0x0F00
+    ippBorderFirstStageInMemTop     =  0x0100,
+    ippBorderFirstStageInMemBottom  =  0x0200,
+    ippBorderFirstStageInMemLeft    =  0x0400,
+    ippBorderFirstStageInMemRight   =  0x0800,
+    ippBorderFirstStageInMem        = ippBorderFirstStageInMemLeft|ippBorderFirstStageInMemTop|ippBorderFirstStageInMemRight|ippBorderFirstStageInMemBottom
 } IppiBorderType;
 
 typedef enum {
@@ -348,7 +359,7 @@ enum {
     IPPI_INTER_LANCZOS = 16,
     IPPI_ANTIALIASING  = (1 << 29),
     IPPI_SUBPIXEL_EDGE = (1 << 30),
-    IPPI_SMOOTH_EDGE   = (1 << 31)
+    IPPI_SMOOTH_EDGE   = IPP_MIN_32S /* GCC gives warning for (1 << 31) definition */
 };
 
 typedef enum {
@@ -405,7 +416,8 @@ typedef enum {
 typedef struct FilterBilateralSpec IppiFilterBilateralSpec;
 
 typedef enum {
-    ippDistNormL1   =   0x00000002
+    ippDistNormL1   =   0x00000002,
+    ippDistNormL2   =   0x00000004
 } IppiDistanceMethodType;
 
 typedef enum {
@@ -560,6 +572,7 @@ typedef struct _IppiConnectedComp {
 } IppiConnectedComp;
 
 typedef struct PyramidState IppiPyramidState;
+typedef struct FilterSeparableSpec IppiFilterSeparableSpec;
 
 typedef IppiPyramidState IppiPyramidDownState_8u_C1R;
 typedef IppiPyramidState IppiPyramidDownState_16u_C1R;
@@ -800,331 +813,156 @@ typedef struct LZOState_8u IppLZOState_8u;
 //        The following enumerator defines a status of Intel(R) IPP operations
 //                     negative value means error
 */
-typedef enum {
     /* errors */
-    ippStsNotSupportedModeErr    = -9999,/* The requested mode is currently not supported.  */
-    ippStsCpuNotSupportedErr     = -9998,/* The target CPU is not supported. */
-    ippStsInplaceModeNotSupportedErr = -9997,/* The inplace operation is currently not supported. */
-#if (defined( _WIN32 ) || defined( _WIN64 ))&&(defined( _OWN_CHECK_X64_ABI ))
-    ippStsABIErrRBX              = -8000, /* RBX is not saved by Intel(R) IPP function */
-    ippStsABIErrRDI              = -8001, /* RDI is not saved by Intel(R) IPP function */
-    ippStsABIErrRSI              = -8002, /* RSI is not saved by Intel(R) IPP function */
-    ippStsABIErrRBP              = -8003, /* RBP is not saved by Intel(R) IPP function */
-    ippStsABIErrR12              = -8004, /* R12 is not saved by Intel(R) IPP function */
-    ippStsABIErrR13              = -8005, /* R13 is not saved by Intel(R) IPP function */
-    ippStsABIErrR14              = -8006, /* R14 is not saved by Intel(R) IPP function */
-    ippStsABIErrR15              = -8007, /* R15 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM6             = -8008, /* XMM6 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM7             = -8009, /* XMM7 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM8             = -8010, /* XMM8 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM9             = -8011, /* XMM9 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM10            = -8012, /* XMM10 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM11            = -8013, /* XMM11 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM12            = -8014, /* XMM12 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM13            = -8015, /* XMM13 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM14            = -8016, /* XMM14 is not saved by Intel(R) IPP function */
-    ippStsABIErrXMM15            = -8017, /* XMM15 is not saved by Intel(R) IPP function */
-#endif
-    ippStsIIRIIRLengthErr        = -234, /* Vector length for IIRIIR function is less than 3*(IIR order) */
-    ippStsWarpTransformTypeErr   = -233, /* The warp transform type is illegal */
-    ippStsExceededSizeErr        = -232, /* Requested size exceeded the maximum supported ROI size */
-    ippStsWarpDirectionErr       = -231, /* The warp transform direction is illegal */
+#define ippStsCpuNotSupportedErr         -9999/* The target CPU is not supported. */
+#define ippStsInplaceModeNotSupportedErr -9998/* The inplace operation is currently not supported. */
 
-    ippStsFilterTypeErr          = -230, /* The filter type is incorrect or not supported */
+     /* ippCrypto specific statuses - any changes MUST be done in both repositories - 
+        IPP & ippCrypto - don't use sts range 1000-2000 - reserved for Crypto */
 
-    ippStsNormErr                = -229, /* The norm is incorrect or not supported */
+#define ippStsIIRIIRLengthErr             -234 /* Vector length for IIRIIR function is less than 3*(IIR order) */
+#define ippStsWarpTransformTypeErr        -233 /* The warp transform type is illegal */
+#define ippStsExceededSizeErr             -232 /* Requested size exceeded the maximum supported ROI size */
+#define ippStsWarpDirectionErr            -231 /* The warp transform direction is illegal */
+#define ippStsFilterTypeErr               -230 /* The filter type is incorrect or not supported */
+#define ippStsNormErr                     -229 /* The norm is incorrect or not supported */
+#define ippStsAlgTypeErr                  -228 /* Algorithm type is not supported. */
+#define ippStsMisalignedOffsetErr         -227 /* The offset is not aligned with an element. */
+#define ippStsBorderErr                   -225 /* Illegal value for border type.*/
+#define ippStsDitherTypeErr               -224 /* Dithering type is not supported. */
+#define ippStsUnknownStatusCodeErr        -216 /* Unknown status code. */
+#define ippStsLzoBrokenStreamErr          -214 /* LZO safe decompression function cannot decode LZO stream.*/
+#define ippStsRoundModeNotSupportedErr    -213 /* Rounding mode is not supported. */
+#define ippStsDecimateFractionErr         -212 /* Fraction in Decimate is not supported. */
+#define ippStsWeightErr                   -211 /* Incorrect value for weight. */
+#define ippStsQualityIndexErr             -210 /* Cannot calculate the quality index for an image filled with a constant. */
+#define ippStsIIRPassbandRippleErr        -209 /* Ripple in passband for Chebyshev1 design is less than zero, equal to zero, or greater than 29. */
+#define ippStsFilterFrequencyErr          -208 /* Cutoff frequency of filter is less than zero, equal to zero, or greater than 0.5. */
+#define ippStsIIRGenOrderErr              -206 /* Order of the IIR filter for design is less than 1, or greater than 12. */
+#define ippStsConvergeErr                 -205 /* The algorithm does not converge. */
+#define ippStsSizeMatchMatrixErr          -204 /* The sizes of the source matrices are unsuitable. */
+#define ippStsCountMatrixErr              -203 /* Count value is less than or equal to zero. */
+#define ippStsRoiShiftMatrixErr           -202 /* RoiShift value is negative or not divisible by the size of the data type. */
+#define ippStsSrcDataErr                  -200 /* The source buffer contains unsupported data.*/
+#define ippStsSingularErr                 -195 /* Matrix is singular. */
+#define ippStsSparseErr                   -194 /* Positions of taps are not in ascending order, or are negative, or repetitive. */
+#define ippStsRegExpOptionsErr            -190 /* RegExp: Options for the pattern are incorrect. */
+#define ippStsRegExpErr                   -189 /* RegExp: The structure pRegExpState contains incorrect data. */
+#define ippStsRegExpMatchLimitErr         -188 /* RegExp: The match limit is exhausted. */
+#define ippStsRegExpQuantifierErr         -187 /* RegExp: Incorrect quantifier. */
+#define ippStsRegExpGroupingErr           -186 /* RegExp: Incorrect grouping. */
+#define ippStsRegExpBackRefErr            -185 /* RegExp: Incorrect back reference. */
+#define ippStsRegExpChClassErr            -184 /* RegExp: Incorrect character class. */
+#define ippStsRegExpMetaChErr             -183 /* RegExp: Incorrect metacharacter. */
+#define ippStsStrideMatrixErr             -182 /* Stride value is not positive or not divisible by the size of the data type. */
+#define ippStsNoiseRangeErr               -125 /* Noise value for Wiener Filter is out of range. */
+#define ippStsNotEvenStepErr              -108 /* Step value is not pixel multiple. */
+#define ippStsHistoNofLevelsErr           -107 /* Number of levels for histogram is less than 2. */
+#define ippStsLUTNofLevelsErr             -106 /* Number of levels for LUT is less than 2. */
+#define ippStsChannelOrderErr              -60 /* Incorrect order of the destination channels. */
+#define ippStsDataTypeErr                  -59 /* Data type is incorrect or not supported. */
+#define ippStsQuadErr                      -58 /* The quadrangle is nonconvex or degenerates into triangle, line, or point */
+#define ippStsRectErr                      -57 /* Size of the rectangle region is less than, or equal to 1. */
+#define ippStsCoeffErr                     -56 /* Incorrect values for transformation coefficients. */
+#define ippStsNoiseValErr                  -55 /* Incorrect value for noise amplitude for dithering. */
+#define ippStsDitherLevelsErr              -54 /* Number of dithering levels is out of range. */
+#define ippStsNumChannelsErr               -53 /* Number of channels is incorrect, or not supported. */
+#define ippStsCOIErr                       -52 /* COI is out of range. */
+#define ippStsDivisorErr                   -51 /* Divisor is equal to zero, function is aborted. */
+#define ippStsAlphaTypeErr                 -50 /* Illegal type of image compositing operation. */
+#define ippStsGammaRangeErr                -49 /* Gamma range bounds is less than, or equal to zero. */
+#define ippStsChannelErr                   -47 /* Illegal channel number. */
+#define ippStsToneMagnErr                  -46 /* Tone magnitude is less than, or equal to zero. */
+#define ippStsToneFreqErr                  -45 /* Tone frequency is negative, or greater than, or equal to 0.5. */
+#define ippStsTonePhaseErr                 -44 /* Tone phase is negative, or greater than, or equal to 2*PI. */
+#define ippStsTrnglMagnErr                 -43 /* Triangle magnitude is less than, or equal to zero. */
+#define ippStsTrnglFreqErr                 -42 /* Triangle frequency is negative, or greater than, or equal to 0.5. */
+#define ippStsTrnglPhaseErr                -41 /* Triangle phase is negative, or greater than, or equal to 2*PI. */
+#define ippStsTrnglAsymErr                 -40 /* Triangle asymmetry is less than -PI, or greater than, or equal to PI. */
+#define ippStsHugeWinErr                   -39 /* Kaiser window is too big. */
+#define ippStsJaehneErr                    -38 /* Magnitude value is negative. */
+#define ippStsStrideErr                    -37 /* Stride value is less than the length of the row. */
+#define ippStsEpsValErr                    -36 /* Negative epsilon value. */
+#define ippStsWtOffsetErr                  -35 /* Invalid offset value for wavelet filter. */
+#define ippStsAnchorErr                    -34 /* Anchor point is outside the mask. */
+#define ippStsMaskSizeErr                  -33 /* Invalid mask size. */
+#define ippStsShiftErr                     -32 /* Shift value is less than zero. */
+#define ippStsSampleFactorErr              -31 /* Sampling factor is less than,or equal to zero. */
+#define ippStsSamplePhaseErr               -30 /* Phase value is out of range: 0 <= phase < factor. */
+#define ippStsFIRMRFactorErr               -29 /* MR FIR sampling factor is less than, or equal to zero. */
+#define ippStsFIRMRPhaseErr                -28 /* MR FIR sampling phase is negative, or greater than, or equal to the sampling factor. */
+#define ippStsRelFreqErr                   -27 /* Relative frequency value is out of range. */
+#define ippStsFIRLenErr                    -26 /* Length of a FIR filter is less than, or equal to zero. */
+#define ippStsIIROrderErr                  -25 /* Order of an IIR filter is not valid. */
+#define ippStsResizeFactorErr              -24 /* Resize factor(s) is less than, or equal to zero. */
+#define ippStsInterpolationErr             -23 /* Invalid interpolation mode. */
+#define ippStsMirrorFlipErr                -22 /* Invalid flip mode. */
+#define ippStsMoment00ZeroErr              -21 /* Moment value M(0,0) is too small to continue calculations. */
+#define ippStsThreshNegLevelErr            -20 /* Negative value of the level in the threshold operation. */
+#define ippStsThresholdErr                 -19 /* Invalid threshold bounds. */
+#define ippStsFftFlagErr                   -18 /* Invalid value for the FFT flag parameter. */
+#define ippStsFftOrderErr                  -17 /* Invalid value for the FFT order parameter. */
+#define ippStsStepErr                      -16 /* Step value is not valid. */
 
-    ippStsAlgTypeErr             = -228, /* Algorithm type is not supported.        */
-    ippStsMisalignedOffsetErr    = -227, /* The offset is not aligned with an element. */
-
-    ippStsQuadraticNonResidueErr = -226, /* SQRT operation on quadratic non-residue value. */
-
-    ippStsBorderErr              = -225, /* Illegal value for border type.*/
-
-    ippStsDitherTypeErr          = -224, /* Dithering type is not supported. */
-    ippStsH264BufferFullErr      = -223, /* Buffer for the output bitstream is full. */
-    ippStsWrongAffinitySettingErr= -222, /* An affinity setting does not correspond to the affinity setting that was set by f.ippSetAffinity(). */
-    ippStsLoadDynErr             = -221, /* Error when loading the dynamic library. */
-
-    ippStsPointAtInfinity        = -220, /* Point at infinity is detected.  */
-
-    ippStsUnknownStatusCodeErr   = -216, /* Unknown status code. */
-
-    ippStsOFBSizeErr             = -215, /* Incorrect value for crypto OFB block size. */
-    ippStsLzoBrokenStreamErr     = -214, /* LZO safe decompression function cannot decode LZO stream. */
-
-    ippStsRoundModeNotSupportedErr  = -213, /* Rounding mode is not supported. */
-    ippStsDecimateFractionErr    = -212, /* Fraction in Decimate is not supported. */
-    ippStsWeightErr              = -211, /* Incorrect value for weight. */
-
-    ippStsQualityIndexErr        = -210, /* Cannot calculate the quality index for an image filled with a constant. */
-    ippStsIIRPassbandRippleErr   = -209, /* Ripple in passband for Chebyshev1 design is less than zero, equal to zero, or greater than 29. */
-    ippStsFilterFrequencyErr     = -208, /* Cutoff frequency of filter is less than zero, equal to zero, or greater than 0.5. */
-    ippStsFIRGenOrderErr         = -207, /* Order of the FIR filter for design is less than 1.                    */
-    ippStsIIRGenOrderErr         = -206, /* Order of the IIR filter for design is less than 1, or greater than 12. */
-
-    ippStsConvergeErr            = -205, /* The algorithm does not converge. */
-    ippStsSizeMatchMatrixErr     = -204, /* The sizes of the source matrices are unsuitable. */
-    ippStsCountMatrixErr         = -203, /* Count value is less than, or equal to zero. */
-    ippStsRoiShiftMatrixErr      = -202, /* RoiShift value is negative or not divisible by the size of the data type. */
-
-    ippStsResizeNoOperationErr   = -201, /* One of the output image dimensions is less than 1 pixel. */
-    ippStsSrcDataErr             = -200, /* The source buffer contains unsupported data. */
-    ippStsMaxLenHuffCodeErr      = -199, /* Huff: Max length of Huffman code is more than the expected one. */
-    ippStsCodeLenTableErr        = -198, /* Huff: Invalid codeLenTable. */
-    ippStsFreqTableErr           = -197, /* Huff: Invalid freqTable. */
-
-    ippStsIncompleteContextErr   = -196, /* Crypto: set up of context is not complete. */
-
-    ippStsSingularErr            = -195, /* Matrix is singular. */
-    ippStsSparseErr              = -194, /* Positions of taps are not in ascending order, or are negative, or repetitive. */
-    ippStsBitOffsetErr           = -193, /* Incorrect bit offset value. */
-    ippStsQPErr                  = -192, /* Incorrect quantization parameter value. */
-    ippStsVLCErr                 = -191, /* Illegal VLC or FLC is detected during stream decoding. */
-    ippStsRegExpOptionsErr       = -190, /* RegExp: Options for the pattern are incorrect. */
-    ippStsRegExpErr              = -189, /* RegExp: The structure pRegExpState contains incorrect data. */
-    ippStsRegExpMatchLimitErr    = -188, /* RegExp: The match limit is exhausted. */
-    ippStsRegExpQuantifierErr    = -187, /* RegExp: Incorrect quantifier. */
-    ippStsRegExpGroupingErr      = -186, /* RegExp: Incorrect grouping. */
-    ippStsRegExpBackRefErr       = -185, /* RegExp: Incorrect back reference. */
-    ippStsRegExpChClassErr       = -184, /* RegExp: Incorrect character class. */
-    ippStsRegExpMetaChErr        = -183, /* RegExp: Incorrect metacharacter. */
-    ippStsStrideMatrixErr        = -182,  /* Stride value is not positive or not divisible by the size of the data type. */
-    ippStsCTRSizeErr             = -181,  /* Incorrect value for crypto CTR block size. */
-    ippStsJPEG2KCodeBlockIsNotAttached =-180, /* Codeblock parameters are not attached to the state structure. */
-    ippStsNotPosDefErr           = -179,      /* Matrix is not positive definite. */
-
-    ippStsEphemeralKeyErr        = -178, /* ECC: Invalid ephemeral key.   */
-    ippStsMessageErr             = -177, /* ECC: Invalid message digest.  */
-    ippStsShareKeyErr            = -176, /* ECC: Invalid share key.   */
-    ippStsIvalidPublicKey        = -175, /* ECC: Invalid public key.  */
-    ippStsIvalidPrivateKey       = -174, /* ECC: Invalid private key. */
-    ippStsOutOfECErr             = -173, /* ECC: Point out of EC.     */
-    ippStsECCInvalidFlagErr      = -172, /* ECC: Invalid Flag.        */
-
-    ippStsMP3FrameHeaderErr      = -171,  /* Error in fields of the IppMP3FrameHeader structure. */
-    ippStsMP3SideInfoErr         = -170,  /* Error in fields of the IppMP3SideInfo structure. */
-
-    ippStsBlockStepErr           = -169,  /* Step for Block is less than 8. */
-    ippStsMBStepErr              = -168,  /* Step for MB is less than 16. */
-
-    ippStsAacPrgNumErr           = -167,  /* AAC: Invalid number of elements for one program.   */
-    ippStsAacSectCbErr           = -166,  /* AAC: Invalid section codebook.                     */
-    ippStsAacSfValErr            = -164,  /* AAC: Invalid scalefactor value.                    */
-    ippStsAacCoefValErr          = -163,  /* AAC: Invalid quantized coefficient value.          */
-    ippStsAacMaxSfbErr           = -162,  /* AAC: Invalid coefficient index.  */
-    ippStsAacPredSfbErr          = -161,  /* AAC: Invalid predicted coefficient index.  */
-    ippStsAacPlsDataErr          = -160,  /* AAC: Invalid pulse data attributes.  */
-    ippStsAacGainCtrErr          = -159,  /* AAC: Gain control is not supported.  */
-    ippStsAacSectErr             = -158,  /* AAC: Invalid number of sections.  */
-    ippStsAacTnsNumFiltErr       = -157,  /* AAC: Invalid number of TNS filters.  */
-    ippStsAacTnsLenErr           = -156,  /* AAC: Invalid length of TNS region.  */
-    ippStsAacTnsOrderErr         = -155,  /* AAC: Invalid order of TNS filter.  */
-    ippStsAacTnsCoefResErr       = -154,  /* AAC: Invalid bit-resolution for TNS filter coefficients.  */
-    ippStsAacTnsCoefErr          = -153,  /* AAC: Invalid coefficients of TNS filter. */
-    ippStsAacTnsDirectErr        = -152,  /* AAC: Invalid direction TNS filter.  */
-    ippStsAacTnsProfileErr       = -151,  /* AAC: Invalid TNS profile.  */
-    ippStsAacErr                 = -150,  /* AAC: Internal error.  */
-    ippStsAacBitOffsetErr        = -149,  /* AAC: Invalid current bit offset in bitstream.  */
-    ippStsAacAdtsSyncWordErr     = -148,  /* AAC: Invalid ADTS syncword.  */
-    ippStsAacSmplRateIdxErr      = -147,  /* AAC: Invalid sample rate index.  */
-    ippStsAacWinLenErr           = -146,  /* AAC: Invalid window length (not short or long).  */
-    ippStsAacWinGrpErr           = -145,  /* AAC: Invalid number of groups for current window length.  */
-    ippStsAacWinSeqErr           = -144,  /* AAC: Invalid window sequence range.  */
-    ippStsAacComWinErr           = -143,  /* AAC: Invalid common window flag.  */
-    ippStsAacStereoMaskErr       = -142,  /* AAC: Invalid stereo mask.  */
-    ippStsAacChanErr             = -141,  /* AAC: Invalid channel number.  */
-    ippStsAacMonoStereoErr       = -140,  /* AAC: Invalid mono-stereo flag.  */
-    ippStsAacStereoLayerErr      = -139,  /* AAC: Invalid this Stereo Layer flag.  */
-    ippStsAacMonoLayerErr        = -138,  /* AAC: Invalid this Mono Layer flag.  */
-    ippStsAacScalableErr         = -137,  /* AAC: Invalid scalable object flag.  */
-    ippStsAacObjTypeErr          = -136,  /* AAC: Invalid audio object type.  */
-    ippStsAacWinShapeErr         = -135,  /* AAC: Invalid window shape.  */
-    ippStsAacPcmModeErr          = -134,  /* AAC: Invalid PCM output interleaving indicator.  */
-    ippStsVLCUsrTblHeaderErr          = -133,  /* VLC: Invalid header inside table. */
-    ippStsVLCUsrTblUnsupportedFmtErr  = -132,  /* VLC: Table format is not supported.  */
-    ippStsVLCUsrTblEscAlgTypeErr      = -131,  /* VLC: Ecs-algorithm is not supported. */
-    ippStsVLCUsrTblEscCodeLengthErr   = -130,  /* VLC: Esc-code length inside table header is incorrect. */
-    ippStsVLCUsrTblCodeLengthErr      = -129,  /* VLC: Code length inside table is incorrect.  */
-    ippStsVLCInternalTblErr           = -128,  /* VLC: Invalid internal table. */
-    ippStsVLCInputDataErr             = -127,  /* VLC: Invalid input data. */
-    ippStsVLCAACEscCodeLengthErr      = -126,  /* VLC: Invalid AAC-Esc code length. */
-    ippStsNoiseRangeErr         = -125,  /* Noise value for Wiener Filter is out of range. */
-    ippStsUnderRunErr           = -124,  /* Error in data under run. */
-    ippStsPaddingErr            = -123,  /* Detected padding error indicates the possible data corruption. */
-    ippStsCFBSizeErr            = -122,  /* Incorrect value for crypto CFB block size. */
-    ippStsPaddingSchemeErr      = -121,  /* Invalid padding scheme.  */
-    ippStsInvalidCryptoKeyErr   = -120,  /* A compromised key causes suspansion of the requested cryptographic operation.  */
-    ippStsLengthErr             = -119,  /* Incorrect value for string length. */
-    ippStsBadModulusErr         = -118,  /* Bad modulus caused a failure in module inversion. */
-    ippStsLPCCalcErr            = -117,  /* Cannot evaluate linear prediction. */
-    ippStsRCCalcErr             = -116,  /* Cannot compute reflection coefficients. */
-    ippStsIncorrectLSPErr       = -115,  /* Incorrect values for Linear Spectral Pair. */
-    ippStsNoRootFoundErr        = -114,  /* No roots are found for equation. */
-    ippStsJPEG2KBadPassNumber   = -113,  /* Pass number exceeds allowed boundaries [0,nOfPasses-1]. */
-    ippStsJPEG2KDamagedCodeBlock= -112,  /* Codeblock for decoding contains damaged data. */
-    ippStsH263CBPYCodeErr       = -111,  /* Illegal Huffman code is detected through CBPY stream processing. */
-    ippStsH263MCBPCInterCodeErr = -110,  /* Illegal Huffman code is detected through MCBPC Inter stream processing. */
-    ippStsH263MCBPCIntraCodeErr = -109,  /* Illegal Huffman code is detected through MCBPC Intra stream processing. */
-    ippStsNotEvenStepErr        = -108,  /* Step value is not pixel multiple. */
-    ippStsHistoNofLevelsErr     = -107,  /* Number of levels for histogram is less than 2. */
-    ippStsLUTNofLevelsErr       = -106,  /* Number of levels for LUT is less than 2. */
-    ippStsMP4BitOffsetErr       = -105,  /* Incorrect bit offset value. */
-    ippStsMP4QPErr              = -104,  /* Incorrect quantization parameter. */
-    ippStsMP4BlockIdxErr        = -103,  /* Incorrect block index. */
-    ippStsMP4BlockTypeErr       = -102,  /* Incorrect block type. */
-    ippStsMP4MVCodeErr          = -101,  /* Illegal Huffman code is detected during MV stream processing. */
-    ippStsMP4VLCCodeErr         = -100,  /* Illegal Huffman code is detected during VLC stream processing. */
-    ippStsMP4DCCodeErr          = -99,   /* Illegal code is detected during DC stream processing. */
-    ippStsMP4FcodeErr           = -98,   /* Incorrect fcode value. */
-    ippStsMP4AlignErr           = -97,   /* Incorrect buffer alignment .           */
-    ippStsMP4TempDiffErr        = -96,   /* Incorrect temporal difference.         */
-    ippStsMP4BlockSizeErr       = -95,   /* Incorrect size of a block or macroblock. */
-    ippStsMP4ZeroBABErr         = -94,   /* All BAB values are equal to zero.             */
-    ippStsMP4PredDirErr         = -93,   /* Incorrect prediction direction.        */
-    ippStsMP4BitsPerPixelErr    = -92,   /* Incorrect number of bits per pixel.    */
-    ippStsMP4VideoCompModeErr   = -91,   /* Incorrect video component mode.       */
-    ippStsMP4LinearModeErr      = -90,   /* Incorrect DC linear mode. */
-    ippStsH263PredModeErr       = -83,   /* Incorrect Prediction Mode value.                                       */
-    ippStsH263BlockStepErr      = -82,   /* The step value is less than 8.                                         */
-    ippStsH263MBStepErr         = -81,   /* The step value is less than 16.                                        */
-    ippStsH263FrameWidthErr     = -80,   /* The frame width is less than 8.                                        */
-    ippStsH263FrameHeightErr    = -79,   /* The frame height is less than, or equal to zero.                        */
-    ippStsH263ExpandPelsErr     = -78,   /* Expand pixels number is less than 8.                               */
-    ippStsH263PlaneStepErr      = -77,   /* Step value is less than the plane width.                           */
-    ippStsH263QuantErr          = -76,   /* Quantizer value is less than, or equal to zero, or greater than 31. */
-    ippStsH263MVCodeErr         = -75,   /* Illegal Huffman code is detected during MV stream processing.                  */
-    ippStsH263VLCCodeErr        = -74,   /* Illegal Huffman code is detected during VLC stream processing.                 */
-    ippStsH263DCCodeErr         = -73,   /* Illegal code is detected during DC stream processing.                          */
-    ippStsH263ZigzagLenErr      = -72,   /* Zigzag compact length is more than 64.                             */
-    ippStsFBankFreqErr          = -71,   /* Incorrect value for the filter bank frequency parameter. */
-    ippStsFBankFlagErr          = -70,   /* Incorrect value for the filter bank parameter.           */
-    ippStsFBankErr              = -69,   /* Filter bank is not correctly initialized.              */
-    ippStsNegOccErr             = -67,   /* Occupation count is negative.                     */
-    ippStsCdbkFlagErr           = -66,   /* Incorrect value for the codebook flag parameter. */
-    ippStsSVDCnvgErr            = -65,   /* SVD algorithm does not converge.               */
-    ippStsJPEGHuffTableErr      = -64,   /* JPEG Huffman table is destroyed.        */
-    ippStsJPEGDCTRangeErr       = -63,   /* JPEG DCT coefficient is out of range. */
-    ippStsJPEGOutOfBufErr       = -62,   /* Attempt to access out of the buffer limits.   */
-    ippStsDrawTextErr           = -61,   /* System error in the draw text operation. */
-    ippStsChannelOrderErr       = -60,   /* Incorrect order of the destination channels. */
-    ippStsZeroMaskValuesErr     = -59,   /* All values of the mask are equal to zero. */
-    ippStsQuadErr               = -58,   /* The quadrangle is nonconvex or degenerates into triangle, line, or point */
-    ippStsRectErr               = -57,   /* Size of the rectangle region is less than, or equal to 1. */
-    ippStsCoeffErr              = -56,   /* Incorrect values for transformation coefficients.   */
-    ippStsNoiseValErr           = -55,   /* Incorrect value for noise amplitude for dithering.             */
-    ippStsDitherLevelsErr       = -54,   /* Number of dithering levels is out of range.             */
-    ippStsNumChannelsErr        = -53,   /* Number of channels is incorrect, or not supported.                  */
-    ippStsCOIErr                = -52,   /* COI is out of range. */
-    ippStsDivisorErr            = -51,   /* Divisor is equal to zero, function is aborted. */
-    ippStsAlphaTypeErr          = -50,   /* Illegal type of image compositing operation.                           */
-    ippStsGammaRangeErr         = -49,   /* Gamma range bounds is less than, or equal to zero.                      */
-    ippStsGrayCoefSumErr        = -48,   /* Sum of the conversion coefficients must be less than, or equal to 1.    */
-    ippStsChannelErr            = -47,   /* Illegal channel number.                                                */
-    ippStsToneMagnErr           = -46,   /* Tone magnitude is less than, or equal to zero.                          */
-    ippStsToneFreqErr           = -45,   /* Tone frequency is negative, or greater than, or equal to 0.5.           */
-    ippStsTonePhaseErr          = -44,   /* Tone phase is negative, or greater than, or equal to 2*PI.              */
-    ippStsTrnglMagnErr          = -43,   /* Triangle magnitude is less than, or equal to zero.                      */
-    ippStsTrnglFreqErr          = -42,   /* Triangle frequency is negative, or greater than, or equal to 0.5.       */
-    ippStsTrnglPhaseErr         = -41,   /* Triangle phase is negative, or greater than, or equal to 2*PI.          */
-    ippStsTrnglAsymErr          = -40,   /* Triangle asymmetry is less than -PI, or greater than, or equal to PI.   */
-    ippStsHugeWinErr            = -39,   /* Kaiser window is too big.                                             */
-    ippStsJaehneErr             = -38,   /* Magnitude value is negative.                                           */
-    ippStsStrideErr             = -37,   /* Stride value is less than the length of the row. */
-    ippStsEpsValErr             = -36,   /* Negative epsilon value.             */
-    ippStsWtOffsetErr           = -35,   /* Invalid offset value for wavelet filter.                                       */
-    ippStsAnchorErr             = -34,   /* Anchor point is outside the mask.                                             */
-    ippStsMaskSizeErr           = -33,   /* Invalid mask size.                                                           */
-    ippStsShiftErr              = -32,   /* Shift value is less than zero.                                                */
-    ippStsSampleFactorErr       = -31,   /* Sampling factor is less than, or equal to zero.                                */
-    ippStsSamplePhaseErr        = -30,   /* Phase value is out of range: 0 <= phase < factor.                             */
-    ippStsFIRMRFactorErr        = -29,   /* MR FIR sampling factor is less than, or equal to zero.                         */
-    ippStsFIRMRPhaseErr         = -28,   /* MR FIR sampling phase is negative, or greater than, or equal to the sampling factor. */
-    ippStsRelFreqErr            = -27,   /* Relative frequency value is out of range.                                     */
-    ippStsFIRLenErr             = -26,   /* Length of a FIR filter is less than, or equal to zero.                         */
-    ippStsIIROrderErr           = -25,   /* Order of an IIR filter is not valid. */
-    ippStsDlyLineIndexErr       = -24,   /* Invalid value for the delay line sample index. */
-    ippStsResizeFactorErr       = -23,   /* Resize factor(s) is less than, or equal to zero. */
-    ippStsInterpolationErr      = -22,   /* Invalid interpolation mode. */
-    ippStsMirrorFlipErr         = -21,   /* Invalid flip mode.                                         */
-    ippStsMoment00ZeroErr       = -20,   /* Moment value M(0,0) is too small to continue calculations. */
-    ippStsThreshNegLevelErr     = -19,   /* Negative value of the level in the threshold operation.    */
-    ippStsThresholdErr          = -18,   /* Invalid threshold bounds. */
-    ippStsContextMatchErr       = -17,   /* Context parameter does not match the operation. */
-    ippStsFftFlagErr            = -16,   /* Invalid value for the FFT flag parameter. */
-    ippStsFftOrderErr           = -15,   /* Invalid value for the FFT order parameter. */
-    ippStsStepErr               = -14,   /* Step value is not valid. */
-    ippStsScaleRangeErr         = -13,   /* Scale bounds are out of range. */
-    ippStsDataTypeErr           = -12,   /* Data type is incorrect or not supported. */
-    ippStsOutOfRangeErr         = -11,   /* Argument is out of range, or point is outside the image. */
-    ippStsDivByZeroErr          = -10,   /* An attempt to divide by zero. */
-    ippStsMemAllocErr           = -9,    /* Memory allocated for the operation is not enough.*/
-    ippStsNullPtrErr            = -8,    /* Null pointer error. */
-    ippStsRangeErr              = -7,    /* Incorrect values for bounds: the lower bound is greater than the upper bound. */
-    ippStsSizeErr               = -6,    /* Incorrect value for data size. */
-    ippStsBadArgErr             = -5,    /* Incorrect arg/param of the function.  */
-    ippStsNoMemErr              = -4,    /* Not enough memory for the operation. */
-    ippStsSAReservedErr3        = -3,    /* Unknown/unspecified error, -3. */
-    ippStsErr                   = -2,    /* Unknown/unspecified error, -2. */
-    ippStsSAReservedErr1        = -1,    /* Unknown/unspecified error, -1. */
-
+#ifndef IPPSTATUS_H__
+#define IPPSTATUS_H__
+typedef signed int IppStatus;
+    /* start of common with ippCrypto part - any changes MUST be done in both repositories - IPP & ippCrypto */
+  #define ippStsLoadDynErr                  -221 /* Error when loading the dynamic library. */
+  #define ippStsLengthErr                    -15 /* Incorrect value for string length. */
+  #define ippStsNotSupportedModeErr          -14 /* The requested mode is currently not supported. */
+  #define ippStsContextMatchErr              -13 /* Context parameter does not match the operation. */
+  #define ippStsScaleRangeErr                -12 /* Scale bounds are out of range. */
+  #define ippStsOutOfRangeErr                -11 /* Argument is out of range, or point is outside the image. */
+  #define ippStsDivByZeroErr                 -10 /* An attempt to divide by zero. */
+  #define ippStsMemAllocErr                   -9 /* Memory allocated for the operation is not enough.*/
+  #define ippStsNullPtrErr                    -8 /* Null pointer error. */
+  #define ippStsRangeErr                      -7 /* Incorrect values for bounds: the lower bound is greater than the upper bound. */
+  #define ippStsSizeErr                       -6 /* Incorrect value for data size. */
+  #define ippStsBadArgErr                     -5 /* Incorrect arg/param of the function. */
+  #define ippStsNoMemErr                      -4 /* Not enough memory for the operation. */
+  #define ippStsErr                           -2 /* Unknown/unspecified error */
      /* no errors */
-    ippStsNoErr                 =   0,   /* No errors. */
-
+  #define ippStsNoErr                          0 /* No errors. */
      /* warnings  */
-    ippStsNoOperation       =   1,       /* No operation has been executed. */
-    ippStsMisalignedBuf     =   2,       /* Misaligned pointer in operation in which it must be aligned. */
-    ippStsSqrtNegArg        =   3,       /* Negative value(s) for the argument in the Sqrt function. */
-    ippStsInvZero           =   4,       /* INF result. Zero value was met by InvThresh with zero level. */
-    ippStsEvenMedianMaskSize=   5,       /* Even size of the Median Filter mask was replaced with the odd one. */
-    ippStsDivByZero         =   6,       /* Zero value(s) for the divisor in the Div function. */
-    ippStsLnZeroArg         =   7,       /* Zero value(s) for the argument in the Ln function.     */
-    ippStsLnNegArg          =   8,       /* Negative value(s) for the argument in the Ln function. */
-    ippStsNanArg            =   9,       /* Argument value is not a number.                  */
-    ippStsJPEGMarker        =   10,      /* JPEG marker in the bitstream.                 */
-    ippStsResFloor          =   11,      /* All result values are floored.                        */
-    ippStsOverflow          =   12,      /* Overflow in the operation.                   */
-    ippStsLSFLow            =   13,      /* Quantized LP synthesis filter stability check is applied at the low boundary of [0,pi]. */
-    ippStsLSFHigh           =   14,      /* Quantized LP synthesis filter stability check is applied at the high boundary of [0,pi]. */
-    ippStsLSFLowAndHigh     =   15,      /* Quantized LP synthesis filter stability check is applied at both boundaries of [0,pi]. */
-    ippStsZeroOcc           =   16,      /* Zero occupation count. */
-    ippStsUnderflow         =   17,      /* Underflow in the operation. */
-    ippStsSingularity       =   18,      /* Singularity in the operation.                                       */
-    ippStsDomain            =   19,      /* Argument is out of the function domain.                                      */
-    ippStsNonIntelCpu       =   20,      /* The target CPU is not Genuine Intel.                                         */
-    ippStsCpuMismatch       =   21,      /* Cannot set the library for the given CPU.                                     */
-    ippStsNoIppFunctionFound =  22,      /* Application does not contain Intel(R) IPP function calls.                            */
-    ippStsDllNotFoundBestUsed = 23,      /* Dispatcher cannot find the newest version of the Intel(R) IPP dll.                  */
-    ippStsNoOperationInDll  =   24,      /* The function does nothing in the dynamic version of the library.             */
-    ippStsInsufficientEntropy=  25,      /* Generation of the prime/key failed due to insufficient entropy in the random seed and stimulus bit string. */
-    ippStsOvermuchStrings   =   26,      /* Number of destination strings is more than expected.                         */
-    ippStsOverlongString    =   27,      /* Length of one of the destination strings is more than expected.              */
-    ippStsAffineQuadChanged =   28,      /* 4th vertex of destination quad is not equal to customer's one.               */
-    ippStsWrongIntersectROI =   29,      /* ROI has no intersection with the source or destination ROI. No operation. */
-    ippStsWrongIntersectQuad =  30,      /* Quadrangle has no intersection with the source or destination ROI. No operation. */
-    ippStsSmallerCodebook   =   31,      /* Size of created codebook is less than the cdbkSize argument. */
-    ippStsSrcSizeLessExpected = 32,      /* DC: Size of the source buffer is less than the expected one. */
-    ippStsDstSizeLessExpected = 33,      /* DC: Size of the destination buffer is less than the expected one. */
-    ippStsStreamEnd           = 34,      /* DC: The end of stream processed. */
-    ippStsDoubleSize        =   35,      /* Width or height of image is odd. */
-    ippStsNotSupportedCpu   =   36,      /* The CPU is not supported. */
-    ippStsUnknownCacheSize  =   37,      /* The CPU is supported, but the size of the cache is unknown. */
-    ippStsSymKernelExpected =   38,      /* The Kernel is not symmetric. */
-    ippStsEvenMedianWeight  =   39,      /* Even weight of the Weighted Median Filter is replaced with the odd one. */
-    ippStsWrongIntersectVOI =   40,      /* VOI has no intersection with the source or destination volume. No operation.                            */
-    ippStsI18nMsgCatalogInvalid=41,      /* Message Catalog is invalid, English message returned.                                                    */
-    ippStsI18nGetMessageFail  = 42,      /* Failed to fetch a localized message, English message returned. For more information use errno on Linux* OS and GetLastError on Windows* OS. */
-    ippStsWaterfall           = 43,      /* Cannot load required library, waterfall is used. */
-    ippStsPrevLibraryUsed     = 44,      /* Cannot load required library, previous dynamic library is used. */
-    ippStsLLADisabled         = 45,      /* OpenMP* Low Level Affinity is disabled. */
-    ippStsNoAntialiasing      = 46,      /* The mode does not support antialiasing. */
-    ippStsRepetitiveSrcData   = 47,      /* DC: The source data is too repetitive. */
-    ippStsSizeWrn             = 48,      /* The size does not allow to perform full operation. */
-    ippStsFeatureNotSupported = 49,      /* Current CPU doesn't support at least 1 of the desired features. */
-    ippStsUnknownFeature      = 50,      /* At least one of the desired features is unknown. */
-    ippStsFeaturesCombination = 51,      /* Wrong combination of features. */
-    ippStsAccurateModeNotSupported = 52  /* Accurate mode is not supported. */
-} IppStatus;
+  #define ippStsNoOperation                    1 /* No operation has been executed. */
+  #define ippStsDivByZero                      2 /* Zero value(s) for the divisor in the Div function. */
+  #define ippStsWaterfall                     43 /* Cannot load required library, waterfall is used. */
+    /* end of common with ippCrypto part */
+#endif /* IPPSTATUS_H__ */
+
+#define ippStsSqrtNegArg                     3 /* Negative value(s) for the argument in the Sqrt function. */
+#define ippStsInvZero                        4 /* INF result. Zero value was met by InvThresh with zero level. */
+#define ippStsEvenMedianMaskSize             5 /* Even size of the Median Filter mask was replaced with the odd one. */
+#define ippStsLnZeroArg                      7 /* Zero value(s) for the argument in the Ln function. */
+#define ippStsLnNegArg                       8 /* Negative value(s) for the argument in the Ln function. */
+#define ippStsNanArg                         9 /* Argument value is not a number. */
+#define ippStsOverflow                      12 /* Overflow in the operation. */
+#define ippStsUnderflow                     17 /* Underflow in the operation. */
+#define ippStsSingularity                   18 /* Singularity in the operation. */
+#define ippStsDomain                        19 /* Argument is out of the function domain.*/
+#define ippStsNonIntelCpu                   20 /* The target CPU is not Genuine Intel. */
+#define ippStsCpuMismatch                   21 /* Cannot set the library for the given CPU. */
+#define ippStsOvermuchStrings               26 /* Number of destination strings is more than expected. */
+#define ippStsOverlongString                27 /* Length of one of the destination strings is more than expected. */
+#define ippStsAffineQuadChanged             28 /* 4th vertex of destination quad is not equal to customer's one. */
+#define ippStsWrongIntersectROI             29 /* ROI has no intersection with the source or destination ROI. No operation. */
+#define ippStsWrongIntersectQuad            30 /* Quadrangle has no intersection with the source or destination ROI. No operation. */
+#define ippStsSrcSizeLessExpected           32 /* DC: Size of the source buffer is less than the expected one.*/
+#define ippStsDstSizeLessExpected           33 /* DC: Size of the destination buffer is less than the expected one. */
+#define ippStsDoubleSize                    35 /* Width or height of image is odd. */
+#define ippStsNotSupportedCpu               36 /* The CPU is not supported. */
+#define ippStsUnknownCacheSize              37 /* The CPU is supported, but the size of the cache is unknown. */
+#define ippStsSymKernelExpected             38 /* The Kernel is not symmetric. */
+#define ippStsEvenMedianWeight              39 /* Even weight of the Weighted Median Filter is replaced with the odd one. */
+#define ippStsWrongIntersectVOI             40 /* VOI has no intersection with the source or destination volume. No operation. */
+#define ippStsNoAntialiasing                46 /* The mode does not support antialiasing. */
+#define ippStsRepetitiveSrcData             47 /* DC: The source data is too repetitive.*/
+#define ippStsSizeWrn                       48 /* The size does not allow to perform full operation. */
+#define ippStsFeatureNotSupported           49 /* Current CPU doesn't support at least 1 of the desired features. */
+#define ippStsUnknownFeature                50 /* At least one of the desired features is unknown. */
+#define ippStsFeaturesCombination           51 /* Wrong combination of features. */
+#define ippStsAccurateModeNotSupported      52/* Accurate mode is not supported. */
 
 #define ippStsOk ippStsNoErr
 
@@ -1136,4 +974,4 @@ typedef enum {
 }
 #endif
 
-#endif /* __IPPTYPES_H__ */
+#endif /* IPPTYPES_H__ */

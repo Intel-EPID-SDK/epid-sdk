@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2003-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -76,7 +76,8 @@ IPPFUN(IppStatus, ippsECCPGetSize, (int feBitSize, int *pSize))
 
    {
       /* size of GF context */
-      int gfCtxSize = cpGFpGetSize(feBitSize);
+      //int gfCtxSize = cpGFpGetSize(feBitSize);
+      int gfCtxSize = cpGFpGetSize(feBitSize, feBitSize+BITSIZE(BNU_CHUNK_T), GFP_POOL_SIZE);
       /* size of EC context */
       int ecCtxSize = cpGFpECGetSize(1, feBitSize);
 
@@ -176,7 +177,8 @@ IPPFUN(IppStatus, ippsECCPInit, (int feBitSize, IppsECCPState* pEC))
 
    {
       /* size of GF context */
-      int gfCtxSize = cpGFpGetSize(feBitSize);
+      //int gfCtxSize = cpGFpGetSize(feBitSize);
+      int gfCtxSize = cpGFpGetSize(feBitSize, feBitSize+BITSIZE(BNU_CHUNK_T), GFP_POOL_SIZE);
       /* size of EC context */
       int ecCtxSize = cpGFpECGetSize(1, feBitSize);
 

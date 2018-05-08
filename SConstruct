@@ -265,8 +265,8 @@ AddOption("--product-variant", "--prod-var", nargs=1,
           choices=product_variants, default=default_variant)
 
 AddOption("--use-commercial-ipp",
-          help=("Link with commercial IPP. The IPPROOT environment variable "
-                "must be set."),
+          help=("Link with commercial IPP. The IPPCRYPTOROOT environment "
+                "variable must be set."),
           action='store_true', dest='use-commercial-ipp',
           default=False)
 

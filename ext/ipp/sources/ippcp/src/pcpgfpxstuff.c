@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,75 +19,69 @@
 //     Internal operations over GF(p) extension.
 // 
 //     Context:
-//        cpGFpxCmpare
-//        cpGFpxSet
 //        cpGFpxRand
-//        cpGFpxGet
+//        cpGFpxSet, cpGFpxSetPolyTerm
+//        cpGFpxGet, cpGFpxGetPolyTerm
 // 
+//        cpGFpxNeg
+//        cpGFpxInv
 //        cpGFpxHalve
 //        cpGFpxAdd, cpGFpxAdd_GFE
 //        cpGFpxSub, cpGFpxSub_GFE
 //        cpGFpxMul, cpGFpxMul_GFE
-//        cpGFp2biMul, cpGFp3biMul, cpGFpxMul_G0
 //        cpGFpxSqr
-//        cpGFp2biSqr, cpGFp3biSqr
-//        cpGFpxNeg
-//        cpGFpxInv
-//        cpGFpxExp
-//        cpGFpxMultiExp
+//        cpGFpxExp, cpGFpxMultiExp
 //        cpGFpxConj
 // 
 // 
 */
-#include "owndefs.h"
 #include "owncp.h"
 
-
+#include "pcpbnumisc.h"
 #include "pcpgfpxstuff.h"
+#include "gsscramble.h"
 
-#if defined(__GNUC__) && (__GNUC__ >= 6)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
+//gres: temporary excluded: #include <assert.h>
 
 
-BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, IppsGFpState* pGFpx, IppBitSupplier rndFunc, void* pRndParam)
+BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, gsModEngine* pGFEx, IppBitSupplier rndFunc, void* pRndParam)
 {
-   if( GFP_IS_BASIC(pGFpx) )
-      return cpGFpRand(pR, pGFpx, rndFunc, pRndParam);
+   if( GFP_IS_BASIC(pGFEx) )
+      return cpGFpRand(pR, pGFEx, rndFunc, pRndParam);
 
    else {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-      int basicElemLen = GFP_FELEN(pBasicGF);
-      int basicDeg = cpGFpBasicDegreeExtension(pGFpx);
+      gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+      int basicElemLen = GFP_FELEN(pBasicGFE);
+      int basicDeg = cpGFpBasicDegreeExtension(pGFEx);
 
       BNU_CHUNK_T* pTmp = pR;
       int deg;
       for(deg=0; deg<basicDeg; deg++) {
-         cpGFpRand(pTmp, pBasicGF, rndFunc, pRndParam);
+         if(NULL == cpGFpRand(pTmp, pBasicGFE, rndFunc, pRndParam))
+            break;
          pTmp += basicElemLen;
       }
-      return pR;
+      return deg==basicDeg? pR : NULL;
    }
 }
 
-BNU_CHUNK_T* cpGFpxSet(BNU_CHUNK_T* pE, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxSet(BNU_CHUNK_T* pE, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx)
 {
-   if( GFP_IS_BASIC(pGFpx) )
-      return cpGFpSet(pE, pDataA, nsA, pGFpx);
+   if( GFP_IS_BASIC(pGFEx) )
+      return cpGFpSet(pE, pDataA, nsA, pGFEx);
 
    else {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-      int basicElemLen = GFP_FELEN(pBasicGF);
+      gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+      int basicElemLen = GFP_FELEN(pBasicGFE);
 
       BNU_CHUNK_T* pTmpE = pE;
-      int basicDeg = cpGFpBasicDegreeExtension(pGFpx);
+      int basicDeg = cpGFpBasicDegreeExtension(pGFEx);
 
       int deg, error;
       for(deg=0, error=0; deg<basicDeg && !error; deg++) {
          int pieceA = IPP_MIN(nsA, basicElemLen);
 
-         error = NULL == cpGFpSet(pTmpE, pDataA, pieceA, pBasicGF);
+         error = NULL == cpGFpSet(pTmpE, pDataA, pieceA, pBasicGFE);
          pTmpE   += basicElemLen;
          pDataA += pieceA;
          nsA -= pieceA;
@@ -97,31 +91,31 @@ BNU_CHUNK_T* cpGFpxSet(BNU_CHUNK_T* pE, const BNU_CHUNK_T* pDataA, int nsA, Ipps
    }
 }
 
-BNU_CHUNK_T* cpGFpxSetPolyTerm(BNU_CHUNK_T* pE, int deg, const BNU_CHUNK_T* pDataA, int nsA, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxSetPolyTerm(BNU_CHUNK_T* pE, int deg, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx)
 {
-   pE += deg * GFP_FELEN(pGFpx);
-   return cpGFpxSet(pE, pDataA, nsA, pGFpx);
+   pE += deg * GFP_FELEN(pGFEx);
+   return cpGFpxSet(pE, pDataA, nsA, pGFEx);
 }
 
-BNU_CHUNK_T* cpGFpxGet(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pE, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxGet(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pE, gsModEngine* pGFEx)
 {
    cpGFpElementPadd(pDataA, nsA, 0);
 
-   if( GFP_IS_BASIC(pGFpx) )
-      return cpGFpGet(pDataA, nsA, pE, pGFpx);
+   if( GFP_IS_BASIC(pGFEx) )
+      return cpGFpGet(pDataA, nsA, pE, pGFEx);
 
    else {
-      IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-      int basicElemLen = GFP_FELEN(pBasicGF);
+      gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+      int basicElemLen = GFP_FELEN(pBasicGFE);
 
       BNU_CHUNK_T* pTmp = pDataA;
-      int basicDeg = cpGFpBasicDegreeExtension(pGFpx);
+      int basicDeg = cpGFpBasicDegreeExtension(pGFEx);
 
       int deg;
       for(deg=0; deg<basicDeg && nsA>0; deg++) {
          int pieceA = IPP_MIN(nsA, basicElemLen);
 
-         cpGFpGet(pTmp, pieceA, pE, pBasicGF);
+         cpGFpGet(pTmp, pieceA, pE, pBasicGFE);
          pE   += basicElemLen;
          pTmp += pieceA;
          nsA -= pieceA;
@@ -131,76 +125,79 @@ BNU_CHUNK_T* cpGFpxGet(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pE, Ipps
    }
 }
 
-BNU_CHUNK_T* cpGFpxGetPolyTerm(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pE, int deg, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxGetPolyTerm(BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pE, int deg, gsModEngine* pGFEx)
 {
-   pE += deg * GFP_FELEN(pGFpx);
-   return cpGFpxGet(pDataA, nsA, pE, pGFpx);
+   pE += deg * GFP_FELEN(pGFEx);
+   return cpGFpxGet(pDataA, nsA, pE, pGFEx);
 }
 
-BNU_CHUNK_T* cpGFpxConj(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxConj(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx)
 {
-   IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-   int groundElemLen = GFP_FELEN(pGroundGF);
+   gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+   int groundElemLen = GFP_FELEN(pGroundGFE);
 
    if(pR != pA)
       cpGFpElementCopy(pR, pA, groundElemLen);
-   //cpGFpxNeg(pR+groundElemLen, pA+groundElemLen, pGroundGF);
-   pGroundGF->neg(pR+groundElemLen, pA+groundElemLen, pGroundGF);
+   MOD_METHOD(pGroundGFE)->neg(pR+groundElemLen, pA+groundElemLen, pGroundGFE);
 
    return pR;
 }
 
 
-BNU_CHUNK_T* cpGFpxAdd_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxAdd_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx)
 {
-   IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
+   gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+   mod_add addF = MOD_METHOD(pGroundGFE)->add;
 
    if(pR != pA) {
-      int groundElemLen = GFP_FELEN(pGroundGF);
-      int deg = GFP_DEGREE(pGFpx);
+      int groundElemLen = GFP_FELEN(pGroundGFE);
+      int deg = GFP_EXTDEGREE(pGFEx);
       cpGFpElementCopy(pR+groundElemLen, pA+groundElemLen, groundElemLen*(deg-1));
    }
-   return pGroundGF->add(pR, pA, pGroundB, pGroundGF);
+   return addF(pR, pA, pGroundB, pGroundGFE);
 }
 
-BNU_CHUNK_T* cpGFpxSub_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxSub_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx)
 {
-   IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
+   gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+   mod_sub subF = MOD_METHOD(pGroundGFE)->sub;
 
    if(pR != pA) {
-      int groundElemLen = GFP_FELEN(pGroundGF);
-      int deg = GFP_DEGREE(pGFpx);
+      int groundElemLen = GFP_FELEN(pGroundGFE);
+      int deg = GFP_EXTDEGREE(pGFEx);
       cpGFpElementCopy(pR+groundElemLen, pA+groundElemLen, groundElemLen*(deg-1));
    }
-   return pGroundGF->sub(pR, pA, pGroundB, pGroundGF);
+   return subF(pR, pA, pGroundB, pGroundGFE);
 }
 
-BNU_CHUNK_T* cpGFpxMul_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxMul_GFE(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx)
 {
-   IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-   int grounfElemLen = GFP_FELEN(pGroundGF);
+   gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+   mod_mul mulF = MOD_METHOD(pGroundGFE)->mul;
+
+   int grounfElemLen = GFP_FELEN(pGroundGFE);
 
    BNU_CHUNK_T* pTmp = pR;
 
    int deg;
-   for(deg=0; deg<GFP_DEGREE(pGFpx); deg++) {
-      pGroundGF->mul(pTmp, pA, pGroundB, pGroundGF);
+   for(deg=0; deg<GFP_EXTDEGREE(pGFEx); deg++) {
+      mulF(pTmp, pA, pGroundB, pGroundGFE);
       pTmp += grounfElemLen;
       pA += grounfElemLen;
    }
    return pR;
 }
 
-BNU_CHUNK_T* cpGFpxNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx)
 {
-   IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
-   int basicElemLen = GFP_FELEN(pBasicGF);
-   int basicDeg = cpGFpBasicDegreeExtension(pGFpx);
+   gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
+   int basicElemLen = GFP_FELEN(pBasicGFE);
+   int basicDeg = cpGFpBasicDegreeExtension(pGFEx);
 
    BNU_CHUNK_T* pTmp = pR;
    int deg;
    for(deg=0; deg<basicDeg; deg++) {
-      pBasicGF->neg(pTmp, pA, pBasicGF);
+      GFP_METHOD(pBasicGFE)->neg(pTmp, pA, pBasicGFE);
       pTmp += basicElemLen;
       pA += basicElemLen;
    }
@@ -210,28 +207,28 @@ BNU_CHUNK_T* cpGFpxNeg(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGF
 static BNU_CHUNK_T* gfpxPolyDiv(BNU_CHUNK_T* pQ, BNU_CHUNK_T* pR,
                         const BNU_CHUNK_T* pA,
                         const BNU_CHUNK_T* pB,
-                        IppsGFpState* pGFpx)
+                        gsModEngine* pGFEx)
 {
-   if( GFP_IS_BASIC(pGFpx) )
+   if( GFP_IS_BASIC(pGFEx) )
       return NULL;
 
    else {
-      int elemLen = GFP_FELEN(pGFpx);
-      IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-      int termLen = GFP_FELEN(pGroundGF);
+      int elemLen = GFP_FELEN(pGFEx);
+      gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+      int termLen = GFP_FELEN(pGroundGFE);
 
-      int degA = degree(pA, pGFpx);
-      int degB = degree(pB, pGFpx);
+      int degA = degree(pA, pGFEx);
+      int degB = degree(pB, pGFEx);
 
       if(degB==0) {
          if( GFP_IS_ZERO(pB, termLen) )
             return NULL;
          else {
-            IppsGFpState* pBasicGF = cpGFpBasic(pGroundGF);
+            gsModEngine* pBasicGFE = cpGFpBasic(pGroundGFE);
 
-            cpGFpInv(pR, pB, pBasicGF);
-            cpGFpElementPadd(pR+GFP_FELEN(pGroundGF), termLen-GFP_FELEN(pGroundGF), 0);
-            cpGFpxMul_GFE(pQ, pA, pR, pGFpx);
+            cpGFpInv(pR, pB, pBasicGFE);
+            cpGFpElementPadd(pR+GFP_FELEN(pGroundGFE), termLen-GFP_FELEN(pGroundGFE), 0);
+            cpGFpxMul_GFE(pQ, pA, pR, pGFEx);
             cpGFpElementPadd(pR, elemLen, 0);
             return pR;
          }
@@ -244,141 +241,154 @@ static BNU_CHUNK_T* gfpxPolyDiv(BNU_CHUNK_T* pQ, BNU_CHUNK_T* pR,
       }
 
       else {
+         mod_mul mulF = GFP_METHOD(pGroundGFE)->mul;
+         mod_sub subF = GFP_METHOD(pGroundGFE)->sub;
+
          int i, j;
-         BNU_CHUNK_T* pProduct = cpGFpGetPool(2, pGroundGF);
-         BNU_CHUNK_T* pInvB = pProduct + GFP_PELEN(pGroundGF);
+         BNU_CHUNK_T* pProduct = cpGFpGetPool(2, pGroundGFE);
+         BNU_CHUNK_T* pInvB = pProduct + GFP_PELEN(pGroundGFE);
+         //gres: temporary excluded: assert(NULL!=pProduct);
 
          cpGFpElementCopyPadd(pR, elemLen, pA, (degA+1)*termLen);
          cpGFpElementPadd(pQ, elemLen, 0);
 
-         cpGFpxInv(pInvB, GFPX_IDX_ELEMENT(pB, degB, termLen), pGroundGF);
+         cpGFpxInv(pInvB, GFPX_IDX_ELEMENT(pB, degB, termLen), pGroundGFE);
 
          for(i=0; i<=degA-degB && !GFP_IS_ZERO(GFPX_IDX_ELEMENT(pR, degA-i, termLen), termLen); i++) {
             /* compute q term */
-            pGroundGF->mul(GFPX_IDX_ELEMENT(pQ, degA-degB-i, termLen),
-                      GFPX_IDX_ELEMENT(pR, degA-i, termLen),
-                      pInvB,
-                      pGroundGF);
+            mulF(GFPX_IDX_ELEMENT(pQ, degA-degB-i, termLen),
+                 GFPX_IDX_ELEMENT(pR, degA-i, termLen),
+                 pInvB,
+                 pGroundGFE);
 
             /* R -= B * q */
             cpGFpElementPadd(GFPX_IDX_ELEMENT(pR, degA-i, termLen), termLen, 0);
             for(j=0; j<degB; j++) {
-               pGroundGF->mul(pProduct,
-                         GFPX_IDX_ELEMENT(pB, j ,termLen),
-                         GFPX_IDX_ELEMENT(pQ, degA-degB-i, termLen),
-                         pGroundGF);
-               pGroundGF->sub(GFPX_IDX_ELEMENT(pR, degA-degB-i+j, termLen),
-                         GFPX_IDX_ELEMENT(pR, degA-degB-i+j, termLen),
-                         pProduct,
-                         pGroundGF);
+               mulF(pProduct,
+                    GFPX_IDX_ELEMENT(pB, j ,termLen),
+                    GFPX_IDX_ELEMENT(pQ, degA-degB-i, termLen),
+                    pGroundGFE);
+               subF(GFPX_IDX_ELEMENT(pR, degA-degB-i+j, termLen),
+                    GFPX_IDX_ELEMENT(pR, degA-degB-i+j, termLen),
+                    pProduct,
+                    pGroundGFE);
             }
          }
 
-         cpGFpReleasePool(2, pGroundGF);
+         cpGFpReleasePool(2, pGroundGFE);
          return pR;
       }
    }
 }
 
-static BNU_CHUNK_T* gfpxGeneratorDiv(BNU_CHUNK_T* pQ, BNU_CHUNK_T* pR, const BNU_CHUNK_T* pB, IppsGFpState* pGFpx)
+static BNU_CHUNK_T* gfpxGeneratorDiv(BNU_CHUNK_T* pQ, BNU_CHUNK_T* pR, const BNU_CHUNK_T* pB, gsModEngine* pGFEx)
 {
-   if( GFP_IS_BASIC(pGFpx) )
+   if( GFP_IS_BASIC(pGFEx) )
       return NULL;
 
    else {
-      int elemLen = GFP_FELEN(pGFpx);
-      IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-      int termLen = GFP_FELEN(pGroundGF);
+      int elemLen = GFP_FELEN(pGFEx);
 
-      BNU_CHUNK_T* pInvB = cpGFpGetPool(2, pGroundGF);
-      BNU_CHUNK_T* pTmp  = pInvB + GFP_PELEN(pGroundGF);
+      gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+      mod_mul mulF = GFP_METHOD(pGroundGFE)->mul;
+      mod_sub subF = GFP_METHOD(pGroundGFE)->sub;
 
-      int degB = degree(pB, pGFpx);
+      int termLen = GFP_FELEN(pGroundGFE);
+
+      BNU_CHUNK_T* pInvB = cpGFpGetPool(2, pGroundGFE);
+      BNU_CHUNK_T* pTmp  = pInvB + GFP_PELEN(pGroundGFE);
+
+      int degB = degree(pB, pGFEx);
       int i;
 
-      cpGFpElementCopy(pR, GFP_MODULUS(pGFpx), elemLen);
+      //gres: temporary excluded: assert(NULL!=pInvB);
+
+      cpGFpElementCopy(pR, GFP_MODULUS(pGFEx), elemLen);
       cpGFpElementPadd(pQ, elemLen, 0);
 
-      cpGFpxInv(pInvB, GFPX_IDX_ELEMENT(pB, degB, termLen), pGroundGF);
+      cpGFpxInv(pInvB, GFPX_IDX_ELEMENT(pB, degB, termLen), pGroundGFE);
 
       for(i=0; i<degB; i++) {
          BNU_CHUNK_T* ptr;
-         pGroundGF->mul(pTmp, pInvB, GFPX_IDX_ELEMENT(pB, i, termLen), pGroundGF);
-         ptr = GFPX_IDX_ELEMENT(pR, GFP_DEGREE(pGFpx)-degB+i, termLen);
-         pGroundGF->sub(ptr, ptr, pTmp, pGroundGF);
+         mulF(pTmp, pInvB, GFPX_IDX_ELEMENT(pB, i, termLen), pGroundGFE);
+         ptr = GFPX_IDX_ELEMENT(pR, GFP_EXTDEGREE(pGFEx)-degB+i, termLen);
+         subF(ptr, ptr, pTmp, pGroundGFE);
       }
 
-      gfpxPolyDiv(pQ, pR, pR, pB, pGFpx);
+      gfpxPolyDiv(pQ, pR, pR, pB, pGFEx);
 
-      cpGFpElementCopy(GFPX_IDX_ELEMENT(pQ, GFP_DEGREE(pGFpx)-degB, termLen), pInvB, termLen);
+      cpGFpElementCopy(GFPX_IDX_ELEMENT(pQ, GFP_EXTDEGREE(pGFEx)-degB, termLen), pInvB, termLen);
 
-      cpGFpReleasePool(2, pGroundGF);
+      cpGFpReleasePool(2, pGroundGFE);
       return pR;
    }
 }
 
-BNU_CHUNK_T* cpGFpxInv(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsGFpState* pGFpx)
+BNU_CHUNK_T* cpGFpxInv(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx)
 {
-   if( GFP_IS_BASIC(pGFpx) )
-      return cpGFpInv(pR, pA, pGFpx);
+   if( GFP_IS_BASIC(pGFEx) )
+      return cpGFpInv(pR, pA, pGFEx);
 
-   if(0==degree(pA, pGFpx)) {
-      IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-      BNU_CHUNK_T* tmpR = cpGFpGetPool(1, pGroundGF);
+   if(0==degree(pA, pGFEx)) {
+      gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+      BNU_CHUNK_T* tmpR = cpGFpGetPool(1, pGroundGFE);
+      //gres: temporary excluded: assert(NULL!=tmpR);
 
-      cpGFpxInv(tmpR, pA, pGroundGF);
+      cpGFpxInv(tmpR, pA, pGroundGFE);
 
-      cpGFpElementCopyPadd(pR, GFP_FELEN(pGFpx), tmpR, GFP_FELEN(pGroundGF));
-      cpGFpReleasePool(1, pGroundGF);
+      cpGFpElementCopyPadd(pR, GFP_FELEN(pGFEx), tmpR, GFP_FELEN(pGroundGFE));
+      cpGFpReleasePool(1, pGroundGFE);
       return pR;
    }
 
    else {
-      int elemLen = GFP_FELEN(pGFpx);
-      IppsGFpState* pGroundGF = GFP_GROUNDGF(pGFpx);
-      IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
+      int elemLen = GFP_FELEN(pGFEx);
+      gsModEngine* pGroundGFE = GFP_PARENT(pGFEx);
+      gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
 
       int pxVars = 6;
-      int pelemLen = GFP_PELEN(pGFpx);
-      BNU_CHUNK_T* lastrem = cpGFpGetPool(pxVars, pGFpx);
+      int pelemLen = GFP_PELEN(pGFEx);
+      BNU_CHUNK_T* lastrem = cpGFpGetPool(pxVars, pGFEx);
       BNU_CHUNK_T* rem     = lastrem + pelemLen;
       BNU_CHUNK_T* quo     = rem +  pelemLen;
       BNU_CHUNK_T* lastaux = quo + pelemLen;
       BNU_CHUNK_T* aux     = lastaux + pelemLen;
       BNU_CHUNK_T* temp    = aux + pelemLen;
+      //gres: temporary excluded: assert(NULL!=lastrem);
 
       cpGFpElementCopy(lastrem, pA, elemLen);
-      cpGFpElementCopyPadd(lastaux, elemLen, MNT_1(GFP_MONT(pBasicGF)), GFP_FELEN(pBasicGF));
+      cpGFpElementCopyPadd(lastaux, elemLen, GFP_MNT_R(pBasicGFE), GFP_FELEN(pBasicGFE));
 
-      gfpxGeneratorDiv(quo, rem, pA, pGFpx);
-      cpGFpxNeg(aux, quo, pGFpx);
+      gfpxGeneratorDiv(quo, rem, pA, pGFEx);
+      cpGFpxNeg(aux, quo, pGFEx);
 
-      while(degree(rem, pGFpx) > 0) {
-         gfpxPolyDiv(quo, temp, lastrem, rem, pGFpx);
+      while(degree(rem, pGFEx) > 0) {
+         gfpxPolyDiv(quo, temp, lastrem, rem, pGFEx);
          SWAP_PTR(BNU_CHUNK_T, rem, lastrem); //
          SWAP_PTR(BNU_CHUNK_T, temp, rem);
 
-         pGFpx->neg(quo, quo, pGFpx);
-         pGFpx->mul(temp, quo, aux, pGFpx);
-         pGFpx->add(temp, lastaux, temp, pGFpx);
+         GFP_METHOD(pGFEx)->neg(quo, quo, pGFEx);
+         GFP_METHOD(pGFEx)->mul(temp, quo, aux, pGFEx);
+         GFP_METHOD(pGFEx)->add(temp, lastaux, temp, pGFEx);
          SWAP_PTR(BNU_CHUNK_T, aux, lastaux);
          SWAP_PTR(BNU_CHUNK_T, temp, aux);
       }
       if (GFP_IS_ZERO(rem, elemLen)) { /* gcd != 1 */
-         cpGFpReleasePool(pxVars, pGFpx);
+         cpGFpReleasePool(pxVars, pGFEx);
          return NULL;
       }
 
       {
-         BNU_CHUNK_T* invRem  = cpGFpGetPool(1, pGroundGF);
+         BNU_CHUNK_T* invRem  = cpGFpGetPool(1, pGroundGFE);
+         //gres: temporary excluded: assert(NULL!=invRem);
 
-         cpGFpxInv(invRem, rem, pGroundGF);
-         cpGFpxMul_GFE(pR, aux, invRem, pGFpx);
+         cpGFpxInv(invRem, rem, pGroundGFE);
+         cpGFpxMul_GFE(pR, aux, invRem, pGFEx);
 
-         cpGFpReleasePool(1, pGroundGF);
+         cpGFpReleasePool(1, pGroundGFE);
       }
 
-      cpGFpReleasePool(pxVars, pGFpx);
+      cpGFpReleasePool(pxVars, pGFEx);
 
       return pR;
    }
@@ -434,19 +444,22 @@ static void printBNU(const char* note, Ipp64u* pData, int len, int nt)
 
 /* sscm version */
 BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE,
-                     IppsGFpState* pGFpx, Ipp8u* pScratchBuffer)
+                     gsModEngine* pGFEx, Ipp8u* pScratchBuffer)
 {
-   IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
+   gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
 
    /* remove leding zeros */
    FIX_BNU(pE, nsE);
 
    {
-      Ipp8u* pScratchAligned; /* aligned scratch buffer */
+      mod_mul mulF = GFP_METHOD(pGFEx)->mul;  /* mul and sqr methods */
+      mod_sqr sqrF = GFP_METHOD(pGFEx)->sqr;
+
+      BNU_CHUNK_T* pScratchAligned; /* aligned scratch buffer */
       int nAllocation = 0;    /* points from the pool */
 
-      /* size of element (bytes) */
-      int elmDataSize = GFP_FELEN(pGFpx)*sizeof(BNU_CHUNK_T);
+      /* size of element */
+      int elmLen = GFP_FELEN(pGFEx);
 
       /* exponent bitsize */
       int expBitSize = BITSIZE_BNU(pE, nsE);
@@ -455,30 +468,35 @@ BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T
       /* number of table entries */
       int nPrecomputed = 1<<w;
 
-      BNU_CHUNK_T* pExpandedE = cpGFpGetPool(1, pGFpx);
-      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFpx);
-      int poolElmLen = GFP_PELEN(pGFpx);
+      int poolElmLen = GFP_PELEN(pGFEx);
+      BNU_CHUNK_T* pExpandedE = cpGFpGetPool(1, pGFEx);
+      BNU_CHUNK_T* pTmp = cpGFpGetPool(1, pGFEx);
+      //gres: temporary excluded: assert(NULL!=pExpandedE && NULL!=pTmp);
 
       if(NULL==pScratchBuffer) {
          nAllocation = 2 + div_upper(CACHE_LINE_SIZE, poolElmLen*sizeof(BNU_CHUNK_T));
-         pScratchBuffer = (Ipp8u*)cpGFpGetPool(nAllocation, pGFpx);
+         pScratchBuffer = (Ipp8u*)cpGFpGetPool(nAllocation, pGFEx);
+         //gres: temporary excluded: assert(NULL!=pScratchBuffer);
       }
-      pScratchAligned = (Ipp8u*)( IPP_ALIGNED_PTR(pScratchBuffer, CACHE_LINE_SIZE) );
+      pScratchAligned = (BNU_CHUNK_T*)( IPP_ALIGNED_PTR(pScratchBuffer, CACHE_LINE_SIZE) );
 
       #if defined(_GRES_DBG_)
       printf("precom tbl:\n");
       #endif
-      /* pre-compute auxiliary table t[] = {1, A, A^2, ..., A^(2^w-1)} */
-      cpGFpElementCopyPadd(pTmp, GFP_FELEN(pGFpx), MNT_1(GFP_MONT(pBasicGF)), GFP_FELEN(pBasicGF));
-      cpScramblePut(pScratchAligned+0, nPrecomputed, (Ipp8u*)pTmp, elmDataSize);
+      /* pre-compute auxiliary table t[] = {A^0, A^1, A^2, ..., A^(2^w-1)} */
+      cpGFpElementCopyPadd(pTmp, elmLen, GFP_MNT_R(pBasicGFE), GFP_FELEN(pBasicGFE));
+      //cpScramblePut(pScratchAligned+0, nPrecomputed, (Ipp8u*)pTmp, elmDataSize);
+      gsScramblePut(pScratchAligned, 0, pTmp, elmLen, w);
       #if defined(_GRES_DBG_)
       printBNU("precom tbl:\n", pTmp, 48, 6);
       #endif
-      {
+
+      { /* pre compute multiplication table */
          int n;
          for(n=1; n<nPrecomputed; n++) {
-            pGFpx->mul(pTmp, pTmp, pA, pGFpx);
-            cpScramblePut(pScratchAligned+n, nPrecomputed, (Ipp8u*)pTmp, elmDataSize);
+            mulF(pTmp, pTmp, pA, pGFEx);
+            //cpScramblePut(pScratchAligned+n, nPrecomputed, (Ipp8u*)pTmp, elmDataSize);
+            gsScramblePut(pScratchAligned, n, pTmp, elmLen, w);
             #if defined(_GRES_DBG_)
             printBNU("precom tbl:\n", pTmp, 48, 6);
             #endif
@@ -512,7 +530,8 @@ BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T
             Ipp32u windowVal = (eChunk>>shift) & dmask;
 
             /* initialize result */
-            cpScrambleGet((Ipp8u*)pR, elmDataSize, pScratchAligned+windowVal, nPrecomputed);
+            //cpScrambleGet((Ipp8u*)pR, elmDataSize, pScratchAligned+windowVal, nPrecomputed);
+            gsScrambleGet_sscm(pR, elmLen, pScratchAligned, windowVal, w);
             #if defined(_GRES_DBG_)
             printBNU("init result:\n", pR, 48, 6);
             #endif
@@ -524,7 +543,7 @@ BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T
                #endif
                /* w times squaring */
                for(k=0; k<w; k++) {
-                  pGFpx->sqr(pR, pR, pGFpx);
+                  sqrF(pR, pR, pGFEx);
                   #if defined(_GRES_DBG_)
                   printBNU("sqr:\n", pR, 48, 6);
                   #endif
@@ -536,10 +555,11 @@ BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T
                windowVal = (eChunk>>shift) & dmask;
 
                /* extract value from the pre-computed table */
-               cpScrambleGet((Ipp8u*)pTmp, elmDataSize, pScratchAligned+windowVal, nPrecomputed);
+               //cpScrambleGet((Ipp8u*)pTmp, elmDataSize, pScratchAligned+windowVal, nPrecomputed);
+               gsScrambleGet_sscm(pTmp, elmLen, pScratchAligned, windowVal, w);
 
                /* and multiply */
-               pGFpx->mul(pR, pR, pTmp, pGFpx);
+               mulF(pR, pR, pTmp, pGFEx);
                #if defined(_GRES_DBG_)
                printBNU("mul:\n", pR, 48, 6);
                #endif
@@ -548,38 +568,41 @@ BNU_CHUNK_T* cpGFpxExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T
 
       }
 
-      cpGFpReleasePool(nAllocation+2, pGFpx);
+      cpGFpReleasePool(nAllocation+2, pGFEx);
 
       return pR;
    }
 }
 
-
-static void cpPrecomputeMultiExp(Ipp8u* pTable, const BNU_CHUNK_T* ppA[], int nItems, IppsGFpState* pGFpx)
+static void cpPrecomputeMultiExp(BNU_CHUNK_T* pTable, const BNU_CHUNK_T* ppA[], int nItems, gsModEngine* pGFEx)
 {
-   IppsGFpState* pBasicGF = cpGFpBasic(pGFpx);
+   gsModEngine* pBasicGFE = cpGFpBasic(pGFEx);
 
-   int nPrecomputed = 1<<nItems;
+   //int nPrecomputed = 1<<nItems;
 
    /* length of element (BNU_CHUNK_T) */
-   int elmLen = GFP_FELEN(pGFpx);
-   /* size of element (bytes) */
-   int elmDataSize = GFP_FELEN(pGFpx)*sizeof(BNU_CHUNK_T);
+   int elmLen = GFP_FELEN(pGFEx);
 
    /* get resource */
-   BNU_CHUNK_T* pT = cpGFpGetPool(1, pGFpx);
+   BNU_CHUNK_T* pT = cpGFpGetPool(1, pGFEx);
+   //gres: temporary excluded: assert(NULL!=pT);
 
    /* pTable[0] = 1 */
-   cpGFpElementCopyPadd(pT, elmLen, MNT_1(GFP_MONT(pBasicGF)), GFP_FELEN(pBasicGF));
-   cpScramblePut(pTable+0, nPrecomputed, (Ipp8u*)pT, elmDataSize);
+   cpGFpElementCopyPadd(pT, elmLen, GFP_MNT_R(pBasicGFE), GFP_FELEN(pBasicGFE));
+   //cpScramblePut(pTable+0, nPrecomputed, (Ipp8u*)pT, elmDataSize);
+   gsScramblePut(pTable, 0, pT, elmLen, nItems);
    /* pTable[1] = A[0] */
-   cpScramblePut(pTable+1, nPrecomputed, (Ipp8u*)(ppA[0]), elmDataSize);
+   //cpScramblePut(pTable+1, nPrecomputed, (Ipp8u*)(ppA[0]), elmDataSize);
+   gsScramblePut(pTable, 1, ppA[0], elmLen, nItems);
 
    {
+      mod_mul mulF = GFP_METHOD(pGFEx)->mul;  /* mul method */
+
       int i, baseIdx;
       for(i=1, baseIdx=2; i<nItems; i++, baseIdx*=2) {
          /* pTable[baseIdx] = A[i] */
-         cpScramblePut(pTable+baseIdx, nPrecomputed, (Ipp8u*)(ppA[i]), elmDataSize);
+         //cpScramblePut(pTable+baseIdx, nPrecomputed, (Ipp8u*)(ppA[i]), elmDataSize);
+         gsScramblePut(pTable, baseIdx, ppA[i], elmLen, nItems);
 
          {
             int nPasses = 1;
@@ -592,9 +615,11 @@ static void cpPrecomputeMultiExp(Ipp8u* pTable, const BNU_CHUNK_T* ppA[], int nI
                int n;
                for(n=0; n<nPasses; n++, tblIdx+=2*step) {
                   /* use pre-computed value */
-                  cpScrambleGet((Ipp8u*)pT, elmDataSize, pTable+tblIdx, nPrecomputed);
-                  pGFpx->mul(pT, pT, ppA[k], pGFpx);
-                  cpScramblePut(pTable+tblIdx+step, nPrecomputed, (Ipp8u*)pT, elmDataSize);
+                  //cpScrambleGet((Ipp8u*)pT, elmDataSize, pTable+tblIdx, nPrecomputed);
+                  gsScrambleGet(pT, elmLen, pTable, tblIdx, nItems);
+                  mulF(pT, pT, ppA[k], pGFEx);
+                  //cpScramblePut(pTable+tblIdx+step, nPrecomputed, (Ipp8u*)pT, elmDataSize);
+                  gsScramblePut(pTable, tblIdx+step, pT, elmLen, nItems);
                }
 
                nPasses *= 2;
@@ -605,7 +630,7 @@ static void cpPrecomputeMultiExp(Ipp8u* pTable, const BNU_CHUNK_T* ppA[], int nI
    }
 
    /* release resourse */
-   cpGFpReleasePool(1, pGFpx);
+   cpGFpReleasePool(1, pGFEx);
 }
 
 static int cpGetMaxBitsizeExponent(const BNU_CHUNK_T* ppE[], int nsE[], int nItems)
@@ -637,14 +662,18 @@ static int GetIndex(const BNU_CHUNK_T* ppE[], int nItems, int nBit)
 
 /* sscm version */
 BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems,
-                          IppsGFpState* pGFpx, Ipp8u* pScratchBuffer)
+                          gsModEngine* pGFEx, Ipp8u* pScratchBuffer)
 {
    /* align scratch buffer */
-   pScratchBuffer = (Ipp8u*)( IPP_ALIGNED_PTR(pScratchBuffer, CACHE_LINE_SIZE) );
+   BNU_CHUNK_T* pTable = (BNU_CHUNK_T*)( IPP_ALIGNED_PTR(pScratchBuffer, CACHE_LINE_SIZE) );
    /* pre-compute table */
-   cpPrecomputeMultiExp(pScratchBuffer, ppA, nItems, pGFpx);
+   cpPrecomputeMultiExp(pTable, ppA, nItems, pGFEx);
 
    {
+      mod_mul mulF = GFP_METHOD(pGFEx)->mul;  /* mul and sqr methods and parameter */
+      mod_sqr sqrF = GFP_METHOD(pGFEx)->sqr;
+      int elmLen = GFP_FELEN(pGFEx);
+
       /* find out the longest exponent */
       int expBitSize = cpGetMaxBitsizeExponent(ppE, nsE, nItems);
 
@@ -653,43 +682,41 @@ BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU
       {
          int n;
          for(n=0; n<nItems; n++) {
-            BNU_CHUNK_T* pData = cpGFpGetPool(1, pGFpx);
-            cpGFpElementCopyPadd(pData, GFP_FELEN(pGFpx), ppE[n], nsE[n]);
+            BNU_CHUNK_T* pData = cpGFpGetPool(1, pGFEx);
+            //gres: temporary excluded: assert(NULL!=pData);
+            cpGFpElementCopyPadd(pData, elmLen, ppE[n], nsE[n]);
             ppExponent[n] = pData;
          }
       }
 
       /* multiexponentiation */
       {
-         int nPrecomputed = 1<<nItems;
-         int elmDataSize = GFP_FELEN(pGFpx)*sizeof(BNU_CHUNK_T);
-
          /* get temporary */
-         BNU_CHUNK_T* pT = cpGFpGetPool(1, pGFpx);
+         BNU_CHUNK_T* pT = cpGFpGetPool(1, pGFEx);
 
          /* init result */
          int tblIdx = GetIndex(ppExponent, nItems, --expBitSize);
-         cpScrambleGet((Ipp8u*)pR, elmDataSize, pScratchBuffer+tblIdx, nPrecomputed);
+         //cpScrambleGet((Ipp8u*)pR, elmDataSize, pScratchBuffer+tblIdx, nPrecomputed);
+         gsScrambleGet_sscm(pR, elmLen, pTable, tblIdx, nItems);
+
+         //gres: temporary excluded: assert(NULL!=pT);
 
          /* compute the rest: square and multiply */
          for(--expBitSize; expBitSize>=0; expBitSize--) {
-            pGFpx->sqr(pR, pR, pGFpx);
+            sqrF(pR, pR, pGFEx);
             tblIdx = GetIndex(ppExponent, nItems, expBitSize);
-            cpScrambleGet((Ipp8u*)pT, elmDataSize, pScratchBuffer+tblIdx, nPrecomputed);
-            pGFpx->mul(pR, pR, pT, pGFpx);
+            //cpScrambleGet((Ipp8u*)pT, elmDataSize, pScratchBuffer+tblIdx, nPrecomputed);
+            gsScrambleGet_sscm(pT, elmLen, pTable, tblIdx, nItems);
+            mulF(pR, pR, pT, pGFEx);
          }
 
          /* release resourse */
-         cpGFpReleasePool(1, pGFpx);
+         cpGFpReleasePool(1, pGFEx);
       }
 
       /* release resourse */
-      cpGFpReleasePool(nItems, pGFpx);
+      cpGFpReleasePool(nItems, pGFEx);
 
       return pR;
    }
 }
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif

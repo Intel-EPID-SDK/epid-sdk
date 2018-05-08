@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2014-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -92,6 +92,9 @@ __INLINE Ipp32u MagicFun(int s, Ipp32u b, Ipp32u c, Ipp32u d)
 //    uniParam pointer to the optional parameter
 //
 *F*/
+#if defined(_ALG_SHA1_COMPACT_)
+#pragma message("SHA1 compact")
+#endif
 
 void UpdateSHA1(void* uinHash, const Ipp8u* mblk, int mlen, const void *uniParam)
 {

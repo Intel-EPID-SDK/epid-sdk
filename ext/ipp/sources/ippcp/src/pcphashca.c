@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2014-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -407,36 +407,6 @@ IPPFUN(IppStatus, ippsHashUpdate,(const Ipp8u* pSrc, int len, IppsHashState* pCt
    return ippStsNoErr;
 }
 
-#if 0
-/*
-// Hash computation complition
-*/
-static void cpHash32_cvt(Ipp8u* pMD, int hashSize, const void* uniDigest)
-{
-   const Ipp32u* aDigest = (const Ipp32u*)uniDigest;
-   int i;
-   for(i=0; i<hashSize; i++)
-         pMD[i] = (Ipp8u)( aDigest[i>>2] >> (24 - 8*(i&3)) );
-}
-static void cpMD5_cvt(Ipp8u* pMD, Ipp32u* aDigest)
-{
-   #if (IPP_ENDIAN == IPP_BIG_ENDIAN)
-   aDigest[0] = ENDIANNESS(aDigest[0]);
-   aDigest[1] = ENDIANNESS(aDigest[1]);
-   aDigest[2] = ENDIANNESS(aDigest[2]);
-   aDigest[3] = ENDIANNESS(aDigest[3]);
-   #endif
-   CopyBlock((Ipp8u*)aDigest, pMD, IPP_MD5_DIGEST_BITSIZE/8);
-}
-static void cpHash64_cvt(Ipp8u* pMD, int hashSize, const void* uniDigest)
-{
-   const Ipp64u* aDigest = (const Ipp64u*)uniDigest;
-   int i;
-   for(i=0; i<hashSize; i++)
-      pMD[i] = (Ipp8u)( aDigest[i>>3] >> (56 - 8*(i&7)) );
-}
-#endif
-
 static void cpComputeDigest(Ipp8u* pHashTag, int hashTagLen, const IppsHashState* pCtx)
 {
    /* hash alg and parameters */
@@ -620,37 +590,6 @@ IPPFUN(IppStatus, ippsHashFinal,(Ipp8u* pMD, IppsHashState* pCtx))
 //    algID       hash alg ID
 //
 *F*/
-#if 0
-IPPFUN(IppStatus, ippsHashMessage,(const Ipp8u* pMsg, int msgLen, Ipp8u* pMD, IppHashAlgId algID))
-{
-   /* get algorithm id */
-   algID = cpValidHashAlg(algID);
-   /* test hash alg */
-   IPP_BADARG_RET(ippHashAlg_Unknown==algID, ippStsNotSupportedModeErr);
-
-   /* test digest pointer */
-   IPP_BAD_PTR1_RET(pMD);
-   /* test message length */
-   IPP_BADARG_RET((msgLen<0), ippStsLengthErr);
-   /* test message pointer */
-   IPP_BADARG_RET((msgLen && !pMsg), ippStsNullPtrErr);
-
-   {
-      IppsHashState ctx;
-
-      IppStatus sts = ippsHashInit(&ctx, algID);
-      if(ippStsNoErr!=sts) goto exit;
-
-      sts = ippsHashUpdate(pMsg, msgLen, &ctx);
-      if(ippStsNoErr!=sts) goto exit;
-
-      sts = ippsHashFinal(pMD, &ctx);
-
-      exit:
-      return sts;
-   }
-}
-#endif
 IPPFUN(IppStatus, ippsHashMessage,(const Ipp8u* pMsg, int msgLen, Ipp8u* pMD, IppHashAlgId algID))
 {
    /* get algorithm id */

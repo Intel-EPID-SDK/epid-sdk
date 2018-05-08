@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -105,14 +105,10 @@ struct FiniteFieldObj::State {
 };
 
 FiniteFieldObj::FiniteFieldObj() : state_(new State()) {
-  /*
-  to avoid a bug in ipp this is one less than the
-  actual max value we could take.
-  */
   const BigNumStr max_prime = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                               0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFe};
+                               0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x43};
   FiniteField* temp = nullptr;
   NewFiniteField(&max_prime, &temp);
   state_->ff_.reset(temp, finite_field_deleter);

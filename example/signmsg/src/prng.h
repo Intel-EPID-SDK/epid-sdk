@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,6 +21,12 @@
 
 #ifndef EXAMPLE_SIGNMSG_SRC_PRNG_H_
 #define EXAMPLE_SIGNMSG_SRC_PRNG_H_
+
+#if defined(_WIN32) || defined(_WIN64)
+#define __STDCALL __stdcall
+#else
+#define __STDCALL
+#endif
 
 #include "epid/common/errors.h"
 

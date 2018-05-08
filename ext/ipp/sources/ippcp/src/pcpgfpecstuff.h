@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2010-2017 Intel Corporation
+  # Copyright 1999-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -74,9 +74,9 @@ typedef struct _cpGFpECPoint {
 //#define ECP_PROJECTIVE_COORD  HOMOGENEOUS
 
 #if (ECP_PROJECTIVE_COORD== JACOBIAN)
-
+   //#pragma message ("ECP_PROJECTIVE_COORD = JACOBIAN")
 #elif (ECP_PROJECTIVE_COORD== HOMOGENEOUS)
-
+   #pragma message ("ECP_PROJECTIVE_COORD = HOMOGENEOUS")
 #else
    #error ECP_PROJECTIVE_COORD should be either JACOBIAN or HOMOGENEOUS type
 #endif
@@ -109,7 +109,8 @@ typedef struct _cpGFpEC {
    int          parmAspc;  /* NIST's, EPIDv2.0 A-parameter specific */
    int          infinity;  /* 0/1 if B !=0/==0 */
    const cpPrecompAP* pBaseTbl;  /* address of pre-computed [n]G tabble */
-   IppsMontState*  pMontR; /* EC order montgomery engine */
+   gsModEngine*    pMontR; /* EC order montgomery engine */
+
    BNU_CHUNK_T*    pPool;  /* pool of points   */
    #if defined(_LEGACY_ECCP_SUPPORT_)
    BNU_CHUNK_T*  pPublic;  /* regular   public key */
@@ -124,6 +125,8 @@ typedef struct _cpGFpEC {
 
 /* Local definitions */
 #define EC_POOL_SIZE       (10)  /* num of points into the pool */
+
+#define EC_MONT_POOL_SIZE   (4)  /* num of temp values for modular arithmetic */
 
 #define ECP_ID(pCtx)          ((pCtx)->idCtx)
 #define ECP_GFP(pCtx)         ((pCtx)->pGF)
@@ -158,6 +161,13 @@ typedef struct _cpGFpEC {
 #define ECP_EPID2   ECP_Aeq0
 
 /* std ec pre-computed tables */
+#define gfpec_precom_nistP192r1_fun OWNAPI(gfpec_precom_nistP192r1_fun)
+#define gfpec_precom_nistP224r1_fun OWNAPI(gfpec_precom_nistP224r1_fun)
+#define gfpec_precom_nistP256r1_fun OWNAPI(gfpec_precom_nistP256r1_fun)
+#define gfpec_precom_nistP384r1_fun OWNAPI(gfpec_precom_nistP384r1_fun)
+#define gfpec_precom_nistP521r1_fun OWNAPI(gfpec_precom_nistP521r1_fun)
+#define gfpec_precom_sm2_fun        OWNAPI(gfpec_precom_sm2_fun)
+
 const cpPrecompAP* gfpec_precom_nistP192r1_fun(void);
 const cpPrecompAP* gfpec_precom_nistP224r1_fun(void);
 const cpPrecompAP* gfpec_precom_nistP256r1_fun(void);
@@ -171,19 +181,19 @@ const cpPrecompAP* gfpec_precom_sm2_fun(void);
 __INLINE BNU_CHUNK_T* cpEcGFpGetPool(int n, IppsGFpECState* pEC)
 {
    BNU_CHUNK_T* pPool = ECP_POOL(pEC);
-   ECP_POOL(pEC) += n*GFP_FELEN(ECP_GFP(pEC))*3;
+   ECP_POOL(pEC) += n*GFP_FELEN(GFP_PMA(ECP_GFP(pEC)))*3;
    return pPool;
 }
 __INLINE void cpEcGFpReleasePool(int n, IppsGFpECState* pEC)
 {
-   ECP_POOL(pEC) -= n*GFP_FELEN(ECP_GFP(pEC))*3;
+   ECP_POOL(pEC) -= n*GFP_FELEN(GFP_PMA(ECP_GFP(pEC)))*3;
 }
 
 __INLINE IppsGFpECPoint* cpEcGFpInitPoint(IppsGFpECPoint* pPoint, BNU_CHUNK_T* pData, int flags, const IppsGFpECState* pEC)
 {
    ECP_POINT_ID(pPoint) = idCtxGFPPoint;
    ECP_POINT_FLAGS(pPoint) = flags;
-   ECP_POINT_FELEN(pPoint) = GFP_FELEN(ECP_GFP(pEC));
+   ECP_POINT_FELEN(pPoint) = GFP_FELEN(GFP_PMA(ECP_GFP(pEC)));
    ECP_POINT_DATA(pPoint) = pData;
    return pPoint;
 }
@@ -273,61 +283,60 @@ __INLINE void cpMaskMove(BNU_CHUNK_T* dst, const BNU_CHUNK_T* src, int len, int 
 }
 
 
-__INLINE void cpScatter32(Ipp32u* pTbl, int scale, int idx, const Ipp32u* pData, int len)
-{
-   int i;
-   pTbl += idx;
-   for(i=0; i<len; i++, pTbl+=scale, pData++)
-      pTbl[0] = pData[0];
-}
-
-__INLINE void cpGather32(Ipp32u* pData, int len, const Ipp32u* pTbl, int scale, int idx)
-{
-   Ipp32u mask = (Ipp32u)cpIsNonZeroMask(idx);
-   int i;
-   idx = (idx & mask) | (1 & (~mask)); /* set idx=1 if input idx==0 */
-   pTbl += (idx-1);
-   for(i=0; i<len; i++, pTbl+=scale, pData++) pData[0] = pTbl[0] & mask;
-}
 
 /* size of context */
-int cpGFpECGetSize(int deg, int basicElmBitSize);
+#define cpGFpECGetSize OWNAPI(cpGFpECGetSize)
+    int cpGFpECGetSize(int deg, int basicElmBitSize);
 
 /* point operations */
-int gfec_GetPoint(BNU_CHUNK_T* pX, BNU_CHUNK_T* pY, const IppsGFpECPoint* pPoint, IppsGFpECState* pEC);
+#define gfec_GetPoint OWNAPI(gfec_GetPoint)
+    int gfec_GetPoint(BNU_CHUNK_T* pX, BNU_CHUNK_T* pY, const IppsGFpECPoint* pPoint, IppsGFpECState* pEC);
+#define gfec_SetPoint OWNAPI(gfec_SetPoint)
+    int gfec_SetPoint(BNU_CHUNK_T* pP, const BNU_CHUNK_T* pX, const BNU_CHUNK_T* pY, IppsGFpECState* pEC);
+#define gfec_MakePoint OWNAPI(gfec_MakePoint)
+    int gfec_MakePoint(IppsGFpECPoint* pPoint, const BNU_CHUNK_T* pElm, IppsGFpECState* pEC);
+#define gfec_ComparePoint OWNAPI(gfec_ComparePoint)
+    int gfec_ComparePoint(const IppsGFpECPoint* pP, const IppsGFpECPoint* pQ, IppsGFpECState* pEC);
+#define gfec_IsPointOnCurve OWNAPI(gfec_IsPointOnCurve)
+    int gfec_IsPointOnCurve(const IppsGFpECPoint* pP, IppsGFpECState* pEC);
 
-int gfec_SetPoint(BNU_CHUNK_T* pP, const BNU_CHUNK_T* pX, const BNU_CHUNK_T* pY, IppsGFpECState* pEC);
-
-int gfec_MakePoint(IppsGFpECPoint* pPoint, const BNU_CHUNK_T* pElm, IppsGFpECState* pEC);
-
-int gfec_ComparePoint(const IppsGFpECPoint* pP, const IppsGFpECPoint* pQ, IppsGFpECState* pEC);
-int gfec_IsPointOnCurve(const IppsGFpECPoint* pP, IppsGFpECState* pEC);
-
+#define         gfec_NegPoint OWNAPI(gfec_NegPoint)
 IppsGFpECPoint* gfec_NegPoint(IppsGFpECPoint* pR,
                         const IppsGFpECPoint* pP, IppsGFpECState* pEC);
+#define         gfec_DblPoint OWNAPI(gfec_DblPoint)
 IppsGFpECPoint* gfec_DblPoint(IppsGFpECPoint* pR,
                         const IppsGFpECPoint* pP, IppsGFpECState* pEC);
+#define         gfec_AddPoint OWNAPI(gfec_AddPoint)
 IppsGFpECPoint* gfec_AddPoint(IppsGFpECPoint* pR,
                         const IppsGFpECPoint* pP, const IppsGFpECPoint* pQ, IppsGFpECState* pEC);
+#define         gfec_MulPoint OWNAPI(gfec_MulPoint)
 IppsGFpECPoint* gfec_MulPoint(IppsGFpECPoint* pR,
                         const IppsGFpECPoint* pP, const BNU_CHUNK_T* pScalar, int scalarLen,
                               IppsGFpECState* pEC, Ipp8u* pScratchBuffer);
+#define         gfec_MulBasePoint OWNAPI(gfec_MulBasePoint)
 IppsGFpECPoint* gfec_MulBasePoint(IppsGFpECPoint* pR,
                         const BNU_CHUNK_T* pScalar, int scalarLen,
                               IppsGFpECState* pEC, Ipp8u* pScratchBuffer);
+#define         gfec_PointProduct OWNAPI(gfec_PointProduct)
 IppsGFpECPoint* gfec_PointProduct(IppsGFpECPoint* pR,
                         const IppsGFpECPoint* pP, const BNU_CHUNK_T* pScalarP, int scalarPlen,
                         const IppsGFpECPoint* pQ, const BNU_CHUNK_T* pScalarQ, int scalarQlen,
                         IppsGFpECState* pEC, Ipp8u* pScratchBuffer);
+#define         gfec_BasePointProduct OWNAPI(gfec_BasePointProduct)
 IppsGFpECPoint* gfec_BasePointProduct(IppsGFpECPoint* pR,
                         const BNU_CHUNK_T* pScalarG, int scalarGlen,
                         const IppsGFpECPoint* pP, const BNU_CHUNK_T* pScalarP, int scalarPlen,
                         IppsGFpECState* pEC, Ipp8u* pScratchBuffer);
 
-void p192r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
-void p224r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
-void p256r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
-void p384r1_select_ap_w5(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
-void p521r1_select_ap_w5(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
+#define p192r1_select_ap_w7 OWNAPI(p192r1_select_ap_w7)
+   void p192r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
+#define p224r1_select_ap_w7 OWNAPI(p224r1_select_ap_w7)
+   void p224r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
+#define p256r1_select_ap_w7 OWNAPI(p256r1_select_ap_w7)
+   void p256r1_select_ap_w7(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
+#define p384r1_select_ap_w5 OWNAPI(p384r1_select_ap_w5)
+   void p384r1_select_ap_w5(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
+#define p521r1_select_ap_w5 OWNAPI(p521r1_select_ap_w5)
+   void p521r1_select_ap_w5(BNU_CHUNK_T* pAffinePoint, const BNU_CHUNK_T* pTable, int index);
 
 #endif /* _CP_ECGFP_H_ */
