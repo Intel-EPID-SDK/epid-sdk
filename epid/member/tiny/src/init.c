@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,28 +21,35 @@
 
 #include <stdint.h>
 #include "epid/common/types.h"
-#include "epid/member/software_member.h"
 #include "epid/member/tiny/math/fp.h"
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/math/pairing.h"
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/src/presig_compute.h"
 #include "epid/member/tiny/src/serialize.h"
+#include "epid/member/tiny/src/stack.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny_member.h"
 
-EpidStatus EPID_API EpidMemberGetSize(MemberParams const* params,
-                                      size_t* context_size) {
+static size_t SigrlGetSize(size_t num_sigrls) {
+  return MIN_SIGRL_SIZE + num_sigrls * sizeof(SigRlEntry);
+}
+EpidStatus EPID_MEMBER_API EpidMemberGetSize(MemberParams const* params,
+                                             size_t* context_size) {
   const size_t kMinContextSize =
       sizeof(MemberCtx) - sizeof(((MemberCtx*)0)->heap);
   if (!params || !context_size) {
     return kEpidBadArgErr;
   }
-  *context_size = kMinContextSize + SIGRL_HEAP_SIZE +
-                  BasenamesGetSize(MAX_ALLOWED_BASENAMES);
+  *context_size = kMinContextSize + SigrlGetSize(params->max_sigrl_entries) +
+                  BasenamesGetSize(params->max_allowed_basenames) +
+                  sizeof(PreComputedSignatureData) * params->max_precomp_sig;
   return kEpidNoErr;
 }
 
-EpidStatus EPID_API EpidMemberInit(MemberParams const* params, MemberCtx* ctx) {
+EpidStatus EPID_MEMBER_API EpidMemberInit(MemberParams const* params,
+                                          MemberCtx* ctx) {
   EpidStatus sts = kEpidNoErr;
   size_t context_size = 0;
   if (!params || !ctx) {
@@ -61,10 +68,19 @@ EpidStatus EPID_API EpidMemberInit(MemberParams const* params, MemberCtx* ctx) {
 
   // set the default hash algorithm to sha512
   ctx->hash_alg = kSha512;
-  ctx->f_is_set = 0;
+
   // set allowed basenames pointer to the heap
-  ctx->allowed_basenames = (AllowedBasenames*)&ctx->heap[SIGRL_HEAP_SIZE];
-  InitBasenames(ctx->allowed_basenames, MAX_ALLOWED_BASENAMES);
+  ctx->allowed_basenames =
+      (AllowedBasenames*)&ctx->heap[SigrlGetSize(params->max_sigrl_entries)];
+  InitBasenames(ctx->allowed_basenames, params->max_allowed_basenames);
+  // set precomputed signatures pointer to the heap
+  // There must be space at least for one presig
+  if (!params->max_precomp_sig) {
+    return kEpidBadArgErr;
+  }
+  InitPreSigStack(&ctx->presigs, params->max_precomp_sig,
+                  &ctx->heap[SigrlGetSize(params->max_sigrl_entries) +
+                             BasenamesGetSize(params->max_allowed_basenames)]);
   if (params->f) {
     FpDeserialize(&ctx->f, params->f);
     if (!FpInField(&ctx->f)) {
@@ -75,20 +91,23 @@ EpidStatus EPID_API EpidMemberInit(MemberParams const* params, MemberCtx* ctx) {
   }
   ctx->rnd_func = params->rnd_func;
   ctx->rnd_param = params->rnd_param;
+  ctx->max_sigrl_entries = params->max_sigrl_entries;
+  ctx->max_allowed_basenames = params->max_allowed_basenames;
+  ctx->max_precomp_sig = params->max_precomp_sig;
   PairingInit(&ctx->pairing_state);
   return kEpidNoErr;
 }
 
-void EPID_API EpidMemberDeinit(MemberCtx* ctx) {
+void EPID_MEMBER_API EpidMemberDeinit(MemberCtx* ctx) {
   (void)ctx;
   return;
 }
 
-EpidStatus EPID_API EpidMemberCreate(MemberParams const* params,
-                                     MemberCtx** ctx) {
+EpidStatus EPID_MEMBER_API EpidMemberCreate(MemberParams const* params,
+                                            MemberCtx** ctx) {
   (void)params;
   (void)ctx;
   return kEpidNotImpl;
 }
 
-void EPID_API EpidMemberDelete(MemberCtx** ctx) { (void)ctx; }
+void EPID_MEMBER_API EpidMemberDelete(MemberCtx** ctx) { (void)ctx; }

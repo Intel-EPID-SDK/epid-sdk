@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,12 +63,6 @@ void Fq6Inv(Fq6Elem* result, Fq6Elem const* in);
 */
 void Fq6Neg(Fq6Elem* result, Fq6Elem const* in);
 
-/// Clear an element's value.
-/*!
-\param[out] result element to clear.
-*/
-void Fq6Clear(Fq6Elem* result);
-
 /// Multiply an element of Fq6 by and element of Fq2.
 /*!
 \param[out] result of multiplying left and right.
@@ -86,6 +80,13 @@ This function was formerly called as Fq2Const.
 */
 void Fq6MulV(Fq6Elem* result, Fq6Elem const* in);
 
+/// Square an element of Fq6.
+/*!
+\param[out] result the square of the element.
+\param[in] in the element to square.
+*/
+void Fq6Square(Fq6Elem* result, Fq6Elem const* in);
+
 /// Test if two elements in Fq6 are equal
 /*!
 \param[in] left The first operand to be tested.
@@ -102,13 +103,6 @@ int Fq6Eq(Fq6Elem const* left, Fq6Elem const* right);
          the value is zero. Zero (i.e., false) otherwise.
 */
 int Fq6IsZero(Fq6Elem const* in);
-
-/// Square an element of Fq6.
-/*!
-\param[out] result the square of the element.
-\param[in] in the element to square.
-*/
-void Fq6Square(Fq6Elem* result, Fq6Elem const* in);
 
 /// Copy an element's value
 /*!
@@ -133,5 +127,11 @@ void Fq6CondSet(Fq6Elem* result, Fq6Elem const* true_val,
 \param[in] in value to set.
 */
 void Fq6Set(Fq6Elem* result, uint32_t in);
+
+/// Clear an element's value.
+/*!
+\param[out] result element to clear.
+*/
+void Fq6Clear(Fq6Elem* result);
 
 #endif  // EPID_MEMBER_TINY_MATH_FQ6_H_

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ If true function would print debug information to stdout.
 int MakeRequest(char const* cacert_file, char const* pubkey_file,
                 char const* req_file, uint8_t reason, bool verbose);
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_FAILURE;
@@ -97,18 +97,18 @@ int main(int argc, char* argv[]) {
   static bool verbose_flag = false;
 
   struct arg_file* pubkey_file = arg_file0(
-      NULL, "gpubkey", "FILE",
+      "g", "gpubkey", "FILE",
       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
   struct arg_file* cacert_file = arg_file1(
-      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+      "c", "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
   struct arg_int* reason =
-      arg_int0(NULL, "reason", "NUM",
+      arg_int0("j", "reason", "NUM",
                "revocation reason (default: " STRINGIZE(REASON_DEFAULT) ")");
   struct arg_file* req_file = arg_file0(
-      NULL, "req", "FILE",
+      "o", "req", "FILE",
       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
       ")");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -128,8 +128,9 @@ int main(int argc, char* argv[]) {
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !pubkey_file || !cacert_file ||
+        !reason || !req_file || !help || !verbose || !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -282,7 +283,7 @@ int MakeRequest(char const* cacert_file, char const* pubkey_file,
 
       req_size = req_file_size;
     } else {
-      log_msg("request file does not exsist, create new");
+      log_msg("request file does not exist, create new");
     }
 
     req_size += req_extra_space;

@@ -1,5 +1,57 @@
 # Intel(R) EPID SDK ChangeLog                                   {#ChangeLog}
 
+## [7.0.0] - 2018-09-21
+
+### Added
+
+- The SDK now includes a command-line tool to create join requests
+  used for join based provisioning.
+
+- The SDK now includes a command-line tool to create member pairing
+  pre-computation blobs from issuer material so that device
+  manufacturers can more easily pre-provision devices.
+
+- The `EpidMemberWritePrecomp` API was reintroduced to allow the
+  pairing pre-computation blob to be serialized. The serialized blob
+  can be used speed up future sessions.
+
+- Full signature pre-computation was added to non-split member to speed up
+  signing for constrained devices.
+
+### Changed
+
+- The SDK has been updated to support split signatures aligned with
+  TPM 2.0 v1.38. Signatures created in split-signature mode can only
+  be verified with a split-signature aware verifier. The SDK builds in
+  non-split mode by default.
+
+- Verifier API updated to support split and non-split signatures.
+
+    - Parameters changed
+        - `EpidVerify`
+    - Removed or made private
+        - `EpidVerifyBasicSig`
+        - `EpidNrVerify`
+        - `EpidCheckPrivRlEntry`
+
+- SDK functions now use the hash algorithm encoded in the group ID by
+  default. You can still override the default hash algorithm using
+  `EpidMemberSetHashAlg` or `EpidVerifierSetHashAlg`.
+
+### Known Issues
+
+- Only the SHA-256 hash algorithm is supported when using the SDK with
+  the IBM TPM simulator due to a defect in version 1119 of the
+  simulator.
+
+- Basenames are limited to 124 bytes in TPM mode.
+
+- Scons build will not work natively on ARM. You can still build using
+  `make` or cross compile.
+
+- Compressed private keys are not supported.
+
+
 ## [6.0.1] - 2018-05-04
 
 ### Changed
@@ -22,6 +74,7 @@
 
 - Scons build will not work natively on ARM. You can still build using
   `make` or cross compile.
+
 
 ## [6.0.0] - 2017-12-15
 
@@ -190,10 +243,6 @@
   example applications.
 
 - Validated on additional IoT platforms.
-
-  - Ostro Linux
-
-  - Snappy Ubuntu Core
 
 
 ### Changes

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
 #include <cstring>
 #include <random>
 
+#include "epid/common-testhelper/onetimepad.h"
 #include "epid/member/tiny/math/unittests/cmp-testhelper.h"
-#include "epid/member/tiny/math/unittests/onetimepad.h"
 
 extern "C" {
 #include "epid/member/tiny/math/efq.h"
@@ -341,9 +341,9 @@ TEST(TinyEFqTest, EFqIsInfPasses) {
 }
 
 TEST(TinyEFqTest, EFqIsInfFails) {
-  EccPointJacobiFq const efqj_noninf = {{{1}}, {{2}}, {{1}}};
+  EccPointJacobiFq const efqj_non_infinite = {{{1}}, {{2}}, {{1}}};
 
-  EXPECT_FALSE(EFqIsInf(&efqj_noninf));
+  EXPECT_FALSE(EFqIsInf(&efqj_non_infinite));
 }
 
 ////////////////////////////////////////////////////////////////////////

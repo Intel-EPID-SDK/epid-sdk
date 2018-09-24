@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@
  * \file
  * \brief EpidCheckPrivRlEntry implementation.
  */
-
+#define EXPORT_EPID_APIS
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
-EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
-                                BasicSignature const* sig, FpElemStr const* f) {
+#include "epid/verifier/src/rlverify.h"
+
+EpidStatus EPID_VERIFIER_API EpidCheckPrivRlEntry(VerifierCtx const* ctx,
+                                                  BasicSignature const* sig,
+                                                  FpElemStr const* f) {
   EpidStatus result = kEpidErr;
   EcPoint* b = NULL;
   EcPoint* k = NULL;

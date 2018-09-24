@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -171,7 +171,7 @@ int MakeRequest(PrivKey const* priv_key, char const* req_file, bool verbose) {
         break;
       }
     } else {
-      log_msg("request file does not exsist, create new");
+      log_msg("request file does not exist, create new");
     }
 
     req_size = req_file_size + req_extra_space;
@@ -235,7 +235,7 @@ int MakeRequest(PrivKey const* priv_key, char const* req_file, bool verbose) {
   return ret_value;
 }
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   int retval = EXIT_FAILURE;
 
@@ -246,22 +246,22 @@ int main(int argc, char* argv[]) {
   PrivKey priv_key;
 
   struct arg_file* privkey_file = arg_file0(
-      NULL, "mprivkey", "FILE",
+      "k", "mprivkey", "FILE",
       "load private key to revoke from FILE (default: " PRIVKEY_DEFAULT ")");
   struct arg_file* req_file = arg_file0(
-      NULL, "req", "FILE",
+      "o", "req", "FILE",
       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
       ")");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_rem* comment_line = arg_rem(
       NULL, "The following options are only needed for compressed keys:");
   struct arg_file* gpubkey_file = arg_file0(
-      NULL, "gpubkey", "FILE",
+      "g", "gpubkey", "FILE",
       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
   struct arg_file* capubkey_file = arg_file0(
-      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+      "c", "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
   void* argtable[ARGTABLE_SIZE];
   int nerrors;
@@ -280,8 +280,9 @@ int main(int argc, char* argv[]) {
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !privkey_file || !req_file || !help ||
+        !verbose || !comment_line || !gpubkey_file || !capubkey_file || !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       retval = EXIT_FAILURE;

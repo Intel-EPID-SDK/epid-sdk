@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,39 +53,19 @@ uint32_t VliAdd(VeryLargeInt* result, VeryLargeInt const* left,
   uint32_t i;
   for (i = 0; i < NUM_ECC_DIGITS; ++i) {
     uint32_t sum = left->word[i] + right->word[i] + carry;
-    carry = (sum < left->word[i]) | ((sum == left->word[i]) && carry);
+    carry = (sum < left->word[i] ? 1 : 0) |
+            (((sum == left->word[i]) && carry) ? 1 : 0);
     result->word[i] = sum;
   }
   return carry;
 }
 
-void VliMul(VeryLargeIntProduct* result, VeryLargeInt const* left,
-            VeryLargeInt const* right) {
-  uint64_t tmp_r1 = 0;
-  uint32_t tmp_r2 = 0;
-  uint32_t i, k;
-  /* Compute each digit of result in sequence, maintaining the carries. */
-  for (k = 0; k < (uint32_t)(NUM_ECC_DIGITS * 2 - 1); ++k) {
-    uint32_t min_idx =
-        (k < (uint32_t)NUM_ECC_DIGITS ? 0 : (k + 1) - NUM_ECC_DIGITS);
-    for (i = min_idx; i <= k && i < (uint32_t)NUM_ECC_DIGITS; ++i) {
-      uint64_t product = (uint64_t)left->word[i] * right->word[k - i];
-      tmp_r1 += product;
-      tmp_r2 += (tmp_r1 < product);
-    }
-    result->word[k] = (uint32_t)tmp_r1;
-    tmp_r1 = (tmp_r1 >> 32) | (((uint64_t)tmp_r2) << 32);
-    tmp_r2 = 0;
-  }
-  result->word[NUM_ECC_DIGITS * 2 - 1] = (uint32_t)tmp_r1;
-}
-
-void VliRShift(VeryLargeInt* result, VeryLargeInt const* in, uint32_t shift) {
-  uint32_t i;
-  for (i = 0; i < NUM_ECC_DIGITS - 1; i++) {
-    result->word[i] = (in->word[i] >> shift) | in->word[i + 1] << (32 - shift);
-  }
-  result->word[NUM_ECC_DIGITS - 1] = in->word[NUM_ECC_DIGITS - 1] >> shift;
+void VliModAdd(VeryLargeInt* result, VeryLargeInt const* left,
+               VeryLargeInt const* right, VeryLargeInt const* mod) {
+  VeryLargeInt tmp;
+  uint32_t carry = VliAdd(result, left, right);
+  carry = VliSub(&tmp, result, mod) - carry;
+  VliCondSet(result, result, &tmp, carry);
 }
 
 uint32_t VliSub(VeryLargeInt* result, VeryLargeInt const* left,
@@ -95,45 +75,56 @@ uint32_t VliSub(VeryLargeInt* result, VeryLargeInt const* left,
   int i;
   for (i = 0; i < NUM_ECC_DIGITS; ++i) {
     uint32_t diff = left->word[i] - right->word[i] - borrow;
-    borrow = (diff > left->word[i]) | ((diff == left->word[i]) && borrow);
+    borrow = (diff > left->word[i] ? 1 : 0) |
+             (((diff == left->word[i]) && borrow) ? 1 : 0);
     result->word[i] = diff;
   }
   return borrow;
 }
 
-void VliSet(VeryLargeInt* result, VeryLargeInt const* in) {
+void VliModSub(VeryLargeInt* result, VeryLargeInt const* left,
+               VeryLargeInt const* right, VeryLargeInt const* mod) {
+  VeryLargeInt tmp;
+  uint32_t borrow = VliSub(result, left, right);
+  VliAdd(&tmp, result, mod);
+  VliCondSet(result, &tmp, result, borrow);
+}
+
+void VliMul(VeryLargeIntProduct* result, VeryLargeInt const* left,
+            VeryLargeInt const* right) {
+  uint64_t tmp_r1 = 0;
+  uint32_t tmp_r2 = 0;
+  uint32_t i, k;
+  uint64_t product;
+  /* Compute each digit of result in sequence, maintaining the carries. */
+  for (k = 0; k < (NUM_ECC_DIGITS * 2 - 1); ++k) {
+    uint32_t min_idx = (k < NUM_ECC_DIGITS ? 0 : (k + 1) - NUM_ECC_DIGITS);
+    for (i = min_idx; i <= k && i < NUM_ECC_DIGITS && k - i < NUM_ECC_DIGITS;
+         ++i) {
+      product = (uint64_t)left->word[i] * right->word[k - i];
+      tmp_r1 += product;
+      tmp_r2 += (tmp_r1 < product ? 1 : 0);
+    }
+    result->word[k] = (uint32_t)tmp_r1;
+    tmp_r1 = (tmp_r1 >> 32) | (((uint64_t)tmp_r2) << 32);
+    tmp_r2 = 0;
+  }
+  result->word[NUM_ECC_DIGITS * 2 - 1] = (uint32_t)tmp_r1;
+}
+
+void VliModMul(VeryLargeInt* result, VeryLargeInt const* left,
+               VeryLargeInt const* right, VeryLargeInt const* mod) {
+  VeryLargeIntProduct product;
+  VliMul(&product, left, right);
+  VliModBarrett(result, &product, mod);
+}
+
+void VliRShift(VeryLargeInt* result, VeryLargeInt const* in, uint32_t shift) {
   uint32_t i;
-  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
-    result->word[i] = in->word[i];
+  for (i = 0; i < NUM_ECC_DIGITS - 1; i++) {
+    result->word[i] = (in->word[i] >> shift) | in->word[i + 1] << (32 - shift);
   }
-}
-
-void VliClear(VeryLargeInt* result) {
-  uint32_t i;
-  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
-    result->word[i] = 0;
-  }
-}
-
-int VliIsZero(VeryLargeInt const* in) {
-  uint32_t i, acc = 0;
-  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
-    acc += (in->word[i] != 0);
-  }
-  return (!acc);
-}
-
-void VliCondSet(VeryLargeInt* result, VeryLargeInt const* true_val,
-                VeryLargeInt const* false_val, int truth_val) {
-  int i;
-  for (i = 0; i < NUM_ECC_DIGITS; i++)
-    result->word[i] = (!truth_val) * false_val->word[i] +
-                      (truth_val != 0) * true_val->word[i];
-}
-
-uint32_t VliTestBit(VeryLargeInt const* in, uint32_t bit) {
-  return ((in->word[bit >> 5] >> (bit & 31)) &
-          1);  // p_bit % 32 = p_bit & 0x0000001F = 31
+  result->word[NUM_ECC_DIGITS - 1] = in->word[NUM_ECC_DIGITS - 1] >> shift;
 }
 
 int VliRand(VeryLargeInt* result, BitSupplier rnd_func, void* rnd_param) {
@@ -145,61 +136,28 @@ int VliRand(VeryLargeInt* result, BitSupplier rnd_func, void* rnd_param) {
   return 1;
 }
 
-int VliCmp(VeryLargeInt const* left, VeryLargeInt const* right) {
-  int i, cmp = 0;
-  for (i = NUM_ECC_DIGITS - 1; i >= 0; --i) {
-    cmp |=
-        ((left->word[i] > right->word[i]) - (left->word[i] < right->word[i])) *
-        (!cmp);
-  }
-  return cmp;
-}
-
-void VliModAdd(VeryLargeInt* result, VeryLargeInt const* left,
-               VeryLargeInt const* right, VeryLargeInt const* mod) {
-  VeryLargeInt tmp;
-  uint32_t carry = VliAdd(result, left, right);
-  carry = VliSub(&tmp, result, mod) - carry;
-  VliCondSet(result, result, &tmp, carry);
-}
-
-void VliModSub(VeryLargeInt* result, VeryLargeInt const* left,
-               VeryLargeInt const* right, VeryLargeInt const* mod) {
-  VeryLargeInt tmp;
-  uint32_t borrow = VliSub(result, left, right);
-  VliAdd(&tmp, result, mod);
-  VliCondSet(result, &tmp, result, borrow);
-}
-
-void VliModMul(VeryLargeInt* result, VeryLargeInt const* left,
-               VeryLargeInt const* right, VeryLargeInt const* mod) {
-  VeryLargeIntProduct product;
-  VliMul(&product, left, right);
-  VliModBarrett(result, &product, mod);
-}
-
-static void vliSquare(VeryLargeIntProduct* p_result,
-                      VeryLargeInt const* p_left) {
+static void vliSquare(VeryLargeIntProduct* result, VeryLargeInt const* left) {
   uint64_t tmp_r1 = 0;
   uint32_t tmp_r2 = 0;
   uint32_t i, k;
+  uint64_t product;
   for (k = 0; k < NUM_ECC_DIGITS * 2 - 1; ++k) {
     uint32_t min_idx = (k < NUM_ECC_DIGITS ? 0 : (k + 1) - NUM_ECC_DIGITS);
-    for (i = min_idx; i <= k && i <= k - i; ++i) {
-      uint64_t l_product = (uint64_t)p_left->word[i] * p_left->word[k - i];
+    for (i = min_idx; i <= k && i <= k - i && k - i < NUM_ECC_DIGITS; ++i) {
+      product = (uint64_t)left->word[i] * left->word[k - i];
       if (i < k - i) {
-        tmp_r2 += l_product >> 63;
-        l_product *= 2;
+        tmp_r2 += product >> 63;
+        product *= 2;
       }
-      tmp_r1 += l_product;
-      tmp_r2 += (tmp_r1 < l_product);
+      tmp_r1 += product;
+      tmp_r2 += (tmp_r1 < product ? 1 : 0);
     }
-    p_result->word[k] = (uint32_t)tmp_r1;
+    result->word[k] = (uint32_t)tmp_r1;
     tmp_r1 = (tmp_r1 >> 32) | (((uint64_t)tmp_r2) << 32);
     tmp_r2 = 0;
   }
 
-  p_result->word[NUM_ECC_DIGITS * 2 - 1] = (uint32_t)tmp_r1;
+  result->word[NUM_ECC_DIGITS * 2 - 1] = (uint32_t)tmp_r1;
 }
 
 void VliModExp(VeryLargeInt* result, VeryLargeInt const* base,
@@ -258,7 +216,7 @@ static void vliScalarMult(VeryLargeInt* p_result, VeryLargeInt* p_left,
   for (i = 0; i < NUM_ECC_DIGITS - 1; i++) {
     tmpresult = p_left->word[i] * ((uint64_t)p_right);
     right = left + ((uint32_t)tmpresult);
-    left = (right < left) + ((uint32_t)(tmpresult >> 32));
+    left = (right < left ? 1 : 0) + ((uint32_t)(tmpresult >> 32));
     p_result->word[i] = right;
   }
   p_result->word[NUM_ECC_DIGITS - 1] = left;
@@ -273,44 +231,109 @@ static void vliProdRShift(VeryLargeIntProduct* result,
   }
   result->word[len - 1] = in->word[len - 1] >> shift;
 }
-
 /* WARNING THIS METHOD MAKES STRONG ASSUMPTIONS ABOUT THE INVOLVED PRIMES
- * All primes used for computations in Intel(R) EPID 2.0 begin with 32 ones.
- * This method assumes 2^256 - p_mod
- * begins with 32 zeros, and is tuned to this assumption. Violating this
- * assumption will cause it not
- * to work. It also assumes that it does not end with 32 zeros.
- */
-void VliModBarrett(VeryLargeInt* result, VeryLargeIntProduct const* input,
-                   VeryLargeInt const* mod) {
+* All primes used for computations in Intel(R) EPID 2.0 begin with 32 ones.
+* This method assumes 2^256 - p_mod
+* begins with 32 zeros, and is tuned to this assumption. Violating this
+* assumption will cause it not
+* to work. It also assumes that it does not end with 32 zeros.
+*/
+static void VliModBarrettInternal(VeryLargeInt* result,
+                                  VeryLargeIntProduct const* input,
+                                  VeryLargeInt const* mod,
+                                  VeryLargeIntProduct* tmpprod) {
   int i;
-  VeryLargeIntProduct tmpprod;
-  VeryLargeInt negprime, linear;
+  VeryLargeInt negative_prime, linear;
   uint32_t carry = 0;
-  VliSet((VeryLargeInt*)&tmpprod.word[0], (VeryLargeInt const*)&input->word[0]);
-  VliSet((VeryLargeInt*)&tmpprod.word[NUM_ECC_DIGITS],
+  VliSet((VeryLargeInt*)&tmpprod->word[0],
+         (VeryLargeInt const*)&input->word[0]);
+  VliSet((VeryLargeInt*)&tmpprod->word[NUM_ECC_DIGITS],
          (VeryLargeInt const*)&input->word[NUM_ECC_DIGITS]);
   // negative prime is ~q + 1, so we store this in
-  for (i = 0; i < NUM_ECC_DIGITS - 1; i++) negprime.word[i] = ~mod->word[i];
-  negprime.word[0]++;
+  for (i = 0; i < NUM_ECC_DIGITS - 1; i++) {
+    negative_prime.word[i] = ~mod->word[i];
+  }
+  negative_prime.word[0]++;
   for (i = 0; i < NUM_ECC_DIGITS; i++) {
-    vliScalarMult(&linear, &negprime, tmpprod.word[2 * NUM_ECC_DIGITS - 1]);
-    tmpprod.word[2 * NUM_ECC_DIGITS - 1] = 0;
-    tmpprod.word[2 * NUM_ECC_DIGITS - 1] =
-        VliAdd((VeryLargeInt*)&tmpprod.word[NUM_ECC_DIGITS - 1],
-               (VeryLargeInt const*)&tmpprod.word[7], &linear);
-    vliLShift(&tmpprod, &tmpprod, 31);
+    vliScalarMult(&linear, &negative_prime,
+                  tmpprod->word[2 * NUM_ECC_DIGITS - 1]);
+    tmpprod->word[2 * NUM_ECC_DIGITS - 1] = VliAdd(
+        (VeryLargeInt*)&tmpprod->word[NUM_ECC_DIGITS - 1],
+        (VeryLargeInt const*)&tmpprod->word[NUM_ECC_DIGITS - 1], &linear);
+    vliLShift(tmpprod, tmpprod, 31);
   }
   // shift the 256+32-NUM_ECC_DIGITS-1 bits in the largest 9 limbs back to the
   // base
-  vliProdRShift(&tmpprod,
-                (VeryLargeIntProduct const*)&tmpprod.word[NUM_ECC_DIGITS - 1],
+  vliProdRShift(tmpprod,
+                (VeryLargeIntProduct const*)&tmpprod->word[NUM_ECC_DIGITS - 1],
                 (31 * 8) % 32, NUM_ECC_DIGITS + 1);
-  vliScalarMult(&linear, &negprime, tmpprod.word[NUM_ECC_DIGITS]);
-  carry = VliAdd((VeryLargeInt*)&tmpprod.word[0],
-                 (VeryLargeInt const*)&tmpprod.word[0],
+  vliScalarMult(&linear, &negative_prime, tmpprod->word[NUM_ECC_DIGITS]);
+  carry = VliAdd((VeryLargeInt*)&tmpprod->word[0],
+                 (VeryLargeInt const*)&tmpprod->word[0],
                  (VeryLargeInt const*)&linear);
-  carry |= (-1 < VliCmp((VeryLargeInt const*)&tmpprod.word[0], mod));
-  vliScalarMult(&linear, &negprime, carry);
-  VliAdd(result, (VeryLargeInt const*)&tmpprod.word[0], &linear);
+  carry |= (-1 < VliCmp((VeryLargeInt const*)&tmpprod->word[0], mod) ? 1 : 0);
+  vliScalarMult(&linear, &negative_prime, carry);
+  VliAdd(result, (VeryLargeInt const*)&tmpprod->word[0], &linear);
+}
+void VliModBarrettSecure(VeryLargeInt* result, VeryLargeIntProduct const* input,
+                         VeryLargeInt const* mod) {
+  VeryLargeIntProduct tmpprod;
+  VliModBarrettInternal(result, input, mod, &tmpprod);
+  VliClear((VeryLargeInt*)&tmpprod.word[0]);
+  VliClear((VeryLargeInt*)&tmpprod.word[NUM_ECC_DIGITS]);
+}
+void VliModBarrett(VeryLargeInt* result, VeryLargeIntProduct const* input,
+                   VeryLargeInt const* mod) {
+  VeryLargeIntProduct tmpprod;
+  VliModBarrettInternal(result, input, mod, &tmpprod);
+}
+
+int VliIsZero(VeryLargeInt const* in) {
+  uint32_t i, acc = 0;
+  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
+    acc += (in->word[i] != 0);
+  }
+  return (!acc);
+}
+
+uint32_t VliTestBit(VeryLargeInt const* in, uint32_t bit) {
+  // bit number must be less than 32*NUM_ECC_DIGITS
+  // (sizeof VeryLargeInt in bits)
+  // so do: bit % 256 = bit & (256 - 1)
+  // if bit > 255, expect math to fail and give incorrect results
+  return (
+      (in->word[(bit & (sizeof(VeryLargeInt) * 8 - 1)) >> 5] >> (bit & 31)) &
+      1);  // p_bit % 32 = p_bit & 0x0000001F = 31
+}
+
+int VliCmp(VeryLargeInt const* left, VeryLargeInt const* right) {
+  int i, cmp = 0;
+  for (i = NUM_ECC_DIGITS - 1; i >= 0; --i) {
+    cmp |= ((left->word[i] > right->word[i] ? 1 : 0) -
+            (left->word[i] < right->word[i] ? 1 : 0)) *
+           (!cmp);
+  }
+  return cmp;
+}
+
+void VliCondSet(VeryLargeInt* result, VeryLargeInt const* true_val,
+                VeryLargeInt const* false_val, int truth_val) {
+  int i;
+  for (i = 0; i < NUM_ECC_DIGITS; i++)
+    result->word[i] = (!truth_val) * false_val->word[i] +
+                      (truth_val != 0) * true_val->word[i];
+}
+
+void VliSet(VeryLargeInt* result, VeryLargeInt const* in) {
+  uint32_t i;
+  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
+    result->word[i] = in->word[i];
+  }
+}
+
+void VliClear(VeryLargeInt* result) {
+  uint32_t i;
+  for (i = 0; i < NUM_ECC_DIGITS; ++i) {
+    result->word[i] = 0;
+  }
 }

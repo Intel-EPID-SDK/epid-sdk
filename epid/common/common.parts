@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 Import('*')
 env.PartName('common')
 
-api_headers = Pattern(src_dir='.',
-                      includes=['*.h'],
-                      recursive=False).files()
 src_files = Pattern(src_dir='src',
                     includes=['*.c'],
                     recursive=False).files()
@@ -59,61 +56,41 @@ build_files = Pattern(src_dir='.',
                       includes=['*.parts', 'Makefile'],
                       recursive=False).files()
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(src_files + internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(utest_files,
-                        sub_dir='epid/${PART_SHORT_NAME}/unittests')
+env.DependsOn([
+    Component('tinycommon', requires=REQ.HEADERS),
+    Component('ippcp'),
+])
 
+env.Append(CPPPATH='#')
 
-    env.InstallTopLevel(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
-    env.InstallTopLevel(epid11_src_files + epid11_internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/1.1/src')
-    env.InstallTopLevel(epid11_utest_files,
-                        sub_dir='epid/${PART_SHORT_NAME}/1.1/unittests')
+testenv = env.Clone()
 
-    env.InstallTopLevel(math_headers, sub_dir='epid/${PART_SHORT_NAME}/math')
-    env.InstallTopLevel(math_src_files + math_internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/math/src')
-    env.InstallTopLevel(math_utest_files,
-                        sub_dir='epid/${PART_SHORT_NAME}/math/unittests')
+env.SdkInclude(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
 
-    env.InstallTopLevel(build_files, sub_dir='epid/${PART_SHORT_NAME}')
-else:
-    env.DependsOn([
-        Component('ippcp'),
-    ])
-    if 'use_memory_profiler' in env['MODE']:
-        env.DependsOn([Component('memory_profiler')])
+outputs = env.Library('${PART_NAME}',
+                      src_files + epid11_src_files + math_src_files)
+env.Sdk(outputs)
+if 'install_lib' in env['MODE']:
+    env.InstallLib(outputs)
+    env.InstallInclude(epid11_headers,
+                       sub_dir='epid/${PART_SHORT_NAME}/1.1')
 
-    env.Append(CPPPATH='#')
+# unit tests
+testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
+testenv.UnitTest("utest",
+                 utest_files + math_utest_files + epid11_utest_files,
+                 command_args=[
+                     '--gtest_color=yes',
+                     '--gtest_print_time=1',
+                     '--gtest_output=xml',
+                     '--gtest_filter=**',
+                 ],
+                 make_pdb=(env.isConfigBasedOn('debug')),
+                 depends=[Component('gtest'),
+                          Component('common'),
+                          Component('common-testhelper')],
+                 INSTALL_BIN='${INSTALL_TEST_BIN}')
+if env.get('fuzzer', False):
+    env.Part(parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
+             INSTALL_BIN='${INSTALL_TEST_BIN}')
 
-    testenv = env.Clone()
-
-    env.SdkInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
-    env.SdkInclude(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
-
-    outputs = env.Library('${PART_NAME}',
-                          src_files + epid11_src_files + math_src_files)
-    env.Sdk(outputs)
-    if 'install_lib' in env['MODE']:
-        env.InstallLib(outputs)
-        env.InstallInclude(api_headers, sub_dir='${PART_SHORT_NAME}')
-        env.InstallInclude(epid11_headers, sub_dir='${PART_SHORT_NAME}/1.1')
-
-    # unit tests
-    testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
-    testenv.UnitTest("utest",
-                     utest_files + math_utest_files + epid11_utest_files,
-                     command_args=[
-                         '--gtest_color=yes',
-                         '--gtest_print_time=1',
-                         '--gtest_output=xml',
-                         '--gtest_filter=**',
-                     ],
-                     make_pdb=(env.isConfigBasedOn('debug')),
-                     depends=[Component('gtest'),
-                              Component('common'),
-                              Component('common-testhelper')],
-                     INSTALL_BIN='${INSTALL_TEST_BIN}')

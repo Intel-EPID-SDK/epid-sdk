@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -63,7 +63,7 @@ $(document).ready(function(){initNavTree('group___error_codes.html','');});
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">errors<div class="ingroups"><a class="el" href="group___epid_module.html">epid&amp;nbsp;</a> &raquo; <a class="el" href="group___epid_common.html">common</a></div></div>  </div>
+<div class="title">errors<div class="ingroups"><a class="el" href="group___epid_module.html">epid</a> &raquo; <a class="el" href="group___epid_common.html">common</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -98,7 +98,12 @@ Enumerations</h2></td></tr>
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a94ae9c9b9337afd2fefd3b4f9c3160df">kEpidInconsistentBasenameSetErr</a>, 
 <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129">kEpidMathQuadraticNonResidueError</a>, 
 <br />
-&#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43">kEpidOutOfSequenceError</a>
+&#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43">kEpidOutOfSequenceError</a>, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a065bfa26fcf891c0fb32c806c9bff48b">kEpidJoinRequestInvalid</a>, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a19547bd12e734f8c2930ad7ad9eec325">kEpidSchemaNotSupportedErr</a>, 
+<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360adba1b6941aee6bf14271d0be219cc80c">kEpidOperationNotSupportedErr</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab562ca57d9bbb4167b40b9bfb26d59ea">kEpidKeyNotInGroupErr</a>
 <br />
  }</td></tr>
 <tr class="memdesc:gafdb27c77c2c4b32c807e326a8a0da360"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return status for SDK functions.  <a href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">More...</a><br /></td></tr>
@@ -175,6 +180,14 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43"></a>kEpidOutOfSequenceError&#160;</td><td class="fielddoc"><p>operation was performed out of sequence </p>
 </td></tr>
+<tr><td class="fieldname"><a id="ggafdb27c77c2c4b32c807e326a8a0da360a065bfa26fcf891c0fb32c806c9bff48b"></a>kEpidJoinRequestInvalid&#160;</td><td class="fielddoc"><p>Join Request is invalid. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggafdb27c77c2c4b32c807e326a8a0da360a19547bd12e734f8c2930ad7ad9eec325"></a>kEpidSchemaNotSupportedErr&#160;</td><td class="fielddoc"><p>format not supported by this version of SDK </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggafdb27c77c2c4b32c807e326a8a0da360adba1b6941aee6bf14271d0be219cc80c"></a>kEpidOperationNotSupportedErr&#160;</td><td class="fielddoc"><p>operation called is not supported by SDK </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggafdb27c77c2c4b32c807e326a8a0da360ab562ca57d9bbb4167b40b9bfb26d59ea"></a>kEpidKeyNotInGroupErr&#160;</td><td class="fielddoc"><p>private key is not in the group </p>
+</td></tr>
 </table>
 
 </div>
@@ -211,12 +224,13 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

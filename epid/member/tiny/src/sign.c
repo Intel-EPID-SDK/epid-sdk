@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
+#include "epid/common/src/sig_types.h"
 #include "epid/member/tiny/src/context.h"
 #include "epid/member/tiny/src/native_types.h"
 #include "epid/member/tiny/src/nrprove.h"
@@ -29,8 +30,8 @@
 // SIZE_MAX is not guaranteed in C89/90
 #define SIZE_T_MAX ((size_t)(-1))
 
-size_t EPID_API EpidGetSigSize(SigRl const* sig_rl) {
-  const size_t kMinSigSize = sizeof(EpidSignature) - sizeof(NrProof);
+size_t EPID_MEMBER_API EpidGetSigSize(SigRl const* sig_rl) {
+  const size_t kMinSigSize = sizeof(EpidNonSplitSignature) - sizeof(NrProof);
   if (!sig_rl) {
     return kMinSigSize;
   } else {
@@ -43,10 +44,11 @@ size_t EPID_API EpidGetSigSize(SigRl const* sig_rl) {
   }
 }
 
-EpidStatus EPID_API EpidSign(MemberCtx const* ctx, void const* msg,
-                             size_t msg_len, void const* basename,
-                             size_t basename_len, EpidSignature* sig,
-                             size_t sig_len) {
+EpidStatus EPID_MEMBER_API EpidSign(MemberCtx const* ctx, void const* msg,
+                                    size_t msg_len, void const* basename,
+                                    size_t basename_len, EpidSignature* raw_sig,
+                                    size_t sig_len) {
+  EpidNonSplitSignature* sig = (EpidNonSplitSignature*)raw_sig;
   EpidStatus sts = kEpidErr;
   OctStr32 octstr32_0 = {{0x00, 0x00, 0x00, 0x00}};
   NativeBasicSignature sigma0;
@@ -99,7 +101,6 @@ EpidStatus EPID_API EpidSign(MemberCtx const* ctx, void const* msg,
       }
     }
     if (kEpidNoErr != nr_prove_status) {
-      memset(&sig->sigma[0], 0, num_sig_rl * sizeof(sig->sigma[0]));
       return nr_prove_status;
     }
   } else {

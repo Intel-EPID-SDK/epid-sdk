@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -63,7 +63,40 @@ $(document).ready(function(){initNavTree('_change_log.html','');});
 <div class="title">What's New </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>[6.0.1] - 2018-05-04</h2>
+<div class="textblock"><h2>[7.0.0] - 2018-09-21</h2>
+<h3>Added</h3>
+<ul>
+<li>The SDK now includes a command-line tool to create join requests used for join based provisioning.</li>
+<li>The SDK now includes a command-line tool to create member pairing pre-computation blobs from issuer material so that device manufacturers can more easily pre-provision devices.</li>
+<li>The <code>EpidMemberWritePrecomp</code> API was reintroduced to allow the pairing pre-computation blob to be serialized. The serialized blob can be used speed up future sessions.</li>
+<li>Full signature pre-computation was added to non-split member to speed up signing for constrained devices.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>The SDK has been updated to support split signatures aligned with TPM 2.0 v1.38. Signatures created in split-signature mode can only be verified with a split-signature aware verifier. The SDK builds in non-split mode by default.</li>
+<li>Verifier API updated to support split and non-split signatures.<ul>
+<li>Parameters changed<ul>
+<li><code>EpidVerify</code></li>
+</ul>
+</li>
+<li>Removed or made private<ul>
+<li><code>EpidVerifyBasicSig</code></li>
+<li><code>EpidNrVerify</code></li>
+<li><code>EpidCheckPrivRlEntry</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SDK functions now use the hash algorithm encoded in the group ID by default. You can still override the default hash algorithm using <code>EpidMemberSetHashAlg</code> or <code>EpidVerifierSetHashAlg</code>.</li>
+</ul>
+<h3>Known Issues</h3>
+<ul>
+<li>Only the SHA-256 hash algorithm is supported when using the SDK with the IBM TPM simulator due to a defect in version 1119 of the simulator.</li>
+<li>Basenames are limited to 124 bytes in TPM mode.</li>
+<li>Scons build will not work natively on ARM. You can still build using <code>make</code> or cross compile.</li>
+<li>Compressed private keys are not supported.</li>
+</ul>
+<h2>[6.0.1] - 2018-05-04</h2>
 <h3>Changed</h3>
 <ul>
 <li>Updated Intel(R) IPP Cryptography library to version 2018 (Update 2.1).</li>
@@ -180,11 +213,7 @@ $(document).ready(function(){initNavTree('_change_log.html','');});
 <li>Make-based build system support.</li>
 <li>Sample material includes compressed keys.</li>
 <li>Enhanced documentation, including step-by-step walkthroughs of example applications.</li>
-<li>Validated on additional IoT platforms.<ul>
-<li>Ostro Linux</li>
-<li>Snappy Ubuntu Core</li>
-</ul>
-</li>
+<li>Validated on additional IoT platforms.</li>
 </ul>
 <h3>Changes</h3>
 <ul>
@@ -235,12 +264,13 @@ $(document).ready(function(){initNavTree('_change_log.html','');});
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

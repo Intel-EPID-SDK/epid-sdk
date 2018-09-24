@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
                    size_t signed_sig_rl_size,
                    unsigned char const* signed_pubkey,
                    size_t signed_pubkey_size, unsigned char const* priv_key_ptr,
-                   size_t privkey_size, HashAlg hash_alg,
-                   MemberPrecomp* member_precomp, EpidSignature** sig,
-                   size_t* sig_len, EpidCaCertificate const* cacert);
+                   size_t privkey_size, MemberPrecomp* member_precomp,
+                   EpidSignature** sig, size_t* sig_len,
+                   EpidCaCertificate const* cacert);
 
 #endif  // EXAMPLE_SIGNMSG_SRC_SIGNMSG_H_

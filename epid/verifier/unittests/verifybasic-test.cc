@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,18 +27,18 @@
 
 extern "C" {
 #include "epid/verifier/api.h"
+#include "epid/verifier/src/verifybasic.h"
 }
 
 #include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/unittests/member-testhelper.h"
 #include "epid/verifier/unittests/verifier-testhelper.h"
 
 namespace {
 
 TEST_F(EpidVerifierTest, VerifyBasicSigFailsGivenNullPtr) {
   VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha256RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
@@ -51,59 +51,50 @@ TEST_F(EpidVerifierTest, VerifyBasicSigFailsGivenNullPtr) {
             EpidVerifyBasicSig(verifier, &basic_sig, nullptr, msg.size()));
 }
 
-TEST_F(EpidVerifierTest,
-       VerifyBasicSigCanVerifyValidSignatureWithSHA512AsDefault) {
-  VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
-                        ->kSigGrp01Member0Sha512RandombaseTest1NoSigRl.data();
-  const BasicSignature basic_sig = sig->sigma0;
-  auto& msg = this->kTest1;
-
-  EXPECT_EQ(kEpidNoErr,
-            EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
-}
-
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA256) {
   VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha256RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
 
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
   EXPECT_EQ(kEpidNoErr,
             EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA384) {
-  VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  GroupPubKey pub_key = this->kGrp01Key;
+  pub_key.gid.data[1] = 1;
+  VerifierCtxObj verifier(pub_key);
+
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha384RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha384));
   EXPECT_EQ(kEpidNoErr,
             EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA512) {
-  VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  GroupPubKey pub_key = this->kGrp01Key;
+  pub_key.gid.data[1] = 2;
+  VerifierCtxObj verifier(pub_key);
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha512RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
   EXPECT_EQ(kEpidNoErr,
             EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA512256) {
-  VerifierCtxObj verifier(this->kGrpXKey);
-  auto const& sig = (EpidSignature const*)this
+  GroupPubKey pub_key = this->kGrpXKey;
+  pub_key.gid.data[1] = 3;
+  VerifierCtxObj verifier(pub_key);
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrpXMember0Sha512256RandombaseMsg0NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kMsg0;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512_256));
   EXPECT_EQ(kEpidNoErr,
             EpidVerifyBasicSig(verifier, &basic_sig, msg.data(), msg.size()));
 }
@@ -111,7 +102,7 @@ TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyValidSignatureWithSHA512256) {
 TEST_F(EpidVerifierTest,
        VerifyBasicSigDetectsInvalidSignatureGivenMatchingMessage) {
   VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha256RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
@@ -124,7 +115,7 @@ TEST_F(EpidVerifierTest,
 TEST_F(EpidVerifierTest,
        VerifyBasicSigDetectsInvalidSignatureGivenMessageMismatch) {
   VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha256RandombaseTest1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto msg = this->kTest1;
@@ -135,12 +126,11 @@ TEST_F(EpidVerifierTest,
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyWithBasename) {
   VerifierCtxObj verifier(this->kGrp01Key);
-  auto const& sig = (EpidSignature const*)this
+  auto const& sig = (EpidNonSplitSignature const*)this
                         ->kSigGrp01Member0Sha256Basename1Test1NoSigRl.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
   auto& basename = this->kBasename1;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
   THROW_ON_EPIDERR(
       EpidVerifierSetBasename(verifier, basename.data(), basename.size()));
   EXPECT_EQ(kEpidNoErr,
@@ -149,12 +139,11 @@ TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyWithBasename) {
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyWithBasenameUsingIkgfData) {
   VerifierCtxObj verifier(this->kPubKeyIkgfStr);
-  auto const& sig =
-      (EpidSignature const*)this->kSigSha256Basename1Test1NoSigRlIkgf.data();
+  auto const& sig = (EpidNonSplitSignature const*)this
+                        ->kSigSha256Basename1Test1NoSigRlIkgf.data();
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
   auto& basename = this->kBasename1;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha256));
   THROW_ON_EPIDERR(
       EpidVerifierSetBasename(verifier, basename.data(), basename.size()));
   EXPECT_EQ(kEpidNoErr,
@@ -162,14 +151,16 @@ TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyWithBasenameUsingIkgfData) {
 }
 
 TEST_F(EpidVerifierTest, VerifyBasicSigCanVerifyMsgContainingAllPossibleBytes) {
-  VerifierCtxObj verifier(this->kPubKeySigRlVerify);
-  auto const& sig =
-      (EpidSignature const*)this->kSigGrp01Member0Sha512kBsn0Data_0_255.data();
+  GroupPubKey pub_key = this->kPubKeySigRlVerify;
+  // Initialize pubkey.gid to sha512
+  pub_key.gid.data[1] = 2;
+  VerifierCtxObj verifier(pub_key);
+  auto const& sig = (EpidNonSplitSignature const*)this
+                        ->kSigGrp01Member0Sha512kBsn0Data_0_255.data();
   const BasicSignature basic_sig = sig->sigma0;
 
   auto& msg = this->kData_0_255;
   auto& basename = this->kBsn0;
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(verifier, kSha512));
   THROW_ON_EPIDERR(
       EpidVerifierSetBasename(verifier, basename.data(), basename.size()));
   EXPECT_EQ(kEpidNoErr,

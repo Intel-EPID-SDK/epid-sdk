@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -96,6 +96,8 @@ void* AllocBuffer(size_t size);
   A pointer to the allocated buffer or NULL if the allocation failed.
 
   \see ToggleVerbosity()
+
+  \deprecated This API has been superseded by ::NewBufferFromFileLoud
 */
 void* NewBufferFromFile(const char* filename, size_t* size);
 
@@ -115,6 +117,8 @@ void* NewBufferFromFile(const char* filename, size_t* size);
   \returns 0 on success, non-zero failure
 
   \see ToggleVerbosity()
+
+  \deprecated This API has been superseded by ::ReadBufferFromFileLoud
 */
 int ReadLoud(char const* filename, void* buf, size_t size);
 
@@ -155,5 +159,52 @@ void PrintBufferOpt(const void* buffer, size_t size, BufferPrintOptions opts);
   The size of the buffer in bytes.
 */
 void PrintBuffer(const void* buffer, size_t size);
+
+/// Read a buffer from a file
+/*!
+  Logs an error message on failure
+
+  \param[in] filename
+  File containing data to read
+
+  \param[out] buffer
+  Buffer for data
+
+  \param[in] size
+  Size of buffer
+
+  \param[in] buf_name
+  Buffer name
+
+  \returns status
+  Integer representing operation result
+
+  \retval 0
+  Successfully read data from file into buffer
+ */
+int ReadBufferFromFileLoud(char const* filename, void* buffer, size_t size,
+                           char const* buf_name);
+
+/// Create a new buffer and initialize it with a file content
+/*!
+  Logs an error message on failure
+
+  \param[in] filename
+  File containing buffer data
+
+  \param[out] size
+  New buffer size
+
+  \param[in] buf_name
+  Buffer name
+
+  \returns ptr
+  Pointer to created buffer
+
+  \retval NULL
+  Failed to create new buffer
+ */
+void* NewBufferFromFileLoud(char const* filename, size_t* size,
+                            char const* buf_name);
 
 #endif  // EXAMPLE_UTIL_BUFFUTIL_H_

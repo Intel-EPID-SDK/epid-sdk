@@ -199,6 +199,7 @@ IPPFUN(IppStatus, ippsHashInit,(IppsHashState* pCtx, IppHashAlgId algID))
    algID = cpValidHashAlg(algID);
    /* test hash alg */
    IPP_BADARG_RET(ippHashAlg_Unknown==algID, ippStsNotSupportedModeErr);
+   IPP_BADARG_RET(IPP_ALG_HASH_LIMIT<=algID, ippStsNotSupportedModeErr);
 
    /* test ctx pointer */
    IPP_BAD_PTR1_RET(pCtx);
@@ -446,25 +447,25 @@ static void cpComputeDigest(Ipp8u* pHashTag, int hashTagLen, const IppsHashState
 
       if(msgLenRepSize>(int)(sizeof(Ipp64u))) {
       #if (IPP_ENDIAN == IPP_BIG_ENDIAN)
-         ((Ipp64u*)(buffer+bufferLen))[-2] = hi;
+         *((Ipp64u*)(buffer+bufferLen-(sizeof(Ipp64u)*2))) = hi;
       #else
-         ((Ipp64u*)(buffer+bufferLen))[-2] = ENDIANNESS64(hi);
+         *((Ipp64u*)(buffer+bufferLen-(sizeof(Ipp64u)*2))) = ENDIANNESS64(hi);
       #endif
       }
 
       /* recall about MD5 specific */
       if(ippHashAlg_MD5!=HASH_ALG_ID(pCtx)) {
          #if (IPP_ENDIAN == IPP_BIG_ENDIAN)
-         ((Ipp64u*)(buffer+bufferLen))[-1] = lo;
+         *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = lo;
          #else
-         ((Ipp64u*)(buffer+bufferLen))[-1] = ENDIANNESS64(lo);
+         *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = ENDIANNESS64(lo);
          #endif
       }
       else {
          #if (IPP_ENDIAN == IPP_BIG_ENDIAN)
-         ((Ipp64u*)(buffer+bufferLen))[-1] = ENDIANNESS64(lo);
+         *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = ENDIANNESS64(lo);
          #else
-         ((Ipp64u*)(buffer+bufferLen))[-1] = lo;
+         *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = lo;
          #endif
       }
    }
@@ -644,7 +645,7 @@ IPPFUN(IppStatus, ippsHashMessage,(const Ipp8u* pMsg, int msgLen, Ipp8u* pMD, Ip
       /* copy message bitlength representation */
       if(ippHashAlg_MD5!=algID)
          msgLenBits = ENDIANNESS64(msgLenBits);
-      ((Ipp64u*)(buffer+bufferLen))[-1] = msgLenBits;
+      *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = msgLenBits;
 
       #undef MSG_LEN_REP
 

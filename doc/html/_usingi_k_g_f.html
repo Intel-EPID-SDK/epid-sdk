@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -94,12 +94,12 @@ Contacting iKGF</h1>
 Tools for Creating Revocation Requests</h1>
 <p>The Intel&reg; EPID SDK includes tools to help you request that iKGF add a revoked group, member private key, or signature to a revocation list.</p>
 <p>These tools are designed to create a revocation request in the specific format required by iKGF. After one of these tools generates a revocation request, the request must be submitted to the issuer in order for the revocation to take effect.</p>
-<p>To access the tools, go to <code>_install/epid-sdk/tools</code> in the SDK directory.</p>
+<p>To access the tools, go to <code>_install/bin</code> in the SDK directory.</p>
 <p>You need to build the SDK before you can use these tools. For more information, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</p>
 <p>The following tools are available:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Tool  </th><th class="markdownTableHeadNone">Purpose ----------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Tool  </th><th class="markdownTableHeadNone">Purpose   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>revokegrp</code>  </td><td class="markdownTableBodyNone">Create group revocation request   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -115,16 +115,16 @@ Requesting Group Revocation</h2>
 Revoke Intel(R) EPID group
 
 Options:
-  --gpubkey=FILE
+  -g, --gpubkey=FILE
       load group public key from FILE (default: pubkey.bin)
 
-  --capubkey=FILE
+  -c, --capubkey=FILE
       load IoT Issuing CA public key from FILE
 
-  --reason=NUM
+  -j, --reason=NUM
       revocation reason (default: 0)
 
-  --req=FILE
+  -o, --req=FILE
       append group revocation request to FILE (default: grprlreq.dat)
 
   -h, --help
@@ -140,10 +140,10 @@ Requesting Private Key Revocation</h2>
 Revoke Intel(R) EPID private key
 
 Options:
-    --mprivkey=FILE
+    -k, --mprivkey=FILE
         load private key to revoke from FILE (default: mprivkey.dat)
 
-    --req=FILE
+    -o, --req=FILE
         append private key revocation request to FILE (default: privreq.dat)
 
     -h, --help
@@ -168,22 +168,22 @@ Requesting Signature Revocation</h2>
 Revoke Intel(R) EPID signature
 
 Options:
-  --sig=FILE
+  -s, --sig=FILE
       load signature to revoke from FILE (default: sig.dat)
 
-  --msg=MESSAGE
+  -m, --msg=MESSAGE
       MESSAGE used to generate signature to revoke
 
-  --msgfile=FILE
+  -M, --msgfile=FILE
       FILE containing message used to generate signature to revoke
 
-  --gpubkey=FILE
+  -g, --gpubkey=FILE
       load group public key from FILE (default: pubkey.bin)
 
-  --capubkey=FILE
+  -c, --capubkey=FILE
       load IoT Issuing CA public key from FILE
 
-  --req=FILE
+  -o, --req=FILE
       append signature revocation request to FILE (default: sigrlreq.dat)
 
   -h, --help
@@ -194,12 +194,12 @@ Options:
 </pre><h1><a class="anchor" id="ExtractionTools"></a>
 Tools for Extracting Keys from iKGF Files</h1>
 <p>The Intel&reg; EPID SDK includes tools to help you extract individual keys from files provided by the Intel Key Generation Facility (iKGF).</p>
-<p>To access the tools, go to <code>_install/epid-sdk/tools</code> in the SDK directory.</p>
+<p>To access the tools, go to <code>_install/bin</code> in the SDK directory.</p>
 <p>You need to build the SDK before you can use these tools. For more information, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</p>
 <p>The following tools are available:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Tool  </th><th class="markdownTableHeadNone">Purpose ------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Tool  </th><th class="markdownTableHeadNone">Purpose   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>extractgrps</code>  </td><td class="markdownTableBodyNone">Extracts group public keys   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -226,7 +226,7 @@ Extracting Member Private Keys</h2>
 Extract the first NUM private keys from FILE to current directory.
 
 Options:
-  -c, --compressed
+  -z, --compressed
       extract compressed keys
 
   -h, --help
@@ -237,12 +237,13 @@ Options:
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

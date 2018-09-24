@@ -22,7 +22,7 @@
 //
 */
 
-#if !defined(_PCP_HASH_RMF_H)
+#if !defined(__PCP_HASH_RMF_H)
 #define __PCP_HASH_RMF_H
 
 #include "pcphash.h"

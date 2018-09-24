@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include "epid/common-testhelper/errors-testhelper.h"
 #include "epid/common-testhelper/mem_params-testhelper.h"
 #include "epid/common-testhelper/prng-testhelper.h"
+#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
 #include "epid/member/tiny/unittests/member-testhelper.h"
 
 extern "C" {
@@ -218,26 +219,70 @@ TEST_F(EpidMemberTest, ProvisionBulkFailsForInvalidPrivateKey) {
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 }
 
-TEST_F(EpidMemberTest, DISABLED_ProvisionBulkCanStoreMembershipCredential) {
+void SetHashBitsInGid(unsigned int code, GroupPubKey* pub_key,
+                      PrivKey* priv_key) {
+  pub_key->gid.data[1] &= 0xf0;
+  pub_key->gid.data[1] |= (code & 0x0f);
+  priv_key->gid.data[1] &= 0xf0;
+  priv_key->gid.data[1] |= (code & 0x0f);
+}
+
+TEST_F(EpidMemberTest, ProvisionBulkFailsGivenGroupWithUnsupportedHashAlg) {
   Prng prng;
   GroupPubKey pub_key = this->kGroupPublicKey;
   PrivKey priv_key = this->kMemberPrivateKey;
+  MemberPrecomp precomp = this->kMemberPrecomp;
   MemberParams params = {0};
-  SetMemberParams(&Prng::Generate, &prng, &priv_key.f, &params);
+  SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
   MemberCtxObj member(&params);
-  EXPECT_EQ(kEpidNoErr,
-            ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
-
-  FAIL() << "todo(developer): implement verification that credentials are "
-            "provisioned";
-  //  uint32_t nv_index = 0x01c10100;
-  //  MembershipCredential credential;
-  //  MembershipCredential const orig_credential{ priv_key.gid, priv_key.A,
-  //    priv_key.x };
-  //  EXPECT_EQ(kEpidNoErr, EpidNvReadMembershipCredential(
-  //                            member->tpm2_ctx, nv_index, &pub_key,
-  //                            &credential));
-  // EXPECT_EQ(orig_credential, credential);
+  for (unsigned int invalid_hash = 0x4; invalid_hash <= 0xf; invalid_hash++) {
+    SetHashBitsInGid(invalid_hash, &pub_key, &priv_key);
+    EXPECT_EQ(kEpidHashAlgorithmNotSupported,
+              EpidProvisionKey(member, &pub_key, &priv_key, &precomp))
+        << "Unsupported hash algorithm (" << std::showbase << std::hex
+        << invalid_hash << ") is actually supported";
+  }
 }
 
+TEST_F(EpidMemberTest, CanProvisionAfterCreatingJoinRequestForDifferentGroup) {
+  Prng my_prng;
+  // create member with specific f
+  GroupPubKey pub_key = this->kGroupPublicKey;
+  PrivKey mpriv_key = this->kMemberPrivateKey;
+  MemberParams params = {0};
+  SetMemberParams(&Prng::Generate, &my_prng, &mpriv_key.f, &params);
+  MemberCtxObj member(&params);
+  IssuerNonce ni = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+  };
+  MemberJoinRequest join_request = {0};
+
+  // create join request into one group
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x01;  // sha384
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+
+  // provision into another group
+  EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &this->kGroupPublicKey,
+                                         &mpriv_key, &this->kMemberPrecomp));
+  // startup
+  EXPECT_EQ(kEpidNoErr, EpidMemberStartup(member));
+
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+
+  // sign message
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+
+  // verify signature
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
+}
 }  // namespace

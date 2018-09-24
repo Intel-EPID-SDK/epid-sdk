@@ -51,7 +51,7 @@ See [LICENSE.txt](LICENSE.txt).
 ## Math Primitives
 
 The source code used for math primitives in the Intel(R) EPID SDK is a
-subset of the Intel(R) IPP Cryptography library (version 2017 Update
+subset of the Intel(R) IPP Cryptography library (version 2018 Update
 2) written in pure C and not optimized for performance. For higher
 performance, you can use the commercial version of the IPP
 Cryptography library, which is available at

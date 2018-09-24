@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -144,7 +144,6 @@ class EFq2Params {
 class EcGroupTest : public ::testing::Test {
  public:
   static const G1ElemStr g1_str;
-  static const G2ElemStr g2_str;
 
   static const FqElemStr a1;
   static const FqElemStr b1;
@@ -274,19 +273,6 @@ const G1ElemStr EcGroupTest::g1_str = {
     {{{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02}}}};
-const G2ElemStr EcGroupTest::g2_str = {
-    {{{{0xE2, 0x01, 0x71, 0xC5, 0x4A, 0xA3, 0xDA, 0x05, 0x21, 0x67, 0x04,
-        0x13, 0x74, 0x3C, 0xCF, 0x22, 0xD2, 0x5D, 0x52, 0x68, 0x3D, 0x32,
-        0x47, 0x0E, 0xF6, 0x02, 0x13, 0x43, 0xBF, 0x28, 0x23, 0x94}}},
-     {{{0x59, 0x2D, 0x1E, 0xF6, 0x53, 0xA8, 0x5A, 0x80, 0x46, 0xCC, 0xDC,
-        0x25, 0x4F, 0xBB, 0x56, 0x56, 0x43, 0x43, 0x3B, 0xF6, 0x28, 0x96,
-        0x53, 0xE2, 0x7D, 0xF7, 0xB2, 0x12, 0xBA, 0xA1, 0x89, 0xBE}}}},
-    {{{{0xAE, 0x60, 0xA4, 0xE7, 0x51, 0xFF, 0xD3, 0x50, 0xC6, 0x21, 0xE7,
-        0x03, 0x31, 0x28, 0x26, 0xBD, 0x55, 0xE8, 0xB5, 0x9A, 0x4D, 0x91,
-        0x68, 0x38, 0x41, 0x4D, 0xB8, 0x22, 0xDD, 0x23, 0x35, 0xAE}}},
-     {{{0x1A, 0xB4, 0x42, 0xF9, 0x89, 0xAF, 0xE5, 0xAD, 0xF8, 0x02, 0x74,
-        0xF8, 0x76, 0x45, 0xE2, 0x53, 0x2C, 0xDC, 0x61, 0x81, 0x90, 0x93,
-        0xD6, 0x13, 0x2C, 0x90, 0xFE, 0x89, 0x51, 0xB9, 0x24, 0x21}}}}};
 
 const FqElemStr EcGroupTest::a1 = {
     {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1049,7 +1035,7 @@ TEST_F(EcGroupTest, MultiExpFailsGivenArgumentsMismatch) {
 }
 TEST_F(EcGroupTest, MultiExpFailsGivenNullPointer) {
   EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  EcPoint const* pts_withnull[] = {nullptr, this->efq_b};
+  EcPoint const* pts_with_null[] = {nullptr, this->efq_b};
   const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
@@ -1059,7 +1045,7 @@ TEST_F(EcGroupTest, MultiExpFailsGivenNullPointer) {
                            0xFF, 0xBD, 0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF,
                            0x84, 0xFF, 0xFF, 0x8C, 0x03, 0xB2, 0x26, 0xFF}};
   BigNumStr const* b[] = {&bnm0, &bnm1};
-  BigNumStr const* b_withnull[] = {nullptr, &bnm1};
+  BigNumStr const* b_with_null[] = {nullptr, &bnm1};
   size_t m = 2;
 
   EXPECT_EQ(kEpidBadArgErr, EcMultiExp(nullptr, pts, b, m, this->efq_r));
@@ -1068,9 +1054,9 @@ TEST_F(EcGroupTest, MultiExpFailsGivenNullPointer) {
             EcMultiExp(this->efq, pts, nullptr, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr, EcMultiExp(this->efq, pts, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExp(this->efq, pts_withnull, b, m, this->efq_r));
+            EcMultiExp(this->efq, pts_with_null, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExp(this->efq, pts, b_withnull, m, this->efq_r));
+            EcMultiExp(this->efq, pts, b_with_null, m, this->efq_r));
 }
 TEST_F(EcGroupTest, MultiExpWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;
@@ -1226,7 +1212,7 @@ TEST_F(EcGroupTest, MultiExpBnFailsGivenArgumentsMismatch) {
 }
 TEST_F(EcGroupTest, MultiExpBnFailsGivenNullPointer) {
   EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  EcPoint const* pts_withnull[] = {nullptr, this->efq_b};
+  EcPoint const* pts_with_null[] = {nullptr, this->efq_b};
   const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
@@ -1238,7 +1224,7 @@ TEST_F(EcGroupTest, MultiExpBnFailsGivenNullPointer) {
   BigNumObj bno0(bnm0);
   BigNumObj bno1(bnm1);
   BigNum const* b[] = {bno0, bno1};
-  BigNum const* b_withnull[] = {nullptr, bno1};
+  BigNum const* b_with_null[] = {nullptr, bno1};
   size_t m = 2;
   EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(nullptr, pts, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
@@ -1247,9 +1233,9 @@ TEST_F(EcGroupTest, MultiExpBnFailsGivenNullPointer) {
             EcMultiExpBn(this->efq, pts, nullptr, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr, EcMultiExpBn(this->efq, pts, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExpBn(this->efq, pts_withnull, b, m, this->efq_r));
+            EcMultiExpBn(this->efq, pts_with_null, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
-            EcMultiExpBn(this->efq, pts, b_withnull, m, this->efq_r));
+            EcMultiExpBn(this->efq, pts, b_with_null, m, this->efq_r));
 }
 TEST_F(EcGroupTest, MultiExpBnWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;
@@ -1442,7 +1428,7 @@ TEST_F(EcGroupTest, MultiExpBnWorksGivenTwoDifferentSizeG3Exponents) {
       0x31, 0x74, 0x3c, 0x0a, 0xeb, 0x62, 0x94, 0x2f, 0x7b, 0x10,
   }}};
   BigNumObj bno_sf(bnm_sf_str);
-  // In order to callculate exp sf data should be devided by group order
+  // In order to calculate exp sf data should be divided by group order
   THROW_ON_EPIDERR(BigNumMod(bno_sf, epid11_p_tick, bno_sf));
   BigNumObj bno_nc_tick(bnm_nc_tick_str);
   BigNum const* b[] = {bno_sf, bno_nc_tick};
@@ -1492,7 +1478,7 @@ TEST_F(EcGroupTest, SscmMultiExpFailsGivenArgumentsMismatch) {
 }
 TEST_F(EcGroupTest, SscmMultiExpFailsGivenNullPointer) {
   EcPoint const* pts[] = {this->efq_a, this->efq_b};
-  EcPoint const* pts_withnull[] = {nullptr, this->efq_b};
+  EcPoint const* pts_with_null[] = {nullptr, this->efq_b};
   const BigNumStr bnm0 = {{0x11, 0xFF, 0xFF, 0xFF, 0x4F, 0x59, 0xB1, 0xD3,
                            0x6B, 0x08, 0xFF, 0xFF, 0x0B, 0xF3, 0xAF, 0x27,
                            0xFF, 0xB8, 0xFF, 0xFF, 0x98, 0xFF, 0xEB, 0xFF,
@@ -1502,7 +1488,7 @@ TEST_F(EcGroupTest, SscmMultiExpFailsGivenNullPointer) {
                            0xFF, 0xBD, 0xFF, 0x5A, 0xFF, 0x5C, 0x7C, 0xFF,
                            0x84, 0xFF, 0xFF, 0x8C, 0x03, 0xB2, 0x26, 0xFF}};
   BigNumStr const* b[] = {&bnm0, &bnm1};
-  BigNumStr const* b_withnull[] = {nullptr, &bnm1};
+  BigNumStr const* b_with_null[] = {nullptr, &bnm1};
   size_t m = 2;
 
   EXPECT_EQ(kEpidBadArgErr, EcSscmMultiExp(nullptr, pts, b, m, this->efq_r));
@@ -1512,9 +1498,9 @@ TEST_F(EcGroupTest, SscmMultiExpFailsGivenNullPointer) {
             EcSscmMultiExp(this->efq, pts, nullptr, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr, EcSscmMultiExp(this->efq, pts, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts_withnull, b, m, this->efq_r));
+            EcSscmMultiExp(this->efq, pts_with_null, b, m, this->efq_r));
   EXPECT_EQ(kEpidBadArgErr,
-            EcSscmMultiExp(this->efq, pts, b_withnull, m, this->efq_r));
+            EcSscmMultiExp(this->efq, pts, b_with_null, m, this->efq_r));
 }
 TEST_F(EcGroupTest, SscmMultiExpWorksGivenOneZeroExponent) {
   G1ElemStr efq_r_str;

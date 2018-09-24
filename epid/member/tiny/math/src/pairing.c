@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
 # limitations under the License.
 ############################################################################*/
 /// Implementation of Tate pairing
-/*! \file */
+/*! \file
+  The spec calls out a constant value of 1 for "neg". Lines
+  that are never run due to this are commented out.
+*/
 
 #include "epid/member/tiny/math/pairing.h"
 #include "epid/member/tiny/math/efq2.h"
@@ -33,7 +36,6 @@ static const Fq2Elem epid_xi = {
        0x00000000, 0x00000000}}},
     {{{0x00000001, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
        0x00000000, 0x00000000}}}};
-static const int neg = 1;
 
 void PairingInit(PairingState* state) {
   int i;
@@ -50,44 +52,44 @@ void PairingInit(PairingState* state) {
   }
 }
 
-static void piOp(EccPointFq2* Qout, EccPointFq2 const* Qin, int e,
+static void piOp(EccPointFq2* out, EccPointFq2 const* in, int e,
                  PairingState const* scratch) {
   if (e == 1) {
-    Fq2Conj(&Qout->x, &Qin->x);
-    Fq2Conj(&Qout->y, &Qin->y);
+    Fq2Conj(&out->x, &in->x);
+    Fq2Conj(&out->y, &in->y);
   } else {
-    Fq2Cp(&Qout->x, &Qin->x);
-    Fq2Cp(&Qout->y, &Qin->y);
+    Fq2Cp(&out->x, &in->x);
+    Fq2Cp(&out->y, &in->y);
   }
-  Fq2Mul(&Qout->x, &Qout->x, &scratch->g[e - 1][1]);
-  Fq2Mul(&Qout->y, &Qout->y, &scratch->g[e - 1][2]);
+  Fq2Mul(&out->x, &out->x, &scratch->g[e - 1][1]);
+  Fq2Mul(&out->y, &out->y, &scratch->g[e - 1][2]);
 }
 
 /*
- * Computes the Frobenius endomorphism Pout = Pin^(p^e)
+ * Computes the Frobenius endomorphism out = in^(p^e)
  */
-static void frob_op(Fq12Elem* Pout, Fq12Elem const* Pin, int e,
+static void frob_op(Fq12Elem* out, Fq12Elem const* in, int e,
                     PairingState const* state) {
   if (e == 1 || e == 3) {
-    Fq2Conj(&Pout->z0.y0, &Pin->z0.y0);
-    Fq2Conj(&Pout->z1.y0, &Pin->z1.y0);
-    Fq2Conj(&Pout->z0.y1, &Pin->z0.y1);
-    Fq2Conj(&Pout->z1.y1, &Pin->z1.y1);
-    Fq2Conj(&Pout->z0.y2, &Pin->z0.y2);
-    Fq2Conj(&Pout->z1.y2, &Pin->z1.y2);
+    Fq2Conj(&out->z0.y0, &in->z0.y0);
+    Fq2Conj(&out->z1.y0, &in->z1.y0);
+    Fq2Conj(&out->z0.y1, &in->z0.y1);
+    Fq2Conj(&out->z1.y1, &in->z1.y1);
+    Fq2Conj(&out->z0.y2, &in->z0.y2);
+    Fq2Conj(&out->z1.y2, &in->z1.y2);
   } else {
-    Fq2Cp(&Pout->z0.y0, &Pin->z0.y0);
-    Fq2Cp(&Pout->z1.y0, &Pin->z1.y0);
-    Fq2Cp(&Pout->z0.y1, &Pin->z0.y1);
-    Fq2Cp(&Pout->z1.y1, &Pin->z1.y1);
-    Fq2Cp(&Pout->z0.y2, &Pin->z0.y2);
-    Fq2Cp(&Pout->z1.y2, &Pin->z1.y2);
+    Fq2Cp(&out->z0.y0, &in->z0.y0);
+    Fq2Cp(&out->z1.y0, &in->z1.y0);
+    Fq2Cp(&out->z0.y1, &in->z0.y1);
+    Fq2Cp(&out->z1.y1, &in->z1.y1);
+    Fq2Cp(&out->z0.y2, &in->z0.y2);
+    Fq2Cp(&out->z1.y2, &in->z1.y2);
   }
-  Fq2Mul(&Pout->z1.y0, &Pout->z1.y0, &state->g[e - 1][0]);
-  Fq2Mul(&Pout->z0.y1, &Pout->z0.y1, &state->g[e - 1][1]);
-  Fq2Mul(&Pout->z1.y1, &Pout->z1.y1, &state->g[e - 1][2]);
-  Fq2Mul(&Pout->z0.y2, &Pout->z0.y2, &state->g[e - 1][3]);
-  Fq2Mul(&Pout->z1.y2, &Pout->z1.y2, &state->g[e - 1][4]);
+  Fq2Mul(&out->z1.y0, &out->z1.y0, &state->g[e - 1][0]);
+  Fq2Mul(&out->z0.y1, &out->z0.y1, &state->g[e - 1][1]);
+  Fq2Mul(&out->z1.y1, &out->z1.y1, &state->g[e - 1][2]);
+  Fq2Mul(&out->z0.y2, &out->z0.y2, &state->g[e - 1][3]);
+  Fq2Mul(&out->z1.y2, &out->z1.y2, &state->g[e - 1][4]);
 }
 
 static void finalExp(Fq12Elem* f, PairingState const* state) {
@@ -102,17 +104,18 @@ static void finalExp(Fq12Elem* f, PairingState const* state) {
   frob_op(&t2, f, 2, state);
   Fq12Mul(f, f, &t2);
   Fq12ExpCyc(&t1, f, &epid_t);
-  if (neg) {
-    Fq12Conj(&t1, &t1);
-  }
+  // if (neg) {  // neg == 1
+  Fq12Conj(&t1, &t1);
+  // }
   Fq12ExpCyc(&t3, &t1, &epid_t);
-  if (neg) {
-    Fq12Conj(&t3, &t3);
-  }
+  // if (neg) {  // neg == 1
+  Fq12Conj(&t3, &t3);
+  // }
   Fq12ExpCyc(&t0, &t3, &epid_t);
-  if (neg) {
-    Fq12Conj(&t0, &t0);
-  }
+  // if (neg) {  // neg == 1
+  Fq12Conj(&t0, &t0);
+  // }
+
   frob_op(&t2, &t0, 1, state);
   Fq12Mul(&t2, &t2, &t0);
   Fq12Conj(&t2, &t2);
@@ -253,11 +256,13 @@ void PairingCompute(Fq12Elem* d, EccPointFq const* P, EccPointFq2 const* Q,
   VliAdd(&s, &epid_t, &epid_t);  // s = 2*t
   VliAdd(&s, &s, &epid_t);       // s = 3*t
   VliAdd(&s, &s, &s);            // s = 6*t
-  if (neg) {
-    VliSub(&s, &s, &two);
-  } else {
-    VliAdd(&s, &s, &two);
-  }
+
+  // if (neg) {  // neg == 1
+  VliSub(&s, &s, &two);
+  // } else {
+  //   VliAdd(&s, &s, &two);
+  // }
+
   Fq2Cp(&X, &Q->x);
   Fq2Cp(&Y, &Q->y);
   Fq2Set(&Z, 1);
@@ -277,10 +282,12 @@ void PairingCompute(Fq12Elem* d, EccPointFq const* P, EccPointFq2 const* Q,
       Fq12MulSpecial(d, d, &f);
     }
   }
-  if (neg) {
-    Fq2Neg(&Y, &Y);
-    Fq12Conj(d, d);
-  }
+
+  // if (neg) {  // neg == 1
+  Fq2Neg(&Y, &Y);
+  Fq12Conj(d, d);
+  // }
+
   piOp(&Qp, Q, 1, state);
   pair_line(&f, &X, &Y, &Z, &Z2, P, &Qp);
   Fq12MulSpecial(d, d, &f);

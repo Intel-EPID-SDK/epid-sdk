@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 ############################################################################*/
 
 /*
- *  Copyright (C) 2017 by Intel Corporation, All Rights Reserved.
+ *  Copyright (C) 2017-2018 by Intel Corporation, All Rights Reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -82,14 +82,12 @@
 #define SHA256_STATE_BLOCKS (SHA256_DIGEST_SIZE / 4)
 
 /// The SHA state
-/// \cond
 typedef struct sha256_state {
-  unsigned int iv[SHA256_STATE_BLOCKS];
-  uint64_t bits_hashed;
-  uint8_t leftover[SHA256_BLOCK_SIZE];
-  size_t leftover_offset;
+  unsigned int iv[SHA256_STATE_BLOCKS];  ///< initialization vector
+  uint64_t bits_hashed;                  ///< number of bits hashed so far
+  uint8_t leftover[SHA256_BLOCK_SIZE];   ///< data blocks
+  size_t leftover_offset;                ///< number of data blocks used so far
 } sha256_state;
-/// \endcond
 
 /**
  *  @brief SHA256 initialization procedure

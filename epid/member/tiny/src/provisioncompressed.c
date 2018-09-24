@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
 
-EpidStatus EPID_API
+EpidStatus EPID_MEMBER_API
 EpidProvisionCompressed(MemberCtx* ctx, GroupPubKey const* pub_key,
                         CompressedPrivKey const* compressed_privkey,
                         MemberPrecomp const* precomp_str) {

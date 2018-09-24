@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -62,7 +62,8 @@ Epid11ParamsObj::Epid11ParamsObj() {
                  BigNumObj(p1_str_), BigNumObj(h1_str_));
 
   // construct Fqd finite field
-  FiniteFieldObj fqd(fq, this->coeffs_str_, COUNT_OF(this->coeffs_str_));
+  FiniteFieldObj fqd(fq, this->coefficients_str_,
+                     COUNT_OF(this->coefficients_str_));
 
   // Fqk ground element is {-qnr, 0, 0}
   FfElementObj neg_qnr(&fq);
@@ -130,7 +131,7 @@ const FqElemStr Epid11ParamsObj::b_str_ = {
       0xC8, 0xF1, 0x2C, 0x7F, 0x11, 0x99, 0x2A, 0x18, 0xB7, 0xEF, 0x73,
       0x48, 0xA6, 0xBE, 0x70, 0xA6, 0x8B, 0x97, 0x34, 0x8A, 0xB1}}};
 
-const BigNumStr Epid11ParamsObj::coeffs_str_[3] = {
+const BigNumStr Epid11ParamsObj::coefficients_str_[3] = {
     {{{0x02, 0x16, 0x7A, 0x61, 0x53, 0xDD, 0xF6, 0xE2, 0x89, 0x15, 0xA0,
        0x94, 0xF1, 0xB5, 0xDC, 0x65, 0x21, 0x15, 0x62, 0xE1, 0x7D, 0xC5,
        0x43, 0x89, 0xEE, 0xB4, 0xEF, 0xC8, 0xA0, 0x8E, 0x34, 0x0F}}},

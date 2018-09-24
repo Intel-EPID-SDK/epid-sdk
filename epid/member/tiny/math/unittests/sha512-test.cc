@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ extern "C" {
 #include "epid/member/tiny/math/sha512.h"
 }
 
-TEST(TinySha512Test, WorksGivenTinyTestVector1) {
+TEST(TinySha512Test, WorksGivenNistTestVector1) {
   const uint8_t expected[SHA512_DIGEST_SIZE] = {
       0xdd, 0xaf, 0x35, 0xa1, 0x93, 0x61, 0x7a, 0xba, 0xcc, 0x41, 0x73,
       0x49, 0xae, 0x20, 0x41, 0x31, 0x12, 0xe6, 0xfa, 0x4e, 0x89, 0xa9,
@@ -43,7 +43,7 @@ TEST(TinySha512Test, WorksGivenTinyTestVector1) {
       << expected;
 }
 
-TEST(TinySha512Test, WorksGivenTinyTestVector2) {
+TEST(TinySha512Test, WorksGivenNistTestVector2) {
   const uint8_t expected[SHA512_DIGEST_SIZE] = {
       0xcf, 0x83, 0xe1, 0x35, 0x7e, 0xef, 0xb8, 0xbd, 0xf1, 0x54, 0x28,
       0x50, 0xd6, 0x6d, 0x80, 0x07, 0xd6, 0x20, 0xe4, 0x05, 0x0b, 0x57,
@@ -63,7 +63,7 @@ TEST(TinySha512Test, WorksGivenTinyTestVector2) {
       << expected;
 }
 
-TEST(TinySha512Test, WorksGivenTinyTestVector3) {
+TEST(TinySha512Test, WorksGivenNistTestVector3) {
   const uint8_t expected[SHA512_DIGEST_SIZE] = {
       0x20, 0x4a, 0x8f, 0xc6, 0xdd, 0xa8, 0x2f, 0x0a, 0x0c, 0xed, 0x7b,
       0xeb, 0x8e, 0x08, 0xa4, 0x16, 0x57, 0xc1, 0x6e, 0xf4, 0x68, 0xb2,
@@ -83,7 +83,7 @@ TEST(TinySha512Test, WorksGivenTinyTestVector3) {
       << expected;
 }
 
-TEST(TinySha512Test, WorksGivenTinyTestVector4) {
+TEST(TinySha512Test, WorksGivenNistTestVector4) {
   const uint8_t expected[SHA512_DIGEST_SIZE] = {
       0x8e, 0x95, 0x9b, 0x75, 0xda, 0xe3, 0x13, 0xda, 0x8c, 0xf4, 0xf7,
       0x28, 0x14, 0xfc, 0x14, 0x3f, 0x8f, 0x77, 0x79, 0xc6, 0xeb, 0x9f,

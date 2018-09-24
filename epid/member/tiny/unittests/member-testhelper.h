@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs);
 /// Test fixture class for EpidMember
 class EpidMemberTest : public ::testing::Test {
  public:
+  /// test data
+  static const std::vector<uint8_t> kOtpData;
   /// test data
   static const GroupPubKey kGroupPublicKey;
   /// test data

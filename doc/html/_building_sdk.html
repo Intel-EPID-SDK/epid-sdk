@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -67,12 +67,9 @@ $(document).ready(function(){initNavTree('_building_sdk.html','');});
 <ul><li class="level1"><a href="#BuildingSdk_Prerequisites">Prerequisites</a></li>
 <li class="level1"><a href="#BuildingSdk_Building_SCons">Building SDK with SCons</a></li>
 <li class="level1"><a href="#BuildingSdk_Building_Makefile">Alternate Makefile Based Build Approach</a></li>
+<li class="level1"><a href="#BuildingSdk_Split">Building in Split Signature Mode</a></li>
 <li class="level1"><a href="#BuildingSdk_CommercialIpp">Improving Performance with Commercial IPP</a></li>
-<li class="level1"><a href="#BuildingSdk_Tiny">Optimizing for Code Size</a><ul><li class="level2"><a href="#implementation_TinyLimitations">Limitations</a></li>
-</ul>
-</li>
 <li class="level1"><a href="#BuildingSdk_Examples">Example Programs</a></li>
-<li class="level1"><a href="#BuildingSdk_PortingBuildSystem">Building with Other Build Systems</a></li>
 </ul>
 </div>
 <div class="textblock"><p>To use the SDK in a project, the code from the SDK must be included in that project. The easiest way to do this is to link to static libraries. The SDK comes with build scripts to build static libraries for common environments.</p>
@@ -80,10 +77,10 @@ $(document).ready(function(){initNavTree('_building_sdk.html','');});
 Prerequisites</h1>
 <p>Building SDK code out of the box requires a number of tools. This section lists the tools used to build the SDK.</p>
 <p>For more information on how to install these tools, refer to <a class="el" href="_build_tools_installation.html">Guide to Installing Build Tools</a>.</p>
-<p>For a list of compilers and libraries that the SDK was validated on, refer to <a class="el" href="_how_validated.html#validated_supported_compilers">Tested Libraries and Compilers</a>.</p>
+<p>For a list of compilers and libraries that the SDK was validated on, refer to <a class="el" href="_how_validated.html">Tested Libraries and Compilers</a>.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Prerequisite  </th><th class="markdownTableHeadNone">Notes -----------------------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Prerequisite  </th><th class="markdownTableHeadNone">Notes   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">A C/C++ compiler  </td><td class="markdownTableBodyNone">Core code in C. Unit tests need C++11 support.   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -98,13 +95,12 @@ Building SDK with SCons</h1>
 <p>To use the SDK, you need to build it to generate libraries compatible with your build environment.</p>
 <p>To build based on the default SConstruct file in the root directory of the SDK, invoke scons with no arguments. </p><pre class="fragment">cd &lt;path/to/sdk-root&gt;
 scons
-</pre><p>By default, this performs a release build of the SDK with unit tests for the current platform and runs unit tests.</p>
-<p>To skip unit test execution when doing cross platform build use: </p><pre class="fragment">scons build:: utest::
-</pre><p>Built components appear in the <code>_install</code> directory of the SDK root.</p>
+</pre><p>By default, this performs a release build of the SDK and unit tests for the current platform.</p>
+<p>Built components appear in the <code>_install</code> directory of the SDK root.</p>
 <p>Potentially useful command line options:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Option  </th><th class="markdownTableHeadNone">Action -----------------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Option  </th><th class="markdownTableHeadNone">Action   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>--cfg=debug</code>  </td><td class="markdownTableBodyNone">Build in debug mode   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -160,61 +156,42 @@ make install
 make all
 make utest
 make install
+</pre><h1><a class="anchor" id="BuildingSdk_Split"></a>
+Building in Split Signature Mode</h1>
+<p>Building in split mode results in a member implementation that partitions member operations between highly sensitive ones and less sensitive ones that can be performed in a host environment.</p>
+<p>To build with SCons, go to the root directory of the SDK and run: </p><pre class="fragment">scons --split
+</pre><p>To build with Make, go to the root directory of the SDK and run: </p><pre class="fragment">./configure --enable-split
+make all
+make check
+make install
 </pre><h1><a class="anchor" id="BuildingSdk_CommercialIpp"></a>
 Improving Performance with Commercial IPP</h1>
 <p>For higher performance, you can use the commercial version of Cryptography for Intel&reg; Integrated Performance Primitives, available at <a href="https://software.intel.com/get-ipp-cryptography-libraries">https://software.intel.com/get-ipp-cryptography-libraries</a>.</p>
 <dl class="section note"><dt>Note</dt><dd>The SDK has been validated with version 2018 (Update 2.1) of the cryptography library.</dd></dl>
 <p>To build the SDK using a commercial Intel&reg; IPP installation, the <code>IPPCRYPTOROOT</code> environment variable must be properly configured to point to the IPP installation directory, as described in <em>Setting Environment Variables</em> in the <a href="https://software.intel.com/ipp-crypto-dev-guide-setting-environment-variables">Intel&reg; IPP Crypto Developer Guide</a>.</p>
 <p>Once the environment is configured, you can build using commercial IPP by specifying <code>--use-commercial-ipp</code> as a command line option.</p>
-<h1><a class="anchor" id="BuildingSdk_Tiny"></a>
-Optimizing for Code Size</h1>
-<p>To build the SDK with a member with substantially reduced code size, you can use tiny mode.</p>
-<p>To build with SCons, go to the root directory of the SDK and run: </p><pre class="fragment">scons --prod-var=tiny
-</pre><p>To build with Make, go to the root directory of the SDK and run: </p><pre class="fragment">./configure --enable-tiny
-make all
-make check
-make install
-</pre><h2><a class="anchor" id="implementation_TinyLimitations"></a>
-Limitations</h2>
-<p>By design, a member built in tiny mode has the following limitations:</p>
-<ul>
-<li>TPM mode is not supported.</li>
-<li>Only SHA-256 and SHA-512 are supported.</li>
-<li>Signature pre-computation is not supported.</li>
-<li>Compressed keys are not supported.</li>
-<li>Commercial IPP cannot be used.</li>
-<li>The implementation prioritizes size over performance.</li>
-</ul>
 <h1><a class="anchor" id="BuildingSdk_Examples"></a>
 Example Programs</h1>
-<p>The SDK includes several examples that show you different aspects of how the Intel&reg; EPID scheme works. In the SDK build, these examples are located in <code>_install/epid-sdk/example</code>.</p>
+<p>The SDK includes several examples that show you different aspects of how the Intel&reg; EPID scheme works. In the SDK build, these examples are located in <code>_install/bin</code>.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Name  </th><th class="markdownTableHeadNone">Description ----------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Name  </th><th class="markdownTableHeadNone">Description   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>signmsg</code>  </td><td class="markdownTableBodyNone">Create Intel&reg; EPID signature of message   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>verifysig</code>  </td><td class="markdownTableBodyNone">Verify signature is from a group member in good standing   </td></tr>
 </table>
-<h1><a class="anchor" id="BuildingSdk_PortingBuildSystem"></a>
-Building with Other Build Systems</h1>
-<p>It is relatively straightforward to port the SDK to your build system of choice. The following dependency diagram shows the relationship between components and the sources used to build them.</p>
-<div class="image">
-<img src="basicdoc.png" alt="basicdoc.png"/>
-</div>
-<p><br />
-</p>
-<p>*Other names and brands may be claimed as the property of others. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

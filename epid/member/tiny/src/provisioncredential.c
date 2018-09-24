@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-/// Tiny member ProvisionCredentialal implementation.
+/// Tiny member ProvisionCredential implementation.
 /*! \file */
 
 #define EXPORT_EPID_APIS
 #include "epid/member/api.h"
-#include "epid/member/software_member.h"
 #include "epid/member/tiny/math/efq.h"
 #include "epid/member/tiny/math/efq2.h"
 #include "epid/member/tiny/math/fp.h"
@@ -26,6 +25,7 @@
 #include "epid/member/tiny/math/pairing.h"
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/src/gid_parser.h"
 #include "epid/member/tiny/src/native_types.h"
 #include "epid/member/tiny/src/serialize.h"
 #include "epid/member/tiny/src/validate.h"
@@ -41,26 +41,46 @@ static EccPointFq2 const epid20_g2 = {
      {{{0x51B92421, 0x2C90FE89, 0x9093D613, 0x2CDC6181, 0x7645E253, 0xF80274F8,
         0x89AFE5AD, 0x1AB442F9}}}}};
 
-EpidStatus EPID_API EpidProvisionCredential(
+EpidStatus EPID_MEMBER_API EpidProvisionCredential(
     MemberCtx* ctx, GroupPubKey const* pub_key,
     MembershipCredential const* credential, MemberPrecomp const* precomp_str) {
   NativeGroupPubKey native_pub_key;
   NativeMembershipCredential native_cred;
+  EpidStatus sts = kEpidNoErr;
+  HashAlg hash_alg = kInvalidHashAlg;
   if (!pub_key || !credential || !ctx) {
     return kEpidBadArgErr;
   }
   if (0 != memcmp(&pub_key->gid, &credential->gid, sizeof(GroupId))) {
     return kEpidBadArgErr;
   }
+
+  sts = EpidTinyParseHashAlg(&pub_key->gid, &hash_alg);
+  if (kEpidNoErr != sts) {
+    return sts;
+  }
+  if ((kSha512 != hash_alg) && (kSha512_256 != hash_alg) &&
+      (kSha384 != hash_alg) && (kSha256 != hash_alg)) {
+    return kEpidHashAlgorithmNotSupported;
+  }
+
   GroupPubKeyDeserialize(&native_pub_key, pub_key);
   MembershipCredentialDeserialize(&native_cred, credential);
+  if (!ctx->f_is_set) {
+    // pick number f between 1 - (p-1)
+    if (!FpRandNonzero(&ctx->f, ctx->rnd_func, ctx->rnd_param)) {
+      return kEpidMathErr;
+    }
+    ctx->f_is_set = true;
+  }
   if (!GroupPubKeyIsInRange(&native_pub_key) ||
-      !MembershipCredentialIsInRange(&native_cred) || !ctx->f_is_set ||
+      !MembershipCredentialIsInRange(&native_cred) ||
       !MembershipCredentialIsInGroup(&native_cred, &ctx->f, &native_pub_key,
                                      &ctx->pairing_state)) {
     return kEpidBadArgErr;
   }
 
+  ctx->hash_alg = hash_alg;
   ctx->credential = *credential;
   ctx->pub_key = *pub_key;
   ctx->is_provisioned = 1;

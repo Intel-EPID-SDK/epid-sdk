@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,27 +27,23 @@ inc_files = Pattern(src_dir='src/',
                     recursive=True).files()
 parts_file = ['signmsg.parts']
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(inc_files + src_files,
-                        sub_dir='example/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
-else:
-    env.DependsOn([
-        Component('member'),
-        Component('common'),
-        Component('util'),
-        Component('argtable3')
-    ])
 
-    env.Append(CPPPATH='#/example/signmsg')
+env.DependsOn([
+    Component('member'),
+    Component('common'),
+    Component('util'),
+    Component('argtable3')
+])
 
-    if env['TARGET_PLATFORM']['OS'] == 'win32':
-        if env.isConfigBasedOn('debug'):
-            env['PDB'] = '${PART_NAME}.pdb'
+env.Append(CPPPATH='#/example/signmsg')
 
-    outputs = env.Program('${PART_NAME}', src_files,
-                          no_import_lib=True)
+if env['TARGET_PLATFORM']['OS'] == 'win32':
+    if env.isConfigBasedOn('debug'):
+        env['PDB'] = '${PART_NAME}.pdb'
 
-    env.InstallBin(outputs,
-                   no_pkg=False,
-                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}')
+outputs = env.Program('${PART_NAME}', src_files,
+                      no_import_lib=True)
+
+env.InstallBin(outputs,
+               no_pkg=False,
+               INSTALL_BIN='${INSTALL_SAMPLE_BIN}')

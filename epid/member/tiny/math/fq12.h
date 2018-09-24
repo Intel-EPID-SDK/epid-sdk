@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -71,13 +71,6 @@ void Fq12Inv(Fq12Elem* result, Fq12Elem const* in);
 */
 void Fq12Neg(Fq12Elem* result, Fq12Elem const* in);
 
-/// Set an element's value.
-/*!
-\param[out] result target.
-\param[in] val value to set.
-*/
-void Fq12Set(Fq12Elem* result, uint32_t val);
-
 /// Exponentiate an element of Fq12 by a large integer.
 /*!
 \param[out] result target.
@@ -103,15 +96,6 @@ void Fq12MultiExp(Fq12Elem* result, Fq12Elem const* base0,
                   VeryLargeInt const* exp1, Fq12Elem const* base2,
                   VeryLargeInt const* exp2, Fq12Elem const* base3,
                   VeryLargeInt const* exp3);
-
-/// Test if two elements in Fq12 are equal
-/*!
-\param[in] left The first operand to be tested.
-\param[in] right The second operand to be tested.
-\returns A value different from zero (i.e., true) if indeed
-         the values are equal. Zero (i.e., false) otherwise.
-*/
-int Fq12Eq(Fq12Elem const* left, Fq12Elem const* right);
 
 /// Calculate the conjugate of an element of Fq2.
 /*!
@@ -149,12 +133,28 @@ where right = ((b[0], b[2], b[4]), (b[1], b[3], b[5]))
 void Fq12MulSpecial(Fq12Elem* result, Fq12Elem const* left,
                     Fq12Elem const* right);
 
+/// Test if two elements in Fq12 are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns A value different from zero (i.e., true) if indeed
+         the values are equal. Zero (i.e., false) otherwise.
+*/
+int Fq12Eq(Fq12Elem const* left, Fq12Elem const* right);
+
 /// Copy an element's value
 /*!
 \param[out] result copy target.
 \param[in] in copy source.
 */
 void Fq12Cp(Fq12Elem* result, Fq12Elem const* in);
+
+/// Set an element's value.
+/*!
+\param[out] result target.
+\param[in] val value to set.
+*/
+void Fq12Set(Fq12Elem* result, uint32_t val);
 
 /// Clear an element's value.
 /*!

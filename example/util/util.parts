@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,31 +34,24 @@ utest_files = Pattern(
 if 'use_tss' in env['MODE']:
     env.Append(CPPDEFINES=['TPM_TSS'])
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(src_files, sub_dir='example/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(api_headers, sub_dir='example/${PART_SHORT_NAME}')
-    env.InstallTopLevel(
-        utest_files, sub_dir='example/${PART_SHORT_NAME}/utest')
-    env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
-    env.InstallTopLevel(makefile, sub_dir='example/${PART_SHORT_NAME}')
-else:
-    env.DependsOn(
-        [Component('common', requires=REQ.HEADERS),
-         Component('member', requires=REQ.HEADERS)])
 
-    env.Append(CPPPATH='#/example')
+env.DependsOn(
+    [Component('common', requires=REQ.HEADERS),
+     Component('member', requires=REQ.HEADERS)])
 
-    testenv = env.Clone()
+env.Append(CPPPATH='#/example')
 
-    env.SdkInclude(api_headers, sub_dir='${PART_SHORT_NAME}')
+testenv = env.Clone()
 
-    if env['TARGET_PLATFORM']['OS'] == 'win32':
-        if env.isConfigBasedOn('debug'):
-            env['PDB'] = '${PART_NAME}.pdb'
+env.SdkInclude(api_headers, sub_dir='${PART_SHORT_NAME}')
 
-    #env.Append(CPPDEFINES = 'ENABLE_UTIL_DEBUG_PRINT_')
-    env.Append(CPPDEFINES='_CRT_SECURE_NO_WARNINGS')
+if env['TARGET_PLATFORM']['OS'] == 'win32':
+    if env.isConfigBasedOn('debug'):
+        env['PDB'] = '${PART_NAME}.pdb'
 
-    outputs = env.Library('${PART_NAME}', src_files)
+#env.Append(CPPDEFINES = 'ENABLE_UTIL_DEBUG_PRINT_')
+env.Append(CPPDEFINES='_CRT_SECURE_NO_WARNINGS')
 
-    env.Sdk(outputs)
+outputs = env.Library('${PART_NAME}', src_files)
+
+env.Sdk(outputs)

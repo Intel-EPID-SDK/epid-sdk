@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -100,8 +100,8 @@ else:
 
     if 'install_lib' in env['MODE']:
         env.InstallLib(outputs)
-        env.InstallInclude(api_headers, sub_dir='${PART_SHORT_NAME}')
-        env.InstallInclude(epid11_headers, sub_dir='${PART_SHORT_NAME}/1.1')
+        env.InstallInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
+        env.InstallInclude(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
 
     testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
     testenv.UnitTest("utest",
@@ -118,3 +118,7 @@ else:
                               Component('common-testhelper'),
                               Component('verifier')],
                      INSTALL_BIN='${INSTALL_TEST_BIN}')
+    if env.get('fuzzer', False):
+        env.Part(parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
+                INSTALL_BIN='${INSTALL_TEST_BIN}')
+

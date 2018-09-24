@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@
  * \file
  * \brief VerifyBasicSig implementation.
  */
+#define EXPORT_EPID_APIS
 
+#include "epid/verifier/src/verifybasic.h"
+#include "epid/common/src/hashsize.h"
 #include "epid/common/src/memory.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
@@ -29,11 +32,28 @@
     break;                       \
   }
 
+/// Sha Digest Element
+typedef union sha_digest {
+  uint8_t sha512_digest[EPID_SHA512_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t sha384_digest[EPID_SHA384_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t sha256_digest[EPID_SHA256_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t digest[1];  ///< Pointer to digest
+} sha_digest;
+#pragma pack(1)
+/// Structure to store values to create commitment in EpidVerifyBasicSplitSig
+typedef struct VerifyBasicCommitValues {
+  FpElemStr nonce_k;  ///< Nonce produced by the TPM during signing
+  sha_digest digest;
+} VerifyBasicCommitValues;
+#pragma pack()
+
 /// Count of elements in array
 #define COUNT_OF(A) (sizeof(A) / sizeof((A)[0]))
 
-EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
-                              void const* msg, size_t msg_len) {
+EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
+                                   BasicSignature const* sig,
+                                   FpElemStr const* nk, void const* msg,
+                                   size_t msg_len) {
   EpidStatus res = kEpidNotImpl;
 
   EcPoint* B = NULL;
@@ -55,6 +75,7 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
   FfElement* nc = NULL;
   FfElement* nsx = NULL;
   FfElement* c_hash = NULL;
+  VerifyBasicCommitValues split_commit_values = {0};
 
   if (!ctx || !sig) return kEpidBadArgErr;
   if (!msg && (0 != msg_len)) {
@@ -71,6 +92,8 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
     BigNumStr nsx_str = {0};
     BigNumStr sb_str = {0};
     BigNumStr sa_str = {0};
+    size_t digest_size = 0;
+    size_t commit_len = 0;
     // handy shorthands:
     EcGroup* G1 = ctx->epid2_params->G1;
     EcGroup* G2 = ctx->epid2_params->G2;
@@ -180,8 +203,6 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
       }
       break;
     }
-    res = WriteFfElement(Fp, c, &c_str, sizeof(c_str));
-    BREAK_ON_EPID_ERROR(res);
     res = ReadFfElement(Fp, &(sig->sx), sizeof(sig->sx), sx);
     if (kEpidNoErr != res) {
       if (kEpidBadArgErr == res) {
@@ -209,6 +230,20 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
         res = kEpidSigInvalid;
       }
       break;
+    }
+    if (nk) {
+      // if nk is present c = Fp.hash(nk || c)
+      digest_size = EpidGetHashSize(ctx->hash_alg);
+      if (sizeof(split_commit_values.digest) < digest_size) {
+        res = kEpidBadArgErr;
+        break;
+      }
+      memcpy_S(split_commit_values.digest.digest + digest_size - sizeof(sig->c),
+               sizeof(sig->c), &sig->c, sizeof(sig->c));
+      split_commit_values.nonce_k = *nk;
+      commit_len = sizeof(split_commit_values.nonce_k) + digest_size;
+      res = FfHash(Fp, &split_commit_values, commit_len, ctx->hash_alg, c);
+      BREAK_ON_EPID_ERROR(res);
     }
     //   g. The verifier computes nc = (-c) mod p.
     res = FfNeg(Fp, c, nc);
@@ -253,10 +288,16 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
     BREAK_ON_EPID_ERROR(res);
     res = WriteFfElement(Fp, sa, &sa_str, sizeof(sa_str));
     BREAK_ON_EPID_ERROR(res);
+    res = WriteFfElement(Fp, c, &c_str, sizeof(c_str));
+    BREAK_ON_EPID_ERROR(res);
     {
       FfElement const* points[4];
       BigNumStr const* exponents[4];
-      points[0] = ctx->e12;
+      if (nk) {
+        points[0] = ctx->e12_split;
+      } else {
+        points[0] = ctx->e12;
+      }
       points[1] = ctx->e22;
       points[2] = ctx->e2w;
       points[3] = ctx->eg12;
@@ -276,9 +317,25 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
     res = SetCalculatedCommitValues(&sig->B, &sig->K, &sig->T, R1, G1, R2, GT,
                                     &commit_values);
     BREAK_ON_EPID_ERROR(res);
+    if (nk) {
+      res = WriteEcPoint(G1, ctx->pub_key->h1_split, &commit_values.h1,
+                         sizeof(commit_values.h1));
+      BREAK_ON_EPID_ERROR(res);
+    } else {
+      commit_values.h1 = ctx->pub_key->h1_str;
+    }
     res = CalculateCommitmentHash(&commit_values, Fp, ctx->hash_alg, msg,
                                   msg_len, c_hash);
     BREAK_ON_EPID_ERROR(res);
+    if (nk) {
+      //     if nk is present c = Fp.hash(nk || Fp.hash(t3 || m))
+      res = WriteFfElement(Fp, c_hash, &c_str, sizeof(c_str));
+      BREAK_ON_EPID_ERROR(res);
+      memcpy_S(split_commit_values.digest.digest + digest_size - sizeof(c_str),
+               sizeof(c_str), &c_str, sizeof(c_str));
+      res = FfHash(Fp, &split_commit_values, commit_len, ctx->hash_alg, c_hash);
+      BREAK_ON_EPID_ERROR(res);
+    }
 
     res = FfIsEqual(Fp, c, c_hash, &cmp_result);
     BREAK_ON_EPID_ERROR(res);
@@ -313,4 +370,9 @@ EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
   DeleteFfElement(&c_hash);
 
   return (res);
+}
+
+EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
+                              void const* msg, size_t msg_len) {
+  return EpidVerifyBasicSplitSig(ctx, sig, NULL, msg, msg_len);
 }

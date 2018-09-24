@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ EpidStatus SetCalculatedCommitValues(G1ElemStr const* B, G1ElemStr const* K,
                                      EcGroup* G1, FfElement const* R2,
                                      FiniteField* GT, CommitValues* values);
 
-/// Calculate Fp.hash(t3 || m) for Sign and Verfiy algorithms
+/// Calculate Fp.hash(t3 || m) for Sign and Verify algorithms
 /*!
   Calculate c = Fp.hash(t3 || m) where t3 is
   Fp.hash(p || g1 || g2 || h1 || h2 || w || B || K || T || R1 || R2).
@@ -102,7 +102,7 @@ EpidStatus SetCalculatedCommitValues(G1ElemStr const* B, G1ElemStr const* K,
   \param[in] values
   Commit values to hash
   \param[in] Fp
-  Finite field to perfom hash operation in
+  Finite field to perform hash operation in
   \param[in] hash_alg
   Hash algorithm to use
   \param[in] msg

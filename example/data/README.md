@@ -36,6 +36,8 @@ EPID SDK. All data files are in binary format.
     |   |__ pubkey.bin
     |   |__ sigrl.bin
     |   |__ sigrl_empty.bin
+    |   |__ verifierrl_empty.dat
+    |   |__ verifierrl.dat
     |
     |__ groupb
     |   |__ member0
@@ -114,6 +116,10 @@ In addition, **groupa** contain the following revocation lists:
 
 - `sigrl_empty.bin` - signature based revocation list with 0 entries
 
+- `verifierrl_empty.dat` - verifier revocation list with 0 entries
+
+- `verifierrl.dat` - verifier revocation list with 1 entry:
+   revoked signature of member from sigrevokedmember0
 
 ### Group B
 

@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
 # limitations under the License.
 ############################################################################
 # pylint: disable=locally-disabled, invalid-name, missing-docstring
-
 """Intel win32 compiler configurations release
 """
 from parts.config import ConfigValues, configuration
 
+
 def map_default_version(env):
     return env['INTELC_VERSION']
+
 
 config = configuration(map_default_version)
 
@@ -33,7 +34,7 @@ config.VersionRange("7-*",
                             '/GS-',
                             # minimize size
                             '/O1',
-                            # allow non standart comment in C
+                            # allow non standard comment in C
                             '/wd991',
                             # typedef forward with the same name
                             '/wd344',
@@ -54,7 +55,7 @@ config.VersionRange("7-*",
                             '/NODEFAULTLIB',
                             # prevent linker from references _main in dll
                             '/NOENTRY',
-                            # elminiate unreferenced functions + data
+                            # eliminate unreferenced functions + data
                             '/OPT:REF',
                             # SDL: Data Execution Prevention
                             '/NXCOMPAT',

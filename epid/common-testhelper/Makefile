@@ -2,7 +2,7 @@
 
 #define variables
 GTEST_INCLUDE_DIR = ../../ext
-TEST_INSTALL_DIR = $(epidinstalldir)/test/
+TEST_INSTALL_DIR = $(epidinstalldir)/utest/
 
 COMMON_TESTHELPER_INCLUDE_DIR = ../..
 COMMON_TESTHELPER_11_INCLUDE_DIR = ../../1.1
@@ -25,6 +25,9 @@ LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest -L$(LIB_COMMON_TESTHELPER_DIR) \
 
 ifneq ($(TSS_PATH),)
 	CXXFLAGS += -DTPM_TSS
+endif
+ifeq ($(TINY),yes)
+	CXXFLAGS += -DTINY
 endif
 
 #target part

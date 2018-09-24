@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -66,14 +66,17 @@ $(document).ready(function(){initNavTree('_tpm_considerations.html','');});
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#TPM_compatibility">Compatibility</a></li>
 <li class="level1"><a href="#TpmConsiderations_Manufacturers">Considerations for TPM Manufacturers</a><ul><li class="level2"><a href="#TPM_provisioning">Provisioning TPM with Intel&reg; EPID Key Material</a></li>
-<li class="level2"><a href="#TpmConsiderations_Mapping">Mapping TPM Commands to Intel&reg; EPID</a></li>
+<li class="level2"><a href="#TpmConsiderations_Mapping">Mapping TPM Commands to Intel&reg; EPID APIs</a></li>
 </ul>
 </li>
 <li class="level1"><a href="#TpmConsiderations_Applications">Considerations for TPM Applications</a></li>
 <li class="level1"><a href="#TpmConsiderations_Architecture">SDK Member Architecture</a></li>
-<li class="level1"><a href="#TpmConsiderations_Building">Building the SDK to Take Advantage of TPM</a><ul><li class="level2"><a href="#TpmConsiderations_Prereqs">Prerequisites to Build the SDK in TPM Mode</a></li>
+<li class="level1"><a href="#TpmConsiderations_Building">Building the SDK to Take Advantage of TPM</a><ul><li class="level2"><a href="#TpmConsiderations_Prereqs">Installing Prerequisites</a></li>
 <li class="level2"><a href="#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a></li>
 <li class="level2"><a href="#TpmConsiderations_Signing">Intel&reg; EPID Signing and Verification with a TPM</a></li>
+</ul>
+</li>
+<li class="level1"><a href="#TpmConsiderations_Notes">Implementation Notes</a><ul><li class="level2"><a href="#TpmConsiderations_NVStorage">NV Storage Specification</a></li>
 </ul>
 </li>
 </ul>
@@ -82,7 +85,7 @@ $(document).ready(function(){initNavTree('_tpm_considerations.html','');});
 <p>Intel&reg; EPID is a technology for securely and anonymously identifying a device, and TPM is a technology for protecting secrets on a device. Therefore it is desirable to protect the most secret part of the member private key on an Intel&reg; EPID TPM device.</p>
 <h1><a class="anchor" id="TPM_compatibility"></a>
 Compatibility</h1>
-<p>The SDK is compatible with the Trusted Computing Group's TPM 2.0 spec. The most recent version of the TPM 2.0 specification (Level 00, Revision 01.38) includes the use of a nonce, which is incompatible with the current version of the Intel&reg; EPID scheme. Therefore, this implementation of Intel&reg; EPID APIs is compatible with an earlier version, which is the TPM 2.0 specification Level 00, Revision 1.16.</p>
+<p>The SDK is compatible with the Trusted Computing Group's TPM 2.0 specification Level 00, Revision 01.38</p>
 <h1><a class="anchor" id="TpmConsiderations_Manufacturers"></a>
 Considerations for TPM Manufacturers</h1>
 <p>This section explains what manufacturers have to do with the SDK in order to have their TPMs recognized to a service provider:</p>
@@ -107,7 +110,7 @@ Provisioning TPM with Intel® EPID Key Material</h2>
 <li><b>Generate a set of EPS</b>, because EPS are the seeds from which the <code>f</code> values of the member private keys are generated.</li>
 <li><b>Derive a set of <code>f</code> values</b> from the EPS values.</li>
 <li><b>Request a set of nonces from the issuer</b> which will be used to generate join requests.</li>
-<li><b>Generate a set of join requests</b> using the <code>f</code> values and nonces and send them to the issuer. The issuer will respond to the bulk join requests by sending membership credentials to the manufacturer in bulk.</li>
+<li><b>Generate a set of join requests</b> using the <code>f</code> values and nonces and send them to the issuer. The issuer will respond to the bulk join requests by sending membership credentials to the manufacturer in bulk. The SDK includes the <a class="el" href="_commandline_tools.html#Joinreq">Joinreq</a> command-line tool to automate this step.</li>
 <li><b>Provision the membership credentials in silicon,</b> mapping each membership credential to the corresponding EPS value.</li>
 </ol>
 <p>The following graphic shows how the issuer, manufacturer, TPM, and member interact during the time of key generation, device manufacturing, and signing:</p>
@@ -115,8 +118,7 @@ Provisioning TPM with Intel® EPID Key Material</h2>
 <img src="uml_sequence.png" alt="uml_sequence.png"/>
 </div>
 <h2><a class="anchor" id="TpmConsiderations_Mapping"></a>
-Mapping TPM Commands to Intel® EPID</h2>
-<p>APIs</p>
+Mapping TPM Commands to Intel® EPID APIs</h2>
 <p>The <code>tpm2</code> module in the <code>member</code> section of the API reference contains internal functions that map to TPM commands. This code is provided as sample code for manufacturers who will use it to write their own implementation of Intel&reg; EPID APIs for TPM.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -148,7 +150,7 @@ Considerations for TPM Applications</h1>
 <p>To get a TPM device running, TPM applications can use the following steps to join a group using a TPM protected secret:</p>
 <ol type="1">
 <li>Use <a class="el" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24" title="Computes the size in bytes required for a member context. ">EpidMemberGetSize</a> and <a class="el" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb" title="Initializes a new member context. ">EpidMemberInit</a> to create a new member context. Those functions take the parameter <a class="el" href="struct_member_params.html" title="Software only specific member parameters. ">MemberParams</a>. You will pass NULL to this struct instead of the <code>f</code> value, which indicates that <code>f</code> needs to be derived from the EPS within the TPM.</li>
-<li>Use <a class="el" href="group___epid_member_module.html#gac10008d8c9ba7bc5e5be899ed03c61c3" title="Creates a request to join a group. ">EpidCreateJoinRequest</a> to generate join requests using the <code>f</code> derived from EPS within the TPM. Then send the join request to the issuer to request a membership credential.</li>
+<li>Use <a class="el" href="group___epid_member_module.html#gafa976614a0df6ff90a21345dcc3ccca4" title="Creates a request to join a group. ">EpidCreateJoinRequest</a> to generate join requests using the <code>f</code> derived from EPS within the TPM. Then send the join request to the issuer to request a membership credential.</li>
 <li>After receiving the membership credential (A, x), use <a class="el" href="group___epid_member_module.html#ga788ebc9d1ba6153c637b762484ca1140" title="Provisions a member context from a membership credential. ">EpidProvisionCredential</a> to provision it into the non-volatile memory of the TPM device.</li>
 </ol>
 <p>After the TPM device is provisioned with <a class="el" href="group___epid_member_module.html#ga788ebc9d1ba6153c637b762484ca1140" title="Provisions a member context from a membership credential. ">EpidProvisionCredential</a>, the simplest way to get the device running is:</p>
@@ -164,12 +166,12 @@ SDK Member Architecture</h1>
 <div class="image">
 <img src="member_host.png" alt="member_host.png"/>
 </div>
-<p>The <b>Member Host</b> (<code>member/src</code>) implements Intel&reg; EPID signing in terms of TPM2 commands.</p>
-<p>The <b>TPM module</b> (<code>member/tpm2</code>) implements TPM2 commands.</p>
+<p>The <b>Member Host</b> (<code>member/split/src</code>) implements Intel&reg; EPID signing in terms of TPM2 commands.</p>
+<p>The <b>TPM module</b> (<code>member/split/tpm2</code>) implements TPM2 commands.</p>
 <p>There are two implementations of TPM functionality:</p>
 <ul>
-<li><b>BM TSS dispatcher implementation</b> (<code>member/tpm2/ibm_tss</code>), which calls the IBM TSS, which calls the IBM TPM simulator (in this implementation). It is invoked when building in TPM mode.</li>
-<li><b>TPM SDK software implementation</b> (<code>member/tpm2/src</code>) implements sufficient TPM functionality for Intel&reg; EPID. It is invoked when building in non-TPM mode.</li>
+<li><b>IBM TSS dispatcher implementation</b> (<code>member/split/tpm2/ibm_tss</code>), which calls the IBM TSS, which calls the IBM TPM simulator (in this implementation). It is invoked when building in TPM mode.</li>
+<li><b>TPM SDK software implementation</b> (<code>member/split/tpm2/builtin</code>) implements sufficient TPM functionality for Intel&reg; EPID. It is invoked when building in non-TPM mode.</li>
 </ul>
 <h1><a class="anchor" id="TpmConsiderations_Building"></a>
 Building the SDK to Take Advantage of TPM</h1>
@@ -180,51 +182,69 @@ Building the SDK to Take Advantage of TPM</h1>
 <li>Running signing and verification operations with TPM</li>
 </ul>
 <h2><a class="anchor" id="TpmConsiderations_Prereqs"></a>
-Prerequisites to Build the SDK in TPM Mode</h2>
+Installing Prerequisites</h2>
 <ol type="1">
-<li>Download <a href="https://sourceforge.net/projects/ibmtpm20tss/files/?source=navbar">IBM TSS</a> version <a href="https://sourceforge.net/projects/ibmtpm20tss/files/ibmtss996.tar.gz/download">966</a>. (The SDK was tested on version 966. Newer versions may also work, but we do not guarantee it.)</li>
-<li>Download <a href="https://sourceforge.net/projects/ibmswtpm2/files/?source=navbar">IBM TPM</a> version <a href="https://sourceforge.net/projects/ibmswtpm2/files/ibmtpm532.tar/download">532</a>. (The SDK was tested on version 532 and does not work on newer versions.)</li>
-<li>Build the IBM TSS in accordance with the build steps from the package. Copy <code>tss.lib</code> and <code>tss.dll</code> from <code>ibmtss\tpmutils\Release</code> to <code>ibmtss\utils</code>.</li>
+<li>Download Trusted Platform Module Library family 2.0, revision 01.38. The SDK was validated with <a href="https://sourceforge.net/projects/ibmtpm20tss/files/ibmtss1119.tar.gz/download">IBM's TPM2.0 TSS version 1119</a>.</li>
+<li>Download Trusted Platform Module family 2.0, revision 01.38. The SDK was validated with <a href="https://sourceforge.net/projects/ibmswtpm2/files/ibmtpm1119.tar.gz/download">IBM's Software TPM2.0 version 1119</a>.</li>
+<li>Extract TPM into <code>./ext/ibmtpm1119</code> and TSS into <code>./ext/ibmtss1119</code> and build them in accordance with the build steps from the packages. On Windows, the SDK was only validated with TPM and TSS built in Release configuration targeting Win32 and using OpenSSL version 1.0.2.</li>
 </ol>
 <h2><a class="anchor" id="TpmConsiderations_BuildingTpmMode"></a>
 Building the SDK in TPM Mode</h2>
-<p>Set the TSSROOT environment variable to the <code>..\ibmtss\utils\</code> folder. Make sure this folder contains the <code>\tss2</code> folder, <code>tss.lib</code> and <code>tss.dll</code>. Example of the command for Windows: </p><pre class="fragment">&gt; set TSSROOT=C:\ibmtss\utils\
-</pre><p>To build the SDK in TPM mode, go to the SDK folder and build the SDK with the following command: </p><pre class="fragment">&gt; scons --target=x86 --use-tss
-</pre><p><br />
-</p>
-<p>To build the SDK in TPM mode using <code>make</code> command, go to the SDK folder and build the SDK with the following commands: </p><pre class="fragment">&gt; ./configure CFLAGS=-m32 --with-tss
-&gt; make all
-&gt; make utest
-&gt; make install
-</pre><p>Because the IBM TSS only supports x86 targets, you must build in x86.</p>
-<h2><a class="anchor" id="TpmConsiderations_Signing"></a>
+<p>When building SDK to use TPM set TSSROOT138 environment variable pointing to the <code>&lt;TSS&gt;/utils</code>.</p>
+<p>If you are on Windows additionally copy desired versions of <code>tss.lib</code> and <code>tss.dll</code> into <code>&lt;TSS&gt;\utils</code>: </p><pre class="fragment">&gt; copy ext\ibmtss1119\tpmutils\Release\tss.lib ext\ibmtss1119\utils\
+&gt; copy ext\ibmtss1119\tpmutils\Release\tss.dll ext\ibmtss1119\utils\
+</pre><p>To build the SDK in TPM mode use <code>--use-tss</code> flag.</p>
+<p>If you are building on Windows: </p><pre class="fragment">&gt; set TSSROOT138=%CD%\ext\ibmtss1119\utils\
+&gt; scons --target=x86 --use-tss
+</pre><p>If you are building on Linux: </p><pre class="fragment">$ export TSSROOT138=$PWD/ext/ibmtss1119/utils
+$ scons --use-tss
+</pre><p>To build the SDK in TPM mode with <code>make</code> use <code>--with-tss</code> flag: </p><pre class="fragment">$ export TSSROOT138=$PWD/ext/ibmtss1119/utils
+$ ./configure --with-tss
+$ make all
+$ make utest
+$ make install
+</pre><h2><a class="anchor" id="TpmConsiderations_Signing"></a>
 Intel® EPID Signing and Verification with a TPM</h2>
-<ol type="1">
-<li>Build the IBM TSS (see above).</li>
-<li>Build the IBM TPM (see above).</li>
-<li>Build the Intel&reg; EPID SDK with <code>--target=86 --use-tss</code> (see above).</li>
-<li>Copy <code>tss.dll</code> from <code>_install/epid-sdk/test</code> to <code>_install/epid-sdk/example</code>.</li>
-<li>Go to the <code>ibmtpm</code> folder and run the <code>tpm_server</code> executable. Note: if you built the TPM server with the MS Visual Studio debug mode, go to the <code>..\ibmtpm\tpmvstudio\tpm_server\Debug\</code> folder.</li>
-<li>You need to run both the TPM server and the <code>powerup</code> and <code>startup</code> executables on IBM TSS. Go to <code>..\ibmtss\tpmutils\Debug\</code> or <code>..\ibmtss\tpmutils\Release\</code> and run <code>powerup</code> and <code>startup</code> executables.</li>
-</ol>
-<p>Then you can run:</p>
-<pre class="fragment">&gt; signmsg --hashalg=SHA-256 --msg="test"
-</pre><dl class="section note"><dt>Note</dt><dd>In TPM mode samples have to be used with <code>--hashalg=SHA-256</code>.</dd></dl>
-<p>If signing succeeds, nothing is returned.</p>
-<p>Then run:</p>
-<pre class="fragment">&gt; verifysig --hashalg=SHA-256 --msg="test"
--signature verified successfully
-</pre><dl class="section warning"><dt>Warning</dt><dd>The samples use <code>LoadExternal</code> to load keys into the TPM. In a real TPM use case, <code>CreatePrimary</code> should be used, and the SDK implementation provides functions for this use case. </dd></dl>
+<p>Before running SDK samples on Windows you must add the location of OpenSSL DLLs to the PATH environment variable. Assuming OpenSSL is installed in the default location: </p><pre class="fragment">&gt; set PATH="C:\Program Files\OpenSSL\bin";%PATH%
+</pre><p>Run the IBM's TPM server in the background, do powerup and startup.</p>
+<p>If you are running on Windows: </p><pre class="fragment">&gt; start ext\ibmtpm1119\tpmvstudio\tpm_server\Release\tpm_server.exe
+&gt; ext\ibmtss1119\tpmutils\Release\powerup.exe
+&gt; ext\ibmtss1119\tpmutils\Release\startup.exe
+</pre><p>If you are running on Linux, add TSSROOT138 to LD_LIBRARY_PATH prior to tpm_server powerup: </p><pre class="fragment">$  export LD_LIBRARY_PATH=$TSSROOT138:$LD_LIBRARY_PATH
+$ ./ext/ibmtpm1119/src/tpm_server &amp;
+$ ./ext/ibmtss1119/utils/powerup
+$ ./ext/ibmtss1119/utils/startup
+</pre><dl class="section note"><dt>Note</dt><dd>The following sign/verify commands assume <code>_install/data/split</code> is the current directory and that <code>_install/bin</code> is in the path. For a detailed tutorial, refer to <a class="el" href="_sign_verify_tutorial.html">Signing and Verification Tutorial</a>.</dd></dl>
+<p>Try signing the message: </p><pre class="fragment">&gt; signmsg --msg="test"
+</pre><p>Notice <code>sig.dat</code> file is created. You can verify it running: </p><pre class="fragment">&gt; verifysig --msg="test"
+signature verified successfully
+</pre><dl class="section warning"><dt>Warning</dt><dd>The samples use <code>LoadExternal</code> to load keys into the TPM. In a real TPM use case, <code>CreatePrimary</code> should be used, and the SDK implementation provides functions for this use case.</dd></dl>
+<h1><a class="anchor" id="TpmConsiderations_Notes"></a>
+Implementation Notes</h1>
+<h2><a class="anchor" id="TpmConsiderations_NVStorage"></a>
+NV Storage Specification</h2>
+<p>The SDK stores the membership credential to a NV storage area of the TPM reserved for this purpose.</p>
+<ul>
+<li>The Membership Credential SHALL be identified by the handle <code>0x01C10120</code>.</li>
+<li>The index type SHALL be defined as an ordinary index.</li>
+<li>NV Index attributes <code>TPMA_NV_AUTHWRITE</code>, <code>TPMA_NV_POLICYWRITE</code>, <code>TPMA_NV_OWNERWRITE</code>, <code>TPMA_NV_POLICY_DELETE</code>, <code>TPMA_NV_GLOBALLOCK</code>, <code>TPMA_NV_ORDERLY</code>, <code>TPMA_NV_CLEAR_STCLEAR</code>, and <code>TPMA_NV_READ_STCLEAR</code> SHALL be <code>CLEAR</code></li>
+<li>NV Index attributes <code>TPMA_NV_PLATFORMCREATE</code>, <code>TPMA_NV_AUTHREAD</code>, <code>TPMA_NV_NO_DA</code>, and <code>TPMA_NV_PPWRITE</code> SHALL be <code>SET</code>.</li>
+<li>All other NV Index attributes MAY be <code>SET</code></li>
+<li>The authorization value for the Membership Credential SHALL be a NULL Auth as defined in the <em>TPM 2.0 Library Specification, Part 1, Terms and definitions</em>.</li>
+<li>The authorization policy for the Membership Credential index SHALL be an Empty Buffer as defined in the <em>TPM 2.0 Library Specification, Part 1, Terms and definitions</em>.</li>
+<li>The hash algorithm used for the Membership Credential signature SHOULD be <code>TPM_ALG_SHA256</code> with a digest size of 256 bits. </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

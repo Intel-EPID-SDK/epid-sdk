@@ -19,7 +19,7 @@ import os
 
 env.PartVersion("2018.2.208")
 env.PartName("ippcp")
-ipp_libname = '${PART_SHORT_NAME}'
+ippcp_libname = '${PART_SHORT_NAME}'
 
 #includes to install
 install_headers = Pattern(src_dir='include/',
@@ -72,60 +72,42 @@ env.Append(CPPDEFINES=['_DISABLE_ALG_MD5_',
 
 env.ExportCPPPATH([AbsDir('sources/include/')])
 
-if 'install_package' in env['MODE']:
-    # All files at /ext/ipp/source/include
-    env.InstallTopLevel(install_headers, sub_dir='ext/ipp/include')
-    src_files = Pattern(src_dir='sources/ippcp/src/',
-                        includes=['*'],
-                        excludes=[''],
-                        recursive=True)
-    env.InstallTopLevel(src_files, sub_dir='ext/ipp/sources/ippcp/src')
-    this_file = Pattern(src_dir='.',
-                        includes=['ippcp.parts'],
-                        excludes=[],
-                        recursive=True)
-    env.InstallTopLevel(this_file, sub_dir='ext/ipp/')
-    makefile = Pattern(src_dir='./sources/ippcp',
-                        includes=['Makefile'],
-                        excludes=[],
-                        recursive=True)
-    env.InstallTopLevel(makefile, sub_dir='ext/ipp/sources/ippcp')
-    env.InstallTopLevel(source_headers, sub_dir='ext/ipp/sources/include')
-else:
-    env.SdkInclude(install_headers)
-    env.SdkInclude(common_headers)
-    if 'use_commercial_ipp' in env['MODE']:
-        env['CCOPY_LOGIC'] = 'copy'
-        try:
-            IPPCRYPTOROOT = os.environ['IPPCRYPTOROOT']
-        except KeyError, e:
-            env.PrintError("Necessary environment variable not set: ",
-                           e, show_stack=False)
-        if env['TARGET_PLATFORM']['OS'] == 'win32':
-            libpre = ''
-            libpost = '.lib'
-            IPP_TH_SYMBOL = 'mt'
-        else:
-            libpre = 'lib'
-            libpost = '.a'
-            IPP_TH_SYMBOL = ''
-        if env['TARGET_PLATFORM']['ARCH'] == 'x86':
-            archdir = 'ia32/'
-        else:
-            archdir = 'intel64/'
+env.SdkInclude(install_headers)
+env.SdkInclude(common_headers)
 
-        ippcp_libname = libpre + 'ippcp' + IPP_TH_SYMBOL + libpost
-        ippcp_libdir = IPPCRYPTOROOT + '/lib/' + archdir
-        env.SdkLib(ippcp_libdir + ippcp_libname)
 
+
+if 'use_commercial_ipp' in env['MODE']:
+    env['CCOPY_LOGIC'] = 'copy'
+    try:
+        IPPCRYPTOROOT = os.environ['IPPCRYPTOROOT']
+    except KeyError, e:
+        env.PrintError("Necessary environment variable not set: ",
+                       e, show_stack=False)
+    if env['TARGET_PLATFORM']['OS'] == 'win32':
+        libpre = ''
+        libpost = '.lib'
+        IPP_TH_SYMBOL = 'mt'
     else:
-        all_c_files = ippcp_files.files()
-        if 'build_ipp_shared' in env['MODE']:
-            env.Append(CPPDEFINES=['IPP_W32DLL'])
-            outputs = env.SharedLibrary(ipp_libname, all_c_files)
-            env.InstallTarget(outputs)
-        else:
-            outputs = env.Library(ipp_libname, all_c_files)
-            env.SdkLib(outputs)
-            if 'install_lib' in env['MODE']:
-                env.InstallLib(outputs)
+        libpre = 'lib'
+        libpost = '.a'
+        IPP_TH_SYMBOL = ''
+    if env['TARGET_PLATFORM']['ARCH'] == 'x86':
+        archdir = 'ia32/'
+    else:
+        archdir = 'intel64/'
+
+    ippcp_libname = libpre + 'ippcp' + IPP_TH_SYMBOL + libpost
+    ippcp_dir = IPPCRYPTOROOT + '/lib/' + archdir
+    env.SdkLib(ippcp_dir + ippcp_libname)
+else:
+    all_c_files = ippcp_files.files()
+    if 'build_ipp_shared' in env['MODE']:
+        env.Append(CPPDEFINES=['IPP_W32DLL'])
+        outputs = env.SharedLibrary(ippcp_libname, all_c_files)
+        env.InstallTarget(outputs)
+    else:
+        outputs = env.Library(ippcp_libname, all_c_files)
+        env.SdkLib(outputs)
+        if 'install_lib' in env['MODE']:
+            env.InstallLib(outputs)

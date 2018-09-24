@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -76,9 +76,9 @@ $(document).ready(function(){initNavTree('_implementation_notes.html','');});
 Member Implementations</h1>
 <p>There are three member implementations. You can use a specific compilation option to select the implementation that will be used at compile time. The implementations are:</p>
 <ol type="1">
-<li><b>Reference:</b> This default implementation gives guidance on partitioning member operations between highly sensitive ones that use the <code>f</code> value of the member private key, and less sensitive ones that can be performed in a host environment. To build in default mode, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</li>
-<li><b>TPM:</b> This TPM member implementation uses the TPM for signing by linking to the IBM TSS. To build in TPM mode, refer to <a class="el" href="_tpm_considerations.html#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a>.</li>
-<li><b>Tiny:</b> This tiny implementation builds the SDK with a substantially reduced code size. To build in tiny mode, refer to <a class="el" href="_building_sdk.html#BuildingSdk_Tiny">Optimizing for Code Size</a>.</li>
+<li><b>Non-split:</b> The default member implementation produces standard (non-split) signatures. It has a substantially reduced code size. To build in non-split mode, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</li>
+<li><b>Split:</b> The split member implementation partitions member operations between highly sensitive ones that use the <code>f</code> value of the member private key and less sensitive ones that can be performed in a host environment. Split members generate signatures with a different format than non-split members. To build in split mode, refer to <a class="el" href="_building_sdk.html#BuildingSdk_Split">Building in Split Signature Mode</a>.</li>
+<li><b>TPM:</b> The TPM member implementation is a split member implementation that uses the TPM for signing by linking to the IBM_TSS to perform sensitive operations. To build in TPM mode, refer to <a class="el" href="_tpm_considerations.html#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a>.</li>
 </ol>
 <h1><a class="anchor" id="ImplementationNotes_Prng"></a>
 Random Number Generation</h1>
@@ -96,7 +96,7 @@ Replacing Math Primitives</h1>
 <h1><a class="anchor" id="ImplementationNotes_SerializedTypes"></a>
 Octstring/Buffer Types</h1>
 <p>Serialized information in the SDK is passed in fixed size buffer types whenever possible. Collectively these fixed size buffer types are called Octstrings.</p>
-<p>In <a class="el" href="types_8h.html" title="SDK data types. ">epid/common/types.h</a>, there are a large number of packed structs that contain other packed structs, which eventually contain OctStr* types. Normally these are named *Str and are refered to as Str types.</p>
+<p>In <a class="el" href="types_8h.html" title="SDK data types. ">epid/common/types.h</a>, there are a large number of packed structs that contain other packed structs, which eventually contain OctStr* types. Normally these are named *Str and are referred to as Str types.</p>
 <p>OctStr* types are buffers that hold N bits, where N is the number at the end of the type name. These types usually represent numbers in a Big Endian format (buffer[0] is the most significant value).</p>
 <p>Str types generally represent fixed size groups of numbers such as a point or vector.</p>
 <p>OctStr* and Str types are usually populated by reading a buffer from a file or other storage, or by calling a serialize function. OctStr* and Str types must be packed so that the compiler does not insert padding. In the current code, this is done using pragmas.</p>
@@ -111,12 +111,13 @@ Flexible Arrays</h1>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

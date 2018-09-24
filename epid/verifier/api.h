@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #include "epid/common/errors.h"
 #include "epid/common/stdtypes.h"
 #include "epid/common/types.h"
+
+#define EPID_VERIFIER_API
 
 /*!
  * \file
@@ -89,9 +91,9 @@ typedef struct VerifierPrecomp {
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierCreate(GroupPubKey const* pub_key,
-                              VerifierPrecomp const* precomp,
-                              VerifierCtx** ctx);
+EpidStatus EPID_VERIFIER_API EpidVerifierCreate(GroupPubKey const* pub_key,
+                                                VerifierPrecomp const* precomp,
+                                                VerifierCtx** ctx);
 
 /// Deletes an existing verifier context.
 /*!
@@ -110,7 +112,7 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pub_key,
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-void EpidVerifierDelete(VerifierCtx** ctx);
+void EPID_VERIFIER_API EpidVerifierDelete(VerifierCtx** ctx);
 
 /// Serializes the pre-computed verifier settings.
 /*!
@@ -127,8 +129,8 @@ void EpidVerifierDelete(VerifierCtx** ctx);
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
-                                    VerifierPrecomp* precomp);
+EpidStatus EPID_VERIFIER_API EpidVerifierWritePrecomp(VerifierCtx const* ctx,
+                                                      VerifierPrecomp* precomp);
 
 /// Sets the private key based revocation list.
 /*!
@@ -166,8 +168,9 @@ EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
-                                 size_t priv_rl_size);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetPrivRl(VerifierCtx* ctx,
+                                                   PrivRl const* priv_rl,
+                                                   size_t priv_rl_size);
 
 /// Sets the signature based revocation list.
 /*!
@@ -205,8 +208,9 @@ EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
-                                size_t sig_rl_size);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetSigRl(VerifierCtx* ctx,
+                                                  SigRl const* sig_rl,
+                                                  size_t sig_rl_size);
 
 /// Sets the group based revocation list.
 /*!
@@ -244,8 +248,9 @@ EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
-                                  size_t grp_rl_size);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetGroupRl(VerifierCtx* ctx,
+                                                    GroupRl const* grp_rl,
+                                                    size_t grp_rl_size);
 
 /// Sets the verifier revocation list.
 /*!
@@ -279,11 +284,16 @@ EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
-                                     size_t ver_rl_size);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetVerifierRl(VerifierCtx* ctx,
+                                                       VerifierRl const* ver_rl,
+                                                       size_t ver_rl_size);
 
 /// Sets the hash algorithm to be used by a verifier.
 /*!
+The verifier uses the hash algorithm encoded in the Group ID by default.
+If allowed by the underlying implementation this function will override
+the default.
+
  \param[in] ctx
  The verifier context.
  \param[in] hash_alg
@@ -297,12 +307,9 @@ EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
 
  \see EpidVerifierCreate
  \see ::HashAlg
-
- \b Example
-
- \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetHashAlg(VerifierCtx* ctx,
+                                                    HashAlg hash_alg);
 
 /// Sets the basename to be used by a verifier.
 /*!
@@ -326,8 +333,9 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg);
 
   \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
-                                   size_t basename_len);
+EpidStatus EPID_VERIFIER_API EpidVerifierSetBasename(VerifierCtx* ctx,
+                                                     void const* basename,
+                                                     size_t basename_len);
 
 /// Verifies a signature and checks revocation status.
 /*!
@@ -362,15 +370,15 @@ EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
  verify should be considered to have failed.
 
  \see EpidVerifierCreate
- \see EpidSignBasic
  \see EpidSign
 
  \b Example
 
  \ref UserManual_VerifyingAnIntelEpidSignature
  */
-EpidStatus EpidVerify(VerifierCtx const* ctx, EpidSignature const* sig,
-                      size_t sig_len, void const* msg, size_t msg_len);
+EpidStatus EPID_VERIFIER_API EpidVerify(VerifierCtx const* ctx, void const* sig,
+                                        size_t sig_len, void const* msg,
+                                        size_t msg_len);
 
 /// Determines if two signatures are linked.
 /*!
@@ -400,118 +408,10 @@ EpidStatus EpidVerify(VerifierCtx const* ctx, EpidSignature const* sig,
  verified.
 
  \see EpidVerifyBasicSig
- \see EpidSignBasic
  \see EpidSign
  */
-bool EpidAreSigsLinked(BasicSignature const* sig1, BasicSignature const* sig2);
-
-/// Verifies a member signature without revocation checks.
-/*!
- Used in constrained environments where, due to limited memory, it may not
- be possible to process through a large and potentially unbounded revocation
- list.
-
- \param[in] ctx
- The verifier context.
- \param[in] sig
- The basic signature.
- \param[in] msg
- The message that was signed.
- \param[in] msg_len
- The size of msg in bytes.
-
- \returns ::EpidStatus
-
- \note
- This function should be used in conjunction with EpidNrVerify() and
- EpidCheckPrivRlEntry().
-
- \note
- If the result is not ::kEpidNoErr the verify should be considered to have
- failed.
-
- \see EpidVerifierCreate
- \see EpidSignBasic
- \see EpidSign
- */
-EpidStatus EpidVerifyBasicSig(VerifierCtx const* ctx, BasicSignature const* sig,
-                              void const* msg, size_t msg_len);
-
-/// Verifies the non-revoked proof for a single signature based revocation list
-/// entry.
-/*!
- Used in constrained environments where, due to limited memory, it may not
- be possible to process through a large and potentially unbounded revocation
- list.
-
- \param[in] ctx
- The verifier context.
- \param[in] sig
- The basic signature.
- \param[in] msg
- The message that was signed.
- \param[in] msg_len
- The size of msg in bytes.
- \param[in] sigrl_entry
- The signature based revocation list entry.
- \param[in] proof
- The non-revoked proof.
-
- \returns ::EpidStatus
-
- \note
- Sig should be verified using EpidVerifyBasicSig() before invocation. Behavior
- is undefined if sig cannot be verified.
-
- \note
- This function should be used in conjunction with EpidVerifyBasicSig() and
- EpidCheckPrivRlEntry().
-
- \note
- If the result is not ::kEpidNoErr, the verification should be
- considered to have failed.
-
- \see EpidVerifierCreate
- \see EpidVerifyBasicSig
- \see EpidCheckPrivRlEntry
- */
-EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
-                        void const* msg, size_t msg_len,
-                        SigRlEntry const* sigrl_entry, NrProof const* proof);
-
-/// Verifies a signature has not been revoked in the private key based
-/// revocation list.
-/*!
- Used in constrained environments where, due to limited memory, it may not
- be possible to process through a large and potentially unbounded revocation
- list.
-
- \param[in] ctx
- The verifier context.
- \param[in] sig
- The basic signature.
- \param[in] f
- The private key based revocation list entry.
-
- \note
- Sig should be verified using EpidVerifyBasicSig() before invocation. Behavior
- is undefined if sig cannot be verified.
-
- \note
- This function should be used in conjunction with EpidNrVerify() and
- EpidVerifyBasicSig().
-
- \note
- If the result is not ::kEpidNoErr the verify should be considered to have
- failed.
-
- \returns ::EpidStatus
- \see EpidVerifierCreate
- \see EpidNrVerify
- \see EpidVerifyBasicSig
- */
-EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
-                                BasicSignature const* sig, FpElemStr const* f);
+bool EPID_VERIFIER_API EpidAreSigsLinked(BasicSignature const* sig1,
+                                         BasicSignature const* sig2);
 
 /// Returns the number of bytes required to serialize the verifier blacklist
 /*!
@@ -530,7 +430,7 @@ EpidStatus EpidCheckPrivRlEntry(VerifierCtx const* ctx,
   \see EpidBlacklistSig
   \see EpidWriteVerifierRl
 */
-size_t EpidGetVerifierRlSize(VerifierCtx const* ctx);
+size_t EPID_VERIFIER_API EpidGetVerifierRlSize(VerifierCtx const* ctx);
 
 /// Serializes the verifier blacklist to a buffer.
 /*!
@@ -555,8 +455,9 @@ size_t EpidGetVerifierRlSize(VerifierCtx const* ctx);
   \see EpidBlacklistSig
   \see EpidGetVerifierRlSize
 */
-EpidStatus EpidWriteVerifierRl(VerifierCtx const* ctx, VerifierRl* ver_rl,
-                               size_t ver_rl_size);
+EpidStatus EPID_VERIFIER_API EpidWriteVerifierRl(VerifierCtx const* ctx,
+                                                 VerifierRl* ver_rl,
+                                                 size_t ver_rl_size);
 
 /// Adds a valid name-based signature to the verifier blacklist.
 /*!
@@ -580,8 +481,10 @@ EpidStatus EpidWriteVerifierRl(VerifierCtx const* ctx, VerifierRl* ver_rl,
   \see EpidVerifierSetVerifierRl
   \see EpidWriteVerifierRl
 */
-EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
-                            size_t sig_len, void const* msg, size_t msg_len);
+EpidStatus EPID_VERIFIER_API EpidBlacklistSig(VerifierCtx* ctx,
+                                              EpidSignature const* sig,
+                                              size_t sig_len, void const* msg,
+                                              size_t msg_len);
 
 /*! @} */
 

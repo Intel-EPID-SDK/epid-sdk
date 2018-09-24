@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -302,14 +302,11 @@ $(document).ready(function(){initNavTree('globals_e.html','');});
 <li>EpidBlacklistSig()
 : <a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">api.h</a>
 </li>
-<li>EpidCheckPrivRlEntry()
-: <a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea">api.h</a>
-</li>
 <li>EpidClearRegisteredBasenames()
 : <a class="el" href="group___epid_member_module.html#ga4f3a464f14581ef3e5a50719cb4709c3">api.h</a>
 </li>
 <li>EpidCreateJoinRequest()
-: <a class="el" href="group___epid_member_module.html#gac10008d8c9ba7bc5e5be899ed03c61c3">api.h</a>
+: <a class="el" href="group___epid_member_module.html#gafa976614a0df6ff90a21345dcc3ccca4">api.h</a>
 </li>
 <li>EpidDecompressPrivKey()
 : <a class="el" href="group___epid_member_module.html#gaf8cd05388f017486f14da2ee48d067ef">api.h</a>
@@ -350,8 +347,8 @@ $(document).ready(function(){initNavTree('globals_e.html','');});
 <li>EpidMemberStartup()
 : <a class="el" href="group___epid_member_module.html#gaa2c85b1f0ea17a11ac5d297b21aa30f6">api.h</a>
 </li>
-<li>EpidNrVerify()
-: <a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700">api.h</a>
+<li>EpidMemberWritePrecomp()
+: <a class="el" href="group___epid_member_module.html#ga4558d7616cee1ada0cf13ae7937c3ec3">api.h</a>
 </li>
 <li>EpidParseFileHeader()
 : <a class="el" href="group___file_parser.html#ga8e38d1102eb1dd9b5af2e2f79236da55">file_parser.h</a>
@@ -383,15 +380,18 @@ $(document).ready(function(){initNavTree('globals_e.html','');});
 <li>EpidSign()
 : <a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f">api.h</a>
 </li>
+<li>EpidSignature
+: <a class="el" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">types.h</a>
+</li>
 <li>EpidStatus
 : <a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">errors.h</a>
 </li>
 <li>EpidStatusToString()
 : <a class="el" href="group___error_codes.html#ga59e8680ce52509302fd58a987e45004d">errors.h</a>
 </li>
-<li>EpidtoTpm2HashAlg()
-: <a class="el" href="conversion_8c.html#ad08628a6bf33154c1029a32e8b83325f">conversion.c</a>
-, <a class="el" href="conversion_8h.html#ad08628a6bf33154c1029a32e8b83325f">conversion.h</a>
+<li>EpidToTpm2HashAlg()
+: <a class="el" href="conversion_8h.html#a88f7e2d1f0e1f63b04ff33e27cc245a0">conversion.h</a>
+, <a class="el" href="conversion_8c.html#a88f7e2d1f0e1f63b04ff33e27cc245a0">conversion.c</a>
 </li>
 <li>EpidVerifierCreate()
 : <a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70">api.h</a>
@@ -421,10 +421,7 @@ $(document).ready(function(){initNavTree('globals_e.html','');});
 : <a class="el" href="group___epid_verifier_module.html#ga92df4d00ea4ee59d7bfd35b23da03392">api.h</a>
 </li>
 <li>EpidVerify()
-: <a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064">api.h</a>
-</li>
-<li>EpidVerifyBasicSig()
-: <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">api.h</a>
+: <a class="el" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf">api.h</a>
 </li>
 <li>EpidVersion
 : <a class="el" href="group___file_parser.html#ga1562efc7c1891875d6b2b9180d65de9d">file_parser.h</a>
@@ -437,12 +434,13 @@ $(document).ready(function(){initNavTree('globals_e.html','');});
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

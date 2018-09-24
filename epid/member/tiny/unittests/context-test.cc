@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -32,9 +32,7 @@
 
 extern "C" {
 #include "epid/member/api.h"
-}
-bool operator==(MemberPrecomp const& lhs, MemberPrecomp const& rhs) {
-  return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
+#include "epid/member/tiny/src/context.h"
 }
 /// compares GroupPubKey values
 bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs);
@@ -104,6 +102,50 @@ TEST_F(EpidMemberTest, InitFailsGivenInvalidParameters) {
   ctx = (MemberCtx*)&ctx_buf[0];
 
   EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(&params, ctx));
+}
+
+TEST_F(EpidMemberTest, InitFailsGivenZeroPresig) {
+  FpElemStr f = {
+      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  };
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, &f, &params);
+  params.max_precomp_sig = 0;
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidBadArgErr, EpidMemberInit(&params, ctx));
+  EpidMemberDeinit(ctx);
+}
+
+TEST_F(EpidMemberTest, InitSucceedsGivenMoreThanOnePresig) {
+  FpElemStr f = {
+      0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  };
+  size_t ctx_size = 0;
+  MemberCtx* ctx = nullptr;
+  Prng my_prng;
+  MemberParams params = {0};
+  std::vector<uint8_t> ctx_buf;
+  SetMemberParams(&Prng::Generate, &my_prng, &f, &params);
+  params.max_precomp_sig = 5;
+  EXPECT_EQ(kEpidNoErr, EpidMemberGetSize(&params, &ctx_size));
+  ctx_buf.resize(ctx_size);
+  ctx = (MemberCtx*)&ctx_buf[0];
+
+  EXPECT_EQ(kEpidNoErr, EpidMemberInit(&params, ctx));
+  EXPECT_EQ(kEpidNoErr, EpidAddPreSigs(ctx, 5));
+  EXPECT_EQ((size_t)5, EpidGetNumPreSigs(ctx));
+  EpidMemberDeinit(ctx);
 }
 
 TEST_F(EpidMemberTest, InitSucceedsGivenValidParameters) {
@@ -180,7 +222,7 @@ TEST_F(EpidMemberTest, CanSetHashAlgoToSHA256) {
   MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha256));
 }
-TEST_F(EpidMemberTest, DISABLED_CanSetHashAlgoToSHA384) {
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA384) {
   Prng my_prng;
   MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha384));
@@ -190,7 +232,7 @@ TEST_F(EpidMemberTest, CanSetHashAlgoToSHA512) {
   MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha512));
 }
-TEST_F(EpidMemberTest, DISABLED_CanSetHashAlgoToSHA512256) {
+TEST_F(EpidMemberTest, CanSetHashAlgoToSHA512256) {
   Prng my_prng;
   MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
   EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(member_ctx, kSha512_256));
@@ -203,17 +245,35 @@ TEST_F(EpidMemberTest, SetHashAlgFailsForNonSupportedAlgorithm) {
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha3_512));
   EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, (HashAlg)-1));
 }
-
-TEST_F(EpidMemberTest, SetHashAlgRejectsSHA384) {
+TEST_F(EpidMemberTest, SetHashAlgOverridesDefaultHashAlgDerivedFromGroupId) {
   Prng my_prng;
-  MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
-  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha384));
-}
+  GroupPubKey pubkey = this->kGroupPublicKey;
+  PrivKey mprivkey = this->kMemberPrivateKey;
+  MembershipCredential cred = {0};
+  HashAlg user_specified_hash_alg = kSha512;
 
-TEST_F(EpidMemberTest, SetHashAlgRejectsSHA512256) {
-  Prng my_prng;
+  pubkey.gid.data[1] = 0x00;    // sha256
+  mprivkey.gid.data[1] = 0x00;  // sha256
+  cred.gid = mprivkey.gid;
+  cred.A = mprivkey.A;
+  cred.x = mprivkey.x;
+
   MemberCtxObj member_ctx(&Prng::Generate, &my_prng);
-  EXPECT_EQ(kEpidBadArgErr, EpidMemberSetHashAlg(member_ctx, kSha512_256));
+  MemberCtx* ctx = member_ctx;
+  // overrides after key provisioning
+  EXPECT_EQ(kEpidNoErr,
+            EpidProvisionKey(ctx, &this->kGroupPublicKey,
+                             &this->kMemberPrivateKey, &this->kMemberPrecomp));
+  EXPECT_EQ(kSha256, ctx->hash_alg);
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(ctx, user_specified_hash_alg));
+  EXPECT_EQ(user_specified_hash_alg, ctx->hash_alg);
+
+  // overrides after membership credential provisioning
+  EXPECT_EQ(kEpidNoErr, EpidProvisionCredential(ctx, &this->kGroupPublicKey,
+                                                &cred, &this->kMemberPrecomp));
+  EXPECT_EQ(kSha256, ctx->hash_alg);
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(ctx, user_specified_hash_alg));
+  EXPECT_EQ(user_specified_hash_alg, ctx->hash_alg);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -420,7 +480,7 @@ TEST_F(EpidMemberTest, RegisterBaseNameSucceedsGivenMultipleUniqueBaseNames) {
             EpidRegisterBasename(member, basename2.data(), basename2.size()));
   EXPECT_EQ(kEpidNoErr,
             EpidRegisterBasename(member, basename3.data(), basename3.size()));
-  // Verify that basenames registered succesfully
+  // Verify that basenames registered successfully
   EXPECT_EQ(kEpidDuplicateErr,
             EpidRegisterBasename(member, basename1.data(), basename1.size()));
   EXPECT_EQ(kEpidDuplicateErr,
@@ -480,5 +540,48 @@ TEST_F(EpidMemberTest,
   THROW_ON_EPIDERR(EpidClearRegisteredBasenames(member));
   ASSERT_EQ(kEpidBadArgErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
                                      bsn.size(), sig, sig_len));
+}
+
+TEST_F(EpidMemberTest, EpidProvisionKeyUsesHashAlgFromGroupId) {
+  Prng my_prng;
+  GroupPubKey pubkey = this->kGroupPublicKey;
+  PrivKey mprivkey = this->kMemberPrivateKey;
+  HashAlg user_specified_hash_alg = kSha512;
+
+  pubkey.gid.data[1] = 0x00;    // sha256
+  mprivkey.gid.data[1] = 0x00;  // sha256
+
+  MemberCtxObj member(&Prng::Generate, &my_prng);
+  MemberCtx* ctx = member;
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(ctx, user_specified_hash_alg));
+  EXPECT_EQ(user_specified_hash_alg, ctx->hash_alg);
+  EXPECT_EQ(kEpidNoErr,
+            EpidProvisionKey(ctx, &pubkey, &mprivkey, &this->kMemberPrecomp));
+  EXPECT_EQ(kSha256, ctx->hash_alg);
+}
+
+TEST_F(EpidMemberTest, EpidProvisionCredentialUsesHashAlgFromGroupId) {
+  Prng my_prng;
+  GroupPubKey pubkey = this->kGroupPublicKey;
+  PrivKey mprivkey = this->kMemberPrivateKey;
+  MembershipCredential cred = {0};
+  HashAlg user_specified_hash_alg = kSha512;
+  MemberParams params = {0};
+
+  pubkey.gid.data[1] = 0x00;    // sha256
+  mprivkey.gid.data[1] = 0x00;  // sha256
+  cred.gid = mprivkey.gid;
+  cred.A = mprivkey.A;
+  cred.x = mprivkey.x;
+
+  SetMemberParams(&Prng::Generate, &my_prng, &mprivkey.f, &params);
+  MemberCtxObj member(&params);
+  MemberCtx* ctx = member;
+
+  EXPECT_EQ(kEpidNoErr, EpidMemberSetHashAlg(ctx, user_specified_hash_alg));
+  EXPECT_EQ(user_specified_hash_alg, ctx->hash_alg);
+  EXPECT_EQ(kEpidNoErr, EpidProvisionCredential(ctx, &pubkey, &cred,
+                                                &this->kMemberPrecomp));
+  EXPECT_EQ(kSha256, ctx->hash_alg);
 }
 }  // namespace

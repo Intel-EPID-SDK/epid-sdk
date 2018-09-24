@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,9 +26,12 @@ data_files = Pattern(src_dir='.',
                          'README.md',
                          'groupa/privrl.bin',
                          'groupa/pubkey.bin',
+                         'groupa/corrupted_gid_pubkey.bin',
                          'groupa/sigrl.bin',
                          'groupa/privrl_empty.bin',
                          'groupa/sigrl_empty.bin',
+                         'groupa/verifierrl_empty.dat',
+                         'groupa/verifierrl.dat',
                          'groupa/member0/mprivkey.dat',
                          'groupa/member1/mprivkey.dat',
                          'groupa/privrevokedmember0/mprivkey.dat',
@@ -43,6 +46,7 @@ data_files = Pattern(src_dir='.',
                          'groupb/privrl_empty.bin',
                          'groupb/sigrl_empty.bin',
                          'groupb/member0/mprivkey.dat',
+                         'groupb/member1/mprivkey.dat',
                          'groupb/privrevokedmember0/mprivkey.dat',
                          'groupb/sigrevokedmember0/mprivkey.dat',
                      ],
@@ -61,12 +65,10 @@ sample_default_files = Pattern(src_dir='.',
 
 part_file = ['data.parts']
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(data_files, sub_dir='example/data')
-    env.InstallTopLevel(part_file, sub_dir='example/data')
-    env.InstallTopLevel(sample_default_files, sub_dir='example/data')
-else:
-    env.InstallData(data_files,
-                    sub_dir='data',
-                    no_pkg=False)
-    env.InstallTopLevel(sample_default_files, sub_dir='example')
+
+env.InstallData(data_files,
+                sub_dir='non_split',
+                no_pkg=False)
+env.InstallData(sample_default_files,
+                sub_dir='non_split',
+                no_pkg=False)

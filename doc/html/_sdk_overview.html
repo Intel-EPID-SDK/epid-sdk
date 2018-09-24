@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(document).ready(function(){initNavTree('_sdk_overview.html','');});
 </ul>
 </li>
 <li class="level1"><a href="#SdkOverview_Compatibility">Intel&reg; EPID 1.1 Compatibility</a></li>
-<li class="level1"><a href="#SdkOverview_TPM">Member Implementations</a></li>
+<li class="level1"><a href="#SdkOverview_Members">Member Implementations</a></li>
 <li class="level1"><a href="#SdkOverview_Files">Folder Layout</a><ul><li class="level2"><a href="#SdkOverview_Files_SourceLayout">Source Layout</a></li>
 <li class="level2"><a href="#SdkOverview_Files_InstallLayout">Install Layout</a></li>
 </ul>
@@ -93,7 +93,7 @@ SDK Core</h2>
 <p>Components in the SDK Core implement the features of Intel&reg; EPID.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description ------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">member  </td><td class="markdownTableBodyNone">Library containing APIs needed to implement a member   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -111,7 +111,7 @@ Samples</h2>
 <p>The SDK also includes signing and verification <a class="el" href="_examples.html">Examples</a> that show how to use the SDK APIs in working code.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description ------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">signmsg  </td><td class="markdownTableBodyNone">A sample program showing how to sign messages   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -128,7 +128,7 @@ Tools</h2>
 <p>The SDK provides tools to interact with Intel&reg; EPID related services such those offered by the <a class="el" href="_issuer_material.html">Intel&reg; Key Generation Facility</a>.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description ------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">extractgrps  </td><td class="markdownTableBodyNone">A tool to extract groups from a bulk group file   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -139,6 +139,10 @@ Tools</h2>
 <td class="markdownTableBodyNone">revokekey  </td><td class="markdownTableBodyNone">A tool to create a revocation request for a member key   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">revokesig  </td><td class="markdownTableBodyNone">A tool to create a revocation request from a signature   </td></tr>
+<tr class="markdownTableBody" class="markdownTableRowEven">
+<td class="markdownTableBodyNone">joinreq  </td><td class="markdownTableBodyNone">A tool to create a join request to a group   </td></tr>
+<tr class="markdownTableBody" class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">mprecmp  </td><td class="markdownTableBodyNone">A tool to create the member pairing precomputation blob   </td></tr>
 </table>
 <p><br />
 </p>
@@ -147,13 +151,13 @@ Other Components</h2>
 <p>The SDK comes with a number of other components that support building and validating the code.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description ------------&mdash;   </th></tr>
+<th class="markdownTableHeadNone">Component  </th><th class="markdownTableHeadNone">Description   </th></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">gtest  </td><td class="markdownTableBodyNone">gtest unit test framework   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Build Scripts  </td><td class="markdownTableBodyNone">Scripts to configure and build the SDK   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">dropt  </td><td class="markdownTableBodyNone">Library for parsing command line   </td></tr>
+<td class="markdownTableBodyNone">argtable3  </td><td class="markdownTableBodyNone">Library for parsing command line   </td></tr>
 </table>
 <p>Math primitives are implemented in the <em>math</em> sub-component of <em>common</em>. The reference math primitive implementation is based on a non-optimized Vanilla C subset of the Intel&reg; Performance Primitives. <em>Math</em> is designed so that you can replace its implementation to call custom hardware IP blocks or optimized libraries.</p>
 <p><br />
@@ -163,16 +167,16 @@ Intel® EPID 1.1 Compatibility</h1>
 <p>In addition to the default Intel&reg; EPID 2.0 APIs, the <em>verifier</em> component also includes APIs that allow verification of Intel&reg; EPID 1.1 signatures.</p>
 <p>Billions of existing devices, including most Intel platforms manufactured since 2008, create signatures that need Intel&reg; EPID 1.1 verification.</p>
 <p>For details on verifying Intel&reg; EPID 1.1 signatures see <a href="group___epid11_verifier_module.html#details"><b>Intel&reg; EPID 1.1 support</b></a> in the API Reference.</p>
-<h1><a class="anchor" id="SdkOverview_TPM"></a>
+<h1><a class="anchor" id="SdkOverview_Members"></a>
 Member Implementations</h1>
 <p>There are three member implementations. You can use a specific compilation option to select the implementation that will be used at compile time. The implementations are:</p>
 <ol type="1">
-<li><b>Reference:</b> This default implementation gives guidance on partitioning member operations between highly sensitive ones that use the <code>f</code> value of the member private key, and less sensitive ones that can be performed in a host environment. To build in default mode, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</li>
-<li><b>TPM:</b> This TPM member implementation uses the TPM for signing by linking to the IBM TSS. To build in TPM mode, refer to <a class="el" href="_tpm_considerations.html#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a>.</li>
-<li><b>Tiny:</b> This tiny implementation builds the SDK with a substantially reduced code size. To build in tiny mode, refer to <a class="el" href="_building_sdk.html#BuildingSdk_Tiny">Optimizing for Code Size</a>.</li>
+<li><b>Non-split:</b> The default member implementation produces standard (non-split) signatures. It has a substantially reduced code size. To build in non-split mode, refer to <a class="el" href="_building_sdk.html">Building from Source</a>.</li>
+<li><b>Split:</b> The split member implementation partitions member operations between highly sensitive ones that use the <code>f</code> value of the member private key and less sensitive ones that can be performed in a host environment. Split members generate signatures with a different format than non-split members. To build in split mode, refer to <a class="el" href="_building_sdk.html#BuildingSdk_Split">Building in Split Signature Mode</a>.</li>
+<li><b>TPM:</b> The TPM member implementation is a split member implementation that uses the TPM for signing by linking to the IBM_TSS to perform sensitive operations. To build in TPM mode, refer to <a class="el" href="_tpm_considerations.html#TpmConsiderations_BuildingTpmMode">Building the SDK in TPM Mode</a>.</li>
 </ol>
 <div class="image">
-<img src="implementing_member.png" alt="implementing_member.png"/>
+<img src="member_implementations.png" alt="member_implementations.png"/>
 </div>
 <h1><a class="anchor" id="SdkOverview_Files"></a>
 Folder Layout</h1>
@@ -203,12 +207,13 @@ Source Layout</h2>
 |__ example/
 |   |__ data/               Binary data used for testing and tutorials
 |   |__ compressed_data/    Compressed Member Key Binary data used for testing and tutorials
+|   |__ split_data/         Binary data used for testing and tutorials
 |   |__ signmsg/            Source for message signing example
 |   |__ util/               Common utilities for examples
 |   |__ verifysig/          Source for signature validation signing example
 |
 |__ ext/
-|   |__ dropt/              Third party library for parsing command-line options
+|   |__ argtable3/          Third party library for parsing command-line options
 |   |__ gtest/              Third party gtest library
 |   |__ ipp/                Intel(R) Performance Primitives library
 |
@@ -217,6 +222,8 @@ Source Layout</h2>
 |__ tools/
     |__ extractgrps/        Tool to extract groups
     |__ extractkeys/        Tool to extract keys
+    |__ joinreq/            Tool to create a join request to a group
+    |__ mprecmp/            Tool to create the member precomputation blob
     |__ revokegrp/          Tool to create group revocation request
     |__ revokekey/          Tool to create a member key revocation request
     |__ revokesig/          Tool to create a signature based revocation
@@ -224,24 +231,23 @@ Source Layout</h2>
 </pre><h2><a class="anchor" id="SdkOverview_Files_InstallLayout"></a>
 Install Layout</h2>
 <p>The Install Layout contains the data developers need to develop and build their applications using the Intel&reg; EPID SDK. Once built, the Install Layout has no dependency on the Source Layout, allowing developers to build the SDK once and reuse the built files in other locations or on other computers. </p><pre class="fragment">_install/
-|__ epid-sdk/
-    |__ include/            C include header files for the SDK
-    |__ lib/
-    |   |__ &lt;platform&gt;      Target specific static libraries for the SDK
-    |
-    |__ example/             Sample applications and data
-    |__ compressed_example/  Compressed Member Key Binary data for sample applications
-    |__ test/                Unit test executables (if unit tests built)
-    |__ tools/               Tools</pre> </div></div><!-- contents -->
+|__ bin/                Sample applications and tools
+|__ data/               Sample data for examples
+|__ include/            C header files for the SDK
+|__ lib/
+|   |__ &lt;platform&gt;      Target specific static libraries for the SDK
+|
+|__ utest/              Unit test executables (if unit tests built)</pre> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

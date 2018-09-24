@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
                    size_t signed_sig_rl_size,
                    unsigned char const* signed_pubkey,
                    size_t signed_pubkey_size, unsigned char const* priv_key_ptr,
-                   size_t privkey_size, HashAlg hash_alg,
-                   MemberPrecomp* member_precomp, EpidSignature** sig,
-                   size_t* sig_len, EpidCaCertificate const* cacert) {
+                   size_t privkey_size, MemberPrecomp* member_precomp,
+                   EpidSignature** sig, size_t* sig_len,
+                   EpidCaCertificate const* cacert) {
   EpidStatus sts = kEpidErr;
   void* prng = NULL;
   MemberCtx* member = NULL;
@@ -85,7 +85,23 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
 
-    SetMemberParams(&PrngGen, prng, NULL, &params);
+    // Indicate that f should be selected by the member.
+    // Depending on the implmentation, This might mean
+    // selecting a new random value, or it might mean
+    // using a value previously stored in a secure location.
+    params.f = NULL;
+#ifndef TPM_TSS
+    // If the implmentation does not have a known secure
+    // random number generator one must be supplied.
+    params.rnd_func = &PrngGen;
+    params.rnd_param = prng;
+#endif
+#ifdef TINY
+    params.max_sigrl_entries = 5;
+    params.max_allowed_basenames = 5;
+    params.max_precomp_sig = 1;
+#endif
+
     // create member
     sts = EpidMemberGetSize(&params, &member_size);
     if (kEpidNoErr != sts) {
@@ -97,11 +113,6 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
     sts = EpidMemberInit(&params, member);
-    if (kEpidNoErr != sts) {
-      break;
-    }
-
-    sts = EpidMemberSetHashAlg(member, hash_alg);
     if (kEpidNoErr != sts) {
       break;
     }

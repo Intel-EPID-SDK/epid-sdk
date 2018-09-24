@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 #define variables
-TOOLS_INSTALL_DIR = $(epidinstalldir)/tools
+TOOLS_INSTALL_DIR = $(epidinstalldir)/bin
 
 EXTRACTGRPS_INCLUDE_DIR = ./extractgrps
 EXTRACTGRPS_SRC = $(wildcard ./extractgrps/src/*.c)
@@ -28,6 +28,17 @@ REVOKESIG_SRC = $(wildcard ./revokesig/src/*.c)
 REVOKESIG_OBJ = $(REVOKESIG_SRC:.c=.o)
 REVOKESIG_EXE = ./revokesig/src/revokesig$(EXE_EXTENSION)
 
+JOINREQ_INCLUDE_DIR = ./joinreq
+JOINREQ_SRC = $(wildcard ./joinreq/src/*.c)
+JOINREQ_OBJ = $(JOINREQ_SRC:.c=.o)
+JOINREQ_EXE = ./joinreq/src/joinreq$(EXE_EXTENSION)
+
+MPRECMP_INCLUDE_DIR = ./mprecmp
+MPRECMP_SRC = $(wildcard ./mprecmp/src/*.c)
+MPRECMP_OBJ = $(MPRECMP_SRC:.c=.o)
+MPRECMP_EXE = ./mprecmp/src/mprecmp$(EXE_EXTENSION)
+
+IPP_API_INCLUDE_DIR = ../ext/ipp/include
 EPID_SDK_ROOT_DIR = ..
 EXAMPLE_DIR = $(EPID_SDK_ROOT_DIR)/example
 LIB_ARGTABLE_DIR = $(EPID_SDK_ROOT_DIR)/ext/argtable3
@@ -43,6 +54,11 @@ LDFLAGS += -L$(LIB_UTIL_DIR) \
 	-L$(LIB_COMMON_DIR) \
 	-lcommon \
 	-lippcp -lutil -largtable3
+
+ifneq ($(TSS_PATH),)
+	LDFLAGS += -Wl,--rpath,'$$ORIGIN/../lib/posix-$(ARCH)' # runtime path to tss
+	CFLAGS += -DTPM_TSS
+endif
 
 $(EXTRACTGRPS_EXE): $(EXTRACTGRPS_OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -70,10 +86,16 @@ $(REVOKEGRP_OBJ): %.o: %.c
 			-I${EXAMPLE_DIR} -I$(REVOKEGRP_INCLUDE_DIR) \
 			-I${LIB_ARGTABLE_DIR} \
 			-c $^
-
-MEMBER_LIBS = -lmember
-ifneq ($(TINY),)
+ifneq ($(SHARED_MODE),yes)
+    MEMBER_LIBS = -lmember
+else
+    MEMBER_LIBS = $(LIB_MEMBER_DIR)/libmember.so
+endif
+ifeq ($(TINY),yes)
     MEMBER_LIBS += -lmath -ltiny_stdlib
+endif
+ifneq ($(TSS_PATH),)
+    MEMBER_LIBS += -L$(TSS_PATH) -ltss -lcrypto
 endif
 $(REVOKEKEY_EXE): $(REVOKEKEY_OBJ)
 	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) $(MEMBER_LIBS) $(LDFLAGS)
@@ -94,16 +116,39 @@ $(REVOKESIG_OBJ): %.o: %.c
 			-I${LIB_ARGTABLE_DIR} \
 			-c $^
 
+$(JOINREQ_EXE): $(JOINREQ_OBJ)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) $(MEMBER_LIBS) $(LDFLAGS)
+
+$(JOINREQ_OBJ): %.o: %.c
+	$(CC) -o $@ $(CFLAGS) -I$(IPP_API_INCLUDE_DIR) \
+			-I$(JOINREQ_INCLUDE_DIR) \
+			-I${EXAMPLE_DIR} -I$(EPID_SDK_ROOT_DIR) \
+			-I${LIB_ARGTABLE_DIR} \
+			-c $^
+
+$(MPRECMP_EXE): $(MPRECMP_OBJ)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) $(MEMBER_LIBS) $(LDFLAGS)
+
+$(MPRECMP_OBJ): %.o: %.c
+	$(CC) -o $@ $(CFLAGS) -I$(MPRECMP_INCLUDE_DIR) \
+			-I$(EPID_SDK_ROOT_DIR) \
+			-I${EXAMPLE_DIR} \
+			-I${LIB_ARGTABLE_DIR} \
+			-c $^
+
 #target part
 build: all install
 
-all: $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) $(REVOKESIG_EXE)
+all: $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) \
+		 $(REVOKESIG_EXE) $(JOINREQ_EXE) $(MPRECMP_EXE)
 
 install:
 	mkdir -p '$(TOOLS_INSTALL_DIR)'
-	cp $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) $(REVOKESIG_EXE) \
-		'$(TOOLS_INSTALL_DIR)'
+	cp $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) \
+	$(REVOKESIG_EXE) $(JOINREQ_EXE) $(MPRECMP_EXE) $(TOOLS_INSTALL_DIR)
 
 clean:
-	rm -f $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) $(REVOKESIG_EXE) \
-	$(EXTRACTGRPS_OBJ) $(EXTRACTKEYS_OBJ) $(REVOKEGRP_OBJ) $(REVOKEKEY_OBJ) $(REVOKESIG_OBJ)
+	rm -f $(EXTRACTGRPS_EXE) $(EXTRACTKEYS_EXE) $(REVOKEGRP_EXE) $(REVOKEKEY_EXE) \
+	$(REVOKESIG_EXE) $(JOINREQ_EXE) $(MPRECMP_EXE) \
+	$(EXTRACTGRPS_OBJ) $(EXTRACTKEYS_OBJ) $(REVOKEGRP_OBJ) $(REVOKEKEY_OBJ) \
+	$(REVOKESIG_OBJ) $(JOINREQ_OBJ) $(MPRECMP_OBJ)

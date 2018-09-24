@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,30 +23,6 @@
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/math/vli.h"
 
-static void EFq2CondSet(EccPointJacobiFq2* result,
-                        EccPointJacobiFq2 const* true_val,
-                        EccPointJacobiFq2 const* false_val, int truth_val) {
-  Fq2CondSet(&result->X, &true_val->X, &false_val->X, truth_val);
-  Fq2CondSet(&result->Y, &true_val->Y, &false_val->Y, truth_val);
-  Fq2CondSet(&result->Z, &true_val->Z, &false_val->Z, truth_val);
-}
-
-static void EFq2Cp(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in) {
-  Fq2Cp(&result->X, &in->X);
-  Fq2Cp(&result->Y, &in->Y);
-  Fq2Cp(&result->Z, &in->Z);
-}
-
-static void EFq2Inf(EccPointJacobiFq2* result) {
-  Fq2Set(&result->X, 0);
-  Fq2Set(&result->Y, 1);
-  Fq2Set(&result->Z, 0);
-}
-
-int EFq2IsInf(EccPointJacobiFq2 const* in) {
-  return Fq2IsZero(&in->X) && Fq2IsZero(&in->Z) && (!Fq2IsZero(&in->Y));
-}
-
 void EFq2FromAffine(EccPointJacobiFq2* result, EccPointFq2 const* in) {
   Fq2Cp(&result->X, &in->x);
   Fq2Cp(&result->Y, &in->y);
@@ -67,43 +43,24 @@ int EFq2ToAffine(EccPointFq2* result, EccPointJacobiFq2 const* in) {
   return 1;
 }
 
-void EFq2Dbl(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in) {
-  Fq2Elem a;
-  Fq2Elem b;
-  // Z3 = 2Z1
-  Fq2Add(&(result->Z), &(in->Z), &(in->Z));
-  // Z3 = 2*Z1*Y1
-  Fq2Mul(&(result->Z), &(result->Z), &(in->Y));
-  // A = X1^2
-  Fq2Square(&a, &(in->X));
-  // B = 2(X1^2)
-  Fq2Add(&b, &a, &a);
-  // B = 3(X1^2)
-  Fq2Add(&b, &b, &a);
-  // A = Y1^2
-  Fq2Square(&a, &(in->Y));
-  // A = 2*(Y1^2)
-  Fq2Add(&a, &a, &a);
-  // Y3 = 4*(Y1^4)
-  Fq2Square(&(result->Y), &a);
-  // Y3 = 8*(Y1^4)
-  Fq2Add(&(result->Y), &(result->Y), &(result->Y));
-  // A = 4(Y1^2)
-  Fq2Add(&a, &a, &a);
-  // A = 4(Y1^2)*X1
-  Fq2Mul(&a, &a, &(in->X));
-  // X3 = B^2
-  Fq2Square(&(result->X), &b);
-  // X3 = (B^2) - A
-  Fq2Sub(&(result->X), &(result->X), &a);
-  // X3 = (B^2) - 2A
-  Fq2Sub(&(result->X), &(result->X), &a);
-  // A = A - X3
-  Fq2Sub(&a, &a, &(result->X));
-  // A = B*(A-X3)
-  Fq2Mul(&a, &a, &b);
-  // Y3 = B*(A-X3) - 8*(Y1^4)
-  Fq2Sub(&(result->Y), &a, &(result->Y));
+static void EFq2CondSet(EccPointJacobiFq2* result,
+                        EccPointJacobiFq2 const* true_val,
+                        EccPointJacobiFq2 const* false_val, int truth_val) {
+  Fq2CondSet(&result->X, &true_val->X, &false_val->X, truth_val);
+  Fq2CondSet(&result->Y, &true_val->Y, &false_val->Y, truth_val);
+  Fq2CondSet(&result->Z, &true_val->Z, &false_val->Z, truth_val);
+}
+
+static void EFq2Cp(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in) {
+  Fq2Cp(&result->X, &in->X);
+  Fq2Cp(&result->Y, &in->Y);
+  Fq2Cp(&result->Z, &in->Z);
+}
+
+static void EFq2Inf(EccPointJacobiFq2* result) {
+  Fq2Set(&result->X, 0);
+  Fq2Set(&result->Y, 1);
+  Fq2Set(&result->Z, 0);
 }
 
 void EFq2Add(EccPointJacobiFq2* result, EccPointJacobiFq2 const* left,
@@ -156,7 +113,7 @@ void EFq2Add(EccPointJacobiFq2* result, EccPointJacobiFq2 const* left,
   // R.X = V^2 - (A + B) * W^2
   Fq2Square(&result->X, &V);
   Fq2Add(&B, &A, &B);
-  // Before squaring W save (C * W) to use in compitation of R.Y
+  // Before squaring W save (C * W) to use in computation of R.Y
   Fq2Mul(&C, &C, &W);
   Fq2Square(&W, &W);
   Fq2Mul(&B, &B, &W);
@@ -167,6 +124,45 @@ void EFq2Add(EccPointJacobiFq2* result, EccPointJacobiFq2 const* left,
   Fq2Mul(&result->Y, &V, &A);
   Fq2Mul(&C, &C, &W);
   Fq2Sub(&result->Y, &result->Y, &C);
+}
+
+void EFq2Dbl(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in) {
+  Fq2Elem a;
+  Fq2Elem b;
+  // Z3 = 2Z1
+  Fq2Add(&(result->Z), &(in->Z), &(in->Z));
+  // Z3 = 2*Z1*Y1
+  Fq2Mul(&(result->Z), &(result->Z), &(in->Y));
+  // A = X1^2
+  Fq2Square(&a, &(in->X));
+  // B = 2(X1^2)
+  Fq2Add(&b, &a, &a);
+  // B = 3(X1^2)
+  Fq2Add(&b, &b, &a);
+  // A = Y1^2
+  Fq2Square(&a, &(in->Y));
+  // A = 2*(Y1^2)
+  Fq2Add(&a, &a, &a);
+  // Y3 = 4*(Y1^4)
+  Fq2Square(&(result->Y), &a);
+  // Y3 = 8*(Y1^4)
+  Fq2Add(&(result->Y), &(result->Y), &(result->Y));
+  // A = 4(Y1^2)
+  Fq2Add(&a, &a, &a);
+  // A = 4(Y1^2)*X1
+  Fq2Mul(&a, &a, &(in->X));
+  // X3 = B^2
+  Fq2Square(&(result->X), &b);
+  // X3 = (B^2) - A
+  Fq2Sub(&(result->X), &(result->X), &a);
+  // X3 = (B^2) - 2A
+  Fq2Sub(&(result->X), &(result->X), &a);
+  // A = A - X3
+  Fq2Sub(&a, &a, &(result->X));
+  // A = B*(A-X3)
+  Fq2Mul(&a, &a, &b);
+  // Y3 = B*(A-X3) - 8*(Y1^4)
+  Fq2Sub(&(result->Y), &a, &(result->Y));
 }
 
 void EFq2Neg(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in) {
@@ -250,4 +246,8 @@ int EFq2OnCurve(EccPointFq2 const* in) {
   Fq2Sub(&t1, &t1, &t2);
   // return if t1 is zero
   return Fq2IsZero(&t1);
+}
+
+int EFq2IsInf(EccPointJacobiFq2 const* in) {
+  return Fq2IsZero(&in->X) && Fq2IsZero(&in->Z) && (!Fq2IsZero(&in->Y));
 }

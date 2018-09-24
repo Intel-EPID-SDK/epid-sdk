@@ -2,8 +2,10 @@
 
 #define variables
 IPP_API_INCLUDE_DIR = ../ext/ipp/include
-EXAMPLE_INSTALL_DIR = $(epidinstalldir)/example
-COMPRESSED_DEFAULT_FILES_INSTALL_DIR = $(epidinstalldir)/compressed_example
+EXAMPLE_INSTALL_DIR = $(epidinstalldir)/bin
+DATA_INSTALL_DIR = $(epidinstalldir)/data
+NON_SPLIT_DATA_INSTALL_DIR = $(DATA_INSTALL_DIR)/non_split
+SPLIT_DATA_INSTALL_DIR = $(DATA_INSTALL_DIR)/split
 
 SIGNMSG_INCLUDE_DIR = ./signmsg
 SIGNMSG_SRC = $(wildcard ./signmsg/src/*.c)
@@ -32,10 +34,11 @@ LDFLAGS += -L$(LIB_UTIL_DIR) \
 	-lippcp -lutil -largtable3
 
 ifneq ($(TSS_PATH),)
+	LDFLAGS += -Wl,--rpath,'$$ORIGIN/../lib/posix-$(ARCH)' # runtime path to tss
 	LDFLAGS += -L$(TSS_PATH) -ltss -lcrypto
 endif
 
-ifneq ($(TINY),)
+ifeq ($(TINY),yes)
 	LDFLAGS += -L$(LIB_MEMBER_DIR) -lmath -ltiny_stdlib
 endif
 
@@ -49,9 +52,13 @@ $(VERIFYSIG_OBJ): %.o: %.c
 			-I$(VERIFYSIG_INCLUDE_DIR) \
 			-I$(IPP_API_INCLUDE_DIR) -c $^
 
-
+ifneq ($(SHARED_MODE),yes)
+    MEMBER_LIBS_TO_LINK = -lmember
+else
+    MEMBER_LIBS_TO_LINK = $(LIB_MEMBER_DIR)/libmember.so
+endif
 $(SIGNMSG_EXE): $(SIGNMSG_OBJ)
-	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) -lmember $(LDFLAGS)
+	$(CC) -o $@ $^ -L$(LIB_MEMBER_DIR) $(MEMBER_LIBS_TO_LINK) $(LDFLAGS)
 
 $(SIGNMSG_OBJ): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \
@@ -66,21 +73,16 @@ build: all install
 all: $(VERIFYSIG_EXE) $(SIGNMSG_EXE)
 
 install:
-	mkdir -p '$(EXAMPLE_INSTALL_DIR)/data'
-	cp -r ./data/group* ./data/grprl_empty.bin \
-		./data/*.md '$(EXAMPLE_INSTALL_DIR)/data'
-	cp ./data/cacert.bin ./data/grprl.bin \
-		./data/privrl.bin ./data/sigrl.bin \
-		./data/mprivkey.dat ./data/pubkey.bin \
-		'$(EXAMPLE_INSTALL_DIR)'
-	mkdir -p '$(EXAMPLE_INSTALL_DIR)/compressed_data'
-	cp -r ./compressed_data/group* ./compressed_data/grprl_empty.bin \
-		./compressed_data/*.md '$(EXAMPLE_INSTALL_DIR)/compressed_data'
-	mkdir -p '$(COMPRESSED_DEFAULT_FILES_INSTALL_DIR)'
-	cp ./compressed_data/cacert.bin ./compressed_data/grprl.bin \
-		./compressed_data/privrl.bin ./compressed_data/sigrl.bin \
-		./compressed_data/mprivkey.dat ./compressed_data/pubkey.bin \
-		'$(COMPRESSED_DEFAULT_FILES_INSTALL_DIR)'
+	mkdir -p '$(DATA_INSTALL_DIR)'
+	find data/. \( -iname '*.bin' -o -iname '*.dat' -o \
+		-iname '*.md' \) -a ! -iname '*-priv.dat' -print0 \
+		| xargs -0 cp --parents -t '$(DATA_INSTALL_DIR)'
+	mv '$(DATA_INSTALL_DIR)/data' '$(NON_SPLIT_DATA_INSTALL_DIR)'
+	find split_data/. \( -iname '*.bin' -o -iname '*.dat' -o \
+		-iname '*.md' \) -a ! -iname '*-priv.dat' -print0 \
+		| xargs -0 cp --parents -t '$(DATA_INSTALL_DIR)'
+	mv '$(DATA_INSTALL_DIR)/split_data' '$(SPLIT_DATA_INSTALL_DIR)'
+	mkdir -p '$(EXAMPLE_INSTALL_DIR)'
 	cp $(VERIFYSIG_EXE) $(SIGNMSG_EXE) '$(EXAMPLE_INSTALL_DIR)'
 
 clean:

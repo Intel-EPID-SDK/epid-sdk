@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -60,6 +60,7 @@ $(document).ready(function(){initNavTree('sha256_8h.html','');});
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -72,6 +73,12 @@ $(document).ready(function(){initNavTree('sha256_8h.html','');});
 <div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsha256__state.html">sha256_state</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The SHA state.  <a href="structsha256__state.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a9c1fe69ad43d4ca74b84303a0ed64f2f"><td class="memItemLeft" align="right" valign="top"><a id="a9c1fe69ad43d4ca74b84303a0ed64f2f"></a>
@@ -89,13 +96,13 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a05aad282287c226a9ab8a2eb65d10d1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#a05aad282287c226a9ab8a2eb65d10d1b">tc_sha256_init</a> (sha256_state *s)</td></tr>
-<tr class="memdesc:a05aad282287c226a9ab8a2eb65d10d1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The SHA state.  <a href="#a05aad282287c226a9ab8a2eb65d10d1b">More...</a><br /></td></tr>
+<tr class="memitem:a05aad282287c226a9ab8a2eb65d10d1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#a05aad282287c226a9ab8a2eb65d10d1b">tc_sha256_init</a> (<a class="el" href="structsha256__state.html">sha256_state</a> *s)</td></tr>
+<tr class="memdesc:a05aad282287c226a9ab8a2eb65d10d1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA256 initialization procedure Initializes s.  <a href="#a05aad282287c226a9ab8a2eb65d10d1b">More...</a><br /></td></tr>
 <tr class="separator:a05aad282287c226a9ab8a2eb65d10d1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab42ecba529c48040c34e70cee8d98096"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#ab42ecba529c48040c34e70cee8d98096">tc_sha256_update</a> (sha256_state *s, const uint8_t *data, size_t datalen)</td></tr>
+<tr class="memitem:ab42ecba529c48040c34e70cee8d98096"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#ab42ecba529c48040c34e70cee8d98096">tc_sha256_update</a> (<a class="el" href="structsha256__state.html">sha256_state</a> *s, const uint8_t *data, size_t datalen)</td></tr>
 <tr class="memdesc:ab42ecba529c48040c34e70cee8d98096"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA256 update procedure Hashes data_length bytes addressed by data into state s.  <a href="#ab42ecba529c48040c34e70cee8d98096">More...</a><br /></td></tr>
 <tr class="separator:ab42ecba529c48040c34e70cee8d98096"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8013bed3e0b388ec654f991b45c00bbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#a8013bed3e0b388ec654f991b45c00bbf">tc_sha256_final</a> (uint8_t *digest, sha256_state *s)</td></tr>
+<tr class="memitem:a8013bed3e0b388ec654f991b45c00bbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha256_8h.html#a8013bed3e0b388ec654f991b45c00bbf">tc_sha256_final</a> (uint8_t *digest, <a class="el" href="structsha256__state.html">sha256_state</a> *s)</td></tr>
 <tr class="memdesc:a8013bed3e0b388ec654f991b45c00bbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA256 final procedure Inserts the completed hash computation into digest.  <a href="#a8013bed3e0b388ec654f991b45c00bbf">More...</a><br /></td></tr>
 <tr class="separator:a8013bed3e0b388ec654f991b45c00bbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -122,7 +129,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">sha256_state *&#160;</td>
+          <td class="paramtype"><a class="el" href="structsha256__state.html">sha256_state</a> *&#160;</td>
           <td class="paramname"><em>s</em>&#160;</td>
         </tr>
         <tr>
@@ -156,15 +163,15 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">void tc_sha256_init </td>
           <td>(</td>
-          <td class="paramtype">sha256_state *&#160;</td>
+          <td class="paramtype"><a class="el" href="structsha256__state.html">sha256_state</a> *&#160;</td>
           <td class="paramname"><em>s</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>The SHA state. </p>
-<p>SHA256 initialization procedure Initializes s </p><dl class="params"><dt>Parameters</dt><dd>
+<p>SHA256 initialization procedure Initializes s. </p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">s</td><td>Sha256 state struct </td></tr>
   </table>
@@ -182,7 +189,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">void tc_sha256_update </td>
           <td>(</td>
-          <td class="paramtype">sha256_state *&#160;</td>
+          <td class="paramtype"><a class="el" href="structsha256__state.html">sha256_state</a> *&#160;</td>
           <td class="paramname"><em>s</em>, </td>
         </tr>
         <tr>
@@ -223,13 +230,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="sha256_8h.html">sha256.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="sha256_8h.html">sha256.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@
 
 /// \cond
 typedef struct OctStr32 OctStr32;
+typedef struct OctStr512 OctStr512;
 
 typedef struct VeryLargeInt VeryLargeInt;
+typedef struct VeryLargeIntProduct VeryLargeIntProduct;
 typedef struct BigNumStr BigNumStr;
 
 typedef struct FqElem FqElem;
@@ -45,7 +47,7 @@ typedef struct Fq12ElemStr Fq12ElemStr;
 
 #if !defined(UNOPTIMIZED_SERIALIZATION)
 
-/// Serialize or deserailize a sequence of math objects
+/// Serialize or deserialize a sequence of math objects
 /*!
 Converts layouts between native and portable or between portable and
 native of the following types: VeryLargeInt and BigNumStr,
@@ -80,7 +82,7 @@ void* Uint32Serialize(OctStr32* dest, uint32_t src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* Uint32Deserialize(uint32_t* dest, OctStr32 const* src);
 
@@ -96,9 +98,18 @@ void* VliSerialize(BigNumStr* dest, VeryLargeInt const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* VliDeserialize(VeryLargeInt* dest, BigNumStr const* src);
+
+/// Read a VeryLargeIntProduct from a portable buffer
+/*!
+\param[out] dest target buffer
+\param [in] src source data
+\returns pointer to next byte after final data read from src
+*/
+void const* VliProductDeserialize(VeryLargeIntProduct* dest,
+                                  OctStr512 const* src);
 
 /// Write an element of Fq to a portable buffer
 /*!
@@ -112,7 +123,7 @@ void* FqSerialize(FqElemStr* dest, FqElem const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* FqDeserialize(FqElem* dest, FqElemStr const* src);
 
@@ -128,7 +139,7 @@ void* Fq12Serialize(Fq12ElemStr* dest, Fq12Elem const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* Fq12Deserialize(Fq12Elem* dest, Fq12ElemStr const* src);
 
@@ -144,7 +155,7 @@ void* FpSerialize(FpElemStr* dest, FpElem const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* FpDeserialize(FpElem* dest, FpElemStr const* src);
 
@@ -160,7 +171,7 @@ void* EFqSerialize(G1ElemStr* dest, EccPointFq const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* EFqDeserialize(EccPointFq* dest, G1ElemStr const* src);
 
@@ -176,7 +187,7 @@ void* EFq2Serialize(G2ElemStr* dest, EccPointFq2 const* src);
 /*!
 \param[out] dest target buffer
 \param [in] src source data
-\returns pointer to next byte after final data read from to src
+\returns pointer to next byte after final data read from src
 */
 void const* EFq2Deserialize(EccPointFq2* dest, G2ElemStr const* src);
 

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,14 +25,6 @@ typedef struct EccPointJacobiFq2 EccPointJacobiFq2;
 typedef struct FpElem FpElem;
 /// \endcond
 
-/// Test if a point is infinity.
-/*!
-\param[in] in the point to test.
-\returns A value different from zero (i.e., true) indeed
-         the value is infinity. Zero (i.e., false) otherwise.
-*/
-int EFq2IsInf(EccPointJacobiFq2 const* in);
-
 /// Convert a point from Affine to Jacobi representation.
 /*!
 \param[out] result target.
@@ -48,13 +40,6 @@ void EFq2FromAffine(EccPointJacobiFq2* result, EccPointFq2 const* in);
 */
 int EFq2ToAffine(EccPointFq2* result, EccPointJacobiFq2 const* in);
 
-/// Double a point in EFq2.
-/*!
-\param[out] result target.
-\param[in] in the value to double.
-*/
-void EFq2Dbl(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in);
-
 /// Add two points in EFq2.
 /*!
 \param[out] result of adding left and right.
@@ -63,6 +48,13 @@ void EFq2Dbl(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in);
 */
 void EFq2Add(EccPointJacobiFq2* result, EccPointJacobiFq2 const* left,
              EccPointJacobiFq2 const* right);
+
+/// Double a point in EFq2.
+/*!
+\param[out] result target.
+\param[in] in the value to double.
+*/
+void EFq2Dbl(EccPointJacobiFq2* result, EccPointJacobiFq2 const* in);
 
 /// Negate a point on EFq2.
 /*!
@@ -99,5 +91,13 @@ int EFq2Eq(EccPointJacobiFq2 const* left, EccPointJacobiFq2 const* right);
          the point is on the curve. Zero (i.e., false) otherwise.
 */
 int EFq2OnCurve(EccPointFq2 const* in);
+
+/// Test if a point is infinity.
+/*!
+\param[in] in the point to test.
+\returns A value different from zero (i.e., true) indeed
+         the value is infinity. Zero (i.e., false) otherwise.
+*/
+int EFq2IsInf(EccPointJacobiFq2 const* in);
 
 #endif  // EPID_MEMBER_TINY_MATH_EFQ2_H_

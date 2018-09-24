@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #include <cstring>
 #include <random>
 
+#include "epid/common-testhelper/onetimepad.h"
 #include "epid/member/tiny/math/unittests/cmp-testhelper.h"
-#include "epid/member/tiny/math/unittests/onetimepad.h"
 
 extern "C" {
 #include "epid/member/tiny/math/mathtypes.h"
@@ -206,6 +206,16 @@ TEST(TinyVliTest, VliTestBitWorks) {
   EXPECT_EQ((uint32_t)1, bit_set);
 }
 
+TEST(TinyVliTest, VliTestBitWorksGivenBitNumberBiggerThanVliSize) {
+  VeryLargeInt in = {0};
+  uint32_t bit_set = 0;
+  in.word[0] = 4;
+  bit_set = VliTestBit(&in, 256 + 1);
+  EXPECT_EQ((uint32_t)0, bit_set);
+  bit_set = VliTestBit(&in, 256 + 2);
+  EXPECT_EQ((uint32_t)1, bit_set);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // VliRand
 
@@ -356,6 +366,24 @@ TEST(TinyVliTest, VliModSquareWorks) {
   input.word[0] = 0x4;
   expected.word[0] = 0x10;
   VliModSquare(&result, &input, &mod);
+  EXPECT_EQ(expected, result);
+}
+
+////////////////////////////////////////////////////////////////////////
+// VliModBarrettSecure
+
+TEST(TinyVliTest, VliModBarrettSecureWorks) {
+  VeryLargeInt result = {0};
+  VeryLargeIntProduct product = {0xAED33013, 0xD3292DDB, 0x12980A82, 0x0CDC65FB,
+                                 0xEE71A49F, 0x46E5F25E, 0xFFFCF0CD, 0xFFFFFFFF,
+                                 0x0,        0x0,        0x0,        0x0,
+                                 0x0,        0x0,        0x0,        0x0};
+  VeryLargeInt mod = {0xAED33013, 0xD3292DDB, 0x12980A82, 0x0CDC65FB,
+                      0xEE71A49F, 0x46E5F25E, 0xFFFCF0CD, 0xFFFFFFFF};
+  VeryLargeInt expected = {0};
+  product.word[0] += 0xF;
+  expected.word[0] = 0xF;
+  VliModBarrettSecure(&result, &product, &mod);
   EXPECT_EQ(expected, result);
 }
 

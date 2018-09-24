@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -61,6 +61,7 @@ $(document).ready(function(){initNavTree('verifier_2api_8h.html','');});
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -117,28 +118,19 @@ Functions</h2></td></tr>
 <tr class="memitem:ga1c3810ef361da678a1f77823bd9c37a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6">EpidVerifierSetBasename</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, void const *basename, size_t basename_len)</td></tr>
 <tr class="memdesc:ga1c3810ef361da678a1f77823bd9c37a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the basename to be used by a verifier.  <a href="group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6">More...</a><br /></td></tr>
 <tr class="separator:ga1c3810ef361da678a1f77823bd9c37a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae3f9c37628e18b880d8bbee3e7f55064"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064">EpidVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_epid_signature.html">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
-<tr class="memdesc:gae3f9c37628e18b880d8bbee3e7f55064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature and checks revocation status.  <a href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064">More...</a><br /></td></tr>
-<tr class="separator:gae3f9c37628e18b880d8bbee3e7f55064"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac8a3147fc12af9af8289e76d28088ecf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf">EpidVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, void const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
+<tr class="memdesc:gac8a3147fc12af9af8289e76d28088ecf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature and checks revocation status.  <a href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf">More...</a><br /></td></tr>
+<tr class="separator:gac8a3147fc12af9af8289e76d28088ecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdtypes_8h.html#ad5c9d4ba3dc37783a528b0925dc981a0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gae44bd8acbc1e7205aeedff0c7e2632a8">EpidAreSigsLinked</a> (<a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig1, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig2)</td></tr>
 <tr class="memdesc:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if two signatures are linked.  <a href="group___epid_verifier_module.html#gae44bd8acbc1e7205aeedff0c7e2632a8">More...</a><br /></td></tr>
 <tr class="separator:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">EpidVerifyBasicSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, void const *msg, size_t msg_len)</td></tr>
-<tr class="memdesc:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a member signature without revocation checks.  <a href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">More...</a><br /></td></tr>
-<tr class="separator:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac6e2fab59e3af8a33a74a5b201642700"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700">EpidNrVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, void const *msg, size_t msg_len, <a class="el" href="struct_sig_rl_entry.html">SigRlEntry</a> const *sigrl_entry, <a class="el" href="struct_nr_proof.html">NrProof</a> const *proof)</td></tr>
-<tr class="memdesc:gac6e2fab59e3af8a33a74a5b201642700"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies the non-revoked proof for a single signature based revocation list entry.  <a href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700">More...</a><br /></td></tr>
-<tr class="separator:gac6e2fab59e3af8a33a74a5b201642700"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea">EpidCheckPrivRlEntry</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f)</td></tr>
-<tr class="memdesc:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature has not been revoked in the private key based revocation list.  <a href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea">More...</a><br /></td></tr>
-<tr class="separator:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga2a75c7d5775e852a7b6e24178dd4054f">EpidGetVerifierRlSize</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx)</td></tr>
 <tr class="memdesc:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of bytes required to serialize the verifier blacklist.  <a href="group___epid_verifier_module.html#ga2a75c7d5775e852a7b6e24178dd4054f">More...</a><br /></td></tr>
 <tr class="separator:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac857bff47e7d80363eac15285471fe81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81">EpidWriteVerifierRl</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_verifier_rl.html">VerifierRl</a> *ver_rl, size_t ver_rl_size)</td></tr>
 <tr class="memdesc:gac857bff47e7d80363eac15285471fe81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serializes the verifier blacklist to a buffer.  <a href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81">More...</a><br /></td></tr>
 <tr class="separator:gac857bff47e7d80363eac15285471fe81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">EpidBlacklistSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, <a class="el" href="struct_epid_signature.html">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
+<tr class="memitem:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">EpidBlacklistSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, <a class="el" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
 <tr class="memdesc:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a valid name-based signature to the verifier blacklist.  <a href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">More...</a><br /></td></tr>
 <tr class="separator:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -148,13 +140,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_02c945662023679b89476bd7126bc985.html">verifier</a></li><li class="navelem"><a class="el" href="verifier_2api_8h.html">api.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_02c945662023679b89476bd7126bc985.html">verifier</a></li><li class="navelem"><a class="el" href="verifier_2api_8h.html">api.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -68,12 +68,14 @@ $(document).ready(function(){initNavTree('hashwrap_8h.html','');});
 </div><!--header-->
 <div class="contents">
 
-<p>Decleration of hash wrap function.  
+<p>Declaration of hash wrap function.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="types_8h.html">epid/common/types.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="mathtypes_8h.html">epid/member/tiny/math/mathtypes.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="sha512_8h.html">epid/member/tiny/math/sha512.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="sha512__256_8h.html">epid/member/tiny/math/sha512_256.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="sha384_8h.html">epid/member/tiny/math/sha384.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="sha256_8h.html">epid/member/tiny/math/sha256.h</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -85,11 +87,32 @@ Data Structures</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tiny Sha wrapper Element.  <a href="structtiny__sha.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ade592bc631b76d4bb349eb597b2378ba"><td class="memItemLeft" align="right" valign="top"><a id="ade592bc631b76d4bb349eb597b2378ba"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#ade592bc631b76d4bb349eb597b2378ba">SHA512_SUPPORT</a></td></tr>
+<tr class="memdesc:ade592bc631b76d4bb349eb597b2378ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable sha512 support. <br /></td></tr>
+<tr class="separator:ade592bc631b76d4bb349eb597b2378ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadeee91474c60ad661d9c8aa0b4b6472"><td class="memItemLeft" align="right" valign="top"><a id="aadeee91474c60ad661d9c8aa0b4b6472"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#aadeee91474c60ad661d9c8aa0b4b6472">SHA512_256_SUPPORT</a></td></tr>
+<tr class="memdesc:aadeee91474c60ad661d9c8aa0b4b6472"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable sha512_256 support. <br /></td></tr>
+<tr class="separator:aadeee91474c60ad661d9c8aa0b4b6472"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ac0f954fff4dead9ff3a2a9f6dfbced"><td class="memItemLeft" align="right" valign="top"><a id="a5ac0f954fff4dead9ff3a2a9f6dfbced"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#a5ac0f954fff4dead9ff3a2a9f6dfbced">SHA384_SUPPORT</a></td></tr>
+<tr class="memdesc:a5ac0f954fff4dead9ff3a2a9f6dfbced"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable sha384 support. <br /></td></tr>
+<tr class="separator:a5ac0f954fff4dead9ff3a2a9f6dfbced"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff3bb406ddadf52ae7a3996478ddc510"><td class="memItemLeft" align="right" valign="top"><a id="aff3bb406ddadf52ae7a3996478ddc510"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#aff3bb406ddadf52ae7a3996478ddc510">SHA256_SUPPORT</a></td></tr>
+<tr class="memdesc:aff3bb406ddadf52ae7a3996478ddc510"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable sha256 support. <br /></td></tr>
+<tr class="separator:aff3bb406ddadf52ae7a3996478ddc510"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7be4ad5a9f37fc4cb1958e70e232bd27"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#a7be4ad5a9f37fc4cb1958e70e232bd27">SHORTEST_HASH_ALG</a>&#160;&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d">kSha256</a></td></tr>
+<tr class="separator:a7be4ad5a9f37fc4cb1958e70e232bd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab168fa663e74cc973af7e79d384df8b0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#ab168fa663e74cc973af7e79d384df8b0">tinysha_init</a> (<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> sha_type, <a class="el" href="structtiny__sha.html">tiny_sha</a> *s)</td></tr>
-<tr class="memdesc:ab168fa663e74cc973af7e79d384df8b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the hash state.  <a href="#ab168fa663e74cc973af7e79d384df8b0">More...</a><br /></td></tr>
-<tr class="separator:ab168fa663e74cc973af7e79d384df8b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c51bd7b18c7f05a9aa54782c0e451d4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#a7c51bd7b18c7f05a9aa54782c0e451d4">tinysha_init</a> (<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> sha_type, <a class="el" href="structtiny__sha.html">tiny_sha</a> *s)</td></tr>
+<tr class="memdesc:a7c51bd7b18c7f05a9aa54782c0e451d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the hash state.  <a href="#a7c51bd7b18c7f05a9aa54782c0e451d4">More...</a><br /></td></tr>
+<tr class="separator:a7c51bd7b18c7f05a9aa54782c0e451d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9844075a9ccf12e56f6a07d86b49c98d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hashwrap_8h.html#a9844075a9ccf12e56f6a07d86b49c98d">tinysha_update</a> (<a class="el" href="structtiny__sha.html">tiny_sha</a> *s, void const *data, size_t data_length)</td></tr>
 <tr class="memdesc:a9844075a9ccf12e56f6a07d86b49c98d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashes data into state using a chosen hash algorithm.  <a href="#a9844075a9ccf12e56f6a07d86b49c98d">More...</a><br /></td></tr>
 <tr class="separator:a9844075a9ccf12e56f6a07d86b49c98d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -101,8 +124,24 @@ Functions</h2></td></tr>
 <tr class="separator:a6e07fd5b18355546d72dd09eae343c6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Decleration of hash wrap function. </p>
-</div><h2 class="groupheader">Function Documentation</h2>
+<div class="textblock"><p>Declaration of hash wrap function. </p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a7be4ad5a9f37fc4cb1958e70e232bd27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7be4ad5a9f37fc4cb1958e70e232bd27">&#9670;&nbsp;</a></span>SHORTEST_HASH_ALG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHORTEST_HASH_ALG&#160;&#160;&#160;<a class="el" href="group___epid_types.html#gga5e450438f6f9a5eacd0cf5ce354ec890aefb89989305b5c34120b0f18ee8e2c5d">kSha256</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Hash algorithm with a shortest digest. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
 <a id="a6e07fd5b18355546d72dd09eae343c6a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6e07fd5b18355546d72dd09eae343c6a">&#9670;&nbsp;</a></span>tinysha_digest_size()</h2>
 
@@ -167,14 +206,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab168fa663e74cc973af7e79d384df8b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab168fa663e74cc973af7e79d384df8b0">&#9670;&nbsp;</a></span>tinysha_init()</h2>
+<a id="a7c51bd7b18c7f05a9aa54782c0e451d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c51bd7b18c7f05a9aa54782c0e451d4">&#9670;&nbsp;</a></span>tinysha_init()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void tinysha_init </td>
+          <td class="memname">int tinysha_init </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a>&#160;</td>
           <td class="paramname"><em>sha_type</em>, </td>
@@ -197,10 +236,11 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">sha_type</td><td>Type of hash algorithm</td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">s</td><td>The hash state to initialize. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">s</td><td>The hash state to initialize.</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>A value different from zero (i.e., true) if on success. Zero (i.e., false) otherwise. </dd></dl>
 
 </div>
 </div>
@@ -252,13 +292,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="hashwrap_8h.html">hashwrap.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="hashwrap_8h.html">hashwrap.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

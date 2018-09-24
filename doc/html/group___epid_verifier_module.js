@@ -11,9 +11,7 @@ var group___epid_verifier_module =
     [ "VerifierCtx", "group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c", null ],
     [ "EpidAreSigsLinked", "group___epid_verifier_module.html#gae44bd8acbc1e7205aeedff0c7e2632a8", null ],
     [ "EpidBlacklistSig", "group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69", null ],
-    [ "EpidCheckPrivRlEntry", "group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea", null ],
     [ "EpidGetVerifierRlSize", "group___epid_verifier_module.html#ga2a75c7d5775e852a7b6e24178dd4054f", null ],
-    [ "EpidNrVerify", "group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700", null ],
     [ "EpidVerifierCreate", "group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70", null ],
     [ "EpidVerifierDelete", "group___epid_verifier_module.html#ga6707e691f4b3916f9c684d5bbd463d12", null ],
     [ "EpidVerifierSetBasename", "group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6", null ],
@@ -23,7 +21,6 @@ var group___epid_verifier_module =
     [ "EpidVerifierSetSigRl", "group___epid_verifier_module.html#ga4c7c9820409ee06f30bb8dc75fdd5dcf", null ],
     [ "EpidVerifierSetVerifierRl", "group___epid_verifier_module.html#ga0909703a0a4dfe080374d0d99077465a", null ],
     [ "EpidVerifierWritePrecomp", "group___epid_verifier_module.html#ga92df4d00ea4ee59d7bfd35b23da03392", null ],
-    [ "EpidVerify", "group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064", null ],
-    [ "EpidVerifyBasicSig", "group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e", null ],
+    [ "EpidVerify", "group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf", null ],
     [ "EpidWriteVerifierRl", "group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81", null ]
 ];

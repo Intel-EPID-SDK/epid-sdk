@@ -21,7 +21,11 @@ var group___error_codes =
       [ "kEpidDuplicateErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a3706f895a660260033b5b91890516c0f", null ],
       [ "kEpidInconsistentBasenameSetErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a94ae9c9b9337afd2fefd3b4f9c3160df", null ],
       [ "kEpidMathQuadraticNonResidueError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab2768a1a5c4374cb1ac6175c09c73129", null ],
-      [ "kEpidOutOfSequenceError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43", null ]
+      [ "kEpidOutOfSequenceError", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a700953ded1af35781948e8ada6dedf43", null ],
+      [ "kEpidJoinRequestInvalid", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a065bfa26fcf891c0fb32c806c9bff48b", null ],
+      [ "kEpidSchemaNotSupportedErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a19547bd12e734f8c2930ad7ad9eec325", null ],
+      [ "kEpidOperationNotSupportedErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360adba1b6941aee6bf14271d0be219cc80c", null ],
+      [ "kEpidKeyNotInGroupErr", "group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab562ca57d9bbb4167b40b9bfb26d59ea", null ]
     ] ],
     [ "EpidStatusToString", "group___error_codes.html#ga59e8680ce52509302fd58a987e45004d", null ]
 ];

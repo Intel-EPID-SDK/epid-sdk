@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ FqElemStr qnr = {{0x08, 0x66, 0xA7, 0x67, 0x36, 0x6E, 0x62, 0x71,
                   0xE6, 0x4F, 0x25, 0xE5, 0x26, 0x9A, 0x2B, 0x6E,
                   0x7E, 0xF8, 0xA6, 0x39, 0xAE, 0x46, 0xAA, 0x24}};
 
-const BigNumStr coeffs[3] = {
+const BigNumStr coefficients[3] = {
     {{{0x02, 0x16, 0x7A, 0x61, 0x53, 0xDD, 0xF6, 0xE2, 0x89, 0x15, 0xA0,
        0x94, 0xF1, 0xB5, 0xDC, 0x65, 0x21, 0x15, 0x62, 0xE1, 0x7D, 0xC5,
        0x43, 0x89, 0xEE, 0xB4, 0xEF, 0xC8, 0xA0, 0x8E, 0x34, 0x0F}}},
@@ -119,54 +119,42 @@ TEST(FiniteField, NewSucceedsGivenNewlyCreatedBigNumStr) {
   DeleteFiniteField(&finitefield);
 }
 
-// the following test reproduces a bug in IPP.
-TEST(FiniteField, DISABLED_NewSucceedsGivenAllFFBigNumStr) {
-  const BigNumStr test_prime = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  FiniteField* finitefield = nullptr;
-  EpidStatus sts = NewFiniteField(&test_prime, &finitefield);
-  EXPECT_EQ(kEpidNoErr, sts);
-  DeleteFiniteField(&finitefield);
-}
-
 TEST(FiniteField, BinomialExtensionFailsGivenNullPointer) {
-  FiniteField* binom_ext_finite_field_ptr = nullptr;
+  FiniteField* binomial_ext_finite_field_ptr = nullptr;
   FiniteFieldObj ground_field(q);
   FfElementObj ground_element(&ground_field, beta);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(nullptr, ground_element, 2,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
+            NewFiniteFieldViaBinomialExtension(nullptr, ground_element, 2,
+                                               &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(ground_field, nullptr, 2,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
-  EXPECT_EQ(kEpidBadArgErr, NewFiniteFieldViaBinomalExtension(
+            NewFiniteFieldViaBinomialExtension(ground_field, nullptr, 2,
+                                               &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
+  EXPECT_EQ(kEpidBadArgErr, NewFiniteFieldViaBinomialExtension(
                                 ground_field, ground_element, 2, nullptr));
 }
 
 TEST(FiniteField, BinomialExtensionFailsGivenBadDegree) {
-  FiniteField* binom_ext_finite_field_ptr = nullptr;
+  FiniteField* binomial_ext_finite_field_ptr = nullptr;
   FiniteFieldObj ground_field(q);
   FfElementObj ground_element(&ground_field, beta);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(ground_field, ground_element, 1,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
+            NewFiniteFieldViaBinomialExtension(ground_field, ground_element, 1,
+                                               &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(ground_field, ground_element, 0,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
+            NewFiniteFieldViaBinomialExtension(ground_field, ground_element, 0,
+                                               &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(ground_field, ground_element, -1,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
-  EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaBinomalExtension(ground_field, ground_element, -99,
-                                              &binom_ext_finite_field_ptr));
-  DeleteFiniteField(&binom_ext_finite_field_ptr);
+            NewFiniteFieldViaBinomialExtension(ground_field, ground_element, -1,
+                                               &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
+  EXPECT_EQ(kEpidBadArgErr, NewFiniteFieldViaBinomialExtension(
+                                ground_field, ground_element, -99,
+                                &binomial_ext_finite_field_ptr));
+  DeleteFiniteField(&binomial_ext_finite_field_ptr);
 }
 
 TEST(FiniteField, BinomialExtensionCanBuildEpid2GtField) {
@@ -188,25 +176,25 @@ TEST(FiniteField, BinomialExtensionCanBuildEpid2GtField) {
   THROW_ON_EPIDERR(FfNeg(fq6, FfElementObj(&fq6, v), neg_v));
   FiniteFieldObj fq12(fq6, neg_v, 2);
 
-  FiniteField* binom_ext_fq12_ptr = nullptr;
-  EXPECT_EQ(kEpidNoErr, NewFiniteFieldViaBinomalExtension(fq6, neg_v, 2,
-                                                          &binom_ext_fq12_ptr));
-  DeleteFiniteField(&binom_ext_fq12_ptr);
+  FiniteField* binomial_ext_fq12_ptr = nullptr;
+  EXPECT_EQ(kEpidNoErr, NewFiniteFieldViaBinomialExtension(
+                            fq6, neg_v, 2, &binomial_ext_fq12_ptr));
+  DeleteFiniteField(&binomial_ext_fq12_ptr);
 }
 
 TEST(FiniteField, PolynomialExtensionFailsGivenNullPointer) {
   FiniteField* ext_finite_field_ptr = nullptr;
   FiniteFieldObj ground_field(q);
-  EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaPolynomialExtension(
-                nullptr, coeffs, COUNT_OF(coeffs), &ext_finite_field_ptr));
+  EXPECT_EQ(kEpidBadArgErr, NewFiniteFieldViaPolynomialExtension(
+                                nullptr, coefficients, COUNT_OF(coefficients),
+                                &ext_finite_field_ptr));
   DeleteFiniteField(&ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
             NewFiniteFieldViaPolynomialExtension(ground_field, nullptr, 2,
                                                  &ext_finite_field_ptr));
   DeleteFiniteField(&ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr, NewFiniteFieldViaPolynomialExtension(
-                                ground_field, coeffs, 2, nullptr));
+                                ground_field, coefficients, 2, nullptr));
 }
 
 TEST(FiniteField, PolynomialExtensionFailsGivenBadDegree) {
@@ -214,16 +202,16 @@ TEST(FiniteField, PolynomialExtensionFailsGivenBadDegree) {
   FiniteFieldObj ground_field(q);
   FfElementObj ground_element(&ground_field, beta);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaPolynomialExtension(ground_field, coeffs, 0,
+            NewFiniteFieldViaPolynomialExtension(ground_field, coefficients, 0,
                                                  &ext_finite_field_ptr));
   DeleteFiniteField(&ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaPolynomialExtension(ground_field, coeffs, -1,
+            NewFiniteFieldViaPolynomialExtension(ground_field, coefficients, -1,
                                                  &ext_finite_field_ptr));
   DeleteFiniteField(&ext_finite_field_ptr);
   EXPECT_EQ(kEpidBadArgErr,
-            NewFiniteFieldViaPolynomialExtension(ground_field, coeffs, -99,
-                                                 &ext_finite_field_ptr));
+            NewFiniteFieldViaPolynomialExtension(ground_field, coefficients,
+                                                 -99, &ext_finite_field_ptr));
   DeleteFiniteField(&ext_finite_field_ptr);
 }
 
@@ -232,7 +220,7 @@ TEST(FiniteField, CanBuildEpid11GtField) {
   FiniteFieldObj fq(q);
 
   // construct Fqd finite field
-  FiniteFieldObj fqd(fq, coeffs, COUNT_OF(coeffs));
+  FiniteFieldObj fqd(fq, coefficients, COUNT_OF(coefficients));
 
   // Fqk ground element is {-qnr, 0, 0}
   FfElementObj neg_qnr(&fq);
@@ -244,8 +232,8 @@ TEST(FiniteField, CanBuildEpid11GtField) {
 
   // construct Fqk finite field
   FiniteField* gt_ptr = nullptr;
-  EXPECT_EQ(kEpidNoErr,
-            NewFiniteFieldViaBinomalExtension(fqd, ground_element, 2, &gt_ptr));
+  EXPECT_EQ(kEpidNoErr, NewFiniteFieldViaBinomialExtension(fqd, ground_element,
+                                                           2, &gt_ptr));
   DeleteFiniteField(&gt_ptr);
 }
 

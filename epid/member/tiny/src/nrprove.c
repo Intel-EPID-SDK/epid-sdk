@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -96,7 +96,9 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
     EFqSerialize(&R2_str, &tmp_efq);
     // 7. The member computes c = Fp.hash(p || g1 || B || K || B' || K' || T ||
     // R1 ||  R2 || m)
-    tinysha_init(ctx->hash_alg, &sha_state);
+    if (!tinysha_init(ctx->hash_alg, &sha_state)) {
+      return kEpidHashAlgorithmNotSupported;
+    }
     VliSerialize(&p, &(epid20_p.limbs));
     tinysha_update(&sha_state, (void const*)&p, sizeof(p));
     EFqSerialize(&tmp_str, &epid20_g1);

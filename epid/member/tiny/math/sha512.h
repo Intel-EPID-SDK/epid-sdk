@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,40 +21,30 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "epid/member/tiny/math/sha512_base.h"
 
-/// block size
-#define SHA512_BLOCK_SIZE (128)
 /// digest size
 #define SHA512_DIGEST_SIZE (64)
 /// number of words in SHA state
-#define SHA512_DIGEST_WORDS (8)
+#define SHA512_DIGEST_WORDS SHA512_BASE_DIGEST_WORDS
 
 /// The SHA state
-/// \cond
 typedef struct sha512_state {
-  uint64_t iv[SHA512_DIGEST_WORDS];
-  uint64_t bits_hashed_low;
-  uint64_t bits_hashed_high;
-  unsigned char leftover[SHA512_BLOCK_SIZE];
-  unsigned int leftover_offset;
+  sha512_base_state state;  ///< base Sha state
 } sha512_state;
-/// \endcond
 
 /// Initializes the hash state
 /*!
 
   \param[in,out] s
   The hash state to initialize.
+
+  \see tinysha512_base_init
  */
 void tinysha512_init(sha512_state* s);
 
 /// Hashes data into state using SHA-512
 /*!
-
-  \warning
-  The state buffer 'leftover' is left in memory after processing. If
-  your application intends to have sensitive data in this buffer,
-  remember to erase it after the data has been processed
 
   \param[in,out] s
   The hash state. Must be non-null or behavior is undefined.
@@ -64,6 +54,8 @@ void tinysha512_init(sha512_state* s);
 
   \param[in] data_length
   The size of data in bytes.
+
+  \see tinysha512_base_update
  */
 void tinysha512_update(sha512_state* s, void const* data, size_t data_length);
 
@@ -73,16 +65,13 @@ void tinysha512_update(sha512_state* s, void const* data, size_t data_length);
   \note Assumes SHA512_DIGEST_SIZE bytes are available to accept the
   digest.
 
-  \warning
-  The state buffer 'leftover' is left in memory after processing. If
-  your application intends to have sensitive data in this buffer,
-  remember to erase it after the data has been processed
-
   \param[out] digest
   The computed digest. Must be non-null or behavior is undefined.
 
   \param[in] s
   The hash state. Must be non-null or behavior is undefined.
+
+  \see tinysha512_base_final
  */
 void tinysha512_final(unsigned char* digest, sha512_state* s);
 

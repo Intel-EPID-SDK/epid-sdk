@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ EpidStatus Epid11Verify(Epid11VerifierCtx const* ctx,
       (rl_count * sizeof(sig->sigma[0])) + sig_header_len != sig_len) {
     return kEpidBadArgErr;
   }
-  // Check if signature has NrPoofs but SigRl is not set
+  // Check if signature has NrProofs but SigRl is not set
   if (0 < rl_count && !ctx->sig_rl) {
     return kEpidBadArgErr;
   }

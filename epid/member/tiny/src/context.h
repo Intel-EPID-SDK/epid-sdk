@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,38 +22,10 @@
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/src/allowed_basenames.h"
 #include "epid/member/tiny/src/native_types.h"
+#include "epid/member/tiny/src/stack.h"
 
 /// Size of SigRl with zero entries
 #define MIN_SIGRL_SIZE (sizeof(SigRl) - sizeof(SigRlEntry))
-
-#ifdef USE_SIGRL_BY_REFERENCE
-
-// SIZE_MAX is not guaranteed in C89/90
-#define SIZE_T_MAX ((size_t)(-1))
-
-/// Maximum number of possible entries in SigRl used by reference
-#define MAX_SIGRL_ENTRIES ((SIZE_T_MAX - MIN_SIGRL_SIZE) / sizeof(SigRlEntry))
-
-/// Maximum space needed to store SigRl data in context
-#define SIGRL_HEAP_SIZE (0)
-
-#else  // !defined(USE_SIGRL_BY_REFERENCE)
-
-#ifndef MAX_SIGRL_ENTRIES
-/// Maximum number of possible entries in SigRl copied by value
-#define MAX_SIGRL_ENTRIES (5)
-#endif
-
-/// Maximum space needed to store SigRl data in context
-#define SIGRL_HEAP_SIZE \
-  (MIN_SIGRL_SIZE + MAX_SIGRL_ENTRIES * sizeof(SigRlEntry))
-
-#endif  // !defined(USE_SIGRL_BY_REFERENCE)
-
-#ifndef MAX_ALLOWED_BASENAMES
-/// Maximum number of allowed base names
-#define MAX_ALLOWED_BASENAMES (5)
-#endif
 
 /// Member context definition
 typedef struct MemberCtx {
@@ -66,10 +38,15 @@ typedef struct MemberCtx {
   int f_is_set;                     ///< f initialized
   int is_provisioned;    ///< member fully provisioned with key material
   BitSupplier rnd_func;  ///< Pseudo random number generation function
+  Stack presigs;         ///< Container of pre-computed signature
   void* rnd_param;       ///< Pointer to user context for rnd_func
   AllowedBasenames* allowed_basenames;  ///< Allowed basenames
-  SigRl* sig_rl;          ///< Pointer to Signature based revocation list
-  unsigned char heap[1];  ///< Bulk storage space (flexible array)
+  SigRl* sig_rl;             ///< Pointer to Signature based revocation list
+  size_t max_sigrl_entries;  ///< Maximum number of possible entries in SigRl
+                             /// copied by value
+  size_t max_allowed_basenames;  ///< Maximum number of allowed base names
+  size_t max_precomp_sig;        ///< Maximum number of precomputed signatures
+  unsigned char heap[1];         ///< Bulk storage space (flexible array)
 } MemberCtx;
 
 #endif  // EPID_MEMBER_TINY_SRC_CONTEXT_H_

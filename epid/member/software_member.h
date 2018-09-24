@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@
 #include "epid/common/bitsupplier.h"
 #include "epid/common/types.h"
 
+#ifdef TPM_TSS
+#error "Software member should not be used in TPM build"
+#endif
+
 /*!
  \addtogroup EpidMemberModule member
  @{
@@ -43,6 +47,11 @@ typedef struct MemberParams {
   FpElemStr const* f;    ///< Secret part of the private key. If NULL a random
                          ///  value will be generated using rnd_func.
 } MemberParams;
+
+/// Software specific member join request
+typedef struct MemberJoinRequest {
+  SplitJoinRequest request;  ///< join request type that member uses
+} MemberJoinRequest;
 /*! @} */
 
 #endif  // EPID_MEMBER_SOFTWARE_MEMBER_H_

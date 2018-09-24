@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ EpidStatus NewPairingState(EcGroup const* ga, EcGroup const* gb,
     result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
                                    xi, Ffq2);
     BREAK_ON_EPID_ERROR(result);
-    // first coefficent is -xi
+    // first coefficient is -xi
     sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, Fq2);
     BREAK_ON_IPP_ERROR(sts, result);
 
@@ -2081,7 +2081,7 @@ static EpidStatus SquareForFq4(PairingState* ps, FfElement* e0, FfElement* e1,
     result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
                                    xi, ps->Fq2);
     BREAK_ON_EPID_ERROR(result);
-    // first coefficent is -xi
+    // first coefficient is -xi
     sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
 
@@ -2179,7 +2179,7 @@ static EpidStatus SquareCyclotomic(PairingState* ps, FfElement* e_out,
     result = SetFfElementOctString(&Fq6IrrPolynomial, sizeof(Fq6IrrPolynomial),
                                    xi, ps->Fq2);
     BREAK_ON_EPID_ERROR(result);
-    // first coefficent is -xi
+    // first coefficient is -xi
     sts = ippsGFpNeg(xi->ipp_ff_elem, xi->ipp_ff_elem, ps->Fq2->ipp_ff);
     BREAK_ON_IPP_ERROR(sts, result);
 

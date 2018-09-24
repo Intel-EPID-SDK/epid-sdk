@@ -18,35 +18,29 @@ Import('*')
 env.PartVersion("1.8.0")
 env.PartName("gtest")
 
-#files
-cpp_files=['gtest-all.cc']
+# files
+cpp_files = ['gtest-all.cc']
 
-#includes to install
+# includes to install
 install_headers = Glob('*.h')
 
 parts_file = ['gtest.parts']
 license_file = ['LICENSE']
 makefile = ['Makefile']
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(cpp_files,sub_dir='ext/gtest')
-    env.InstallTopLevel(install_headers,sub_dir='ext/gtest')
-    env.InstallTopLevel(parts_file,sub_dir='ext/gtest')
-    env.InstallTopLevel(license_file,sub_dir='ext/gtest')
-    env.InstallTopLevel(makefile,sub_dir='ext/gtest')
-else:
-    env.Append(CPPPATH=[AbsDir('..')])
 
+env.Append(CPPPATH=[AbsDir('..')])
 
-    #defines
-    env.Append(CPPDEFINES = ['GTEST_HAS_PTHREAD=0',
-                             '_VARIADIC_MAX=10',
-                             '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING'])
-    env.ExportCPPDEFINES(['GTEST_HAS_PTHREAD=0',
-                          '_VARIADIC_MAX=10',
-                          '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING'])
+# defines
+cppdefines = [
+    'GTEST_HAS_PTHREAD=0',
+    '_VARIADIC_MAX=10',  # VS 2012
+    '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING',  # VS 2017
+]
+env.Append(CPPDEFINES=cppdefines)
+env.ExportCPPDEFINES(cppdefines)
 
-    outputs = env.Library('${PART_NAME}', cpp_files)
-    sdk_outs = env.Sdk(outputs)
+outputs = env.Library('${PART_NAME}', cpp_files)
+sdk_outs = env.Sdk(outputs)
 
-    env.SdkInclude(install_headers, sub_dir='${PART_NAME}')
+env.SdkInclude(install_headers, sub_dir='${PART_NAME}')

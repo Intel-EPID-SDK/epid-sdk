@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/stdlib/endian.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
+
+/// Count of elements in array
+#define COUNT_OF(a) (sizeof(a) / sizeof((a)[0]))
 
 #if !defined(UNOPTIMIZED_SERIALIZATION)
 void SwapNativeAndPortableLayout(void* dest, size_t dest_size, void const* src,
@@ -49,28 +52,19 @@ void SwapNativeAndPortableLayout(void* dest, size_t dest_size, void const* src,
 #endif  // !defined(UNOPTIMIZED_SERIALIZATION)
 
 void* Uint32Serialize(OctStr32* dest, uint32_t src) {
-  int i;
-  for (i = 0; i < 4; i++)
-    dest->data[i] =
-        (char)((src >> (24 - 8 * i)) &
-               0x000000FF);  // get the ith byte of num, in little-endian order
+  *(uint32_t*)dest = htobe32(src);
   return dest->data + 4;
 }
 
 void const* Uint32Deserialize(uint32_t* dest, OctStr32 const* src) {
-  int i;
-  *dest = 0;
-  for (i = 0; i < 4; i++) {
-    *dest <<= 8;
-    *dest |= (uint32_t)(*(&src->data[i]) & 0x000000FF);
-  }
+  *dest = htobe32(*(uint32_t*)src);
   return src->data + 4;
 }
 
 void* VliSerialize(BigNumStr* dest, VeryLargeInt const* src) {
 #if defined(UNOPTIMIZED_SERIALIZATION)
-  int i;
-  for (i = NUM_ECC_DIGITS - 1; i >= 0; i--) {
+  size_t i;
+  for (i = COUNT_OF(src->word) - 1; i >= 0; i--) {
     dest = Uint32Serialize((OctStr32*)dest, src->word[i]);
   }
   return dest;
@@ -82,8 +76,8 @@ void* VliSerialize(BigNumStr* dest, VeryLargeInt const* src) {
 
 void const* VliDeserialize(VeryLargeInt* dest, BigNumStr const* src) {
 #if defined(UNOPTIMIZED_SERIALIZATION)
-  int i;
-  for (i = NUM_ECC_DIGITS - 1; i >= 0; i--) {
+  size_t i;
+  for (i = COUNT_OF(dest->word) - 1; i >= 0; i--) {
     src = Uint32Deserialize(dest->word + i, (OctStr32 const*)src);
   }
   return src;
@@ -91,6 +85,21 @@ void const* VliDeserialize(VeryLargeInt* dest, BigNumStr const* src) {
   SwapNativeAndPortableLayout(dest, sizeof(*dest), src, sizeof(*src));
   return src + 1;
 #endif  // defined(UNOPTIMIZED_SERIALIZATION)
+}
+
+void const* VliProductDeserialize(VeryLargeIntProduct* dest,
+                                  OctStr512 const* src) {
+  size_t i;
+  uint32_t* src_words = (uint32_t*)src;
+  for (i = 0; i < COUNT_OF(dest->word) / 2; i++) {
+    // doing counterpart as unsigned int is safe since right side is always
+    // larger than zero
+    size_t counterpart = COUNT_OF(dest->word) - i - 1;
+    uint32_t tmp = htobe32(src_words[i]);
+    dest->word[i] = htobe32(src_words[counterpart]);
+    dest->word[counterpart] = tmp;
+  }
+  return src + 1;
 }
 
 void* FqSerialize(FqElemStr* dest, FqElem const* src) {

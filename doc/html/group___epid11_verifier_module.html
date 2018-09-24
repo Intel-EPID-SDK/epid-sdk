@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -64,7 +64,7 @@ $(document).ready(function(){initNavTree('group___epid11_verifier_module.html','
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">Intel(R) EPID 1.1 support<div class="ingroups"><a class="el" href="group___epid_module.html">epid&amp;nbsp;</a> &raquo; <a class="el" href="group___epid_verifier_module.html">verifier</a></div></div>  </div>
+<div class="title">Intel(R) EPID 1.1 support<div class="ingroups"><a class="el" href="group___epid_module.html">epid</a> &raquo; <a class="el" href="group___epid_verifier_module.html">verifier</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -128,7 +128,7 @@ Functions</h2></td></tr>
 <p>To verify signatures coming from member devices that belong to an Intel&reg; EPID 1.1 group, you need to use Intel&reg; EPID 1.1 verifier APIs.</p>
 <p>If you are acting as a verifier for both Intel&reg; EPID 1.1 and 2.0 members, you can determine if you need version 1.1 or 2.0 verification by checking the Intel&reg; EPID version field in the group public key file (see <a class="el" href="group___file_parser.html#ga8e38d1102eb1dd9b5af2e2f79236da55" title="Extracts Intel(R) EPID Binary Output File header information. ">EpidParseFileHeader</a>). You can also check the version in other binary issuer material, such as the GroupRL and SigRL.</p>
 <p>The 1.1 verifier APIs take a verifier context as input. Each verifier context (<a class="el" href="group___epid11_verifier_module.html#gabe6a864a06322205ae7536ffea34c702" title="Internal context of Intel(R) EPID 1.1 verifier. ">Epid11VerifierCtx</a>) represents a verifier for a single group.</p>
-<p>The Intel&reg; EPID 1.1 specification does not provide hash algorithm selection and verifier blacklist revocation. Therefore, APIs such as <a class="el" href="group___epid_verifier_module.html#ga97b58b2382f24756b66a357f1e825c92" title="Sets the hash algorithm to be used by a verifier. ">EpidVerifierSetHashAlg</a> and <a class="el" href="group___epid_verifier_module.html#ga0909703a0a4dfe080374d0d99077465a" title="Sets the verifier revocation list. ">EpidVerifierSetVerifierRl</a> are not available.</p>
+<p>The Intel&reg; EPID 1.1 specification does not provide verifier blacklist revocation. Therefore, APIs such as <a class="el" href="group___epid_verifier_module.html#ga0909703a0a4dfe080374d0d99077465a" title="Sets the verifier revocation list. ">EpidVerifierSetVerifierRl</a> are not available.</p>
 <p>You can find the Intel&reg; EPID 1.1 API headers in the 1.1 directories, for example, <code>epid/verifier/1.1/api.h</code>.</p>
 <p>Intel&reg; EPID 1.1 APIs and data structures are indicated with the "Epid11" prefix. For example, the Intel&reg; EPID 1.1 version of <a class="el" href="group___file_parser.html#ga43fdbc1bf2edd3695d21cb457365afbb" title="Extracts group public key from buffer in issuer binary format. ">EpidParseGroupPubKeyFile</a> is called <a class="el" href="group___epid11_file_parser_module.html#ga1f92d1cb6bd7d9815711fde515b40a4c" title="Extracts group public key from buffer in issuer binary format. ">Epid11ParseGroupPubKeyFile</a>, and the Intel&reg; EPID 1.1 version of <code><a class="el" href="struct_group_rl.html" title="group revocation list ">GroupRl</a></code> is <code><a class="el" href="struct_epid11_group_rl.html" title="Intel(R) EPID 1.1 group revocation list. ">Epid11GroupRl</a></code>. </p>
 <h2 class="groupheader">Function Documentation</h2>
@@ -795,12 +795,13 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

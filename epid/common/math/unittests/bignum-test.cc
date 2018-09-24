@@ -523,11 +523,10 @@ TEST_F(BigNumTest, Pow2NGivesPow2n) {
   BigNumObj two(this->str_2);
   BigNumObj expect;
   EXPECT_EQ(kEpidNoErr, BigNumMul(two, two, expect));
-  for (n = 2; n < 4; n++) {
+  for (n = 2; n < 4; n += 2) {
     EXPECT_EQ(kEpidNoErr, BigNumPow2N(n, r));
     EXPECT_TRUE(CompareBigNum(expect, r));
     EXPECT_EQ(kEpidNoErr, BigNumMul(expect, two, expect));
-    n++;
   }
 }
 

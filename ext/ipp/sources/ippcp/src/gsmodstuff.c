@@ -145,9 +145,9 @@ void gsPackModEngineCtx(const gsModEngine* pCtx, Ipp8u* pBuffer)
                 +sizeof(BNU_CHUNK_T)*(modSize*3);
 
    CopyBlock(pCtx, pAlignedBuffer, ctxSize);
-   MOD_MODULUS(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)NULL + IPP_UINT_PTR(MOD_MODULUS(pCtx))-IPP_UINT_PTR(pCtx));
-   MOD_MNT_R(pAlignedBuffer)   = (BNU_CHUNK_T*)((Ipp8u*)NULL + IPP_UINT_PTR(MOD_MNT_R(pCtx))-IPP_UINT_PTR(pCtx));
-   MOD_MNT_R2(pAlignedBuffer)  = (BNU_CHUNK_T*)((Ipp8u*)NULL + IPP_UINT_PTR(MOD_MNT_R2(pCtx))-IPP_UINT_PTR(pCtx));
+   MOD_MODULUS(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)IPP_UINT_PTR(MOD_MODULUS(pCtx))-IPP_UINT_PTR(pCtx));
+   MOD_MNT_R(pAlignedBuffer)   = (BNU_CHUNK_T*)((Ipp8u*)IPP_UINT_PTR(MOD_MNT_R(pCtx))-IPP_UINT_PTR(pCtx));
+   MOD_MNT_R2(pAlignedBuffer)  = (BNU_CHUNK_T*)((Ipp8u*)IPP_UINT_PTR(MOD_MNT_R2(pCtx))-IPP_UINT_PTR(pCtx));
 }
 
 void gsUnpackModEngineCtx(const Ipp8u* pBuffer, gsModEngine* pCtx)

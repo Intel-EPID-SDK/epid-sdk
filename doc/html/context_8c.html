@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm2/ibm_tss/context.c File Reference</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/split/tpm2/ibm_tss/context.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -70,15 +70,16 @@ $(document).ready(function(){initNavTree('context_8c.html','');});
 
 <p>TPM context implementation.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="context_8h.html">epid/member/tpm2/context.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="context_8h.html">epid/member/split/tpm2/context.h</a>&quot;</code><br />
 <code>#include &lt;tss2/TPM_Types.h&gt;</code><br />
 <code>#include &lt;tss2/tss.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="finitefield_8h.html">epid/common/math/finitefield.h</a>&quot;</code><br />
 <code>#include &quot;epid/common/src/epid2params.h&quot;</code><br />
 <code>#include &quot;epid/common/src/memory.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="getrandom_8h.html">epid/member/tpm2/getrandom.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="printtss_8h.html">epid/member/tpm2/ibm_tss/printtss.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="state_8h.html">epid/member/tpm2/ibm_tss/state.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="flushcontext_8h.html">epid/member/split/tpm2/flushcontext.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="getrandom_8h.html">epid/member/split/tpm2/getrandom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="printtss_8h.html">epid/member/split/tpm2/ibm_tss/printtss.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="state_8h.html">epid/member/split/tpm2/ibm_tss/state.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tpm__member_8h.html">epid/member/tpm_member.h</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
@@ -89,21 +90,12 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a7f547c0068dc63f0a6b76ad15b1b9675"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="context_8c.html#a7f547c0068dc63f0a6b76ad15b1b9675">Tpm2FlushKey</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx)</td></tr>
-<tr class="memdesc:a7f547c0068dc63f0a6b76ad15b1b9675"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes key from TPM.  <a href="#a7f547c0068dc63f0a6b76ad15b1b9675">More...</a><br /></td></tr>
-<tr class="separator:a7f547c0068dc63f0a6b76ad15b1b9675"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga11a523e65eee3c7ad1ab21239329ce3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga11a523e65eee3c7ad1ab21239329ce3e">Tpm2CreateContext</a> (<a class="el" href="struct_member_params.html">MemberParams</a> const *params, Epid2Params_ const *epid2_params, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> *rnd_func, void **rnd_param, const <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> **f, <a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> **ctx)</td></tr>
-<tr class="memdesc:ga11a523e65eee3c7ad1ab21239329ce3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new Tpm context.  <a href="group___tpm2_module.html#ga11a523e65eee3c7ad1ab21239329ce3e">More...</a><br /></td></tr>
-<tr class="separator:ga11a523e65eee3c7ad1ab21239329ce3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga94dd9623e1341638c6025219093b91a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga94dd9623e1341638c6025219093b91a7">Tpm2CreateContext</a> (<a class="el" href="struct_member_params.html">MemberParams</a> const *params, Epid2Params_ const *epid2_params, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> *rnd_func, void **rnd_param, <a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> **ctx)</td></tr>
+<tr class="memdesc:ga94dd9623e1341638c6025219093b91a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new Tpm context.  <a href="group___tpm2_module.html#ga94dd9623e1341638c6025219093b91a7">More...</a><br /></td></tr>
+<tr class="separator:ga94dd9623e1341638c6025219093b91a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga38f47cba4c26320db06aa50a77590ef4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga38f47cba4c26320db06aa50a77590ef4">Tpm2DeleteContext</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> **ctx)</td></tr>
 <tr class="memdesc:ga38f47cba4c26320db06aa50a77590ef4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes an existing Tpm context.  <a href="group___tpm2_module.html#ga38f47cba4c26320db06aa50a77590ef4">More...</a><br /></td></tr>
 <tr class="separator:ga38f47cba4c26320db06aa50a77590ef4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga11cc131debbca60c0de7e53d48330b69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga11cc131debbca60c0de7e53d48330b69">Tpm2SetHashAlg</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg)</td></tr>
-<tr class="memdesc:ga11cc131debbca60c0de7e53d48330b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the hash algorithm to be used by a TPM2.  <a href="group___tpm2_module.html#ga11cc131debbca60c0de7e53d48330b69">More...</a><br /></td></tr>
-<tr class="separator:ga11cc131debbca60c0de7e53d48330b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8ee4fed3e1a4dd0c910102430fca8c81"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga8ee4fed3e1a4dd0c910102430fca8c81">Tpm2ResetContext</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> **ctx)</td></tr>
-<tr class="memdesc:ga8ee4fed3e1a4dd0c910102430fca8c81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset an existing Tpm context.  <a href="group___tpm2_module.html#ga8ee4fed3e1a4dd0c910102430fca8c81">More...</a><br /></td></tr>
-<tr class="separator:ga8ee4fed3e1a4dd0c910102430fca8c81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -136,45 +128,18 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a7f547c0068dc63f0a6b76ad15b1b9675"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f547c0068dc63f0a6b76ad15b1b9675">&#9670;&nbsp;</a></span>Tpm2FlushKey()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Tpm2FlushKey </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Deletes key from TPM. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">ctx</td><td>TPM context.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a> </dd></dl>
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_0d59f1b8006345e373e07b4691e0da76.html">tpm2</a></li><li class="navelem"><a class="el" href="dir_b7525369f2fbc378c6814b573b9a2bc3.html">ibm_tss</a></li><li class="navelem"><a class="el" href="context_8c.html">context.c</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_a16c19eb5cab01f5b64e19de6ee56195.html">split</a></li><li class="navelem"><a class="el" href="dir_2680c2152b7ba3f69d3c47ecffa4629c.html">tpm2</a></li><li class="navelem"><a class="el" href="dir_89ddffefce5102d437718458993602a8.html">ibm_tss</a></li><li class="navelem"><a class="el" href="context_8c.html">context.c</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

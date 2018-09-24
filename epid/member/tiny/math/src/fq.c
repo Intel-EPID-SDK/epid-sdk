@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,19 +22,29 @@
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/math/vli.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
 
 /// A security parameter. In this version of Intel(R) EPID SDK, slen = 128
 #define EPID_SLEN 128
-/// buffer size of random integer t in INT32
-#define RAND_NUM_WORDS \
-  ((sizeof(FpElem) + EPID_SLEN / CHAR_BIT) / sizeof(uint32_t))
+/// number of bits required for random generation in Fq
+#define RAND_NUM_BITS (sizeof(FqElem) * CHAR_BIT + EPID_SLEN)
 
 static VeryLargeInt const epid20_q = {{0xAED33013, 0xD3292DDB, 0x12980A82,
                                        0x0CDC65FB, 0xEE71A49F, 0x46E5F25E,
                                        0xFFFCF0CD, 0xFFFFFFFF}};
+// precomputed (epid20_q+1)/4)
+static VeryLargeInt const precomp_exp = {{0xEBB4CC05, 0xB4CA4B76, 0xC4A602A0,
+                                          0xC337197E, 0xBB9C6927, 0x51B97C97,
+                                          0xFFFF3C33, 0x3FFFFFFF}};
 
-int FqInField(FqElem const* in) { return (VliCmp(&in->limbs, &epid20_q) < 0); }
+void FqFromHash(FqElem* result, unsigned char const* hash, size_t len) {
+  VeryLargeIntProduct vli = {0};
+  size_t i = sizeof(vli);  // temporary use as sizeof variable
+  len = (len > i) ? i : len;
+  for (i = 0; i < len; i++) {
+    ((uint8_t*)vli.word)[len - i - 1] = hash[i];
+  }
+  VliModBarrett(&result->limbs, &vli, &epid20_q);
+}
 
 void FqAdd(FqElem* result, FqElem const* left, FqElem const* right) {
   VliModAdd(&result->limbs, &left->limbs, &right->limbs, &epid20_q);
@@ -52,12 +62,6 @@ void FqExp(FqElem* result, FqElem const* base, VeryLargeInt const* exp) {
   VliModExp(&result->limbs, &base->limbs, exp, &epid20_q);
 }
 
-void FqCp(FqElem* result, FqElem const* in) {
-  VliSet(&result->limbs, &in->limbs);
-}
-
-int FqIsZero(FqElem const* value) { return VliIsZero(&value->limbs); }
-
 void FqInv(FqElem* result, FqElem const* in) {
   VliModInv(&result->limbs, &in->limbs, &epid20_q);
 }
@@ -71,15 +75,42 @@ void FqSquare(FqElem* result, FqElem const* in) {
   VliModSquare(&result->limbs, &in->limbs, &epid20_q);
 }
 
-void FqClear(FqElem* result) { VliClear(&result->limbs); }
-
-void FqSet(FqElem* result, uint32_t in) {
-  FqClear(result);
-  *(uint32_t*)(result->limbs.word) = in;
+int FqSqrt(FqElem* result, FqElem const* in) {
+  VeryLargeInt tmp;
+  // Intel(R) EPID 2.0 parameter q meets q = 3 mod 4.
+  // Square root can be computed as in^((q+1)/4) mod q.
+  FqExp(result, in, &precomp_exp);  // result = in^((q+1)/4) mod q
+  // validate sqrt exists
+  VliModSquare(&tmp, &result->limbs, &epid20_q);
+  return 0 == VliCmp(&tmp, &in->limbs);
 }
+
+int FqRand(FqElem* result, BitSupplier rnd_func, void* rnd_param) {
+  VeryLargeIntProduct res = {{0}};
+  uint8_t* num = (uint8_t*)&res + sizeof(res) - RAND_NUM_BITS / 8;
+  if (rnd_func((unsigned int*)num, RAND_NUM_BITS, rnd_param)) {
+    return 0;
+  }
+  VliProductDeserialize(&res, (OctStr512*)&res);
+  VliModBarrettSecure(&result->limbs, &res, &epid20_q);
+  return 1;
+}
+
+int FqInField(FqElem const* in) { return (VliCmp(&in->limbs, &epid20_q) < 0); }
+
+int FqIsZero(FqElem const* value) { return VliIsZero(&value->limbs); }
 
 int FqEq(FqElem const* left, FqElem const* right) {
   return (VliCmp(&left->limbs, &right->limbs) == 0);
+}
+
+void FqCp(FqElem* result, FqElem const* in) {
+  VliSet(&result->limbs, &in->limbs);
+}
+
+void FqSet(FqElem* result, uint32_t in) {
+  FqClear(result);
+  result->limbs.word[0] = in;
 }
 
 void FqCondSet(FqElem* result, FqElem const* true_val, FqElem const* false_val,
@@ -87,40 +118,4 @@ void FqCondSet(FqElem* result, FqElem const* true_val, FqElem const* false_val,
   VliCondSet(&result->limbs, &true_val->limbs, &false_val->limbs, truth_val);
 }
 
-int FqSqrt(FqElem* result, FqElem const* in) {
-  VeryLargeInt tmp;
-  // Intel(R) EPID 2.0 parameter q meets q = 3 mod 4.
-  // Square root can be computed as in^((q+1)/4) mod q.
-  VliRShift(&tmp, &epid20_q, 2);  // tmp = (q-3)/4
-  (tmp.word[0])++;                // tmp = (q+1)/4
-  FqExp(result, in, &tmp);        // result = in^((q+1)/4) mod q
-  // validate sqrt exists
-  VliModSquare(&tmp, &result->limbs, &epid20_q);
-  return 0 == VliCmp(&tmp, &in->limbs);
-}
-
-int FqRand(FqElem* result, BitSupplier rnd_func, void* rnd_param) {
-  VeryLargeIntProduct deserialized_t = {{0}};
-  uint32_t t[RAND_NUM_WORDS] = {0};
-  OctStr32 const* src = (OctStr32 const*)t;
-  int i;
-
-  if (rnd_func(t, sizeof(FpElem) * CHAR_BIT + EPID_SLEN, rnd_param)) {
-    return 0;
-  }
-  for (i = RAND_NUM_WORDS - 1; i >= 0; i--) {
-    src = Uint32Deserialize(deserialized_t.word + i, src);
-  }
-  VliModBarrett(&result->limbs, &deserialized_t, &epid20_q);
-  return 1;
-}
-
-void FqFromHash(FqElem* result, unsigned char const* hash, size_t len) {
-  size_t i;
-  VeryLargeIntProduct vli;
-  memset(&vli, 0, sizeof(vli));
-  for (i = 0; i < len; i++) {
-    ((uint8_t*)vli.word)[len - i - 1] = hash[i];
-  }
-  VliModBarrett(&result->limbs, &vli, &epid20_q);
-}
+void FqClear(FqElem* result) { VliClear(&result->limbs); }

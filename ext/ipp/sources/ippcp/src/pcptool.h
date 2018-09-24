@@ -23,7 +23,7 @@
 // 
 */
 
-#if !defined(_PC_TOOL_H)
+#if !defined(_CP_TOOL_H)
 #define _CP_TOOL_H
 
 #define _NEW_COPY16_

@@ -32,11 +32,12 @@ var NAVTREE =
     [ "What's New", "_change_log.html", null ],
     [ "Introduction to the Intel® EPID Scheme", "_epid_overview.html", [
       [ "Roles", "_epid_overview.html#EpidOverview_Roles", [
-        [ "Issuers", "_epid_overview.html#EpidOverview_Issuers", null ],
+        [ "Issuers", "_epid_overview.html#EpidOverview_Issuers", null ]
+      ] ],
+      [ "Member and Verifier Interaction", "_epid_overview.html#EpidOverview_Entity_interaction", [
         [ "Members", "_epid_overview.html#EpidOverview_Members", null ],
         [ "Verifiers", "_epid_overview.html#EpidOverview_Verifiers", null ]
       ] ],
-      [ "Member and Verifier Interaction", "_epid_overview.html#EpidOverview_Entity_interaction", null ],
       [ "Groups", "_epid_overview.html#EpidOverview_Groups", null ],
       [ "Keys", "_epid_overview.html#EpidOverview_Keys", [
         [ "Group Public Key", "_epid_overview.html#EpidOverview_Group_public_key", null ],
@@ -52,7 +53,7 @@ var NAVTREE =
         [ "Other Components", "_sdk_overview.html#SdkOverview_BuildingAndValidation", null ]
       ] ],
       [ "Intel® EPID 1.1 Compatibility", "_sdk_overview.html#SdkOverview_Compatibility", null ],
-      [ "Member Implementations", "_sdk_overview.html#SdkOverview_TPM", null ],
+      [ "Member Implementations", "_sdk_overview.html#SdkOverview_Members", null ],
       [ "Folder Layout", "_sdk_overview.html#SdkOverview_Files", [
         [ "Source Layout", "_sdk_overview.html#SdkOverview_Files_SourceLayout", null ],
         [ "Install Layout", "_sdk_overview.html#SdkOverview_Files_InstallLayout", null ]
@@ -62,12 +63,9 @@ var NAVTREE =
       [ "Prerequisites", "_building_sdk.html#BuildingSdk_Prerequisites", null ],
       [ "Building SDK with SCons", "_building_sdk.html#BuildingSdk_Building_SCons", null ],
       [ "Alternate Makefile Based Build Approach", "_building_sdk.html#BuildingSdk_Building_Makefile", null ],
+      [ "Building in Split Signature Mode", "_building_sdk.html#BuildingSdk_Split", null ],
       [ "Improving Performance with Commercial IPP", "_building_sdk.html#BuildingSdk_CommercialIpp", null ],
-      [ "Optimizing for Code Size", "_building_sdk.html#BuildingSdk_Tiny", [
-        [ "Limitations", "_building_sdk.html#implementation_TinyLimitations", null ]
-      ] ],
-      [ "Example Programs", "_building_sdk.html#BuildingSdk_Examples", null ],
-      [ "Building with Other Build Systems", "_building_sdk.html#BuildingSdk_PortingBuildSystem", null ]
+      [ "Example Programs", "_building_sdk.html#BuildingSdk_Examples", null ]
     ] ],
     [ "Signing and Verification Tutorial", "_sign_verify_tutorial.html", [
       [ "Creating an Intel® EPID Signature of a Given Message", "_sign_verify_tutorial.html#tutorial_signmmsgOverview", [
@@ -80,7 +78,6 @@ var NAVTREE =
       ] ],
       [ "Parameter Matching Requirements", "_sign_verify_tutorial.html#SignVerifyTutorial_requirements", [
         [ "Message", "_sign_verify_tutorial.html#SignVerifyTutorial_message", null ],
-        [ "Hash Algorithm", "_sign_verify_tutorial.html#SignVerifyTutorial_hashalg", null ],
         [ "Signature Revocation List", "_sign_verify_tutorial.html#SignVerifyTutorial_SigRL", null ],
         [ "Basenames", "_sign_verify_tutorial.html#SignVerifyTutorial_basenames", null ]
       ] ],
@@ -100,9 +97,7 @@ var NAVTREE =
     ] ],
     [ "Test Data", "_issuer_material.html", [
       [ "Sample Groups", "_issuer_material.html#IssuerMaterial_Groups", null ],
-      [ "Group Revocation Lists", "_issuer_material.html#IssuerMaterial_GroupRls", null ],
-      [ "Compressed Sample Groups", "_issuer_material.html#CompressedSamples", null ],
-      [ "Compressed Group Revocation Lists", "_issuer_material.html#IssuerMaterial_CmpGroupRls", null ]
+      [ "Group Revocation Lists", "_issuer_material.html#IssuerMaterial_GroupRls", null ]
     ] ],
     [ "Managing Groups with iKGF", "_usingi_k_g_f.html", [
       [ "Contacting iKGF", "_usingi_k_g_f.html#ContactingiKGF", null ],
@@ -149,14 +144,17 @@ var NAVTREE =
       [ "Compatibility", "_tpm_considerations.html#TPM_compatibility", null ],
       [ "Considerations for TPM Manufacturers", "_tpm_considerations.html#TpmConsiderations_Manufacturers", [
         [ "Provisioning TPM with Intel® EPID Key Material", "_tpm_considerations.html#TPM_provisioning", null ],
-        [ "Mapping TPM Commands to Intel® EPID", "_tpm_considerations.html#TpmConsiderations_Mapping", null ]
+        [ "Mapping TPM Commands to Intel® EPID APIs", "_tpm_considerations.html#TpmConsiderations_Mapping", null ]
       ] ],
       [ "Considerations for TPM Applications", "_tpm_considerations.html#TpmConsiderations_Applications", null ],
       [ "SDK Member Architecture", "_tpm_considerations.html#TpmConsiderations_Architecture", null ],
       [ "Building the SDK to Take Advantage of TPM", "_tpm_considerations.html#TpmConsiderations_Building", [
-        [ "Prerequisites to Build the SDK in TPM Mode", "_tpm_considerations.html#TpmConsiderations_Prereqs", null ],
+        [ "Installing Prerequisites", "_tpm_considerations.html#TpmConsiderations_Prereqs", null ],
         [ "Building the SDK in TPM Mode", "_tpm_considerations.html#TpmConsiderations_BuildingTpmMode", null ],
         [ "Intel® EPID Signing and Verification with a TPM", "_tpm_considerations.html#TpmConsiderations_Signing", null ]
+      ] ],
+      [ "Implementation Notes", "_tpm_considerations.html#TpmConsiderations_Notes", [
+        [ "NV Storage Specification", "_tpm_considerations.html#TpmConsiderations_NVStorage", null ]
       ] ]
     ] ],
     [ "Glossary", "_glossary.html", [
@@ -184,10 +182,22 @@ var NAVTREE =
       [ "Installing SCons", "_build_tools_installation.html#build_tools_windows_scons", null ],
       [ "Installing Parts", "_build_tools_installation.html#build_tools_windows_parts", null ]
     ] ],
-    [ "Tested Libraries and Compilers", "_how_validated.html", [
-      [ "Tested Libraries and Compilers", "_how_validated.html#validated_supported_compilers", null ]
-    ] ],
+    [ "Tested Libraries and Compilers", "_how_validated.html", null ],
     [ "Walkthroughs of Examples Showing API Usage", "_examples.html", "_examples" ],
+    [ "Command-line Reference", "_commandline_tools.html", [
+      [ "Joinreq", "_commandline_tools.html#Joinreq", [
+        [ "Syntax", "_commandline_tools.html#joinreq_syntax", null ],
+        [ "Positional Arguments", "_commandline_tools.html#joinreq_positional_arguments", null ],
+        [ "Optional Arguments", "_commandline_tools.html#joinreq_optional_arguments", null ],
+        [ "Remarks", "_commandline_tools.html#joinreq_remarks", null ]
+      ] ],
+      [ "Mprecmp", "_commandline_tools.html#Mprecmp", [
+        [ "Syntax", "_commandline_tools.html#mprecmp_syntax", null ],
+        [ "Positional Arguments", "_commandline_tools.html#mprecmp_positional_arguments", null ],
+        [ "Optional Arguments", "_commandline_tools.html#mprecmp_optional_arguments", null ],
+        [ "Remarks", "_commandline_tools.html#mprecmp_remarks", null ]
+      ] ]
+    ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "API Reference", "modules.html", "modules" ]
   ] ]
@@ -196,8 +206,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_basenames.html",
-"group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2",
-"struct_fp_elem_str.html"
+"group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83ae2d5345c14f57fc992a613003c3c443d",
+"struct_epid_ca_certificate.html#ac03cf7257c52ad14e3dd3201b930dd50"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

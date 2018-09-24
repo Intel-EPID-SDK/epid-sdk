@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm2/createprimary.h File Reference</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/split/tpm2/createprimary.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -69,18 +69,19 @@ $(document).ready(function(){initNavTree('createprimary_8h.html','');});
 <p>TPM2_CreatePrimary command interface.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="errors_8h.html">epid/common/errors.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="types_8h.html">epid/common/types.h</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a01df38cbb1c7c7986dadefcc1295bb9e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="createprimary_8h.html#a01df38cbb1c7c7986dadefcc1295bb9e">Tpm2CreatePrimary</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="struct_g1_elem_str.html">G1ElemStr</a> *p_str)</td></tr>
-<tr class="memdesc:a01df38cbb1c7c7986dadefcc1295bb9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates Primary key.  <a href="#a01df38cbb1c7c7986dadefcc1295bb9e">More...</a><br /></td></tr>
-<tr class="separator:a01df38cbb1c7c7986dadefcc1295bb9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89625774fd1518915fe46cc85b8121a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="createprimary_8h.html#a89625774fd1518915fe46cc85b8121a7">Tpm2CreatePrimary</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg, <a class="el" href="struct_tpm2_key.html">Tpm2Key</a> **key)</td></tr>
+<tr class="memdesc:a89625774fd1518915fe46cc85b8121a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates Primary key.  <a href="#a89625774fd1518915fe46cc85b8121a7">More...</a><br /></td></tr>
+<tr class="separator:a89625774fd1518915fe46cc85b8121a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TPM2_CreatePrimary command interface. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a01df38cbb1c7c7986dadefcc1295bb9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01df38cbb1c7c7986dadefcc1295bb9e">&#9670;&nbsp;</a></span>Tpm2CreatePrimary()</h2>
+<a id="a89625774fd1518915fe46cc85b8121a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89625774fd1518915fe46cc85b8121a7">&#9670;&nbsp;</a></span>Tpm2CreatePrimary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -94,8 +95,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="struct_g1_elem_str.html">G1ElemStr</a> *&#160;</td>
-          <td class="paramname"><em>p_str</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a>&#160;</td>
+          <td class="paramname"><em>hash_alg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_tpm2_key.html">Tpm2Key</a> **&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -106,14 +113,17 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Creates Primary key. </p>
+<p>When the key is no longer needed it can be freed using <a class="el" href="group___tpm2_module.html#ga2944a23197a0a40eb60747fb52d2fd04" title="Invokes TPM2_FlushContext command. ">Tpm2FlushContext</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">ctx</td><td>TPM context. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">p_str</td><td>Primary key: g1^f </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hash_alg</td><td>The hash algorithm to use. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">key</td><td>The generated TPM key.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___tpm2_module.html#ga2944a23197a0a40eb60747fb52d2fd04" title="Invokes TPM2_FlushContext command. ">Tpm2FlushContext</a> </dd></dl>
 
 </div>
 </div>
@@ -121,13 +131,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_0d59f1b8006345e373e07b4691e0da76.html">tpm2</a></li><li class="navelem"><a class="el" href="createprimary_8h.html">createprimary.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_a16c19eb5cab01f5b64e19de6ee56195.html">split</a></li><li class="navelem"><a class="el" href="dir_2680c2152b7ba3f69d3c47ecffa4629c.html">tpm2</a></li><li class="navelem"><a class="el" href="createprimary_8h.html">createprimary.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

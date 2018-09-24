@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -34,9 +34,8 @@
 #define PUBKEYFILE_DEFAULT "pubkey.bin"
 #define SIG_DEFAULT "sig.dat"
 #define CACERT_DEFAULT "cacert.bin"
-#define HASHALG_DEFAULT "SHA-512"
 #define ARGPARSE_ERROR_MAX 20
-#define ARGTABLE_SIZE 14
+#define ARGTABLE_SIZE 13
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -47,7 +46,7 @@ bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   return true;
 }
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
@@ -95,37 +94,30 @@ int main(int argc, char* argv[]) {
   MemberPrecomp member_precmp = {0};
   MemberPrecomp* member_precmp_ptr = NULL;
 
-  // Hash algorithm
-  static HashAlg hashalg = kInvalidHashAlg;
-
   // Argument variables
-  struct arg_file* sig_file =
-      arg_file0(NULL, "sig", "FILE",
-                "write signature to FILE (default: " SIG_DEFAULT ")");
-  struct arg_str* msg = arg_str0(NULL, "msg", "MESSAGE", "MESSAGE to sign");
+  struct arg_file* sig_file = arg_file0(
+      "s", "sig", "FILE", "write signature to FILE (default: " SIG_DEFAULT ")");
+  struct arg_str* msg = arg_str0("m", "msg", "MESSAGE", "MESSAGE to sign");
   struct arg_file* msg_file =
-      arg_file0(NULL, "msgfile", "FILE", "FILE containing message to sign");
+      arg_file0("M", "msgfile", "FILE", "FILE containing message to sign");
   struct arg_str* basename = arg_str0(
-      NULL, "bsn", "BASENAME", "BASENAME to sign with (default: random)");
+      "b", "bsn", "BASENAME", "BASENAME to sign with (default: random)");
   struct arg_file* basename_file = arg_file0(
-      NULL, "bsnfile", "FILE", "FILE containing basename to sign with");
+      "B", "bsnfile", "FILE", "FILE containing basename to sign with");
   struct arg_file* sigrl_file = arg_file0(
-      NULL, "sigrl", "FILE", "load signature based revocation list from FILE");
+      "S", "sigrl", "FILE", "load signature based revocation list from FILE");
   struct arg_file* pubkey_file = arg_file0(
-      NULL, "gpubkey", "FILE",
+      "g", "gpubkey", "FILE",
       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
   struct arg_file* mprivkey_file = arg_file0(
-      NULL, "mprivkey", "FILE",
+      "k", "mprivkey", "FILE",
       "load member private key from FILE (default: " MPRIVKEYFILE_DEFAULT ")");
   struct arg_file* mprecmpi_file = arg_file0(
-      NULL, "mprecmpi", "FILE", "load pre-computed member data from FILE");
+      "p", "mprecmpi", "FILE", "load pre-computed member data from FILE");
   struct arg_file* cacert_file = arg_file0(
-      NULL, "capubkey", "FILE",
+      "c", "capubkey", "FILE",
       "load IoT Issuing CA public key from FILE (default: " CACERT_DEFAULT ")");
-  struct arg_str* hashalg_str =
-      arg_str0(NULL, "hashalg", "{SHA-256 | SHA-384 | SHA-512 | SHA-512/256}",
-               "use specified hash algorithm (default: " HASHALG_DEFAULT ")");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -144,16 +136,18 @@ int main(int argc, char* argv[]) {
   argtable[7] = mprivkey_file;
   argtable[8] = mprecmpi_file;
   argtable[9] = cacert_file;
-  argtable[10] = hashalg_str;
-  argtable[11] = help;
-  argtable[12] = verbose;
-  argtable[13] = end;
+  argtable[10] = help;
+  argtable[11] = verbose;
+  argtable[12] = end;
 
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !sig_file || !msg || !msg_file ||
+        !basename || !basename_file || !sigrl_file || !pubkey_file ||
+        !mprivkey_file || !mprecmpi_file || !cacert_file || !help || !verbose ||
+        !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -165,7 +159,6 @@ int main(int argc, char* argv[]) {
     pubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
     mprivkey_file->filename[0] = MPRIVKEYFILE_DEFAULT;
     cacert_file->filename[0] = CACERT_DEFAULT;
-    hashalg_str->sval[0] = HASHALG_DEFAULT;
 
     /* Parse the command line as defined by argtable[] */
     nerrors = arg_parse(argc, argv, argtable);
@@ -231,12 +224,6 @@ int main(int argc, char* argv[]) {
       basename_size = 0;
     }
 
-    if (!StringToHashAlg(hashalg_str->sval[0], &hashalg)) {
-      log_error("invalid hashalg: %s", hashalg_str->sval[0]);
-      ret_value = EXIT_FAILURE;
-      break;
-    }
-
     if (verbose_flag) {
       log_msg("\nOption values:");
       log_msg(" sig_file      : %s", sig_file->filename[0]);
@@ -245,7 +232,6 @@ int main(int argc, char* argv[]) {
       log_msg(" pubkey_file   : %s", pubkey_file->filename[0]);
       log_msg(" mprivkey_file : %s", mprivkey_file->filename[0]);
       log_msg(" mprecmpi_file : %s", mprecmpi_file->filename[0]);
-      log_msg(" hashalg       : %s", HashAlgToString(hashalg));
       log_msg(" cacert_file   : %s", cacert_file->filename[0]);
       log_msg("");
     }
@@ -354,8 +340,6 @@ int main(int argc, char* argv[]) {
       log_msg(" [in]  Member Private Key: ");
       PrintBuffer(mprivkey, mprivkey_size);
       log_msg("");
-      log_msg(" [in]  Hash Algorithm: %s", HashAlgToString(hashalg));
-      log_msg("");
       log_msg(" [in]  IoT Intel(R) EPID Issuing CA Certificate: ");
       PrintBuffer(&cacert, sizeof(cacert));
       if (member_precmp_ptr) {
@@ -367,15 +351,19 @@ int main(int argc, char* argv[]) {
     }
 
     // Sign
-    result = SignMsg(msg_str, msg_size, basename_str, basename_size,
-                     signed_sig_rl, signed_sig_rl_size, signed_pubkey,
-                     signed_pubkey_size, mprivkey, mprivkey_size, hashalg,
-                     member_precmp_ptr, &sig, &sig_size, &cacert);
+    result =
+        SignMsg(msg_str, msg_size, basename_str, basename_size, signed_sig_rl,
+                signed_sig_rl_size, signed_pubkey, signed_pubkey_size, mprivkey,
+                mprivkey_size, member_precmp_ptr, &sig, &sig_size, &cacert);
 
     // Report Result
     if (kEpidNoErr != result) {
       if (kEpidSigRevokedInSigRl == result) {
         log_error("signature revoked in SigRL");
+      } else if (kEpidSchemaNotSupportedErr == result) {
+        log_error("gid schema not supported");
+        ret_value = EXIT_FAILURE;
+        break;
       } else {
         log_error("function SignMsg returned %s", EpidStatusToString(result));
         ret_value = EXIT_FAILURE;

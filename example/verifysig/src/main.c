@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -41,11 +41,10 @@
 #define VERIFIERRL_DEFAULT NULL
 #define SIG_DEFAULT "sig.dat"
 #define CACERT_DEFAULT "cacert.bin"
-#define HASHALG_DEFAULT "SHA-512"
 #define VPRECMPI_DEFAULT NULL
 #define VPRECMPO_DEFAULT NULL
 #define ARGPARSE_ERROR_MAX 20
-#define ARGTABLE_SIZE 17
+#define ARGTABLE_SIZE 16
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -56,7 +55,7 @@ bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   return true;
 }
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
@@ -110,45 +109,39 @@ int main(int argc, char* argv[]) {
 
   // CA certificate
   EpidCaCertificate cacert = {0};
-  // Hash algorithm
-  static HashAlg hashalg = kInvalidHashAlg;
 
   // Argument variables
   struct arg_file* sig_file =
-      arg_file0(NULL, "sig", "FILE",
+      arg_file0("s", "sig", "FILE",
                 "load signature from FILE (default: " SIG_DEFAULT ")");
-  struct arg_str* msg = arg_str0(NULL, "msg", "MESSAGE",
+  struct arg_str* msg = arg_str0("m", "msg", "MESSAGE",
                                  "MESSAGE that was signed (default: empty)");
   struct arg_file* msg_file = arg_file0(
-      NULL, "msgfile", "FILE", "FILE containing message that was signed");
+      "M", "msgfile", "FILE", "FILE containing message that was signed");
   struct arg_str* basename = arg_str0(
-      NULL, "bsn", "BASENAME", "BASENAME used in signature (default: random)");
+      "b", "bsn", "BASENAME", "BASENAME used in signature (default: random)");
   struct arg_file* basename_file = arg_file0(
-      NULL, "bsnfile", "FILE", "FILE containing basename used in signature");
+      "B", "bsnfile", "FILE", "FILE containing basename used in signature");
   struct arg_file* privrl_file = arg_file0(
-      NULL, "privrl", "FILE", "load private key revocation list from FILE");
+      "K", "privrl", "FILE", "load private key revocation list from FILE");
   struct arg_file* sigrl_file = arg_file0(
-      NULL, "sigrl", "FILE", "load signature based revocation list from FILE");
+      "S", "sigrl", "FILE", "load signature based revocation list from FILE");
   struct arg_file* grprl_file = arg_file0(
-      NULL, "grprl", "FILE",
+      "G", "grprl", "FILE",
       "load group revocation list from FILE (default: " GRPRL_DEFAULT ")");
   struct arg_file* verrl_file = arg_file0(
-      NULL, "verifierrl", "FILE", "load verifier revocation list from FILE");
+      "V", "verifierrl", "FILE", "load verifier revocation list from FILE");
   struct arg_file* pubkey_file = arg_file0(
-      NULL, "gpubkey", "FILE",
+      "g", "gpubkey", "FILE",
       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
   struct arg_file* vprecmpi_file = arg_file0(
-      NULL, "vprecmpi", "FILE", "load pre-computed verifier data from FILE");
+      "p", "vprecmpi", "FILE", "load pre-computed verifier data from FILE");
   struct arg_file* vprecmpo_file = arg_file0(
-      NULL, "vprecmpo", "FILE", "write pre-computed verifier data to FILE");
+      "P", "vprecmpo", "FILE", "write pre-computed verifier data to FILE");
   struct arg_file* cacert_file = arg_file0(
-      NULL, "capubkey", "FILE",
+      "c", "capubkey", "FILE",
       "load IoT Issuing CA public key from FILE (default: " CACERT_DEFAULT ")");
-  struct arg_str* hashalg_str = arg_str0(
-      NULL, "hashalg", "{SHA-256 | SHA-384 | SHA-512 | SHA-512/256}",
-      "use specified hash algorithm for 2.0 groups (default: " HASHALG_DEFAULT
-      ")");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -170,10 +163,9 @@ int main(int argc, char* argv[]) {
   argtable[10] = vprecmpi_file;
   argtable[11] = vprecmpo_file;
   argtable[12] = cacert_file;
-  argtable[13] = hashalg_str;
-  argtable[14] = help;
-  argtable[15] = verbose;
-  argtable[16] = end;
+  argtable[13] = help;
+  argtable[14] = verbose;
+  argtable[15] = end;
 
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
@@ -181,8 +173,11 @@ int main(int argc, char* argv[]) {
     EpidVersion epid_version = kNumEpidVersions;
     // Read command line args
 
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !sig_file || !msg || !msg_file ||
+        !basename || !basename_file || !privrl_file || !sigrl_file ||
+        !grprl_file || !verrl_file || !pubkey_file || !vprecmpi_file ||
+        !vprecmpo_file || !cacert_file || !help || !verbose || !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -194,7 +189,6 @@ int main(int argc, char* argv[]) {
     grprl_file->filename[0] = GRPRL_DEFAULT;
     pubkey_file->filename[0] = PUBKEYFILE_DEFAULT;
     cacert_file->filename[0] = CACERT_DEFAULT;
-    hashalg_str->sval[0] = HASHALG_DEFAULT;
 
     /* Parse the command line as defined by argtable[] */
     nerrors = arg_parse(argc, argv, argtable);
@@ -260,12 +254,6 @@ int main(int argc, char* argv[]) {
       basename_size = 0;
     }
 
-    if (!StringToHashAlg(hashalg_str->sval[0], &hashalg)) {
-      log_error("invalid hashalg: %s", hashalg_str->sval[0]);
-      ret_value = EXIT_FAILURE;
-      break;
-    }
-
     if (verbose_flag) {
       log_msg("\nOption values:");
       log_msg(" sig_file      : %s", sig_file->filename[0]);
@@ -277,7 +265,6 @@ int main(int argc, char* argv[]) {
       log_msg(" verrl_file    : %s", verrl_file->filename[0]);
       log_msg(" vprecmpi_file : %s", vprecmpi_file->filename[0]);
       log_msg(" vprecmpo_file : %s", vprecmpo_file->filename[0]);
-      log_msg(" hashalg       : %s", HashAlgToString(hashalg));
       log_msg(" cacert_file   : %s", cacert_file->filename[0]);
       log_msg("");
     }
@@ -360,17 +347,6 @@ int main(int argc, char* argv[]) {
       break;
     }
 
-    // Configure hashalg based on group
-    if (kEpid1x == epid_version) {
-      if (kSha256 != hashalg && hashalg_str->count > 0) {
-        log_error(
-            "unsupported hash algorithm: %s only supported for 2.0 groups",
-            HashAlgToString(hashalg));
-        ret_value = EXIT_FAILURE;
-        break;
-      }
-    }
-
     // Load Verifier pre-computed settings
 
     if (vprecmpi_file->count > 0) {
@@ -421,9 +397,7 @@ int main(int argc, char* argv[]) {
       PrintBuffer(ver_rl, ver_rl_size);
       log_msg("");
       log_msg(" [in]  Group Public Key: ");
-      PrintBuffer(signed_pubkey, sizeof(signed_pubkey_size));
-      log_msg("");
-      log_msg(" [in]  Hash Algorithm: %s", HashAlgToString(hashalg));
+      PrintBuffer(signed_pubkey, signed_pubkey_size);
       if (vprecmpi_file->count > 0) {
         log_msg("");
         log_msg(" [in]  Verifier PreComp: ");
@@ -450,7 +424,7 @@ int main(int argc, char* argv[]) {
                  signed_priv_rl, signed_priv_rl_size, signed_sig_rl,
                  signed_sig_rl_size, signed_grp_rl, signed_grp_rl_size, ver_rl,
                  ver_rl_size, signed_pubkey, signed_pubkey_size, &cacert,
-                 hashalg, &verifier_precmp, &vprecmpi_file_size);
+                 &verifier_precmp, &vprecmpi_file_size);
     } else if (kEpid1x == epid_version) {
       if (verifier_precmp &&
           vprecmpi_file_size != sizeof(Epid11VerifierPrecomp)) {
@@ -472,6 +446,10 @@ int main(int argc, char* argv[]) {
     // Report Result
     if (kEpidNoErr == result) {
       log_msg("signature verified successfully");
+    } else if (kEpidSchemaNotSupportedErr == result) {
+      log_error("gid schema not supported");
+      ret_value = EXIT_FAILURE;
+      break;
     } else if (kEpidErr == result) {
       log_error(
           "signature verification failed: "

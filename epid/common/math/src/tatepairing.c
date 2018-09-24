@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -197,7 +197,7 @@ EpidStatus NewEpid11PairingState(EcGroup const* ga, EcGroup const* gb,
     BREAK_ON_IPP_ERROR(sts, result);
     sts = ippsGFpECGetSubgroup(NULL, NULL, NULL, p->ipp_bn, NULL, ga->ipp_ec);
     BREAK_ON_IPP_ERROR(sts, result);
-    // compute p bit size requred for pairing
+    // compute p bit size required for pairing
     sts = ippsGetOctString_BN((OctStr)&pairing_state_ctx->p,
                               sizeof(pairing_state_ctx->p), p->ipp_bn);
     BREAK_ON_IPP_ERROR(sts, result);
@@ -548,7 +548,7 @@ EpidStatus Epid11Pairing(Epid11PairingState* ps, EcPoint const* a,
                               ps->Fq->ipp_ff);  // Z = Z2
       BREAK_ON_IPP_ERROR(sts, result);
 
-      /* udpate rx, ry */
+      /* update rx, ry */
       result = FfMul(ps->ff, rx, rx, tt1);  // tt1 = rx * rx
       BREAK_ON_EPID_ERROR(result);
       result = FfMul(ps->ff, tx, tt1, rx);  // rx = tx * rx * rx
@@ -632,7 +632,7 @@ EpidStatus Epid11Pairing(Epid11PairingState* ps, EcPoint const* a,
                                 ps->Fq->ipp_ff);  // Z = Z2
         BREAK_ON_IPP_ERROR(sts, result);
 
-        /* udpate rx, ry */
+        /* update rx, ry */
         result = FfMul(ps->ff, rx, tx, rx);  // rx = rx * tx
         BREAK_ON_EPID_ERROR(result);
         result = FfMul(ps->Fq, ry, ty, ry);  // ry = ry * ty

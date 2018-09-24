@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -39,6 +39,11 @@ typedef struct MemberParams {
   FpElemStr const* f;  ///< Secret part of the private key. If NULL an
                        ///  EPS based primary will be used.
 } MemberParams;
+
+/// TPM specific member join request
+typedef struct MemberJoinRequest {
+  SplitJoinRequest request;  ///< join request type that member uses
+} MemberJoinRequest;
 
 /*!
  * @}

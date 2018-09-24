@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 
 extern "C" {
+#include "epid/common/src/sig_types.h"
 #include "epid/member/api.h"
 }
 
@@ -28,7 +29,8 @@ extern "C" {
 namespace {
 
 TEST_F(EpidMemberTest, GetSigSizeReturnsSizeofBasicSigGivenNullPointer) {
-  size_t sig_size_without_sig_rl = sizeof(EpidSignature) - sizeof(NrProof);
+  size_t sig_size_without_sig_rl =
+      sizeof(EpidNonSplitSignature) - sizeof(NrProof);
   EXPECT_EQ(sig_size_without_sig_rl, EpidGetSigSize(nullptr));
 }
 
@@ -43,7 +45,7 @@ TEST_F(EpidMemberTest, GetSigSizeReturnsCorrectValueGivenValidSigRl) {
   OctStr32 octstr32_4294967295 = {0xff, 0xff, 0xff, 0xff};
 
   size_t one_entry_size = sizeof(NrProof);
-  size_t sig_size_0_entries = sizeof(EpidSignature) - one_entry_size;
+  size_t sig_size_0_entries = sizeof(EpidNonSplitSignature) - one_entry_size;
   size_t sig_size_1_entry = sig_size_0_entries + one_entry_size;
   size_t sig_size_2_entries = sig_size_0_entries + 2 * one_entry_size;
   size_t sig_size_16_entries = sig_size_0_entries + 16 * one_entry_size;
@@ -86,7 +88,7 @@ TEST_F(EpidMemberTest,
 
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(sigrl_bin.data());
   size_t sig_size_3_entries =
-      sizeof(EpidSignature) - sizeof(NrProof) + 3 * sizeof(NrProof);
+      sizeof(EpidNonSplitSignature) - sizeof(NrProof) + 3 * sizeof(NrProof);
   // 3 entries
   EXPECT_EQ(sig_size_3_entries, EpidGetSigSize(sig_rl));
 }

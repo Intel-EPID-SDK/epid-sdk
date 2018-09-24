@@ -144,7 +144,7 @@ struct arg_date
     struct tm *tmval;        /* Array of parsed time values */
 };
 
-enum {ARG_ELIMIT=1, ARG_EMALLOC, ARG_ENOMATCH, ARG_ELONGOPT, ARG_EMISSARG};
+enum {ARG_ELIMIT=1, ARG_EMALLOC, ARG_ENOMATCH, ARG_ELONGOPT, ARG_EMISSARG, ARG_EHASARG};
 struct arg_end
 {
     struct arg_hdr hdr;      /* The mandatory argtable header struct */

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 /*!
  * \file
  * \brief Error reporting.
-*/
+ */
 
 /// Error reporting interface.
 /*!
@@ -58,7 +58,11 @@ typedef enum {
   kEpidDuplicateErr,    //!< argument would add duplicate entry
   kEpidInconsistentBasenameSetErr,    //!< set basename conflicts with arguments
   kEpidMathQuadraticNonResidueError,  //!< quadratic Non-Residue Error
-  kEpidOutOfSequenceError,  //!< operation was performed out of sequence
+  kEpidOutOfSequenceError,     //!< operation was performed out of sequence
+  kEpidJoinRequestInvalid,     //!< Join Request is invalid
+  kEpidSchemaNotSupportedErr,  //!< format not supported by this version of SDK
+  kEpidOperationNotSupportedErr,  //!< operation called is not supported by SDK
+  kEpidKeyNotInGroupErr,          //!< private key is not in the group
 } EpidStatus;
 
 /// Returns string representation of error code.

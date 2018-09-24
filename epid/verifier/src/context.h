@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,15 +27,16 @@
 
 /// Verifier context definition
 struct VerifierCtx {
-  GroupPubKey_* pub_key;    ///< group public key
-  FfElement* e12;           ///< an element in GT
-  FfElement* e22;           ///< an element in GT
-  FfElement* e2w;           ///< an element in GT
-  FfElement* eg12;          ///< an element in GT
-  PrivRl const* priv_rl;    ///< Private key based revocation list - not owned
-  SigRl const* sig_rl;      ///< Signature based revocation list - not owned
-  GroupRl const* group_rl;  ///< Group revocation list - not owned
-  VerifierRl* verifier_rl;  ///< Verifier revocation list
+  GroupPubKey_* pub_key;  ///< group public key
+  FfElement* e12_split;   ///< GT element used instead e12 for split signatures
+  FfElement* e12;         ///< an element in GT
+  FfElement* e22;         ///< an element in GT
+  FfElement* e2w;         ///< an element in GT
+  FfElement* eg12;        ///< an element in GT
+  PrivRl const* priv_rl;  ///< Private key based revocation list - not owned
+  SigRl const* sig_rl;    ///< Signature based revocation list - not owned
+  GroupRl const* group_rl;       ///< Group revocation list - not owned
+  VerifierRl* verifier_rl;       ///< Verifier revocation list
   bool was_verifier_rl_updated;  ///< Indicates if blacklist was updated
   Epid2Params_* epid2_params;    ///< Intel(R) EPID 2.0 params
   CommitValues commit_values;  ///< Values that are hashed to create commitment

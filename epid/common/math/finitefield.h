@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff);
 
  \see DeleteFiniteField
 */
-EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
-                                             FfElement const* ground_element,
-                                             int degree, FiniteField** ff);
+EpidStatus NewFiniteFieldViaBinomialExtension(FiniteField const* ground_field,
+                                              FfElement const* ground_element,
+                                              int degree, FiniteField** ff);
 
 /// Creates a new finite field using polynomial extension.
 /*!
@@ -296,7 +296,7 @@ EpidStatus FfSub(FiniteField* ff, FfElement const* a, FfElement const* b,
  \param[in] ff
  The finite field.
  \param[out] a
- The first operand to be multplied.
+ The first operand to be multiplied.
  \param[out] b
  The second operand to be multiplied. If ff is an extension field of a
  field F then this parameter may be an element of either ff or F.
@@ -480,9 +480,6 @@ EpidStatus FfHash(FiniteField* ff, ConstOctStr msg, size_t msg_len,
  The random finite field element.
 
  \returns ::EpidStatus
-
- \retval ::kEpidRandMaxIterErr the function should be called again with
- different random data.
 
  \see NewFfElement
  \see BitSupplier

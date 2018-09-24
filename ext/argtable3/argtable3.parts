@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,16 +30,10 @@ parts_file = ['argtable3.parts']
 license_file = ['LICENSE']
 makefile = ['Makefile']
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(src_files, sub_dir='ext/argtable3')
-    env.InstallTopLevel(install_headers, sub_dir='ext/argtable3')
-    env.InstallTopLevel(parts_file, sub_dir='ext/argtable3')
-    env.InstallTopLevel(license_file, sub_dir='ext/argtable3')
-    env.InstallTopLevel(makefile, sub_dir='ext/argtable3')
-else:
-    env.Append(CPPPATH='.')
 
-    outputs = env.Library('${PART_NAME}', src_files)
-    sdk_outs = env.Sdk(outputs)
+env.Append(CPPPATH='.')
 
-    env.SdkInclude(install_headers)
+outputs = env.Library('${PART_NAME}', src_files)
+sdk_outs = env.Sdk(outputs)
+
+env.SdkInclude(install_headers)

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 
 #define EXPORT_EPID_APIS
 #include "epid/member/api.h"
-#include "epid/member/software_member.h"
 #include "epid/member/tiny/math/efq.h"
 #include "epid/member/tiny/math/efq2.h"
 #include "epid/member/tiny/math/fp.h"
@@ -26,6 +25,7 @@
 #include "epid/member/tiny/math/pairing.h"
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/src/gid_parser.h"
 #include "epid/member/tiny/src/native_types.h"
 #include "epid/member/tiny/src/serialize.h"
 #include "epid/member/tiny/src/validate.h"
@@ -41,17 +41,30 @@ static EccPointFq2 const epid20_g2 = {
      {{{0x51B92421, 0x2C90FE89, 0x9093D613, 0x2CDC6181, 0x7645E253, 0xF80274F8,
         0x89AFE5AD, 0x1AB442F9}}}}};
 
-EpidStatus EPID_API EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
-                                     PrivKey const* priv_key,
-                                     MemberPrecomp const* precomp_str) {
+EpidStatus EPID_MEMBER_API EpidProvisionKey(MemberCtx* ctx,
+                                            GroupPubKey const* pub_key,
+                                            PrivKey const* priv_key,
+                                            MemberPrecomp const* precomp_str) {
   NativeGroupPubKey native_pub_key;
   NativePrivKey native_priv_key;
+  EpidStatus sts = kEpidNoErr;
+  HashAlg hash_alg = kInvalidHashAlg;
   if (!pub_key || !priv_key || !ctx) {
     return kEpidBadArgErr;
   }
   if (0 != memcmp(&pub_key->gid, &priv_key->gid, sizeof(GroupId))) {
     return kEpidBadArgErr;
   }
+
+  sts = EpidTinyParseHashAlg(&pub_key->gid, &hash_alg);
+  if (kEpidNoErr != sts) {
+    return sts;
+  }
+  if ((kSha512 != hash_alg) && (kSha512_256 != hash_alg) &&
+      (kSha384 != hash_alg) && (kSha256 != hash_alg)) {
+    return kEpidHashAlgorithmNotSupported;
+  }
+
   GroupPubKeyDeserialize(&native_pub_key, pub_key);
   if (!GroupPubKeyIsInRange(&native_pub_key)) {
     return kEpidBadArgErr;
@@ -64,6 +77,8 @@ EpidStatus EPID_API EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
     memset(&native_priv_key.f, 0, sizeof(native_priv_key.f));
     return kEpidBadArgErr;
   }
+
+  ctx->hash_alg = hash_alg;
   ctx->f = native_priv_key.f;
   memset(&native_priv_key.f, 0, sizeof(native_priv_key.f));
   ctx->f_is_set = 1;
@@ -86,5 +101,5 @@ EpidStatus EPID_API EpidProvisionKey(MemberCtx* ctx, GroupPubKey const* pub_key,
     PairingCompute(&ctx->precomp.e2w, &native_pub_key.h2, &native_pub_key.w,
                    &ctx->pairing_state);
   }
-  return kEpidNoErr;
+  return sts;
 }

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <limits>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "epid/common-testhelper/onetimepad.h"
 #include "gtest/gtest.h"
 
 #include "epid/common-testhelper/bignum_wrapper-testhelper.h"
@@ -118,8 +119,8 @@ class FfElementTest : public ::testing::Test {
     epid11_fq = FiniteFieldObj(bn_epid11_bn_q_str);
 
     // construct Intel(R) EPID 1.1 Fqd finite field
-    epid11_fqd = FiniteFieldObj(epid11_fq, bn_epid11_fq_coeffs,
-                                COUNT_OF(bn_epid11_fq_coeffs));
+    epid11_fqd = FiniteFieldObj(epid11_fq, bn_epid11_fq_coefficients,
+                                COUNT_OF(bn_epid11_fq_coefficients));
 
     // Fqk ground element is {-qnr, 0, 0}
     FfElementObj epid11_neg_qnr(&epid11_fq);
@@ -195,7 +196,6 @@ class FfElementTest : public ::testing::Test {
 
   // Intel(R) EPID 2.0 parameter p
   static const BigNumStr bn_p_str;
-  static const FpElemStr fp_p_str;
 
   // Intel(R) EPID 2.0 parameter p - 1
   static const BigNumStr fp_pm1_str;
@@ -213,9 +213,6 @@ class FfElementTest : public ::testing::Test {
   // Intel(R) EPID 2.0 parameter q + 1
   static const BigNumStr bn_qp1_str;
 
-  // Intel(R) EPID 2.0 parameter q - 0x3013
-  static const BigNumStr fq_qm0x3013_str;
-
   // Intel(R) EPID 1.1 parameter q
   static const BigNumStr bn_epid11_bn_q_str;
 
@@ -223,7 +220,7 @@ class FfElementTest : public ::testing::Test {
   static const FqElemStr fq_epid11_fq_qnr;
 
   // Intel(R) EPID 1.1 parameter coeff
-  static const BigNumStr bn_epid11_fq_coeffs[3];
+  static const BigNumStr bn_epid11_fq_coefficients[3];
 
   // zero
   static const BigNumStr bn_0_str;
@@ -309,8 +306,6 @@ class FfElementTest : public ::testing::Test {
   static const BigNumStr fq_multi_exp_exp_1[1];
   static const FqElemStr fq_multi_exp_res_1;
   static const std::vector<uint8_t> fq_multi_exp_exp_1_264;
-  static const FqElemStr fq_multi_exp_res_1_264;
-  static const FqElemStr fq_multi_exp_res_1_256_264;
   static const FqElemStr fq_multi_exp_base_2[2];
   static const BigNumStr fq_multi_exp_exp_2[2];
   static const FqElemStr fq_multi_exp_res_2;
@@ -371,12 +366,6 @@ const BigNumStr FfElementTest::bn_p_str = {
     0x5E, 0xEE, 0x71, 0xA4, 0x9E, 0x0C, 0xDC, 0x65, 0xFB, 0x12, 0x99,
     0x92, 0x1A, 0xF6, 0x2D, 0x53, 0x6C, 0xD1, 0x0B, 0x50, 0x0D};
 
-// Intel(R) EPID 2.0 parameter p - 0x0D
-const FpElemStr FfElementTest::fp_p_str = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5, 0xF2,
-    0x5E, 0xEE, 0x71, 0xA4, 0x9E, 0x0C, 0xDC, 0x65, 0xFB, 0x12, 0x99,
-    0x92, 0x1A, 0xF6, 0x2D, 0x53, 0x6C, 0xD1, 0x0B, 0x50, 0x00};
-
 // Intel(R) EPID 2.0 parameter p - 1
 const BigNumStr FfElementTest::fp_pm1_str = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5, 0xF2,
@@ -413,12 +402,6 @@ const BigNumStr FfElementTest::bn_qp1_str = {
     0x5E, 0xEE, 0x71, 0xA4, 0x9F, 0x0C, 0xDC, 0x65, 0xFB, 0x12, 0x98,
     0x0A, 0x82, 0xD3, 0x29, 0x2D, 0xDB, 0xAE, 0xD3, 0x30, 0x14};
 
-// Intel(R) EPID 2.0 parameter q - 0x3013
-const BigNumStr FfElementTest::fq_qm0x3013_str = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5, 0xF2,
-    0x5E, 0xEE, 0x71, 0xA4, 0x9F, 0x0C, 0xDC, 0x65, 0xFB, 0x12, 0x98,
-    0x0A, 0x82, 0xD3, 0x29, 0x2D, 0xDB, 0xAE, 0xD3, 0x00, 0x00};
-
 // Intel(R) EPID 1.1 parameter q
 const BigNumStr FfElementTest::bn_epid11_bn_q_str = {
     0x09, 0xF9, 0x24, 0xE5, 0xD9, 0xBC, 0x67, 0x7F, 0x81, 0x0D, 0xF0,
@@ -432,7 +415,7 @@ const FqElemStr FfElementTest::fq_epid11_fq_qnr = {
      0x2B, 0x6E, 0x7E, 0xF8, 0xA6, 0x39, 0xAE, 0x46, 0xAA, 0x24}};
 
 // Intel(R) EPID 1.1 parameter coeff
-const BigNumStr FfElementTest::bn_epid11_fq_coeffs[3] = {
+const BigNumStr FfElementTest::bn_epid11_fq_coefficients[3] = {
     {{{0x02, 0x16, 0x7A, 0x61, 0x53, 0xDD, 0xF6, 0xE2, 0x89, 0x15, 0xA0,
        0x94, 0xF1, 0xB5, 0xDC, 0x65, 0x21, 0x15, 0x62, 0xE1, 0x7D, 0xC5,
        0x43, 0x89, 0xEE, 0xB4, 0xEF, 0xC8, 0xA0, 0x8E, 0x34, 0x0F}}},
@@ -948,15 +931,6 @@ const std::vector<uint8_t> FfElementTest::fq_multi_exp_exp_1_264({
     0xFF, 0xFF, 0xF2, 0xE1, 0x85, 0x81, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0xFF, 0x81, 0xFF, 0xFD, 0xFF, 0xEB, 0xFF, 0x29, 0xA7, 0xFF,
 });
-const FqElemStr FfElementTest::fq_multi_exp_res_1_264 = {
-    0x71, 0x41, 0xa1, 0xdb, 0xd1, 0xd1, 0x50, 0xc2, 0x73, 0x07, 0xc1,
-    0x93, 0xeb, 0xae, 0x89, 0x4c, 0x6e, 0x49, 0x74, 0xf7, 0x46, 0x23,
-    0x75, 0xca, 0xc8, 0x67, 0x82, 0xaf, 0xcf, 0x35, 0x34, 0x1c};
-const FqElemStr FfElementTest::fq_multi_exp_res_1_256_264 = {
-    0x10, 0x2f, 0x3a, 0xe5, 0x6e, 0x95, 0x92, 0x8f, 0x98, 0x03, 0x67,
-    0x79, 0xec, 0x0c, 0xc9, 0x46, 0x07, 0xd9, 0xd9, 0x40, 0x46, 0x29,
-    0x99, 0xe9, 0x23, 0xf9, 0x6b, 0x10, 0x35, 0x7c, 0xf1, 0xa3};
-
 const FqElemStr FfElementTest::fq_multi_exp_base_2[2] = {
     {0xE6, 0x65, 0x23, 0x9B, 0xD4, 0x07, 0x16, 0x83, 0x38, 0x23, 0xB2,
      0x67, 0x57, 0xEB, 0x0F, 0x23, 0x3A, 0xF4, 0x8E, 0xDA, 0x71, 0x5E,
@@ -2213,9 +2187,9 @@ TEST_F(FfElementTest, FfMultiExpFailsGivenArgumentsMismatch) {
 
 TEST_F(FfElementTest, FfMultiExpFailsGivenNullPointer) {
   FfElement const* p[] = {this->fq_a, this->fq_b};
-  FfElement const* p_withnull[] = {nullptr, this->fq_b};
+  FfElement const* p_with_null[] = {nullptr, this->fq_b};
   BigNumStr const* b[] = {&fq_multi_exp_exp_2[0], &this->fq_multi_exp_exp_2[1]};
-  BigNumStr const* b_withnull[] = {nullptr, &this->fq_multi_exp_exp_2[1]};
+  BigNumStr const* b_with_null[] = {nullptr, &this->fq_multi_exp_exp_2[1]};
   size_t m = 2;
   EXPECT_EQ(kEpidBadArgErr, FfMultiExp(nullptr, p, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
@@ -2224,9 +2198,9 @@ TEST_F(FfElementTest, FfMultiExpFailsGivenNullPointer) {
             FfMultiExp(this->fq, p, nullptr, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr, FfMultiExp(this->fq, p, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            FfMultiExp(this->fq, p_withnull, b, m, this->fq_result));
+            FfMultiExp(this->fq, p_with_null, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
-            FfMultiExp(this->fq, p, b_withnull, m, this->fq_result));
+            FfMultiExp(this->fq, p, b_with_null, m, this->fq_result));
 }
 
 TEST_F(FfElementTest, FfMultiExpFailsGivenIncorrectMLen) {
@@ -2390,11 +2364,11 @@ TEST_F(FfElementTest, FfMultiExpBnFailsGivenArgumentsMismatch) {
 
 TEST_F(FfElementTest, FfMultiExpBnFailsGivenNullPointer) {
   FfElement const* p[] = {this->fq_a, this->fq_b};
-  FfElement const* p_withnull[] = {nullptr, this->fq_b};
+  FfElement const* p_with_null[] = {nullptr, this->fq_b};
   BigNumObj bn_exp_0(this->fq_multi_exp_exp_2[0]);
   BigNumObj bn_exp_1(this->fq_multi_exp_exp_2[1]);
   BigNum const* b[] = {bn_exp_0, bn_exp_1};
-  BigNum const* b_withnull[] = {nullptr, bn_exp_1};
+  BigNum const* b_with_null[] = {nullptr, bn_exp_1};
   size_t m = 2;
   EXPECT_EQ(kEpidBadArgErr, FfMultiExpBn(nullptr, p, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
@@ -2403,9 +2377,9 @@ TEST_F(FfElementTest, FfMultiExpBnFailsGivenNullPointer) {
             FfMultiExpBn(this->fq, p, nullptr, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr, FfMultiExpBn(this->fq, p, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            FfMultiExpBn(this->fq, p_withnull, b, m, this->fq_result));
+            FfMultiExpBn(this->fq, p_with_null, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
-            FfMultiExpBn(this->fq, p, b_withnull, m, this->fq_result));
+            FfMultiExpBn(this->fq, p, b_with_null, m, this->fq_result));
 }
 
 TEST_F(FfElementTest, FfMultiExpBnFailsGivenIncorrectMLen) {
@@ -2513,30 +2487,6 @@ TEST_F(FfElementTest, FfMultiExpBnWorksGivenFourExponents) {
          "match with reference value";
 }
 
-TEST_F(FfElementTest, DISABLED_FfMultiExpBnWorksGivenFourFq12Exponents) {
-  const int items = 4;
-  FfElementObj fq12_r(&this->fq12);
-  FfElementObj fq12_base[4];
-  BigNumObj fq12_bn_exp[4];
-  FfElement const* fq12_p[4];
-  BigNum const* fq12_b[4];
-  int m = 0;
-  // prepare data for test
-  for (m = 0; m < items; m++) {
-    fq12_base[m] = FfElementObj(&this->fq12, this->fq12_multi_exp_base_4[m]);
-    fq12_bn_exp[m] = BigNumObj(this->fq12_multi_exp_exp_4[m]);
-    // initialize data for test
-    fq12_p[m] = fq12_base[m];
-    fq12_b[m] = fq12_bn_exp[m];
-  }
-  // do test
-  EXPECT_EQ(kEpidNoErr,
-            FfMultiExpBn(this->fq12, fq12_p, fq12_b, items, fq12_r));
-  EXPECT_EQ(FfElementObj(&this->fq12, this->fq_multi_exp_res_4), fq12_r)
-      << "FfMultiExpBn: Finite field element does not "
-         "match with reference value";
-}
-
 TEST_F(FfElementTest, FfMultiExpBnWorksGivenFiveExponents) {
   const int items = 5;
   FfElementObj r(&this->fq);
@@ -2624,10 +2574,10 @@ TEST_F(FfElementTest, SscmFfMultiExpFailsGivenArgumentsMismatch) {
 
 TEST_F(FfElementTest, SscmFfMultiExpFailsGivenNullPointer) {
   FfElement const* p[] = {this->fq_a, this->fq_b};
-  FfElement const* p_withnull[] = {nullptr, this->fq_b};
+  FfElement const* p_with_null[] = {nullptr, this->fq_b};
   BigNumStr const* b[] = {&this->fq_multi_exp_exp_2[0],
                           &this->fq_multi_exp_exp_2[1]};
-  BigNumStr const* b_withnull[] = {nullptr, &this->fq_multi_exp_exp_2[1]};
+  BigNumStr const* b_with_null[] = {nullptr, &this->fq_multi_exp_exp_2[1]};
   size_t m = 2;
   EXPECT_EQ(kEpidBadArgErr, FfSscmMultiExp(nullptr, p, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
@@ -2636,9 +2586,9 @@ TEST_F(FfElementTest, SscmFfMultiExpFailsGivenNullPointer) {
             FfSscmMultiExp(this->fq, p, nullptr, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr, FfSscmMultiExp(this->fq, p, b, m, nullptr));
   EXPECT_EQ(kEpidBadArgErr,
-            FfSscmMultiExp(this->fq, p_withnull, b, m, this->fq_result));
+            FfSscmMultiExp(this->fq, p_with_null, b, m, this->fq_result));
   EXPECT_EQ(kEpidBadArgErr,
-            FfSscmMultiExp(this->fq, p, b_withnull, m, this->fq_result));
+            FfSscmMultiExp(this->fq, p, b_with_null, m, this->fq_result));
 }
 
 TEST_F(FfElementTest, SscmFfMultiExpFailsGivenIncorrectMLen) {
@@ -2818,26 +2768,20 @@ TEST_F(FfElementTest, FfGetRandomFailsGivenNullPtr) {
   EXPECT_EQ(kEpidBadArgErr, FfGetRandom(this->fq, &this->bn_1_str,
                                         &Prng::Generate, &my_prng, nullptr));
 }
-TEST_F(FfElementTest, FfGetRandomSucceedsGivenFq2) {
+TEST_F(FfElementTest, FfGetRandomDoNotSupportFieldExtensions) {
   Prng my_prng;
-  FfElementObj r(&this->fq2);
-  EXPECT_EQ(kEpidNoErr, FfGetRandom(this->fq2, &this->bn_1_str, &Prng::Generate,
-                                    &my_prng, r));
-}
-TEST_F(FfElementTest, FfGetRandomSucceedsGivenFq6) {
-  Prng my_prng;
-  FfElementObj r(&this->fq6);
-  EXPECT_EQ(kEpidNoErr, FfGetRandom(this->fq6, &this->bn_1_str, &Prng::Generate,
-                                    &my_prng, r));
-}
-TEST_F(FfElementTest, FfGetRandomSucceedsGivenFq12) {
-  Prng my_prng;
-  FfElementObj r(&this->fq12);
-  EXPECT_EQ(kEpidNoErr, FfGetRandom(this->fq12, &this->bn_1_str,
-                                    &Prng::Generate, &my_prng, r));
+  FfElementObj r2(&this->fq2);
+  EXPECT_EQ(kEpidBadArgErr, FfGetRandom(this->fq2, &this->bn_1_str,
+                                        &Prng::Generate, &my_prng, r2));
+  FfElementObj r6(&this->fq6);
+  EXPECT_EQ(kEpidBadArgErr, FfGetRandom(this->fq6, &this->bn_1_str,
+                                        &Prng::Generate, &my_prng, r6));
+  FfElementObj r12(&this->fq12);
+  EXPECT_EQ(kEpidBadArgErr, FfGetRandom(this->fq12, &this->bn_1_str,
+                                        &Prng::Generate, &my_prng, r12));
 }
 
-TEST_F(FfElementTest, FfGetRandomSuccedsGivenLowBound) {
+TEST_F(FfElementTest, FfGetRandomSucceedsGivenLowBound) {
   Prng my_prng;
   FfElementObj r(&this->fq);
   FqElemStr buf;
@@ -2878,14 +2822,31 @@ TEST_F(FfElementTest, FfGetRandomGeneratesDifferentNumbers) {
   THROW_ON_EPIDERR(FfIsEqual(this->fq, r1, r2, &result));
   EXPECT_FALSE(result);
 }
-TEST_F(FfElementTest, FfGetRandomFailsOnMaxIterGivenLargeLowBound) {
-  Prng my_prng;
-  FfElementObj r(&this->fq);
-  // FfGetRandom generates random data between [low_bound, modulus-1]
-  // modulus in this case is Intel(R) EPID 2.0 parameter q
-  // giving low_bound = modulus - {0x30, 0x13} should get kEpidRandMaxIterErr
-  EXPECT_EQ(kEpidRandMaxIterErr, FfGetRandom(this->fq, &this->fq_qm0x3013_str,
-                                             &Prng::Generate, &my_prng, r));
+
+TEST_F(FfElementTest, FfGetRandomConsumes384BitsOfEntropy) {
+  OneTimePad otp(64);
+  FfElementObj actual(&this->fq);
+  EXPECT_EQ(kEpidNoErr, FfGetRandom(this->fq, &this->bn_1_str,
+                                    OneTimePad::Generate, &otp, actual));
+  EXPECT_EQ(384u, otp.BitsConsumed());
+}
+
+TEST_F(FfElementTest, FfGetRandomImplementsTheSpec) {
+  OneTimePad otp({// slen bits
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // q - 1
+                  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5,
+                  0xF2, 0x5E, 0xEE, 0x71, 0xA4, 0x9F, 0x0C, 0xDC, 0x65, 0xFB,
+                  0x12, 0x98, 0x0A, 0x82, 0xD3, 0x29, 0x2D, 0xDB, 0xAE, 0xD3,
+                  0x30, 0x12});
+  FqElemStr actual_str;
+  FfElementObj actual(&this->fq);
+  EXPECT_EQ(kEpidNoErr, FfGetRandom(this->fq, &this->bn_1_str,
+                                    OneTimePad::Generate, &otp, actual));
+  THROW_ON_EPIDERR(
+      WriteFfElement(this->fq, actual, &actual_str, sizeof(actual_str)));
+  EXPECT_EQ(this->fq_1_str, actual_str);
 }
 
 ////////////////////////////////////////////////

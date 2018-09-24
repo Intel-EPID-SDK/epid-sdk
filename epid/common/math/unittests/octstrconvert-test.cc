@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ TEST(OctStr2Bnu, octstr2bnuFailsGivenNullOctstr) {
   int len = OctStr2Bnu(bnustr_res, nullptr, sizeof(bnstr1) / sizeof(uint8_t));
   EXPECT_EQ(-1, len);
 }
-TEST(OctStr2Bnu, octstr2bnuFailsGivenInvalidOctsrtLen) {
+TEST(OctStr2Bnu, octstr2bnuFailsGivenInvalidOctstrLen) {
   uint32_t bnustr_res[sizeof(bnstr1) / sizeof(uint32_t)] = {0};
   int len = OctStr2Bnu(bnustr_res, bnstr1, -1);
   EXPECT_EQ(-1, len);

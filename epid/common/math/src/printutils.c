@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -36,16 +36,16 @@
 /// Allowed number of characters printed in one line
 #define WIDTH 49
 
-/// Amount of identation added in the beginning of each line
+/// Amount of indentation added in the beginning of each line
 #define INDENT 2
 
-/// Number of charaters used to represent one byte. For example, "ab" or "05".
+/// Number of characters used to represent one byte. For example, "ab" or "05".
 #define BYTE_LENGTH 2
 
 /// Separator
 #define SEPARATOR (" ")
 
-/// Make configured number of identation
+/// Make configured number of indentation
 #define MAKE_INDENT()                    \
   {                                      \
     uint8_t ind = 0;                     \

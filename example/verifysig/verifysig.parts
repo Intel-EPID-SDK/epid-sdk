@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,26 +28,22 @@ inc_files = Pattern(src_dir='src/',
 
 parts_file = ['verifysig.parts']
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(src_files + inc_files, sub_dir='example/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(parts_file, sub_dir='example/${PART_SHORT_NAME}')
 
-else:
-    env.DependsOn([
-        Component('verifier'),
-        Component('util'),
-        Component('argtable3')
-    ])
+env.DependsOn([
+    Component('verifier'),
+    Component('util'),
+    Component('argtable3')
+])
 
-    env.Append(CPPPATH='#/example/verifysig')
+env.Append(CPPPATH='#/example/verifysig')
 
-    if env['TARGET_PLATFORM']['OS'] == 'win32':
-        if env.isConfigBasedOn('debug'):
-            env['PDB'] = '${PART_NAME}.pdb'
+if env['TARGET_PLATFORM']['OS'] == 'win32':
+    if env.isConfigBasedOn('debug'):
+        env['PDB'] = '${PART_NAME}.pdb'
 
-    outputs = env.Program('${PART_NAME}', src_files,
-                          no_import_lib=True)
+outputs = env.Program('${PART_NAME}', src_files,
+                      no_import_lib=True)
 
-    env.InstallBin(outputs,
-                   no_pkg=False,
-                   INSTALL_BIN='${INSTALL_SAMPLE_BIN}')
+env.InstallBin(outputs,
+               no_pkg=False,
+               INSTALL_BIN='${INSTALL_SAMPLE_BIN}')

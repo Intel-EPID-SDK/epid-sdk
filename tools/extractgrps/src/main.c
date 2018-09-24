@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ typedef struct EpidBinaryGroupCertificate {
 } EpidBinaryGroupCertificate;
 #pragma pack()
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
       arg_file1(NULL, NULL, "FILE", "FILE containing keys to extract");
   struct arg_int* num_keys_to_extract =
       arg_int1(NULL, NULL, "NUM", "number of keys to extract");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -84,8 +84,9 @@ int main(int argc, char* argv[]) {
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !keyfile || !num_keys_to_extract ||
+        !help || !verbose || !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -168,7 +169,7 @@ int main(int argc, char* argv[]) {
                   keyfile->filename[0]);
       } else {
         // ulong max = 4294967295
-        char outkeyname[256] = {0};
+        char out_key_name[256] = {0};
         if (memcmp(&kEpidVersionCode[kEpid2x], &temp.header.epid_version,
                    sizeof(temp.header.epid_version)) ||
             memcmp(&kEpidFileTypeCode[kGroupPubKeyFile], &temp.header.file_type,
@@ -178,13 +179,13 @@ int main(int argc, char* argv[]) {
           ret_value = EXIT_FAILURE;
           break;
         }
-        snprintf(outkeyname, sizeof(outkeyname), "pubkey%010u.bin", i);
-        if (FileExists(outkeyname)) {
-          log_error("file '%s' already exists", outkeyname);
+        snprintf(out_key_name, sizeof(out_key_name), "pubkey%010u.bin", i);
+        if (FileExists(out_key_name)) {
+          log_error("file '%s' already exists", out_key_name);
           ret_value = EXIT_FAILURE;
           break;
         }
-        if (0 != WriteLoud(&temp, sizeof(temp), outkeyname)) {
+        if (0 != WriteLoud(&temp, sizeof(temp), out_key_name)) {
           log_error("failed to write key #%lu from '%s'", i,
                     keyfile->filename[0]);
         } else {

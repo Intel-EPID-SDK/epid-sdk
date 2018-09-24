@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ typedef struct AllowedBasenames {
   size_t current_bsn_number;  ///< Number of basenames registered
   size_t max_bsn_number;      ///< Maximum number of basenames to store
   sha_digest
-      basename_digest[1];  ///< digest of registrered basenames (flexible array)
+      basename_digest[1];  ///< digest of registered basenames (flexible array)
 } AllowedBasenames;
 
 /// Get allowed basenames container size
 size_t BasenamesGetSize(size_t num_basenames);
 
-/// Initilize allowed basenames container
+/// Initialize allowed basenames container
 void InitBasenames(AllowedBasenames* basename_container, size_t num_basenames);
 
 /// Checks if given basename is allowed

@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -67,7 +67,7 @@ $(document).ready(function(){initNavTree('_user_manual__verifying_an_intel_epid_
 <p>To verify an Intel&reg; EPID 1.1 signature see the example code in <code>verifysig11.c</code>. For information on Intel&reg; EPID 1.1 specific APIs see <a href="group___epid11_verifier_module.html"><b>Intel&reg; EPID 1.1 support</b></a>.</p>
 <p><br />
 </p>
-<h1><a class="anchor" id="verifysigWalktrhu_overview"></a>
+<h1><a class="anchor" id="verifysigWalkthru_overview"></a>
 Summary</h1>
 <p>In the code example below, we take this approach:</p>
 <ul>
@@ -81,7 +81,7 @@ Summary</h1>
 <h1><a class="anchor" id="verifysigWalkthrough_main"></a>
 Verifysig Walkthrough</h1>
 <p>First, we include headers so we have access to needed declarations.</p>
-<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/verifysig.h&quot;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div></div><!-- fragment --></p>
+<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/verifysig.h&quot;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="verifier_2api_8h.html">epid/verifier/api.h</a>&quot;</span></div></div><!-- fragment --></p>
 <p>The utility headers are used by <code>verifysig</code> for logging and buffer management. The <code><a class="el" href="verifier_2api_8h.html" title="Intel(R) EPID SDK verifier API. ">epid/verifier/api.h</a></code> header provides access to the core verifier APIs, and the <code><a class="el" href="file__parser_8h.html" title="Intel(R) EPID issuer material parsing utilities. ">epid/common/file_parser.h</a></code> header provides an API for parsing buffers formatted according to the various IoT Intel&reg; EPID binary file formats.</p>
 <p><br />
 </p>
@@ -89,11 +89,11 @@ Verifysig Walkthrough</h1>
 <p><br />
 </p>
 <p>We use <code>Verify</code> to verify an Intel&reg; EPID signature. <code>Verify</code> is a wrapper function that isolates SDK API functionality for the purpose of this walkthrough.</p>
-<p><div class="fragment"><div class="line"><a class="code" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> Verify(<a class="code" href="struct_epid_signature.html">EpidSignature</a> <span class="keyword">const</span>* sig, <span class="keywordtype">size_t</span> sig_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* msg,</div><div class="line">                  <span class="keywordtype">size_t</span> msg_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* basename, <span class="keywordtype">size_t</span> basename_len,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_priv_rl, <span class="keywordtype">size_t</span> signed_priv_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_sig_rl, <span class="keywordtype">size_t</span> signed_sig_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_grp_rl, <span class="keywordtype">size_t</span> signed_grp_rl_size,</div><div class="line">                  <a class="code" href="struct_verifier_rl.html">VerifierRl</a> <span class="keyword">const</span>* ver_rl, <span class="keywordtype">size_t</span> ver_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_pub_key, <span class="keywordtype">size_t</span> signed_pub_key_size,</div><div class="line">                  <a class="code" href="struct_epid_ca_certificate.html">EpidCaCertificate</a> <span class="keyword">const</span>* cacert, <a class="code" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg,</div><div class="line">                  <span class="keywordtype">void</span>** verifier_precomp, <span class="keywordtype">size_t</span>* verifier_precomp_size) {</div></div><!-- fragment --></p>
+<p><div class="fragment"><div class="line"><a class="code" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> Verify(<a class="code" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">EpidSignature</a> <span class="keyword">const</span>* sig, <span class="keywordtype">size_t</span> sig_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* msg,</div><div class="line">                  <span class="keywordtype">size_t</span> msg_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* basename, <span class="keywordtype">size_t</span> basename_len,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_priv_rl, <span class="keywordtype">size_t</span> signed_priv_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_sig_rl, <span class="keywordtype">size_t</span> signed_sig_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_grp_rl, <span class="keywordtype">size_t</span> signed_grp_rl_size,</div><div class="line">                  <a class="code" href="struct_verifier_rl.html">VerifierRl</a> <span class="keyword">const</span>* ver_rl, <span class="keywordtype">size_t</span> ver_rl_size,</div><div class="line">                  <span class="keywordtype">void</span> <span class="keyword">const</span>* signed_pub_key, <span class="keywordtype">size_t</span> signed_pub_key_size,</div><div class="line">                  <a class="code" href="struct_epid_ca_certificate.html">EpidCaCertificate</a> <span class="keyword">const</span>* cacert, <span class="keywordtype">void</span>** verifier_precomp,</div><div class="line">                  <span class="keywordtype">size_t</span>* verifier_precomp_size) {</div></div><!-- fragment --></p>
 <p>The <code>Verify</code> parameters were either sent by the verifier to the member, or they were part of the member's configuration. The exceptions are the <code>sig</code> and <code>sig_len</code> parameters, which we use to input the signature to be verified.</p>
 <p>The verifier might send the message to the member or there may be another mechanism to choose the message, but the way the message is communicated is outside the scope of the Intel&reg; EPID scheme.</p>
 <p>We use the parameters <code>verifier_precomp</code> and <code>verifier_precomp_is_input</code> to pass in a pre-computation blob if provided. We can use the pre-computation blob to increase performance when verifying signatures repeatedly with the same group public key.</p>
-<p>The member and the verifier agree on the message, basename, hash algorithm, and SigRL that the verifier uses for verification.</p>
+<p>The member and the verifier agree on the message, basename, and SigRL that the verifier uses for verification.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The use of a name-based signature creates a platform unique pseudonymous identifier. Because it reduces the member's privacy, the user should be notified when it is used and should have control over its use.</dd></dl>
 <p><br />
 </p>
@@ -119,14 +119,9 @@ Verifysig Walkthrough</h1>
 <p>The serialized verifier pre-computation blob can be used to greatly increase performance of <a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> in future sessions if the same group public key is used.</p>
 <p><br />
 </p>
-<p>We use <a class="el" href="group___epid_verifier_module.html#ga97b58b2382f24756b66a357f1e825c92" title="Sets the hash algorithm to be used by a verifier. ">EpidVerifierSetHashAlg</a> to indicate the hash algorithm used for verification, which should be the same algorithm that the member used when signing.</p>
-<p><div class="fragment"><div class="line">    result = <a class="code" href="group___epid_verifier_module.html#ga97b58b2382f24756b66a357f1e825c92">EpidVerifierSetHashAlg</a>(ctx, hash_alg);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != result) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --></p>
-<p>After the hash algorithm is set, future calls to <a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064" title="Verifies a signature and checks revocation status. ">EpidVerify</a> will use the same algorithm.</p>
-<p><br />
-</p>
 <p>We use <a class="el" href="group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6" title="Sets the basename to be used by a verifier. ">EpidVerifierSetBasename</a> to indicate the basename used for verification, which should be the same one that the member used when signing.</p>
 <p><div class="fragment"><div class="line">    result = <a class="code" href="group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6">EpidVerifierSetBasename</a>(ctx, basename, basename_len);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != result) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --></p>
-<p>After the basename is set, future calls to <a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064" title="Verifies a signature and checks revocation status. ">EpidVerify</a> will use the same basename.</p>
+<p>After the basename is set, future calls to <a class="el" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf" title="Verifies a signature and checks revocation status. ">EpidVerify</a> will use the same basename.</p>
 <p><br />
 </p>
 <p>Before we verify a signature, we have to configure revocation lists so that we can check to see if a signer's group membership has been revoked.</p>
@@ -177,8 +172,8 @@ Verifysig Walkthrough</h1>
 <p>The verifier is responsible for ensuring that the verifier revocation list is authorized. Validating it is outside the scope of this example.</p>
 <p><br />
 </p>
-<p>Next, we use <a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064" title="Verifies a signature and checks revocation status. ">EpidVerify</a> to verify that the Intel&reg; EPID signature was created by a valid member of a group in good standing.</p>
-<p><div class="fragment"><div class="line">    result = <a class="code" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064">EpidVerify</a>(ctx, sig, sig_len, msg, msg_len);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != result) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --> <br />
+<p>Next, we use <a class="el" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf" title="Verifies a signature and checks revocation status. ">EpidVerify</a> to verify that the Intel&reg; EPID signature was created by a valid member of a group in good standing.</p>
+<p><div class="fragment"><div class="line">    result = <a class="code" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf">EpidVerify</a>(ctx, sig, sig_len, msg, msg_len);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != result) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --> <br />
 </p>
 <p>Finally, we clean up and exit.</p>
 <p><div class="fragment"><div class="line">  } <span class="keywordflow">while</span> (0);</div><div class="line"></div><div class="line">  <span class="comment">// delete verifier</span></div><div class="line">  <a class="code" href="group___epid_verifier_module.html#ga6707e691f4b3916f9c684d5bbd463d12">EpidVerifierDelete</a>(&amp;ctx);</div><div class="line"></div><div class="line">  <span class="keywordflow">if</span> (priv_rl) free(priv_rl);</div><div class="line">  <span class="keywordflow">if</span> (sig_rl) free(sig_rl);</div><div class="line">  <span class="keywordflow">if</span> (grp_rl) free(grp_rl);</div><div class="line"></div><div class="line">  <span class="keywordflow">return</span> result;</div><div class="line">}</div></div><!-- fragment --></p>
@@ -194,12 +189,13 @@ Verifysig Walkthrough</h1>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

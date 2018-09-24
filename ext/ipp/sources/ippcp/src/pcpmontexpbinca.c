@@ -361,7 +361,7 @@ cpSize cpMontExpBin_BNU_sscm(BNU_CHUNK_T* dataY,
 
          int j;
          for(j=BNU_CHUNK_BITS-1; j>=0; j--) {
-            BNU_CHUNK_T mask_pattern = (BNU_CHUNK_T)(back_step-1);
+            BNU_CHUNK_T mask_pattern = (BNU_CHUNK_T)(back_step)-1;
 
             /* safeBuffer = (Y[] and mask_pattern) or (X[] and ~mask_pattern) */
             int i;

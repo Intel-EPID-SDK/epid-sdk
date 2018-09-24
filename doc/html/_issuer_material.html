@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -63,7 +63,8 @@ $(document).ready(function(){initNavTree('_issuer_material.html','');});
 <div class="title">Test Data </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>The SDK includes sample material in <code>example/data</code> that is intended to be provisioned in members and verifiers so that they can operate without material from a real issuer, such as iKGF.</p>
+<div class="textblock"><p>The SDK includes sample material that is intended to be provisioned in members and verifiers so that they can operate without material from a real issuer, such as iKGF.</p>
+<p>The material in in <code>example/data</code> is compatible with non-split members while the material <code>example/split_data</code> can only be used by split members.</p>
 <h1><a class="anchor" id="IssuerMaterial_Groups"></a>
 Sample Groups</h1>
 <h2>Sample Group A</h2>
@@ -85,7 +86,7 @@ Sample Groups</h1>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">groupa/privrevokedmember2  </td><td class="markdownTableBodyNone">Revoked in PrivRL   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupa/sigrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
+<td class="markdownTableBodyNone">groupa/sigrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in SigRL and VerifierRL   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">groupa/sigrevokedmember1  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
@@ -106,9 +107,13 @@ Sample Groups</h1>
  sigrevokedmember1, <br />
  sigrevokedmember2   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Empty private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/privrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
+<td class="markdownTableBodyNone">Verifier revocation list  </td><td class="markdownTableBodyNone"><code>groupa/verifierrl.dat</code>  </td><td class="markdownTableBodyNone">sigrevokedmember0   </td></tr>
 <tr class="markdownTableBody" class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Empty private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/privrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
+<tr class="markdownTableBody" class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Empty signature based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/sigrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
+<tr class="markdownTableBody" class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Empty verifier revocation list  </td><td class="markdownTableBodyNone"><code>groupa/verifierrl_empty.dat</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
 </table>
 <p><br />
 </p>
@@ -158,111 +163,17 @@ Group Revocation Lists</h1>
 <tr class="markdownTableBody" class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>grprl.bin</code>  </td><td class="markdownTableBodyNone">One entry in which <code>groupb</code> is revoked   </td></tr>
 </table>
-<h1><a class="anchor" id="CompressedSamples"></a>
-Compressed Sample Groups</h1>
-<p>Intel&reg; EPID SDK supports use of compressed member private keys. The groups described here use compressed member private keys but structurally correspond to groups described above.</p>
-<h2>Compressed Sample Group A</h2>
-<p>Group A (<code>groupa</code>) contains eight group members and sample revocation lists:</p>
-<p><br />
-</p>
-<h3>Members in Group A</h3>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Group Member  </th><th class="markdownTableHeadNone">Revocation Status   </th></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupa/member0  </td><td class="markdownTableBodyNone">Non-revoked   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupa/member1  </td><td class="markdownTableBodyNone">Non-revoked   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupa/privrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in PrivRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupa/privrevokedmember1  </td><td class="markdownTableBodyNone">Revoked in PrivRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupa/privrevokedmember2  </td><td class="markdownTableBodyNone">Revoked in PrivRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupa/sigrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupa/sigrevokedmember1  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupa/sigrevokedmember2  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
-</table>
-<p><br />
-</p>
-<h3>Revocation Lists for Group A</h3>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Description  </th><th class="markdownTableHeadNone">Directory Location  </th><th class="markdownTableHeadNone">Revoked Members   </th></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/privrl.bin</code>  </td><td class="markdownTableBodyNone">privrevokedmember0, <br />
- privrevokedmember1, <br />
- privrevokedmember2   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Signature based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/sigrl.bin</code>  </td><td class="markdownTableBodyNone">sigrevokedmember0, <br />
- sigrevokedmember1, <br />
- sigrevokedmember2   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Empty private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/privrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Empty signature based revocation list  </td><td class="markdownTableBodyNone"><code>groupa/sigrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
-</table>
-<p><br />
-</p>
-<h2>Compressed Sample Group B</h2>
-<p>Group B (<code>groupb</code>) contains four group members and sample revocation lists:</p>
-<p><br />
-</p>
-<h3>Members in Group B</h3>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Group Member  </th><th class="markdownTableHeadNone">Revocation Status   </th></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupb/member0  </td><td class="markdownTableBodyNone">Non-revoked   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupb/member1  </td><td class="markdownTableBodyNone">Non-revoked   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">groupb/privrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in PrivRL   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">groupb/sigrevokedmember0  </td><td class="markdownTableBodyNone">Revoked in SigRL   </td></tr>
-</table>
-<p><br />
-</p>
-<h3>Revocation Lists for Group B</h3>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Description  </th><th class="markdownTableHeadNone">Directory Location  </th><th class="markdownTableHeadNone">Revoked Members   </th></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupb/privrl.bin</code>  </td><td class="markdownTableBodyNone">privrevokedmember0   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Signature based revocation list  </td><td class="markdownTableBodyNone"><code>groupb/sigrl.bin</code>  </td><td class="markdownTableBodyNone">sigrevokedmember0   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Empty private key based revocation list  </td><td class="markdownTableBodyNone"><code>groupb/privrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Empty signature based revocation list  </td><td class="markdownTableBodyNone"><code>groupb/sigrl_empty.bin</code>  </td><td class="markdownTableBodyNone">None   </td></tr>
-</table>
-<h1><a class="anchor" id="IssuerMaterial_CmpGroupRls"></a>
-Compressed Group Revocation Lists</h1>
-<p>If an entire group is no longer valid, the issuer can revoke it using the group revocation list. Two sample group revocation lists are provided with the SDK.</p>
-<p><br />
-</p>
-<h3>Sample GrpRLs</h3>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Group Revocation List  </th><th class="markdownTableHeadNone">Description   </th></tr>
-<tr class="markdownTableBody" class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>grprl_empty.bin</code>  </td><td class="markdownTableBodyNone">No entries   </td></tr>
-<tr class="markdownTableBody" class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>grprl.bin</code>  </td><td class="markdownTableBodyNone">One entry in which <code>groupb</code> is revoked   </td></tr>
-</table>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

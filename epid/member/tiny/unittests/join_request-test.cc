@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ extern "C" {
 #include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
 #include "epid/common-testhelper/mem_params-testhelper.h"
 #include "epid/common-testhelper/prng-testhelper.h"
+#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
 #include "epid/member/tiny/unittests/member-testhelper.h"
 
 /// compares FpElemStr values
@@ -46,13 +47,13 @@ bool operator==(FpElemStr const& lhs, FpElemStr const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
 
-/// compares JoinRequest values
-bool operator==(JoinRequest const& lhs, JoinRequest const& rhs) {
+/// compares MemberJoinRequest values
+bool operator==(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
 
-/// compares JoinRequest values for inequality
-bool operator!=(JoinRequest const& lhs, JoinRequest const& rhs) {
+/// compares MemberJoinRequest values for inequality
+bool operator!=(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs) {
   return 0 != std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
 
@@ -64,10 +65,6 @@ const GroupPubKey kPubKey = {
 #include "epid/common-testhelper/testdata/grp01/gpubkey.inc"
 };
 
-const FpElemStr kFEps1 = {0x56, 0x57, 0xda, 0x39, 0x9f, 0x69, 0x17, 0x84,
-                          0xac, 0xf9, 0xf6, 0xdf, 0xfe, 0xd2, 0x41, 0xe8,
-                          0x02, 0x30, 0xf8, 0xd8, 0x72, 0x35, 0xd3, 0x0e,
-                          0x76, 0x2e, 0xda, 0x4b, 0xf4, 0xc5, 0x31, 0x0f};
 /// Validates join request.
 void ValidateJoinRequest(JoinRequest const& request, HashAlg hash_alg,
                          GroupPubKey const& grp_public_key, FpElemStr const& f,
@@ -125,10 +122,9 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenNullParameters) {
   IssuerNonce ni;
   MemberParams params;
   Prng prng;
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, nullptr, &params);
   MemberCtxObj ctx(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(ctx, kSha512));
   EXPECT_EQ(kEpidBadArgErr,
             EpidCreateJoinRequest(nullptr, &pub_key, &ni, &join_request));
   EXPECT_EQ(kEpidBadArgErr,
@@ -138,16 +134,15 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenNullParameters) {
   EXPECT_EQ(kEpidBadArgErr, EpidCreateJoinRequest(ctx, &pub_key, &ni, nullptr));
 }
 
-TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenNoF) {
+TEST_F(EpidMemberTest, CreateJoinRequestWorksGivenNoF) {
   GroupPubKey pub_key = kPubKey;
   IssuerNonce ni;
   MemberParams params;
   Prng prng;
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, nullptr, &params);
   MemberCtxObj ctx(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(ctx, kSha512));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(ctx, &pub_key, &ni, &join_request));
 }
 
@@ -168,10 +163,9 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidGroupKey) {
   pub_key.h1.x.data.data[15] = 0xff;
   Epid20Params epid_params;
   EcPointObj pt(&epid_params.G1);
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   ASSERT_NE(kEpidNoErr, ReadEcPoint(epid_params.G1, (uint8_t*)&pub_key.h1,
                                     sizeof(pub_key.h1), pt));
   EXPECT_EQ(kEpidBadArgErr,
@@ -192,7 +186,7 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   EpidStatus sts;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
 
@@ -222,6 +216,7 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha512) {
   Prng prng;
   MemberParams params = {0};
   GroupPubKey pub_key = kPubKey;
+  pub_key.gid.data[1] = 0x02;  // sha512
   FpElemStr f = {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -232,14 +227,13 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha512) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
   EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request, kSha512, pub_key, f, ni));
+      ValidateJoinRequest(join_request.request, kSha512, pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha256) {
@@ -256,21 +250,20 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha256) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha256));
   EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
   EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request, kSha256, pub_key, f, ni));
+      ValidateJoinRequest(join_request.request, kSha256, pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest,
        CreateJoinRequestGeneratesDiffJoinRequestsOnMultipleCalls) {
   Prng prng;
   MemberParams params = {0};
-  GroupPubKey pub_key = kPubKey;
+  GroupPubKey pub_key = kPubKey;  // sha256
   FpElemStr f = {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -281,19 +274,18 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request1;
-  JoinRequest join_request2;
+  MemberJoinRequest join_request1;
+  MemberJoinRequest join_request2;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(member, &pub_key, &ni, &join_request1));
   EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request1, kSha512, pub_key, f, ni));
+      ValidateJoinRequest(join_request1.request, kSha256, pub_key, f, ni));
   EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(member, &pub_key, &ni, &join_request2));
   EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request2, kSha512, pub_key, f, ni));
+      ValidateJoinRequest(join_request2.request, kSha256, pub_key, f, ni));
   EXPECT_NE(join_request1, join_request2);
 }
 
@@ -311,8 +303,8 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request1;
-  JoinRequest join_request2;
+  MemberJoinRequest join_request1;
+  MemberJoinRequest join_request2;
   // Ensure that two members created with equal seed and do not
   // interfere each other. Member1 is deleted by the time member2
   // is created.
@@ -320,23 +312,22 @@ TEST_F(EpidMemberTest,
     Prng prng;
     SetMemberParams(Prng::Generate, &prng, &f, &params);
     MemberCtxObj member1(&params);
-    THROW_ON_EPIDERR(EpidMemberSetHashAlg(member1, kSha256));
     prng.set_seed(0x1234);
     EXPECT_EQ(kEpidNoErr,
               EpidCreateJoinRequest(member1, &pub_key, &ni, &join_request1));
     EXPECT_NO_FATAL_FAILURE(
-        ValidateJoinRequest(join_request1, kSha256, pub_key, f, ni));
+        ValidateJoinRequest(join_request1.request, kSha256, pub_key, f, ni));
   }
   {
     Prng prng;
     SetMemberParams(Prng::Generate, &prng, &f, &params);
     MemberCtxObj member2(&params);
-    THROW_ON_EPIDERR(EpidMemberSetHashAlg(member2, kSha512));
     prng.set_seed(0x1234);
+    pub_key.gid.data[1] = 0x02;  // set sha512
     EXPECT_EQ(kEpidNoErr,
               EpidCreateJoinRequest(member2, &pub_key, &ni, &join_request2));
     EXPECT_NO_FATAL_FAILURE(
-        ValidateJoinRequest(join_request2, kSha512, pub_key, f, ni));
+        ValidateJoinRequest(join_request2.request, kSha512, pub_key, f, ni));
   }
   EXPECT_NE(join_request1, join_request2);
 }
@@ -357,13 +348,130 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  JoinRequest join_request;
+  MemberJoinRequest join_request;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   EXPECT_EQ(kEpidNoErr,
             EpidCreateJoinRequest(member, pub_key, &ni, &join_request));
   EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request, kSha512, *pub_key, f, ni));
+      ValidateJoinRequest(join_request.request, kSha256, *pub_key, f, ni));
+}
+
+TEST_F(EpidMemberTest,
+       ProvisionedMemberCanCreateJoinRequestForGroupWithDiffHashAlg) {
+  Prng my_prng;
+  // create and provision member in sha256 group
+  GroupPubKey pub_key = this->kGroupPublicKey;
+  PrivKey mpriv_key = this->kMemberPrivateKey;
+  MemberParams params = {0};
+  IssuerNonce ni = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+  };
+  MemberJoinRequest join_request = {0};
+
+  SetMemberParams(&Prng::Generate, &my_prng, &mpriv_key.f, &params);
+  MemberCtxObj member(&params);
+
+  // provision into group with sha256
+  EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &pub_key, &mpriv_key,
+                                         &this->kMemberPrecomp));
+
+  // create join request into a group with a different hash alg
+  // verify join request
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x01;  // sha384
+
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(join_request.request, kSha384,
+                                              pub_key, mpriv_key.f, ni));
+}
+
+TEST_F(EpidMemberTest, CanCreateMultipleJoinRequestsWithDiffHashAlgs) {
+  Prng my_prng;
+  // create member with specific f
+  GroupPubKey pub_key = this->kGroupPublicKey;
+  FpElemStr f = this->kMemberPrivateKey.f;
+  MemberParams params = {0};
+  SetMemberParams(&Prng::Generate, &my_prng, &f, &params);
+  MemberCtxObj member(&params);
+  IssuerNonce ni = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+  };
+  MemberJoinRequest join_request = {0};
+
+  // create join request into a group with sha256 hash alg
+  // verify join request
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x00;
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+  EXPECT_NO_FATAL_FAILURE(
+      ValidateJoinRequest(join_request.request, kSha256, pub_key, f, ni));
+
+  // create join request into a group with sha384 hash alg
+  // verify join request
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x01;
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+  EXPECT_NO_FATAL_FAILURE(
+      ValidateJoinRequest(join_request.request, kSha384, pub_key, f, ni));
+
+  // create join request into a group with sha512 hash alg
+  // verify join request
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x02;
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+  EXPECT_NO_FATAL_FAILURE(
+      ValidateJoinRequest(join_request.request, kSha512, pub_key, f, ni));
+
+  // create join request into a group with sha512_256 hash alg
+  // verify join request
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x03;
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+  EXPECT_NO_FATAL_FAILURE(
+      ValidateJoinRequest(join_request.request, kSha512_256, pub_key, f, ni));
+}
+
+TEST_F(EpidMemberTest, CreateJoinRequestDoesNotChangeHashAlgorithm) {
+  Prng my_prng;
+  // create and provision member in sha256 group
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  IssuerNonce ni = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+  };
+  MemberJoinRequest join_request = {0};
+
+  // create join request into a group with a different hash alg
+  GroupPubKey pub_key = kPubKey;
+  pub_key.gid.data[1] &= 0xf0;
+  pub_key.gid.data[1] |= 0x01;  // sha384
+  EXPECT_EQ(kEpidNoErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+
+  auto& msg = this->kMsg0;
+  std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));
+  EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
+  size_t sig_len = sig_data.size() * sizeof(uint8_t);
+
+  // sign message
+  EXPECT_EQ(kEpidNoErr,
+            EpidSign(member, msg.data(), msg.size(), nullptr, 0, sig, sig_len));
+
+  // verify signature
+  VerifierCtxObj ctx(this->kGroupPublicKey);
+  EXPECT_EQ(kEpidSigValid,
+            EpidVerify(ctx, sig, sig_len, msg.data(), msg.size()));
 }
 }  // namespace

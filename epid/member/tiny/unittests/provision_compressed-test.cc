@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -171,6 +171,33 @@ TEST_F(EpidMemberTest, DISABLED_ProvisionCompressedFailsForInvalidPrivateKey) {
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, &precomp));
   EXPECT_EQ(kEpidBadArgErr,
             ProvisionCompressedAndStart(member, &pub_key, &priv_key, nullptr));
+}
+
+void SetHashBitsInGid(unsigned int code, GroupPubKey* pub_key,
+                      CompressedPrivKey* priv_key) {
+  pub_key->gid.data[1] &= 0xf0;
+  pub_key->gid.data[1] |= (code & 0x0f);
+  priv_key->gid.data[1] &= 0xf0;
+  priv_key->gid.data[1] |= (code & 0x0f);
+}
+
+TEST_F(EpidMemberTest,
+       DISABLED_ProvisionCompressedFailsGivenGroupWithUnsupportedHashAlg) {
+  Prng prng;
+  GroupPubKey pub_key = this->kGrpXKey;
+  CompressedPrivKey priv_key = this->kGrpXMember9CompressedKey;
+  MemberPrecomp precomp = this->kMemberPrecomp;
+  MemberParams params = {0};
+  SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
+  MemberCtxObj member(&params);
+
+  for (unsigned int invalid_hash = 0x4; invalid_hash <= 0xf; invalid_hash++) {
+    SetHashBitsInGid(invalid_hash, &pub_key, &priv_key);
+    EXPECT_EQ(kEpidHashAlgorithmNotSupported,
+              EpidProvisionCompressed(member, &pub_key, &priv_key, &precomp))
+        << "Unsupported hash algorithm (" << std::showbase << std::hex
+        << invalid_hash << ") is actually supported";
+  }
 }
 
 }  // namespace

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,26 +27,6 @@ typedef struct FqElem FqElem;
 typedef struct VeryLargeInt VeryLargeInt;
 /// \endcond
 
-/// Copy an element's value
-/*!
-\param[out] result copy target.
-\param[in] in copy source.
-*/
-void Fq2Cp(Fq2Elem* result, Fq2Elem const* in);
-
-/// Set an element's value.
-/*!
-\param[out] result target.
-\param[in] in value to set.
-*/
-void Fq2Set(Fq2Elem* result, uint32_t in);
-
-/// Clear an element's value.
-/*!
-\param[out] result element to clear.
-*/
-void Fq2Clear(Fq2Elem* result);
-
 /// Add two elements of Fq2.
 /*!
 \param[out] result of adding left and right.
@@ -54,14 +34,6 @@ void Fq2Clear(Fq2Elem* result);
 \param[in] right The second operand to be added.
 */
 void Fq2Add(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right);
-
-/// Exponentiate an element of Fq2 by a large integer.
-/*!
-\param[out] result target.
-\param[in] base the base.
-\param[in] exp the exponent.
-*/
-void Fq2Exp(Fq2Elem* result, Fq2Elem const* base, VeryLargeInt const* exp);
 
 /// Subtract two elements of Fq2.
 /*!
@@ -78,6 +50,14 @@ void Fq2Sub(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right);
 \param[in] right The second operand to be multiplied.
 */
 void Fq2Mul(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right);
+
+/// Exponentiate an element of Fq2 by a large integer.
+/*!
+\param[out] result target.
+\param[in] base the base.
+\param[in] exp the exponent.
+*/
+void Fq2Exp(Fq2Elem* result, Fq2Elem const* base, VeryLargeInt const* exp);
 
 /// Invert an element of Fq2.
 /*!
@@ -115,25 +95,6 @@ void Fq2Square(Fq2Elem* result, Fq2Elem const* in);
 */
 void Fq2MulScalar(Fq2Elem* result, Fq2Elem const* left, FqElem const* right);
 
-/// Conditionally Set an element's value to one of two values.
-/*!
-\param[out] result target.
-\param[in] true_val value to set if condition is true.
-\param[in] false_val value to set if condition is false.
-\param[in] truth_val value of condition.
-*/
-void Fq2CondSet(Fq2Elem* result, Fq2Elem const* true_val,
-                Fq2Elem const* false_val, int truth_val);
-
-/// Test if two elements in Fq2 are equal
-/*!
-\param[in] left The first operand to be tested.
-\param[in] right The second operand to be tested.
-\returns A value different from zero (i.e., true) if indeed
-         the values are equal. Zero (i.e., false) otherwise.
-*/
-int Fq2Eq(Fq2Elem const* left, Fq2Elem const* right);
-
 /// Multiply an element of Fq2 by xi.
 /*!
 This function was formerly called as Fq2Const.
@@ -144,6 +105,15 @@ This function was formerly called as Fq2Const.
 */
 void Fq2MulXi(Fq2Elem* result, Fq2Elem const* in);
 
+/// Test if two elements in Fq2 are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns A value different from zero (i.e., true) if indeed
+         the values are equal. Zero (i.e., false) otherwise.
+*/
+int Fq2Eq(Fq2Elem const* left, Fq2Elem const* right);
+
 /// Test if an element is zero.
 /*!
 \param[in] value the element to test.
@@ -151,5 +121,35 @@ void Fq2MulXi(Fq2Elem* result, Fq2Elem const* in);
          the value is zero. Zero (i.e., false) otherwise.
 */
 int Fq2IsZero(Fq2Elem const* value);
+
+/// Copy an element's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void Fq2Cp(Fq2Elem* result, Fq2Elem const* in);
+
+/// Set an element's value.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+*/
+void Fq2Set(Fq2Elem* result, uint32_t in);
+
+/// Conditionally Set an element's value to one of two values.
+/*!
+\param[out] result target.
+\param[in] true_val value to set if condition is true.
+\param[in] false_val value to set if condition is false.
+\param[in] truth_val value of condition.
+*/
+void Fq2CondSet(Fq2Elem* result, Fq2Elem const* true_val,
+                Fq2Elem const* false_val, int truth_val);
+
+/// Clear an element's value.
+/*!
+\param[out] result element to clear.
+*/
+void Fq2Clear(Fq2Elem* result);
 
 #endif  // EPID_MEMBER_TINY_MATH_FQ2_H_

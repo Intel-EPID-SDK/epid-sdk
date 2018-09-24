@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ void* EpidRealloc(void* ptr, size_t new_size);
 void EpidFree(void* ptr);
 
 #if !defined(SAFE_ALLOC)
-/// Allocates zero initalized block of memory
+/// Allocates zero initialized block of memory
 #define SAFE_ALLOC(size) EpidAlloc(size);
 #endif  // !defined(SAFE_ALLOC)
 #if !defined(SAFE_FREE)
@@ -100,7 +100,7 @@ void EpidFree(void* ptr);
 #define SAFE_REALLOC(ptr, size) EpidRealloc((ptr), (size))
 #endif  // !defined(SAFE_REALLOC)
 
-/// Copies bytes between buffers with security ehancements
+/// Copies bytes between buffers with security enhancements
 /*!
   Copies count bytes from src to dest. If the source and destination
   overlap, the behavior is undefined.

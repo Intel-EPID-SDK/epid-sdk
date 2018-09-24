@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -65,11 +65,12 @@ $(document).ready(function(){initNavTree('_epid_overview.html','');});
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#EpidOverview_Roles">Roles</a><ul><li class="level2"><a href="#EpidOverview_Issuers">Issuers</a></li>
-<li class="level2"><a href="#EpidOverview_Members">Members</a></li>
+</ul>
+</li>
+<li class="level1"><a href="#EpidOverview_Entity_interaction">Member and Verifier Interaction</a><ul><li class="level2"><a href="#EpidOverview_Members">Members</a></li>
 <li class="level2"><a href="#EpidOverview_Verifiers">Verifiers</a></li>
 </ul>
 </li>
-<li class="level1"><a href="#EpidOverview_Entity_interaction">Member and Verifier Interaction</a></li>
 <li class="level1"><a href="#EpidOverview_Groups">Groups</a></li>
 <li class="level1"><a href="#EpidOverview_Keys">Keys</a><ul><li class="level2"><a href="#EpidOverview_Group_public_key">Group Public Key</a></li>
 <li class="level2"><a href="#EpidOverview_Issuing_private_key">Issuing Private Key</a></li>
@@ -88,43 +89,52 @@ Roles</h1>
 </div>
 <h2><a class="anchor" id="EpidOverview_Issuers"></a>
 Issuers</h2>
-<p>The issuer is responsible for managing group membership. Issuer functionality is not included in the SDK.</p>
-<p>The issuer manages groups by doing the following:</p>
-<ul>
-<li>Creates groups by generating one issuing private key and one group certificate for each group. The group certificate contains the group public key.</li>
-</ul>
+<p>An Issuer creates and manages groups. Issuer functionality is not included in the SDK.</p>
+<p>To create a group an Issuer generates one issuing private key and one group certificate for the group. The group certificate contains the group public key.</p>
 <div class="image">
 <img src="epid_diagram_group_public_key_and_issuing_private_key.png" alt="epid_diagram_group_public_key_and_issuing_private_key.png"/>
 </div>
 <p><br />
 </p>
-<ul>
-<li>Creates group members by generating unique Intel&reg; EPID member private keys through bulk provisioning. Member private keys are created from the issuing private key for the group.</li>
-<li>Manages requests from prospective members to join existing groups.</li>
-</ul>
+<p>Once a group is created, the Issuer can add members to the group. Typically the Issuer creates group members by generating unique Intel&reg; EPID Member private keys through bulk provisioning. Member private keys are created from the issuing private key for the group.</p>
+<p>A single group public key corresponds to each Member private key in the group.</p>
 <div class="image">
 <img src="epid_diagram_generating_member_private_keys.png" alt="epid_diagram_generating_member_private_keys.png"/>
 </div>
+<p><br />
+</p>
+<p>Each member receives a Member private key. The Issuer remembers the issuing private key so that it can generate more Member private keys if more devices join the group.</p>
 <div class="image">
 <img src="epid_diagram_provisioning.png" alt="epid_diagram_provisioning.png"/>
 </div>
 <p><br />
 </p>
-<ul>
-<li>Creates and maintains group revocation lists.</li>
-<li>Creates and maintains signature revocation lists and member private key revocation lists. These lists of members no longer in good standing allow members to be dropped from a group.</li>
-</ul>
+<p>The preceding discussion covers the typical case of bulk provisioning. The Intel&reg; EPID scheme also supports dynamic provisioning which allows a device join an existing group and be provisioned without the issuer ever being possession of the member private key. For more information on dynamic provisioning, refer to <a class="el" href="_provisioning.html#Provisioning_JoinProvisioning">Dynamic Provisioning</a>.</p>
+<p><br />
+</p>
+<p>The Issuer also creates and maintains revocation lists (group revocation list, Member private key revocation list, and signature revocation list). These lists of Members no longer in good standing allow Members to be dropped from a group.</p>
 <div class="image">
 <img src="epid_diagram_maintaining_revocation_lists.png" alt="epid_diagram_maintaining_revocation_lists.png"/>
 </div>
 <p><br />
 </p>
-<ul>
-<li>Makes group public keys and revocation lists available to verifiers. Makes signature revocation list available to members.</li>
-</ul>
+<p>The Issuer makes group public keys and revocation lists available to Verifiers. It also makes the signature revocation list available to Members.</p>
+<p>Members need the signature revocation list to sign messages, while Verifiers need all revocation lists for verification.</p>
 <div class="image">
 <img src="epid_diagram_issuer_makes_revocation_lists_available.png" alt="epid_diagram_issuer_makes_revocation_lists_available.png"/>
 </div>
+<p><br />
+</p>
+<h1><a class="anchor" id="EpidOverview_Entity_interaction"></a>
+Member and Verifier Interaction</h1>
+<p>Each Intel&reg; EPID member uses its Intel&reg; EPID private key to digitally sign a message. The resulting signature is called an Intel&reg; EPID signature.</p>
+<p>The Intel&reg; EPID Verifier uses the group public key to verify the correctness of an Intel&reg; EPID signature, i.e., to verify that the signature was indeed created by a Member with a valid Intel&reg; EPID Member private key.</p>
+<p>However, the Intel&reg; EPID signature does not convey any information about which unique private key was used to create the signature. Furthermore, two signatures from the same Member are not similar enough that the Verifier can tell that they came from the same Member. In other words, the Member's signature cannot be recognized based on its similarity to another signature.</p>
+<div class="image">
+<img src="epid_diagram_signing_and_verification.png" alt="epid_diagram_signing_and_verification.png"/>
+</div>
+<p><br />
+</p>
 <h2><a class="anchor" id="EpidOverview_Members"></a>
 Members</h2>
 <p>The member is the entity that attempts to anonymously prove its group membership to the verifier.</p>
@@ -135,7 +145,7 @@ Members</h2>
 </ul>
 <h2><a class="anchor" id="EpidOverview_Verifiers"></a>
 Verifiers</h2>
-<p>The verifier checks an Intel(R) EPID signature to establish whether it was signed by an entity or device that is a member in good standing.</p>
+<p>The verifier checks an Intel&reg; EPID signature to establish whether it was signed by an entity or device that is a member in good standing.</p>
 <p>The verifier acts on behalf of a party that needs to know it is communicating with a trusted device. Verifiers obtain group certificates and revocation lists from issuers and negotiate details of signature protocol with members.</p>
 <p>A verifier can do the following:</p>
 <ul>
@@ -144,14 +154,6 @@ Verifiers</h2>
 <li>Negotiate details of signature protocol with members.</li>
 <li>Manage a private list of revoked members, also called the verifier blacklist.</li>
 </ul>
-<h1><a class="anchor" id="EpidOverview_Entity_interaction"></a>
-Member and Verifier Interaction</h1>
-<p>Each Intel&reg; EPID member uses its Intel&reg; EPID private key to digitally sign a message. The resulting signature is called an Intel&reg; EPID signature.</p>
-<p>The Intel&reg; EPID verifier uses the group public key to verify the correctness of an Intel&reg; EPID signature, i.e., to verify that the signature was indeed created by a member with a valid Intel&reg; EPID private key.</p>
-<p>However, the Intel&reg; EPID signature does not convey any information about which unique private key was used to create the signature.</p>
-<div class="image">
-<img src="epid_diagram_signing_and_verification.png" alt="epid_diagram_signing_and_verification.png"/>
-</div>
 <h1><a class="anchor" id="EpidOverview_Groups"></a>
 Groups</h1>
 <p>An Intel&reg; EPID group represents a set of trusted entities called members. Issuers create groups and manage group membership. For each group, the issuer creates a group public key simultaneously with the corresponding issuing private key. The issuer uses the issuing private key to create unique member private keys for each group member, and makes the group public key available to verifiers.</p>
@@ -169,7 +171,7 @@ Groups</h1>
 <h1><a class="anchor" id="EpidOverview_Keys"></a>
 Keys</h1>
 <p>The Intel&reg; EPID scheme works with three types of keys: the group public key, the issuing private key, and the member private key. A group public key corresponds to the unique member private keys that are part of the group. Member private keys are generated from the issuing private key.</p>
-<p>Additionally, in the Intel&reg; EPID scheme, a private key can be revoked given a signature created by that key, even if the key itself is still unknown. Group membership can be revoked and entire groups can be revoked. For more information on revocation, refer to <a class="el" href="_revocation.html">In-Depth Explanation of Revocation</a>.</p>
+<p>In the Intel&reg; EPID scheme, group membership can be revoked given a compromised private key, a signature created by a compromised key, or by revoking the entire group. For more information on revocation, refer to <a class="el" href="_revocation.html">In-Depth Explanation of Revocation</a>.</p>
 <h2><a class="anchor" id="EpidOverview_Group_public_key"></a>
 Group Public Key</h2>
 <p>The group public key is the key used by the verifier to confirm that a member belongs to a group in good standing. Each member private key in a group is associated with the group's public key.</p>
@@ -185,12 +187,13 @@ Member Private Key</h2>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

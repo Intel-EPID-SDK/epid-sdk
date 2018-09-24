@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 #include "epid/common/math/src/finitefield-internal.h"
 #include "ext/ipp/include/ippcp.h"
 
-/// Elpitic Curve Group
+/// Elliptic Curve Group
 struct EcGroup {
   /// Internal implementation of elliptic curve group
   IppsGFpECState* ipp_ec;
@@ -35,7 +35,7 @@ struct EcGroup {
   struct FiniteField* ff;
 };
 
-/// Elpitic Curve Point
+/// Elliptic Curve Point
 struct EcPoint {
   /// Internal implementation of elliptic curve point
   IppsGFpECPoint* ipp_ec_pt;

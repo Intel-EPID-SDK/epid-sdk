@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -62,14 +62,14 @@ $(document).ready(function(){initNavTree('struct_member_params.html','');});
   <div class="summary">
 <a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">MemberParams Struct Reference<div class="ingroups"><a class="el" href="group___epid_module.html">epid&amp;nbsp;</a> &raquo; <a class="el" href="group___epid_member_module.html">member</a></div></div>  </div>
+<div class="title">MemberParams Struct Reference<div class="ingroups"><a class="el" href="group___epid_module.html">epid</a> &raquo; <a class="el" href="group___epid_member_module.html">member</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
 <p>Software only specific member parameters.  
  <a href="struct_member_params.html#details">More...</a></p>
 
-<p><code>#include &lt;epid/member/software_member.h&gt;</code></p>
+<p><code>#include &lt;epid/member/tiny_member.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
@@ -77,33 +77,48 @@ Data Fields</h2></td></tr>
 <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#ad844c7a2be20bac70b118e7c08530c0b">rnd_func</a></td></tr>
 <tr class="memdesc:ad844c7a2be20bac70b118e7c08530c0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Random number generator. <br /></td></tr>
 <tr class="separator:ad844c7a2be20bac70b118e7c08530c0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7510f05e63328fa13cf2a3a3bd6acd95"><td class="memItemLeft" align="right" valign="top"><a id="a7510f05e63328fa13cf2a3a3bd6acd95"></a>
-void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#a7510f05e63328fa13cf2a3a3bd6acd95">rnd_param</a></td></tr>
-<tr class="memdesc:a7510f05e63328fa13cf2a3a3bd6acd95"><td class="mdescLeft">&#160;</td><td class="mdescRight">User data that will be passed to the user_data parameter of the random number generator. <br /></td></tr>
-<tr class="separator:a7510f05e63328fa13cf2a3a3bd6acd95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6782a38fd79477bccf2313c676ea4fc"><td class="memItemLeft" align="right" valign="top"><a id="ad6782a38fd79477bccf2313c676ea4fc"></a>
-<a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#ad6782a38fd79477bccf2313c676ea4fc">f</a></td></tr>
-<tr class="memdesc:ad6782a38fd79477bccf2313c676ea4fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Secret part of the private key. If NULL a random value will be generated using rnd_func. <br /></td></tr>
-<tr class="separator:ad6782a38fd79477bccf2313c676ea4fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e801b7f5a174718e62a63dbdbc9cba5"><td class="memItemLeft" align="right" valign="top"><a id="a6e801b7f5a174718e62a63dbdbc9cba5"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#a6e801b7f5a174718e62a63dbdbc9cba5">rnd_param</a></td></tr>
+<tr class="memdesc:a6e801b7f5a174718e62a63dbdbc9cba5"><td class="mdescLeft">&#160;</td><td class="mdescRight">User data that will be passed to the user_data parameter of the random number generator. <br /></td></tr>
+<tr class="separator:a6e801b7f5a174718e62a63dbdbc9cba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae535c467bee60483e206f5476e6f48b"><td class="memItemLeft" align="right" valign="top"><a id="aae535c467bee60483e206f5476e6f48b"></a>
+<a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#aae535c467bee60483e206f5476e6f48b">f</a></td></tr>
+<tr class="memdesc:aae535c467bee60483e206f5476e6f48b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Secret part of the private key. If NULL a random value will be generated using rnd_func. <br /></td></tr>
+<tr class="separator:aae535c467bee60483e206f5476e6f48b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa44d097f5c6d379e6abc71888733cdb"><td class="memItemLeft" align="right" valign="top"><a id="aaa44d097f5c6d379e6abc71888733cdb"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#aaa44d097f5c6d379e6abc71888733cdb">max_sigrl_entries</a></td></tr>
+<tr class="memdesc:aaa44d097f5c6d379e6abc71888733cdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of possible entries in <a class="el" href="struct_sig_rl.html" title="signature based revocation list ">SigRl</a>. <br /></td></tr>
+<tr class="separator:aaa44d097f5c6d379e6abc71888733cdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a70925178dde0be7ab6f9c194cbea83"><td class="memItemLeft" align="right" valign="top"><a id="a2a70925178dde0be7ab6f9c194cbea83"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#a2a70925178dde0be7ab6f9c194cbea83">max_allowed_basenames</a></td></tr>
+<tr class="memdesc:a2a70925178dde0be7ab6f9c194cbea83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of allowed base names. <br /></td></tr>
+<tr class="separator:a2a70925178dde0be7ab6f9c194cbea83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a866b01e417a627766e0dd79a0bb2e5db"><td class="memItemLeft" align="right" valign="top"><a id="a866b01e417a627766e0dd79a0bb2e5db"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_member_params.html#a866b01e417a627766e0dd79a0bb2e5db">max_precomp_sig</a></td></tr>
+<tr class="memdesc:a866b01e417a627766e0dd79a0bb2e5db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of precomputed signatures. <br /></td></tr>
+<tr class="separator:a866b01e417a627766e0dd79a0bb2e5db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Software only specific member parameters. </p>
 <p>Implementation specific configuration parameters.</p>
+<p>Tiny only specific member parameters.</p>
 <p>You need to use a cryptographically secure random number generator to create a member context using <a class="el" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24" title="Computes the size in bytes required for a member context. ">EpidMemberGetSize</a> and <a class="el" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb" title="Initializes a new member context. ">EpidMemberInit</a>. The <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c" title="Generates random data. ">BitSupplier</a> is provided as a function prototype for your own implementation of the random number generator. </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+</div><hr/>The documentation for this struct was generated from the following files:<ul>
 <li>epid/member/<a class="el" href="software__member_8h.html">software_member.h</a></li>
+<li>epid/member/<a class="el" href="tiny__member_8h.html">tiny_member.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="struct_member_params.html">MemberParams</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="struct_member_params.html">MemberParams</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

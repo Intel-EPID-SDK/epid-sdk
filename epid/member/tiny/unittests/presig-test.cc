@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ namespace {
 
 ///////////////////////////////////////////////////////////////////////
 // EpidAddPreSigs
-TEST_F(EpidMemberTest, DISABLED_AddPreSigsFailsGivenNullPointer) {
+TEST_F(EpidMemberTest, AddPreSigsFailsGivenNullPointer) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
@@ -49,53 +49,55 @@ TEST_F(EpidMemberTest, DISABLED_AddPreSigsFailsGivenNullPointer) {
   EXPECT_EQ(kEpidBadArgErr, EpidAddPreSigs(nullptr, 1));
 }
 
-TEST_F(EpidMemberTest, DISABLED_AddPreSigsFailsGivenHugeNumberOfPreSigs) {
+TEST_F(EpidMemberTest, AddPreSigsFailsGivenHugeNumberOfPreSigs) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  // number_presigs = 0x80..01 of size equal to sizeof(size_t)
-  EXPECT_NE(kEpidNoErr, EpidAddPreSigs(member, (SIZE_MAX >> 1) + 2));
+  // by default number of presigs is 1
+  EXPECT_NE(kEpidNoErr, EpidAddPreSigs(member, 2));
+}
+
+TEST_F(EpidMemberTest, DefaultNumberOfPresigIsOne) {
+  Prng my_prng;
+  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
+                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+
+  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 1));
+  ASSERT_EQ(kEpidBadArgErr, EpidAddPreSigs(member, 1));
+  EXPECT_EQ((size_t)1, EpidGetNumPreSigs(member));
 }
 
 TEST_F(EpidMemberTest,
-       DISABLED_AddPreSigsComputesSpecifiedNumberOfPresigsIfInputPresigsNull) {
+       AddPreSigsComputesSpecifiedNumberOfPresigsIfInputPresigsNull) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 2));
   ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 1));
   // request to generate 0 pre-computed signatures do nothing
   ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 0));
-  EXPECT_EQ((size_t)3, EpidGetNumPreSigs(member));
+  EXPECT_EQ((size_t)1, EpidGetNumPreSigs(member));
 }
 
-TEST_F(EpidMemberTest,
-       DISABLED_AddPreSigsAddsCorrectNumberOfPresigsGivenValidInput) {
+TEST_F(EpidMemberTest, AddPreSigsAddsCorrectNumberOfPresigsGivenValidInput) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  const size_t presigs1_added = 2;
-  const size_t presigs2_added = 3;
-
+  const size_t presigs_added = 1;
   // add
-  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, presigs1_added));
-  // extend
-  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, presigs2_added));
-  // add empty pre-computed signatures array does not affect internal pool
-  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, 0));
-  EXPECT_EQ(presigs1_added + presigs2_added, EpidGetNumPreSigs(member));
+  ASSERT_EQ(kEpidNoErr, EpidAddPreSigs(member, presigs_added));
+  EXPECT_EQ(presigs_added, EpidGetNumPreSigs(member));
 }
 
 ///////////////////////////////////////////////////////////////////////
 // EpidGetNumPreSigs
-TEST_F(EpidMemberTest, DISABLED_GetNumPreSigsReturnsZeroGivenNullptr) {
+TEST_F(EpidMemberTest, GetNumPreSigsReturnsZeroGivenNullptr) {
   EXPECT_EQ((size_t)0, EpidGetNumPreSigs(nullptr));
 }
 
-TEST_F(EpidMemberTest, DISABLED_NumPreSigsForNewleyCreatedContextIsZero) {
+TEST_F(EpidMemberTest, NumPreSigsForNewlyCreatedContextIsZero) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
@@ -103,12 +105,12 @@ TEST_F(EpidMemberTest, DISABLED_NumPreSigsForNewleyCreatedContextIsZero) {
   EXPECT_EQ((size_t)0, EpidGetNumPreSigs(member));
 }
 
-TEST_F(EpidMemberTest, DISABLED_GetNumPreSigsReturnsNumberOfAddedPresigs) {
+TEST_F(EpidMemberTest, GetNumPreSigsReturnsNumberOfAddedPresigs) {
   Prng my_prng;
   MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
 
-  const size_t presigs_added = 5;
+  const size_t presigs_added = 1;
 
   THROW_ON_EPIDERR(EpidAddPreSigs(member, presigs_added));
   EXPECT_EQ(presigs_added, EpidGetNumPreSigs(member));

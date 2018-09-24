@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   void const* signed_grp_rl, size_t signed_grp_rl_size,
                   VerifierRl const* ver_rl, size_t ver_rl_size,
                   void const* signed_pub_key, size_t signed_pub_key_size,
-                  struct EpidCaCertificate const* cacert, HashAlg hash_alg,
+                  struct EpidCaCertificate const* cacert,
                   void** verifier_precomp, size_t* verifier_precomp_size);
 
 #endif  // EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_

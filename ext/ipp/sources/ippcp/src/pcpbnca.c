@@ -190,8 +190,8 @@ void cpPackBigNumCtx(const IppsBigNumState* pBN, Ipp8u* pBuffer)
 {
    IppsBigNumState* pAlignedBuffer = (IppsBigNumState*)(IPP_ALIGNED_PTR((pBuffer), BN_ALIGNMENT));
    CopyBlock(pBN, pAlignedBuffer, sizeof(IppsBigNumState));
-   BN_NUMBER(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)NULL + IPP_UINT_PTR(BN_NUMBER(pBN))-IPP_UINT_PTR(pBN));
-   BN_BUFFER(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)NULL + IPP_UINT_PTR(BN_BUFFER(pBN))-IPP_UINT_PTR(pBN));
+   BN_NUMBER(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)IPP_UINT_PTR(BN_NUMBER(pBN))-IPP_UINT_PTR(pBN));
+   BN_BUFFER(pAlignedBuffer) = (BNU_CHUNK_T*)((Ipp8u*)IPP_UINT_PTR(BN_BUFFER(pBN))-IPP_UINT_PTR(pBN));
    CopyBlock(BN_NUMBER(pBN), (Ipp8u*)pAlignedBuffer+IPP_UINT_PTR(BN_NUMBER(pAlignedBuffer)), BN_ROOM(pBN)*sizeof(BNU_CHUNK_T));
    CopyBlock(BN_BUFFER(pBN), (Ipp8u*)pAlignedBuffer+IPP_UINT_PTR(BN_BUFFER(pAlignedBuffer)), BN_ROOM(pBN)*sizeof(BNU_CHUNK_T));
 }

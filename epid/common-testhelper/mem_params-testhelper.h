@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ extern "C" {
 #include "epid/common/types.h"
 #ifdef TPM_TSS
 #include "epid/member/tpm_member.h"
+#elif defined TINY
+#include "epid/member/tiny_member.h"
 #else
 #include "epid/member/software_member.h"
 #endif
@@ -33,7 +35,7 @@ extern "C" {
 /// Implementation specific configuration parameters.
 typedef struct MemberParams MemberParams;
 
-/// Set MemmberParams structure
+/// Set MemberParams structure
 /*!
 
 MemberParams had different structure between TPM_TSS build

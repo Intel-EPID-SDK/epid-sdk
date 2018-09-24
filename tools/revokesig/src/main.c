@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
 typedef struct SigRlRequestTop {
   EpidFileHeader header;  ///< Intel(R) EPID File Header
   GroupId gid;            ///< Intel(R) EPID Group ID
-  EpidSignature sig;      ///< Intel(R) EPID Signature
+  uint8_t sig[1];         ///< Intel(R) EPID Signature
 } SigRlRequestTop;
 
 /// Partial signature request, includes components after.
@@ -58,6 +58,22 @@ typedef struct SigRlRequestMid {
 static uint32_t htonl(uint32_t hostlong) {
   return (((hostlong & 0xFF) << 24) | ((hostlong & 0xFF00) << 8) |
           ((hostlong & 0xFF0000) >> 8) | ((hostlong & 0xFF000000) >> 24));
+}
+/// convert network to host byte order
+static uint32_t ntohl(uint32_t netlong) {
+  return (((netlong & 0xFF) << 24) | ((netlong & 0xFF00) << 8) |
+          ((netlong & 0xFF0000) >> 8) | ((netlong & 0xFF000000) >> 24));
+}
+
+/// Check if signature is a non-split signature
+bool IsNonSplitSignature(void const* sig, size_t sig_size) {
+  OctStr32 n2;
+  size_t min_size = sizeof(EpidNonSplitSignature) - sizeof(NrProof);
+  if (sig_size < min_size) return false;
+  n2 = ((EpidNonSplitSignature const*)sig)->n2;
+  if (ntohl(*(uint32_t*)&n2) * sizeof(NrProof) + min_size != sig_size)
+    return false;
+  return true;
 }
 
 /// Fill a single SigRlRequest structure
@@ -104,7 +120,7 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
                 char const* pubkey_file, char const* req_file,
                 char const* msg_str, size_t msg_size, bool verbose);
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_FAILURE;
@@ -118,24 +134,24 @@ int main(int argc, char* argv[]) {
   static bool verbose_flag = false;
 
   struct arg_file* sig_file = arg_file0(
-      NULL, "sig", "FILE",
+      "s", "sig", "FILE",
       "load signature to revoke from FILE (default: " SIG_DEFAULT ")");
   struct arg_str* msg =
-      arg_str0(NULL, "msg", "MESSAGE",
+      arg_str0("m", "msg", "MESSAGE",
                "MESSAGE used to generate signature to revoke (default: empty)");
   struct arg_file* msg_file =
-      arg_file0(NULL, "msgfile", "FILE",
+      arg_file0("M", "msgfile", "FILE",
                 "FILE containing message used to generate signature to revoke");
   struct arg_file* pubkey_file = arg_file0(
-      NULL, "gpubkey", "FILE",
+      "g", "gpubkey", "FILE",
       "load group public key from FILE (default: " PUBKEYFILE_DEFAULT ")");
   struct arg_file* cacert_file = arg_file1(
-      NULL, "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
+      "c", "capubkey", "FILE", "load IoT Issuing CA public key from FILE");
   struct arg_file* req_file = arg_file0(
-      NULL, "req", "FILE",
+      "o", "req", "FILE",
       "append signature revocation request to FILE (default: " REQFILE_DEFAULT
       ")");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -157,8 +173,10 @@ int main(int argc, char* argv[]) {
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !sig_file || !msg || !msg_file ||
+        !pubkey_file || !cacert_file || !req_file || !help || !verbose ||
+        !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -334,6 +352,14 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
       break;
     }
 
+    if (!IsNonSplitSignature(sig, sig_size)) {
+      log_error(
+          "signature type is not supported. "
+          "Only non-split signatures are supported.");
+      ret_value = EXIT_FAILURE;
+      break;
+    }
+
     // Group public key file
     pubkey_file_data = NewBufferFromFile(pubkey_file, &pubkey_file_size);
     if (!pubkey_file_data) {
@@ -381,7 +407,7 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
     if (FileExists(req_file)) {
       req_file_size = GetFileSize_S(req_file, SIZE_MAX - req_extra_space);
     } else {
-      log_msg("request file does not exsist, create new");
+      log_msg("request file does not exist, create new");
     }
 
     req_size = req_file_size + req_extra_space;
@@ -407,7 +433,7 @@ int MakeRequest(char const* cacert_file, char const* sig_file,
     // Report Settings
     if (verbose) {
       log_msg("==============================================");
-      log_msg("Reqest generated:");
+      log_msg("Request generated:");
       log_msg("");
       log_msg(" [in]  Request Len: %d", sizeof(SigRlRequestTop));
       log_msg(" [in]  Request: ");

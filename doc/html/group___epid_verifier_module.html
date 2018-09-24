@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -65,7 +65,7 @@ $(document).ready(function(){initNavTree('group___epid_verifier_module.html','')
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">verifier<div class="ingroups"><a class="el" href="group___epid_module.html">epid&amp;nbsp;</a></div></div>  </div>
+<div class="title">verifier<div class="ingroups"><a class="el" href="group___epid_module.html">epid</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -120,28 +120,19 @@ Functions</h2></td></tr>
 <tr class="memitem:ga1c3810ef361da678a1f77823bd9c37a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga1c3810ef361da678a1f77823bd9c37a6">EpidVerifierSetBasename</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, void const *basename, size_t basename_len)</td></tr>
 <tr class="memdesc:ga1c3810ef361da678a1f77823bd9c37a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the basename to be used by a verifier.  <a href="#ga1c3810ef361da678a1f77823bd9c37a6">More...</a><br /></td></tr>
 <tr class="separator:ga1c3810ef361da678a1f77823bd9c37a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae3f9c37628e18b880d8bbee3e7f55064"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gae3f9c37628e18b880d8bbee3e7f55064">EpidVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_epid_signature.html">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
-<tr class="memdesc:gae3f9c37628e18b880d8bbee3e7f55064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature and checks revocation status.  <a href="#gae3f9c37628e18b880d8bbee3e7f55064">More...</a><br /></td></tr>
-<tr class="separator:gae3f9c37628e18b880d8bbee3e7f55064"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac8a3147fc12af9af8289e76d28088ecf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac8a3147fc12af9af8289e76d28088ecf">EpidVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, void const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
+<tr class="memdesc:gac8a3147fc12af9af8289e76d28088ecf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature and checks revocation status.  <a href="#gac8a3147fc12af9af8289e76d28088ecf">More...</a><br /></td></tr>
+<tr class="separator:gac8a3147fc12af9af8289e76d28088ecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdtypes_8h.html#ad5c9d4ba3dc37783a528b0925dc981a0">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gae44bd8acbc1e7205aeedff0c7e2632a8">EpidAreSigsLinked</a> (<a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig1, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig2)</td></tr>
 <tr class="memdesc:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if two signatures are linked.  <a href="#gae44bd8acbc1e7205aeedff0c7e2632a8">More...</a><br /></td></tr>
 <tr class="separator:gae44bd8acbc1e7205aeedff0c7e2632a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">EpidVerifyBasicSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, void const *msg, size_t msg_len)</td></tr>
-<tr class="memdesc:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a member signature without revocation checks.  <a href="#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">More...</a><br /></td></tr>
-<tr class="separator:gac3b1f1a2bdba8eeeebbf1e0c8c00862e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac6e2fab59e3af8a33a74a5b201642700"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700">EpidNrVerify</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, void const *msg, size_t msg_len, <a class="el" href="struct_sig_rl_entry.html">SigRlEntry</a> const *sigrl_entry, <a class="el" href="struct_nr_proof.html">NrProof</a> const *proof)</td></tr>
-<tr class="memdesc:gac6e2fab59e3af8a33a74a5b201642700"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies the non-revoked proof for a single signature based revocation list entry.  <a href="#gac6e2fab59e3af8a33a74a5b201642700">More...</a><br /></td></tr>
-<tr class="separator:gac6e2fab59e3af8a33a74a5b201642700"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea">EpidCheckPrivRlEntry</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_basic_signature.html">BasicSignature</a> const *sig, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f)</td></tr>
-<tr class="memdesc:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a signature has not been revoked in the private key based revocation list.  <a href="#gaeb05e6faea6f09c0665b13adc6e7ddea">More...</a><br /></td></tr>
-<tr class="separator:gaeb05e6faea6f09c0665b13adc6e7ddea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga2a75c7d5775e852a7b6e24178dd4054f">EpidGetVerifierRlSize</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx)</td></tr>
 <tr class="memdesc:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of bytes required to serialize the verifier blacklist.  <a href="#ga2a75c7d5775e852a7b6e24178dd4054f">More...</a><br /></td></tr>
 <tr class="separator:ga2a75c7d5775e852a7b6e24178dd4054f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac857bff47e7d80363eac15285471fe81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81">EpidWriteVerifierRl</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *ctx, <a class="el" href="struct_verifier_rl.html">VerifierRl</a> *ver_rl, size_t ver_rl_size)</td></tr>
 <tr class="memdesc:gac857bff47e7d80363eac15285471fe81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serializes the verifier blacklist to a buffer.  <a href="#gac857bff47e7d80363eac15285471fe81">More...</a><br /></td></tr>
 <tr class="separator:gac857bff47e7d80363eac15285471fe81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">EpidBlacklistSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, <a class="el" href="struct_epid_signature.html">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
+<tr class="memitem:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69">EpidBlacklistSig</a> (<a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> *ctx, <a class="el" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">EpidSignature</a> const *sig, size_t sig_len, void const *msg, size_t msg_len)</td></tr>
 <tr class="memdesc:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a valid name-based signature to the verifier blacklist.  <a href="#ga8eaeb9f4a34e9e37ccdf342919f38c69">More...</a><br /></td></tr>
 <tr class="separator:ga8eaeb9f4a34e9e37ccdf342919f38c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -193,10 +184,8 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The input signatures should be verified using <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig()</a> before invocation. Behavior is undefined if either of the signatures cannot be verified.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig</a> </dd>
-<dd>
-EpidSignBasic </dd>
+<dl class="section note"><dt>Note</dt><dd>The input signatures should be verified using EpidVerifyBasicSig() before invocation. Behavior is undefined if either of the signatures cannot be verified.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd>EpidVerifyBasicSig </dd>
 <dd>
 <a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
 
@@ -217,7 +206,7 @@ EpidSignBasic </dd>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="struct_epid_signature.html">EpidSignature</a> const *&#160;</td>
+          <td class="paramtype"><a class="el" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">EpidSignature</a> const *&#160;</td>
           <td class="paramname"><em>sig</em>, </td>
         </tr>
         <tr>
@@ -267,62 +256,6 @@ EpidSignBasic </dd>
 
 </div>
 </div>
-<a id="gaeb05e6faea6f09c0665b13adc6e7ddea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaeb05e6faea6f09c0665b13adc6e7ddea">&#9670;&nbsp;</a></span>EpidCheckPrivRlEntry()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> EpidCheckPrivRlEntry </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_basic_signature.html">BasicSignature</a> const *&#160;</td>
-          <td class="paramname"><em>sig</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *&#160;</td>
-          <td class="paramname"><em>f</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Verifies a signature has not been revoked in the private key based revocation list. </p>
-<p>Used in constrained environments where, due to limited memory, it may not be possible to process through a large and potentially unbounded revocation list.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>The verifier context. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sig</td><td>The basic signature. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">f</td><td>The private key based revocation list entry.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section note"><dt>Note</dt><dd>Sig should be verified using <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig()</a> before invocation. Behavior is undefined if sig cannot be verified.</dd>
-<dd>
-This function should be used in conjunction with <a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700" title="Verifies the non-revoked proof for a single signature based revocation list entry. ">EpidNrVerify()</a> and <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig()</a>.</dd>
-<dd>
-If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the verify should be considered to have failed.</dd></dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a> </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
-<dd>
-<a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700" title="Verifies the non-revoked proof for a single signature based revocation list entry. ">EpidNrVerify</a> </dd>
-<dd>
-<a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig</a> </dd></dl>
-
-</div>
-</div>
 <a id="ga2a75c7d5775e852a7b6e24178dd4054f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga2a75c7d5775e852a7b6e24178dd4054f">&#9670;&nbsp;</a></span>EpidGetVerifierRlSize()</h2>
 
@@ -355,83 +288,6 @@ If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c
 <a class="el" href="group___epid_verifier_module.html#ga8eaeb9f4a34e9e37ccdf342919f38c69" title="Adds a valid name-based signature to the verifier blacklist. ">EpidBlacklistSig</a> </dd>
 <dd>
 <a class="el" href="group___epid_verifier_module.html#gac857bff47e7d80363eac15285471fe81" title="Serializes the verifier blacklist to a buffer. ">EpidWriteVerifierRl</a> </dd></dl>
-
-</div>
-</div>
-<a id="gac6e2fab59e3af8a33a74a5b201642700"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac6e2fab59e3af8a33a74a5b201642700">&#9670;&nbsp;</a></span>EpidNrVerify()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> EpidNrVerify </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_basic_signature.html">BasicSignature</a> const *&#160;</td>
-          <td class="paramname"><em>sig</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void const *&#160;</td>
-          <td class="paramname"><em>msg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>msg_len</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_sig_rl_entry.html">SigRlEntry</a> const *&#160;</td>
-          <td class="paramname"><em>sigrl_entry</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_nr_proof.html">NrProof</a> const *&#160;</td>
-          <td class="paramname"><em>proof</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Verifies the non-revoked proof for a single signature based revocation list entry. </p>
-<p>Used in constrained environments where, due to limited memory, it may not be possible to process through a large and potentially unbounded revocation list.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>The verifier context. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sig</td><td>The basic signature. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">msg</td><td>The message that was signed. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">msg_len</td><td>The size of msg in bytes. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sigrl_entry</td><td>The signature based revocation list entry. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">proof</td><td>The non-revoked proof.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Sig should be verified using <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig()</a> before invocation. Behavior is undefined if sig cannot be verified.</dd>
-<dd>
-This function should be used in conjunction with <a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig()</a> and <a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea" title="Verifies a signature has not been revoked in the private key based revocation list. ">EpidCheckPrivRlEntry()</a>.</dd>
-<dd>
-If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a>, the verification should be considered to have failed.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
-<dd>
-<a class="el" href="group___epid_verifier_module.html#gac3b1f1a2bdba8eeeebbf1e0c8c00862e" title="Verifies a member signature without revocation checks. ">EpidVerifyBasicSig</a> </dd>
-<dd>
-<a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea" title="Verifies a signature has not been revoked in the private key based revocation list. ">EpidCheckPrivRlEntry</a> </dd></dl>
 
 </div>
 </div>
@@ -649,6 +505,7 @@ It is the responsibility of the caller to free the memory pointed to by grp_rl a
 </div><div class="memdoc">
 
 <p>Sets the hash algorithm to be used by a verifier. </p>
+<p>The verifier uses the hash algorithm encoded in the Group ID by default. If allowed by the underlying implementation this function will override the default.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>The verifier context. </td></tr>
@@ -660,9 +517,7 @@ It is the responsibility of the caller to free the memory pointed to by grp_rl a
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a>, the hash algorithm used by the verifier is undefined.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
 <dd>
-<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890" title="Recognized hash algorithms. ">HashAlg</a></dd></dl>
-<p><b>Example</b> </p>
-<p><a class="el" href="_user_manual__verifying_an_intel_epid_signature.html">Verifying an Intel&reg; EPID Signature</a> </p>
+<a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890" title="Recognized hash algorithms. ">HashAlg</a> </dd></dl>
 
 </div>
 </div>
@@ -868,8 +723,8 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
 
 </div>
 </div>
-<a id="gae3f9c37628e18b880d8bbee3e7f55064"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae3f9c37628e18b880d8bbee3e7f55064">&#9670;&nbsp;</a></span>EpidVerify()</h2>
+<a id="gac8a3147fc12af9af8289e76d28088ecf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac8a3147fc12af9af8289e76d28088ecf">&#9670;&nbsp;</a></span>EpidVerify()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -883,7 +738,7 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="struct_epid_signature.html">EpidSignature</a> const *&#160;</td>
+          <td class="paramtype">void const *&#160;</td>
           <td class="paramname"><em>sig</em>, </td>
         </tr>
         <tr>
@@ -938,72 +793,9 @@ It is the responsibility of the caller to free the memory pointed to by sig_rl a
 <dl class="section note"><dt>Note</dt><dd>If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> or one of the values listed above the verify should be considered to have failed.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
 <dd>
-EpidSignBasic </dd>
-<dd>
 <a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a></dd></dl>
 <p><b>Example</b> </p>
 <p><a class="el" href="_user_manual__verifying_an_intel_epid_signature.html">Verifying an Intel&reg; EPID Signature</a> </p>
-
-</div>
-</div>
-<a id="gac3b1f1a2bdba8eeeebbf1e0c8c00862e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac3b1f1a2bdba8eeeebbf1e0c8c00862e">&#9670;&nbsp;</a></span>EpidVerifyBasicSig()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> EpidVerifyBasicSig </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___epid_verifier_module.html#gaf172a5f8f7f069d38c5838b723a1a85c">VerifierCtx</a> const *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_basic_signature.html">BasicSignature</a> const *&#160;</td>
-          <td class="paramname"><em>sig</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void const *&#160;</td>
-          <td class="paramname"><em>msg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>msg_len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Verifies a member signature without revocation checks. </p>
-<p>Used in constrained environments where, due to limited memory, it may not be possible to process through a large and potentially unbounded revocation list.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>The verifier context. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sig</td><td>The basic signature. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">msg</td><td>The message that was signed. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">msg_len</td><td>The size of msg in bytes.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360" title="Return status for SDK functions. ">EpidStatus</a></dd></dl>
-<dl class="section note"><dt>Note</dt><dd>This function should be used in conjunction with <a class="el" href="group___epid_verifier_module.html#gac6e2fab59e3af8a33a74a5b201642700" title="Verifies the non-revoked proof for a single signature based revocation list entry. ">EpidNrVerify()</a> and <a class="el" href="group___epid_verifier_module.html#gaeb05e6faea6f09c0665b13adc6e7ddea" title="Verifies a signature has not been revoked in the private key based revocation list. ">EpidCheckPrivRlEntry()</a>.</dd>
-<dd>
-If the result is not <a class="el" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9" title="no error ">kEpidNoErr</a> the verify should be considered to have failed.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group___epid_verifier_module.html#ga1d116daaee5466a1485d26ebc4e3ab70" title="Creates a new verifier context. ">EpidVerifierCreate</a> </dd>
-<dd>
-EpidSignBasic </dd>
-<dd>
-<a class="el" href="group___epid_member_module.html#ga74d1409a816cb52633564b793072da5f" title="Writes an Intel(R) EPID signature. ">EpidSign</a> </dd></dl>
 
 </div>
 </div>
@@ -1065,12 +857,13 @@ EpidSignBasic </dd>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

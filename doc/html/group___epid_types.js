@@ -84,6 +84,14 @@ var group___epid_types =
       [ "F", "struct_join_request.html#a005651506fd4511e8a3537f6c3634532", null ],
       [ "s", "struct_join_request.html#a73bf8989df5f90eb3d06e7a42ad74d1d", null ]
     ] ],
+    [ "SplitJoinRequest", "struct_split_join_request.html", [
+      [ "c", "struct_split_join_request.html#a7c7bd55893d9e42f70b20580181b1f0c", null ],
+      [ "F", "struct_split_join_request.html#a4cc4fa132b08b6dd4cdc0701135dffa3", null ],
+      [ "i", "struct_split_join_request.html#aa9c715654ed9822fb40bc89aac643291", null ],
+      [ "k", "struct_split_join_request.html#ab73799a5e0416a80e00c5477014a0cdc", null ],
+      [ "s", "struct_split_join_request.html#aeb51561edfd5e8afb1a16cb2cb45e241", null ],
+      [ "y", "struct_split_join_request.html#a9ed71c5b02dbf2172076906ca6cede9a", null ]
+    ] ],
     [ "BasicSignature", "struct_basic_signature.html", [
       [ "B", "struct_basic_signature.html#ae90cb6af66b010ae39913f033c1e65ac", null ],
       [ "c", "struct_basic_signature.html#a4daa94db5068db3f10960f3dd178d603", null ],
@@ -100,11 +108,25 @@ var group___epid_types =
       [ "snu", "struct_nr_proof.html#ae2e9f22089793a4d44a0f7f5cdb78a0c", null ],
       [ "T", "struct_nr_proof.html#ace535065bbf96502b893ac677dc8dcd3", null ]
     ] ],
-    [ "EpidSignature", "struct_epid_signature.html", [
-      [ "n2", "struct_epid_signature.html#a62a6b0ffcd5f68dd3d2786a58fe43017", null ],
-      [ "rl_ver", "struct_epid_signature.html#a4155f3f4f1223fc4ae50c94f5305def1", null ],
-      [ "sigma", "struct_epid_signature.html#a89d2e38223944310b6eeeadf6061a2dd", null ],
-      [ "sigma0", "struct_epid_signature.html#ab0fe5f98bff737fcfbfe0b4d658e83f2", null ]
+    [ "SplitNrProof", "struct_split_nr_proof.html", [
+      [ "c", "struct_split_nr_proof.html#a6c66462496462004fd8773e067dbdf05", null ],
+      [ "noncek", "struct_split_nr_proof.html#a908f7a2c9d1b7b0749ba1d707ba78af6", null ],
+      [ "smu", "struct_split_nr_proof.html#a1dab9fd1ccea5040d1e52a3185a0f1b7", null ],
+      [ "snu", "struct_split_nr_proof.html#ae63384bd5e9cf10bc8003fe9a17c0cf2", null ],
+      [ "T", "struct_split_nr_proof.html#a9ca85ae6cbec025aa47a8424828258fc", null ]
+    ] ],
+    [ "EpidNonSplitSignature", "struct_epid_non_split_signature.html", [
+      [ "n2", "struct_epid_non_split_signature.html#aeb2e765c1c106a12d1c40651e044c981", null ],
+      [ "rl_ver", "struct_epid_non_split_signature.html#aff5218e973dce83e2a1b9560a0046867", null ],
+      [ "sigma", "struct_epid_non_split_signature.html#a4e25006ca2f2b772f6bdb233e11df399", null ],
+      [ "sigma0", "struct_epid_non_split_signature.html#a3b6159c91861f586476cb07ac5eb7e86", null ]
+    ] ],
+    [ "EpidSplitSignature", "struct_epid_split_signature.html", [
+      [ "n2", "struct_epid_split_signature.html#a8fdaf817dae2ad4625ec8fc63544b78c", null ],
+      [ "nonce", "struct_epid_split_signature.html#a34293364723ebfaa4db406024cf578eb", null ],
+      [ "rl_ver", "struct_epid_split_signature.html#aa7a0499b3ca330717510d6147b295d78", null ],
+      [ "sigma", "struct_epid_split_signature.html#afe20efc32021d444a35328a9b004181f", null ],
+      [ "sigma0", "struct_epid_split_signature.html#a802c899a0752205fa33c3272422b3cbf", null ]
     ] ],
     [ "PrivRl", "struct_priv_rl.html", [
       [ "f", "struct_priv_rl.html#a60d73f9ef5fc81f117b3abadf8c18466", null ],
@@ -161,6 +183,7 @@ var group___epid_types =
       [ "data", "struct_ecdsa_private_key.html#a97efee9b4079f95d94a104f9a6d8c96d", null ]
     ] ],
     [ "ConstOctStr", "group___epid_types.html#gace6876a045f2c2694444b35ccb0844e2", null ],
+    [ "EpidSignature", "group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323", null ],
     [ "GroupId", "group___epid_types.html#gada666b48d0cbc301985405fde896f1de", null ],
     [ "IssuerNonce", "group___epid_types.html#ga55eb2193045bde31af3f551565126042", null ],
     [ "OctStr", "group___epid_types.html#ga3315fb24f4c5783b6d6eb107933390b0", null ],

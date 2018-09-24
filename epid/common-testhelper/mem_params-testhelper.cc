@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 /*!
  * \file
  * \brief Implementation of Intel(R) EPID specific predicates for Set MemParams
- * strcuture
+ * structure
  */
 #include "epid/common-testhelper/mem_params-testhelper.h"
 
@@ -27,6 +27,13 @@ void SetMemberParams(BitSupplier rnd_func, void* rnd_param, const FpElemStr* f,
   (void)rnd_func;
   (void)rnd_param;
   params->f = f;
+#elif defined TINY
+  params->rnd_func = rnd_func;
+  params->rnd_param = rnd_param;
+  params->f = f;
+  params->max_sigrl_entries = 5;
+  params->max_allowed_basenames = 5;
+  params->max_precomp_sig = 1;
 #else
   params->rnd_func = rnd_func;
   params->rnd_param = rnd_param;

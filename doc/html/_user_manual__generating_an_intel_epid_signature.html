@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -64,7 +64,7 @@ $(document).ready(function(){initNavTree('_user_manual__generating_an_intel_epid
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>This walkthrough of the <code>signmsg</code> example shows you how to use SDK APIs to generate an Intel&reg; EPID signature. <code>signmsg</code> is built during the <a class="el" href="_building_sdk.html">SDK build</a>.</p>
-<h1><a class="anchor" id="signmsgWalktrhu_overview"></a>
+<h1><a class="anchor" id="signmsgWalkthru_overview"></a>
 Summary</h1>
 <p>In the code example below, we take this approach:</p>
 <ul>
@@ -78,7 +78,7 @@ Signmsg Walkthrough</h1>
 <p><br />
 </p>
 <p>First, we include headers so we have access to needed declarations.</p>
-<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/signmsg.h&quot;</span></div><div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;string.h&gt;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="member_2api_8h.html">epid/member/api.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;src/prng.h&quot;</span></div></div><!-- fragment --></p>
+<p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;src/signmsg.h&quot;</span></div><div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;string.h&gt;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="file__parser_8h.html">epid/common/file_parser.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="member_2api_8h.html">epid/member/api.h</a>&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;src/prng.h&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;util/convutil.h&quot;</span></div></div><!-- fragment --></p>
 <p>The <code>prng.h</code> header provides access to a pseudo-random number generator needed for signing, while the utility headers are used by <code>signmsg</code> for logging and buffer management. The <code><a class="el" href="member_2api_8h.html" title="Intel(R) EPID SDK member API. ">epid/member/api.h</a></code> header provides access to the core member APIs. The <code><a class="el" href="file__parser_8h.html" title="Intel(R) EPID issuer material parsing utilities. ">epid/common/file_parser.h</a></code> header provides an API for parsing buffers formatted according to the various IoT Intel&reg; EPID binary file formats. The <code><a class="el" href="software__member_8h.html" title="Member creation parameters for software only implementation. ">epid/member/software_member.h</a></code> provides an implementation specific definition of <a class="el" href="struct_member_params.html" title="Software only specific member parameters. ">MemberParams</a>. The specific definition of <a class="el" href="struct_member_params.html" title="Software only specific member parameters. ">MemberParams</a> may differ dramatically between implementations.</p>
 <p><br />
 </p>
@@ -87,19 +87,19 @@ Signmsg Walkthrough</h1>
 <p><br />
 </p>
 <p>The core signing functionality is contained in <code>SignMsg</code>.</p>
-<p><div class="fragment"><div class="line"><a class="code" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> SignMsg(<span class="keywordtype">void</span> <span class="keyword">const</span>* msg, <span class="keywordtype">size_t</span> msg_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* basename,</div><div class="line">                   <span class="keywordtype">size_t</span> basename_len, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* signed_sig_rl,</div><div class="line">                   <span class="keywordtype">size_t</span> signed_sig_rl_size,</div><div class="line">                   <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* signed_pubkey,</div><div class="line">                   <span class="keywordtype">size_t</span> signed_pubkey_size, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* priv_key_ptr,</div><div class="line">                   <span class="keywordtype">size_t</span> privkey_size, <a class="code" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg,</div><div class="line">                   <a class="code" href="struct_member_precomp.html">MemberPrecomp</a>* member_precomp, <a class="code" href="struct_epid_signature.html">EpidSignature</a>** sig,</div><div class="line">                   <span class="keywordtype">size_t</span>* sig_len, <a class="code" href="struct_epid_ca_certificate.html">EpidCaCertificate</a> <span class="keyword">const</span>* cacert) {</div></div><!-- fragment --></p>
+<p><div class="fragment"><div class="line"><a class="code" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> SignMsg(<span class="keywordtype">void</span> <span class="keyword">const</span>* msg, <span class="keywordtype">size_t</span> msg_len, <span class="keywordtype">void</span> <span class="keyword">const</span>* basename,</div><div class="line">                   <span class="keywordtype">size_t</span> basename_len, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* signed_sig_rl,</div><div class="line">                   <span class="keywordtype">size_t</span> signed_sig_rl_size,</div><div class="line">                   <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* signed_pubkey,</div><div class="line">                   <span class="keywordtype">size_t</span> signed_pubkey_size, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <span class="keyword">const</span>* priv_key_ptr,</div><div class="line">                   <span class="keywordtype">size_t</span> privkey_size, <a class="code" href="struct_member_precomp.html">MemberPrecomp</a>* member_precomp,</div><div class="line">                   <a class="code" href="group___epid_types.html#ga05b5cdbec2345bac2dfcc63e7aa90323">EpidSignature</a>** sig, <span class="keywordtype">size_t</span>* sig_len,</div><div class="line">                   <a class="code" href="struct_epid_ca_certificate.html">EpidCaCertificate</a> <span class="keyword">const</span>* cacert) {</div></div><!-- fragment --></p>
 <p>The <code>SignMsg</code> parameters are either received by the member, or they are part of the member's configuration. The exceptions are the <code>sig</code> and <code>sig_len</code> parameters, which are used to output the signature.</p>
 <p>The verifier might send the message to the member or there may be another mechanism to choose the message, but the way the message is communicated is outside the scope of the Intel&reg; EPID scheme.</p>
 <p>We use the parameters <code>member_precomp</code> to pass in a pre-computation blob if provided. We can use the pre-computation blob to increase performance when verifying signatures repeatedly with the same group public key.</p>
 <p>The member knows the group public key and the member private key.</p>
-<p>The member and the verifier agree on the message, basename, hash algorithm, and SigRL that the member uses for signing.</p>
+<p>The member and the verifier agree on the message, basename, and SigRL that the member uses for signing.</p>
 <p><br />
 </p>
 <p>Next we do basic variable setup and argument checking.</p>
 <p><div class="fragment"><div class="line">  <a class="code" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a> sts = <a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360aa08f0d2e394b37694117a6a32bc71e6e">kEpidErr</a>;</div><div class="line">  <span class="keywordtype">void</span>* prng = NULL;</div><div class="line">  <a class="code" href="member_2api_8h.html#adfb10d5dfdadb0694792c7b06718e817">MemberCtx</a>* member = NULL;</div><div class="line">  <a class="code" href="struct_sig_rl.html">SigRl</a>* sig_rl = NULL;</div><div class="line"></div><div class="line">  <span class="keywordflow">do</span> {</div><div class="line">    <a class="code" href="struct_group_pub_key.html">GroupPubKey</a> pub_key = {0};</div><div class="line">    <a class="code" href="struct_priv_key.html">PrivKey</a> priv_key = {0};</div><div class="line">    <a class="code" href="struct_membership_credential.html">MembershipCredential</a> member_credential = {0};</div><div class="line">    <span class="keywordtype">size_t</span> sig_rl_size = 0;</div><div class="line">    <a class="code" href="struct_member_params.html">MemberParams</a> params = {0};</div><div class="line">    <span class="keywordtype">size_t</span> member_size = 0;</div><div class="line"></div><div class="line">    <span class="keywordflow">if</span> (!sig) {</div><div class="line">      sts = <a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ad134d6cc95a9dcb1b1a9f9c358047cbf">kEpidBadArgErr</a>;</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --></p>
 <p>We create pointers to resources to be allocated and use the <code>do {} while(0)</code> idiom so that we can reliably free resources on return from <code>SignMsg</code>.</p>
 <p>We create variables on the stack to hold the group public key and member private key.</p>
-<p>Finally we check to make sure that <code>sig</code> is a vaild pointer.</p>
+<p>Finally we check to make sure that <code>sig</code> is a valid pointer.</p>
 <p><br />
 </p>
 <p>Next, if group public key is passed we authenticate and extract the group public key using <a class="el" href="group___file_parser.html#ga43fdbc1bf2edd3695d21cb457365afbb" title="Extracts group public key from buffer in issuer binary format. ">EpidParseGroupPubKeyFile</a>.</p>
@@ -121,9 +121,6 @@ Signmsg Walkthrough</h1>
 </p>
 <p>Now that the inputs have been prepared, we create a member context using <a class="el" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24" title="Computes the size in bytes required for a member context. ">EpidMemberGetSize</a> and <a class="el" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb" title="Initializes a new member context. ">EpidMemberInit</a>.</p>
 <p><div class="fragment"><div class="line">    sts = <a class="code" href="group___epid_member_module.html#ga2b3c0cc1d8d4e50190ca94656fa36e24">EpidMemberGetSize</a>(&amp;params, &amp;member_size);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != sts) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div><div class="line">    member = (<a class="code" href="member_2api_8h.html#adfb10d5dfdadb0694792c7b06718e817">MemberCtx</a>*)calloc(1, member_size);</div><div class="line">    <span class="keywordflow">if</span> (!member) {</div><div class="line">      sts = <a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360ab7dfec784192a827a91a4b8a6054d01c">kEpidNoMemErr</a>;</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div><div class="line">    sts = <a class="code" href="group___epid_member_module.html#ga35273b8e75d51e312f0d2fd3aa094efb">EpidMemberInit</a>(&amp;params, member);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != sts) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --></p>
-<p>Then we set the hash algorithm to be used by the member using <a class="el" href="group___epid_member_module.html#ga9998eb454838ff5d232ff22ecbab31bf" title="Sets the hash algorithm to be used by a member. ">EpidMemberSetHashAlg</a>.</p>
-<p><div class="fragment"><div class="line">    sts = <a class="code" href="group___epid_member_module.html#ga9998eb454838ff5d232ff22ecbab31bf">EpidMemberSetHashAlg</a>(member, hash_alg);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a8a6861e14322ca9193498ffc955537f9">kEpidNoErr</a> != sts) {</div><div class="line">      <span class="keywordflow">break</span>;</div><div class="line">    }</div></div><!-- fragment --></p>
-<p>After the hash algorithm is set, future calls to <code>EpidSign</code> will use the same algorithm.</p>
 <p><br />
 </p>
 <p>If a pre-computation blob is provided to the top level application, we use it. Otherwise, we pass in <code>NULL</code>.</p>
@@ -177,12 +174,13 @@ Signmsg Walkthrough</h1>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ EpidStatus SetCalculatedEpid11CommitValues(
     EcPoint const* R2, EcPoint const* R3, FfElement const* R4, EcGroup* G1,
     EcGroup* G3, FiniteField* GT, Epid11CommitValues* values);
 
-/// Calculate Hash(t4 || nd || mSize || m) for Intel(R) EPID 1.1 Sign and Verfiy
+/// Calculate Hash(t4 || nd || mSize || m) for Intel(R) EPID 1.1 Sign and Verify
 /// algorithms
 /*!
   Calculate c = Hash(t4 || nd || mSize || m) where t4 is

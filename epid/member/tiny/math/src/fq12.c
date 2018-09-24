@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,16 +62,15 @@ void Fq12Sub(Fq12Elem* result, Fq12Elem const* left, Fq12Elem const* right) {
 }
 
 void Fq12Square(Fq12Elem* result, Fq12Elem const* in) {
-  Fq6Elem tmpa;
-  Fq6Elem* temp_a = &tmpa;
-  Fq6Square(temp_a, &in->z1);
+  Fq6Elem temp_a;
+  Fq6Square(&temp_a, &in->z1);
   Fq6Add(&result->z1, &in->z0, &in->z1);
   Fq6Square(&result->z0, &in->z0);
   Fq6Square(&result->z1, &result->z1);
   Fq6Sub(&result->z1, &result->z1, (&result->z0));
-  Fq6Sub(&result->z1, &result->z1, temp_a);
-  Fq6MulV(temp_a, temp_a);
-  Fq6Add((&result->z0), (&result->z0), temp_a);
+  Fq6Sub(&result->z1, &result->z1, &temp_a);
+  Fq6MulV(&temp_a, &temp_a);
+  Fq6Add((&result->z0), (&result->z0), &temp_a);
 }
 
 void Fq12Mul(Fq12Elem* result, Fq12Elem const* left, Fq12Elem const* right) {
@@ -107,22 +106,15 @@ void Fq12Neg(Fq12Elem* result, Fq12Elem const* in) {
   Fq6Neg(&result->z1, &in->z1);
 }
 
-void Fq12Set(Fq12Elem* result, uint32_t val) {
-  Fq12Clear(result);
-  FqSet(&(*result).z0.y0.x0, val);
-}
-
 void Fq12Exp(Fq12Elem* result, Fq12Elem const* base, VeryLargeInt const* exp) {
   int i;
   Fq12Elem tmp, tmp2, *const temp = &tmp, *const temp2 = &tmp2;
-  Fq12Clear(temp);
-  temp->z0.y0.x0.limbs.word[0]++;
+  Fq12Set(temp, 1);
   for (i = NUM_ECC_DIGITS * 32 - 1; i >= 0; i--) {
     Fq12Square(temp, temp);
     Fq12Mul(temp2, temp, base);
 
-    Fq12CondSet(temp, temp2, temp,
-                (int)((exp->word[i / 32] >> (i & 31)) & (0x1)));
+    Fq12CondSet(temp, temp2, temp, VliTestBit(exp, i));
   }
   Fq12Cp(result, temp);
 }
@@ -140,10 +132,6 @@ void Fq12MultiExp(Fq12Elem* result, Fq12Elem const* base0,
   Fq12Mul(result, result, &tmp);
   Fq12Exp(&tmp, base3, exp3);
   Fq12Mul(result, result, &tmp);
-}
-
-int Fq12Eq(Fq12Elem const* left, Fq12Elem const* right) {
-  return Fq6Eq(&left->z0, &right->z0) && Fq6Eq(&left->z0, &right->z0);
 }
 
 void Fq12Conj(Fq12Elem* result, Fq12Elem const* in) {
@@ -271,9 +259,18 @@ void Fq12MulSpecial(Fq12Elem* result, Fq12Elem const* left,
   Fq6Cp(r0, t2);
 }
 
+int Fq12Eq(Fq12Elem const* left, Fq12Elem const* right) {
+  return Fq6Eq(&left->z0, &right->z0) && Fq6Eq(&left->z0, &right->z0);
+}
+
 void Fq12Cp(Fq12Elem* result, Fq12Elem const* in) {
   Fq6Cp(&result->z0, &in->z0);
   Fq6Cp(&result->z1, &in->z1);
+}
+
+void Fq12Set(Fq12Elem* result, uint32_t val) {
+  Fq12Clear(result);
+  FqSet(&(*result).z0.y0.x0, val);
 }
 
 void Fq12Clear(Fq12Elem* result) {

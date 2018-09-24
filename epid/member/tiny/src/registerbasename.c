@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@
 #include "epid/member/tiny/src/allowed_basenames.h"
 #include "epid/member/tiny/src/context.h"
 
-EpidStatus EPID_API EpidRegisterBasename(MemberCtx* ctx, void const* basename,
-                                         size_t basename_len) {
+EpidStatus EPID_MEMBER_API EpidRegisterBasename(MemberCtx* ctx,
+                                                void const* basename,
+                                                size_t basename_len) {
   if (basename_len == 0) {
     return kEpidBadArgErr;
   }
@@ -38,10 +39,10 @@ EpidStatus EPID_API EpidRegisterBasename(MemberCtx* ctx, void const* basename,
              : kEpidNoMemErr;
 }
 
-EpidStatus EPID_API EpidClearRegisteredBasenames(MemberCtx* ctx) {
+EpidStatus EPID_MEMBER_API EpidClearRegisteredBasenames(MemberCtx* ctx) {
   if (!ctx) {
     return kEpidBadArgErr;
   }
-  InitBasenames(ctx->allowed_basenames, MAX_ALLOWED_BASENAMES);
+  InitBasenames(ctx->allowed_basenames, ctx->max_allowed_basenames);
   return kEpidNoErr;
 }

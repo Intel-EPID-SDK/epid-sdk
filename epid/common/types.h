@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
   ############################################################################*/
 #ifndef EPID_COMMON_TYPES_H_
 #define EPID_COMMON_TYPES_H_
+
+#include <stddef.h>
 
 #include <limits.h>  // for CHAR_BIT
 
@@ -213,6 +215,19 @@ typedef struct JoinRequest {
   FpElemStr s;  ///< an integer between [0, p-1]
 } JoinRequest;
 
+/// Split join request
+/*!
+ * Split join request: (F, c, s, k, i, y)
+ */
+typedef struct SplitJoinRequest {
+  G1ElemStr F;  ///< an element in G1
+  FpElemStr c;  ///< an integer between [0, p-1]
+  FpElemStr s;  ///< an integer between [0, p-1]
+  FpElemStr k;  ///< an integer between [0, p-1]
+  OctStr32 i;   ///< 32-bit unsigned integer
+  FqElemStr y;  ///< an integer between [0, q-1]
+} SplitJoinRequest;
+
 ////////////////////////
 
 /// Intel(R) EPID 2.0 basic signature.
@@ -230,11 +245,8 @@ typedef struct BasicSignature {
   FpElemStr sb;  ///< an integer between [0, p-1]
 } BasicSignature;
 
-///
+/// Non-revoked Proof.
 /*!
- * \brief
- * non-revoked Proof.
- *
  * Non-revoked Proof: (T, c, smu, snu)
  */
 typedef struct NrProof {
@@ -244,16 +256,46 @@ typedef struct NrProof {
   FpElemStr snu;  ///< an integer between [0, p-1]
 } NrProof;
 
+/// Split non-revoked Proof.
+/*!
+ * Split Non-revoked Proof: (T, c, smu, snu, noncek)
+ */
+typedef struct SplitNrProof {
+  G1ElemStr T;       ///< an element in G1
+  FpElemStr c;       ///< an integer between [0, p-1]
+  FpElemStr smu;     ///< an integer between [0, p-1]
+  FpElemStr snu;     ///< an integer between [0, p-1]
+  FpElemStr noncek;  ///< random number between [1, p-1]
+} SplitNrProof;
+
 /// Intel(R) EPID 2.0 Signature
+/*!
+ * Signature: (...)
+ */
+typedef void EpidSignature;
+
+/// Intel(R) EPID 2.0 Non-Split Signature
 /*!
  * Signature: (sigma0, RLver, n2, sigma[0], ..., sigma[n2-1])
  */
-typedef struct EpidSignature {
+typedef struct EpidNonSplitSignature {
   BasicSignature sigma0;  ///< basic signature
   OctStr32 rl_ver;        ///< revocation list version number
   OctStr32 n2;            ///< number of entries in SigRL
   NrProof sigma[1];       ///< array of non-revoked proofs (flexible array)
-} EpidSignature;
+} EpidNonSplitSignature;
+
+/// Intel(R) EPID 2.0 Split Signature
+/*!
+ * Signature: (sigma0, Nonce, RLver, n2, sigma[0], ..., sigma[n2-1])
+ */
+typedef struct EpidSplitSignature {
+  BasicSignature sigma0;  ///< basic signature
+  FpElemStr nonce;        ///< split signature nonce
+  OctStr32 rl_ver;        ///< revocation list version number
+  OctStr32 n2;            ///< number of entries in SigRL
+  SplitNrProof sigma[1];  ///< array of non-revoked proofs (flexible array)
+} EpidSplitSignature;
 
 /// private-key based revocation list.
 /*!

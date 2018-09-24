@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #include <cstdio>
 #include <initializer_list>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -39,10 +40,21 @@ extern "C" {
   }
 
 /// Macro used to indicate fatal error during unit test run
-#define THROW_NE(expected, actual)                                     \
-  if (expected != actual) {                                            \
-    printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect");  \
-    throw std::logic_error(std::string("Failed to call: ") + #actual); \
+#define THROW_NE(expected, actual)                                    \
+  if (expected != actual) {                                           \
+    std::ostringstream s;                                             \
+    s << #expected << " != " << #actual;                              \
+    printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect"); \
+    throw std::logic_error(s.str());                                  \
+  }
+
+/// Macro used to indicate fatal error during unit test run
+#define THROW_EQ(expected, actual)                                    \
+  if (expected == actual) {                                           \
+    std::ostringstream s;                                             \
+    s << #expected << " == " << #actual;                              \
+    printf("%s(%d): error: %s\n", __FILE__, __LINE__, "test defect"); \
+    throw std::logic_error(s.str());                                  \
   }
 
 #endif  // EPID_COMMON_TESTHELPER_ERRORS_TESTHELPER_H_

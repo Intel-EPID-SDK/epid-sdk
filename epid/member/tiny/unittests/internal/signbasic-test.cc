@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ extern "C" {
 #include "epid/member/tiny/src/serialize.h"
 #include "epid/member/tiny/src/signbasic.h"
 #include "epid/verifier/api.h"
+#include "epid/verifier/src/verifybasic.h"
 }
 
 #include "epid/common-testhelper/errors-testhelper.h"
@@ -75,14 +76,12 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha512) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   NativeBasicSignature native_basic_sig = {0};
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                       0, &native_basic_sig));
   // verify basic signature
   VerifierCtxObj ctx(this->kGroupPublicKey);
   BasicSignature basic_sig = {0};
   BasicSignatureSerialize(&basic_sig, &native_basic_sig);
-  EpidVerifierSetHashAlg(ctx, kSha512);
   EXPECT_EQ(kEpidSigValid,
             EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }
@@ -93,14 +92,12 @@ TEST_F(EpidMemberTest, SignBasicSucceedsUsingSha256) {
                       this->kMemberPrecomp, &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   NativeBasicSignature native_basic_sig = {0};
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha256));
   EXPECT_EQ(kEpidNoErr, EpidSignBasic(member, msg.data(), msg.size(), nullptr,
                                       0, &native_basic_sig));
   // verify basic signature
   VerifierCtxObj ctx(this->kGroupPublicKey);
   BasicSignature basic_sig = {0};
   BasicSignatureSerialize(&basic_sig, &native_basic_sig);
-  EpidVerifierSetHashAlg(ctx, kSha256);
   EXPECT_EQ(kEpidSigValid,
             EpidVerifyBasicSig(ctx, &basic_sig, msg.data(), msg.size()));
 }

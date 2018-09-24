@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@
 
 #include "epid/member/tiny/src/context.h"
 
-EpidStatus EPID_API EpidMemberSetHashAlg(MemberCtx* ctx, HashAlg hash_alg) {
+EpidStatus EPID_MEMBER_API EpidMemberSetHashAlg(MemberCtx* ctx,
+                                                HashAlg hash_alg) {
   if (!ctx) {
     return kEpidBadArgErr;
   }
-  if ((kSha512 != hash_alg) && (kSha256 != hash_alg)) {
+  if ((kSha512 != hash_alg) && (kSha512_256 != hash_alg) &&
+      (kSha384 != hash_alg) && (kSha256 != hash_alg)) {
     return kEpidBadArgErr;
   }
   ctx->hash_alg = hash_alg;

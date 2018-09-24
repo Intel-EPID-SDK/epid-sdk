@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@
 #include "gtest/gtest.h"
 
 extern "C" {
+#include "epid/common/src/sig_types.h"
 #include "epid/verifier/api.h"
+#include "epid/verifier/src/rlverify.h"
 }
 
 #include "epid/common-testhelper/errors-testhelper.h"
@@ -40,7 +42,8 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntryFailsGivenNullPtr) {
 
   VerifierCtxObj verifier(pub_key);
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[0];
-  BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
+  BasicSignature basic_signature =
+      ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
   EXPECT_EQ(kEpidBadArgErr,
             EpidCheckPrivRlEntry(nullptr, &basic_signature, &fp_str));
@@ -59,7 +62,8 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntryFailsGivenRevokedPrivKey) {
 
   VerifierCtxObj verifier(pub_key);
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[0];
-  BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
+  BasicSignature basic_signature =
+      ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
   EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));
@@ -77,7 +81,8 @@ TEST_F(EpidVerifierTest,
   VerifierCtxObj verifier(pub_key);
 
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[2];
-  BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
+  BasicSignature basic_signature =
+      ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
   EXPECT_EQ(kEpidSigRevokedInPrivRl,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));
@@ -92,7 +97,8 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntrySucceedsGivenUnRevokedPrivKey) {
 
   VerifierCtxObj verifier(pub_key);
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[0];
-  BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
+  BasicSignature basic_signature =
+      ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
   EXPECT_EQ(kEpidNoErr,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));
@@ -108,7 +114,8 @@ TEST_F(EpidVerifierTest,
 
   VerifierCtxObj verifier(pub_key);
   FpElemStr fp_str = ((PrivRl const*)priv_rl.data())->f[0];
-  BasicSignature basic_signature = ((EpidSignature const*)sig.data())->sigma0;
+  BasicSignature basic_signature =
+      ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
   EXPECT_EQ(kEpidNoErr,
             EpidCheckPrivRlEntry(verifier, &basic_signature, &fp_str));

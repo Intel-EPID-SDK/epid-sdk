@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,14 +18,18 @@
  * \file
  * \brief Verifier context implementation.
  */
+#define EXPORT_EPID_APIS
 #include "epid/verifier/src/context.h"
 #include <string.h>
 #include "epid/common/math/pairing.h"
 #include "epid/common/src/endian_convert.h"
 #include "epid/common/src/epid2params.h"
 #include "epid/common/src/memory.h"
+#include "epid/common/src/sig_types.h"
 #include "epid/common/src/sigrlvalid.h"
 #include "epid/verifier/api.h"
+
+#include "epid/common/src/gid_parser.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -111,11 +115,17 @@ static bool IsVerifierRlValid(GroupId const* gid, VerifierRl const* ver_rl,
   return true;
 }
 
-EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
-                              VerifierPrecomp const* precomp,
-                              VerifierCtx** ctx) {
+EpidStatus EPID_VERIFIER_API EpidVerifierCreate(GroupPubKey const* pubkey,
+                                                VerifierPrecomp const* precomp,
+                                                VerifierCtx** ctx) {
   EpidStatus result = kEpidErr;
   VerifierCtx* verifier_ctx = NULL;
+  HashAlg default_hash_alg =
+#ifdef TPM_TSS  // if build for TSS, make Sha256 default
+      kSha256;
+#else
+      kSha512;
+#endif
   if (!pubkey || !ctx) {
     return kEpidBadArgErr;
   }
@@ -127,21 +137,37 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
       break;
     }
 
+    verifier_ctx->sig_rl = NULL;
+    verifier_ctx->group_rl = NULL;
+    verifier_ctx->priv_rl = NULL;
+    verifier_ctx->verifier_rl = NULL;
+    verifier_ctx->was_verifier_rl_updated = false;
+    verifier_ctx->basename_hash = NULL;
+    verifier_ctx->basename = NULL;
+    verifier_ctx->basename_len = 0;
+    verifier_ctx->hash_alg = kInvalidHashAlg;
     // set the default hash algorithm
-    verifier_ctx->hash_alg = kSha512;
-#ifdef TPM_TSS  // if build for TSS, make Sha256 default
-    verifier_ctx->hash_alg = kSha256;
-#endif
+    result = EpidParseHashAlg(&pubkey->gid, &default_hash_alg);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    if ((kSha256 != default_hash_alg) && (kSha384 != default_hash_alg) &&
+        (kSha512 != default_hash_alg) && (kSha512_256 != default_hash_alg)) {
+      result = kEpidHashAlgorithmNotSupported;
+      break;
+    }
 
     // Internal representation of Epid2Params
     result = CreateEpid2Params(&verifier_ctx->epid2_params);
     if (kEpidNoErr != result) {
       break;
     }
+
     // Internal representation of Group Pub Key
     result = CreateGroupPubKey(pubkey, verifier_ctx->epid2_params->G1,
                                verifier_ctx->epid2_params->G2,
                                &verifier_ctx->pub_key);
+
     if (kEpidNoErr != result) {
       break;
     }
@@ -152,6 +178,12 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
     }
     // Allocate verifier_ctx->e12
     result = NewFfElement(verifier_ctx->epid2_params->GT, &verifier_ctx->e12);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    // Allocate verifier_ctx->e12_split
+    result =
+        NewFfElement(verifier_ctx->epid2_params->GT, &verifier_ctx->e12_split);
     if (kEpidNoErr != result) {
       break;
     }
@@ -179,14 +211,11 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
     if (kEpidNoErr != result) {
       break;
     }
-    verifier_ctx->sig_rl = NULL;
-    verifier_ctx->group_rl = NULL;
-    verifier_ctx->priv_rl = NULL;
-    verifier_ctx->verifier_rl = NULL;
-    verifier_ctx->was_verifier_rl_updated = false;
-    verifier_ctx->basename_hash = NULL;
-    verifier_ctx->basename = NULL;
-    verifier_ctx->basename_len = 0;
+    // set hash algorithm
+    result = EpidVerifierSetHashAlg(verifier_ctx, default_hash_alg);
+    if (kEpidNoErr != result) {
+      break;
+    }
     *ctx = verifier_ctx;
     result = kEpidNoErr;
   } while (0);
@@ -196,6 +225,7 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
     DeleteFfElement(&verifier_ctx->e2w);
     DeleteFfElement(&verifier_ctx->e22);
     DeleteFfElement(&verifier_ctx->e12);
+    DeleteFfElement(&verifier_ctx->e12_split);
     DeleteEpid2Params(&verifier_ctx->epid2_params);
     DeleteGroupPubKey(&verifier_ctx->pub_key);
     SAFE_FREE(verifier_ctx);
@@ -203,12 +233,13 @@ EpidStatus EpidVerifierCreate(GroupPubKey const* pubkey,
   return result;
 }
 
-void EpidVerifierDelete(VerifierCtx** ctx) {
+void EPID_VERIFIER_API EpidVerifierDelete(VerifierCtx** ctx) {
   if (ctx && *ctx) {
     DeleteFfElement(&(*ctx)->eg12);
     DeleteFfElement(&(*ctx)->e2w);
     DeleteFfElement(&(*ctx)->e22);
     DeleteFfElement(&(*ctx)->e12);
+    DeleteFfElement(&(*ctx)->e12_split);
     DeleteGroupPubKey(&(*ctx)->pub_key);
     DeleteEpid2Params(&(*ctx)->epid2_params);
     (*ctx)->priv_rl = NULL;
@@ -222,8 +253,8 @@ void EpidVerifierDelete(VerifierCtx** ctx) {
   }
 }
 
-EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
-                                    VerifierPrecomp* precomp) {
+EpidStatus EPID_VERIFIER_API
+EpidVerifierWritePrecomp(VerifierCtx const* ctx, VerifierPrecomp* precomp) {
   EpidStatus result = kEpidErr;
   FfElement* e12 = NULL;   // an element in GT
   FfElement* e22 = NULL;   // an element in GT
@@ -265,8 +296,9 @@ EpidStatus EpidVerifierWritePrecomp(VerifierCtx const* ctx,
   return result;
 }
 
-EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
-                                 size_t priv_rl_size) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetPrivRl(VerifierCtx* ctx,
+                                                   PrivRl const* priv_rl,
+                                                   size_t priv_rl_size) {
   if (!ctx || !priv_rl || !ctx->pub_key) {
     return kEpidBadArgErr;
   }
@@ -287,8 +319,9 @@ EpidStatus EpidVerifierSetPrivRl(VerifierCtx* ctx, PrivRl const* priv_rl,
   return kEpidNoErr;
 }
 
-EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
-                                size_t sig_rl_size) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetSigRl(VerifierCtx* ctx,
+                                                  SigRl const* sig_rl,
+                                                  size_t sig_rl_size) {
   if (!ctx || !sig_rl || !ctx->pub_key) {
     return kEpidBadArgErr;
   }
@@ -310,8 +343,9 @@ EpidStatus EpidVerifierSetSigRl(VerifierCtx* ctx, SigRl const* sig_rl,
   return kEpidNoErr;
 }
 
-EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
-                                  size_t grp_rl_size) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetGroupRl(VerifierCtx* ctx,
+                                                    GroupRl const* grp_rl,
+                                                    size_t grp_rl_size) {
   if (!ctx || !grp_rl || !ctx->pub_key) {
     return kEpidBadArgErr;
   }
@@ -333,8 +367,9 @@ EpidStatus EpidVerifierSetGroupRl(VerifierCtx* ctx, GroupRl const* grp_rl,
   return kEpidNoErr;
 }
 
-EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
-                                     size_t ver_rl_size) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetVerifierRl(VerifierCtx* ctx,
+                                                       VerifierRl const* ver_rl,
+                                                       size_t ver_rl_size) {
   VerifierRl* verifier_rl = NULL;
   EpidStatus res = kEpidErr;
   EcPoint* B = NULL;
@@ -386,15 +421,17 @@ EpidStatus EpidVerifierSetVerifierRl(VerifierCtx* ctx, VerifierRl const* ver_rl,
     res = kEpidNoErr;
   } while (0);
   DeleteEcPoint(&B);
-  SAFE_FREE(ctx->verifier_rl);
   if (kEpidNoErr == res) {
+    SAFE_FREE(ctx->verifier_rl);
     ctx->verifier_rl = verifier_rl;
     ctx->was_verifier_rl_updated = false;
+  } else {
+    SAFE_FREE(verifier_rl);
   }
   return res;
 }
 
-size_t EpidGetVerifierRlSize(VerifierCtx const* ctx) {
+size_t EPID_VERIFIER_API EpidGetVerifierRlSize(VerifierCtx const* ctx) {
   size_t empty_size = 0;
   if (!ctx || !ctx->basename_hash) return 0;
   empty_size = sizeof(VerifierRl) - sizeof(((VerifierRl*)0)->K[0]);
@@ -403,8 +440,9 @@ size_t EpidGetVerifierRlSize(VerifierCtx const* ctx) {
          ntohl(ctx->verifier_rl->n4) * sizeof(ctx->verifier_rl->K[0]);
 }
 
-EpidStatus EpidWriteVerifierRl(VerifierCtx const* ctx, VerifierRl* ver_rl,
-                               size_t ver_rl_size) {
+EpidStatus EPID_VERIFIER_API EpidWriteVerifierRl(VerifierCtx const* ctx,
+                                                 VerifierRl* ver_rl,
+                                                 size_t ver_rl_size) {
   EpidStatus res = kEpidErr;
   size_t real_ver_rl_size = 0;
   if (!ctx || !ver_rl || !ctx->pub_key || !ctx->epid2_params ||
@@ -444,15 +482,31 @@ EpidStatus EpidWriteVerifierRl(VerifierCtx const* ctx, VerifierRl* ver_rl,
   return kEpidNoErr;
 }
 
-EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
-                            size_t sig_len, void const* msg, size_t msg_len) {
+EpidSigType EpidDetectSigType(void const* sig_data, size_t sig_len);
+
+EpidStatus EPID_VERIFIER_API EpidBlacklistSig(VerifierCtx* ctx,
+                                              EpidSignature const* sig,
+                                              size_t sig_len, void const* msg,
+                                              size_t msg_len) {
   EpidStatus result = kEpidErr;
   VerifierRl* ver_rl = NULL;
+  EpidSigType sig_type;
   if (!ctx || !sig || (!msg && msg_len > 0) || !ctx->epid2_params ||
       !ctx->epid2_params->G1) {
     return kEpidBadArgErr;
   }
-  if (sig_len < sizeof(EpidSignature) - sizeof(((EpidSignature*)0)->sigma[0])) {
+  sig_type = EpidDetectSigType(sig, sig_len);
+  if (kSigSplit == sig_type) {
+    if (sig_len < sizeof(EpidSplitSignature) -
+                      sizeof(((EpidSplitSignature*)0)->sigma[0])) {
+      return kEpidBadArgErr;
+    }
+  } else if (kSigNonSplit == sig_type) {
+    if (sig_len < sizeof(EpidNonSplitSignature) -
+                      sizeof(((EpidNonSplitSignature*)0)->sigma[0])) {
+      return kEpidBadArgErr;
+    }
+  } else {
     return kEpidBadArgErr;
   }
   if (!ctx->basename_hash) {
@@ -495,8 +549,11 @@ EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
 
     ctx->was_verifier_rl_updated = true;
     ++n4;
-    ver_rl->K[n4 - 1] = sig->sigma0.K;
-
+    if (kSigSplit == sig_type) {
+      ver_rl->K[n4 - 1] = ((EpidSplitSignature const*)sig)->sigma0.K;
+    } else {
+      ver_rl->K[n4 - 1] = ((EpidNonSplitSignature const*)sig)->sigma0.K;
+    }
     *((uint32_t*)(&ver_rl->n4)) = htonl(n4);
     ctx->verifier_rl = ver_rl;
     result = kEpidNoErr;
@@ -505,14 +562,15 @@ EpidStatus EpidBlacklistSig(VerifierCtx* ctx, EpidSignature const* sig,
   return result;
 }
 
-EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetHashAlg(VerifierCtx* ctx,
+                                                    HashAlg hash_alg) {
   EpidStatus result = kEpidErr;
   if (!ctx) {
     return kEpidBadArgErr;
   }
   if (kSha256 != hash_alg && kSha384 != hash_alg && kSha512 != hash_alg &&
       kSha512_256 != hash_alg)
-    return kEpidBadArgErr;
+    return kEpidHashAlgorithmNotSupported;
 
   if (ctx->hash_alg != hash_alg) {
     HashAlg previous_hash_alg = ctx->hash_alg;
@@ -523,13 +581,27 @@ EpidStatus EpidVerifierSetHashAlg(VerifierCtx* ctx, HashAlg hash_alg) {
       ctx->hash_alg = previous_hash_alg;
       return result;
     }
+
+    result =
+        GroupPubKeySetHashAlg(ctx->pub_key, ctx->epid2_params->G1, hash_alg);
+    if (kEpidNoErr != result) {
+      return result;
+    }
+
+    // e12_split = pairing(h1_split, g2)
+    result = Pairing(ctx->epid2_params->pairing_state, ctx->pub_key->h1_split,
+                     ctx->epid2_params->g2, ctx->e12_split);
+    if (kEpidNoErr != result) {
+      return result;
+    }
   }
   result = kEpidNoErr;
   return result;
 }
 
-EpidStatus EpidVerifierSetBasename(VerifierCtx* ctx, void const* basename,
-                                   size_t basename_len) {
+EpidStatus EPID_VERIFIER_API EpidVerifierSetBasename(VerifierCtx* ctx,
+                                                     void const* basename,
+                                                     size_t basename_len) {
   EpidStatus result = kEpidErr;
   EcPoint* basename_hash = NULL;
   uint8_t* basename_buffer = NULL;

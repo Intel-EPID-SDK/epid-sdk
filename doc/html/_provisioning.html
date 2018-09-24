@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -101,7 +101,7 @@ Dynamic Provisioning</h1>
 <p>In dynamic provisioning, the manufacturer needs to do the following:</p>
 <ol type="1">
 <li><b>Generate the <code>f</code> value</b> of the member private key.</li>
-<li><b>Generate the join request</b> using the <code>f</code> value and a nonce obtained from the issuer.</li>
+<li><b>Generate the join request</b> using the <code>f</code> value and a nonce obtained from the issuer. The SDK includes the <a class="el" href="_commandline_tools.html#Joinreq">Joinreq</a> command-line tool to automate this step.</li>
 <li><b>Send the join request to the issuer.</b> The issuer will respond to the join request by returning the membership credential.</li>
 <li><b>Provision the membership credential</b> to the member device.</li>
 </ol>
@@ -129,12 +129,13 @@ Issuer Material for Members</h2>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

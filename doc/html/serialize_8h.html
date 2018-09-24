@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(document).ready(function(){initNavTree('serialize_8h.html','');});
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a6789f8e258de2efc616c2f3109b7992b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="serialize_8h.html#a6789f8e258de2efc616c2f3109b7992b">SwapNativeAndPortableLayout</a> (void *dest, size_t dest_size, void const *src, size_t src_size)</td></tr>
-<tr class="memdesc:a6789f8e258de2efc616c2f3109b7992b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize or deserailize a sequence of math objects.  <a href="#a6789f8e258de2efc616c2f3109b7992b">More...</a><br /></td></tr>
+<tr class="memdesc:a6789f8e258de2efc616c2f3109b7992b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize or deserialize a sequence of math objects.  <a href="#a6789f8e258de2efc616c2f3109b7992b">More...</a><br /></td></tr>
 <tr class="separator:a6789f8e258de2efc616c2f3109b7992b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac74344e39b6d285c6a0258c4554712b0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="serialize_8h.html#ac74344e39b6d285c6a0258c4554712b0">Uint32Serialize</a> (<a class="el" href="struct_oct_str32.html">OctStr32</a> *dest, uint32_t src)</td></tr>
 <tr class="memdesc:ac74344e39b6d285c6a0258c4554712b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a uint32_t to a portable buffer.  <a href="#ac74344e39b6d285c6a0258c4554712b0">More...</a><br /></td></tr>
@@ -88,6 +88,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a7950febe703ea62457664eadc1e4eed9"><td class="memItemLeft" align="right" valign="top">void const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="serialize_8h.html#a7950febe703ea62457664eadc1e4eed9">VliDeserialize</a> (<a class="el" href="struct_very_large_int.html">VeryLargeInt</a> *dest, <a class="el" href="struct_big_num_str.html">BigNumStr</a> const *src)</td></tr>
 <tr class="memdesc:a7950febe703ea62457664eadc1e4eed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a large integer from a portable buffer.  <a href="#a7950febe703ea62457664eadc1e4eed9">More...</a><br /></td></tr>
 <tr class="separator:a7950febe703ea62457664eadc1e4eed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9e0146837a33e5f42accd8cef8404a5"><td class="memItemLeft" align="right" valign="top">void const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="serialize_8h.html#aa9e0146837a33e5f42accd8cef8404a5">VliProductDeserialize</a> (<a class="el" href="struct_very_large_int_product.html">VeryLargeIntProduct</a> *dest, <a class="el" href="struct_oct_str512.html">OctStr512</a> const *src)</td></tr>
+<tr class="memdesc:aa9e0146837a33e5f42accd8cef8404a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <a class="el" href="struct_very_large_int_product.html" title="Used for multiplication. ">VeryLargeIntProduct</a> from a portable buffer.  <a href="#aa9e0146837a33e5f42accd8cef8404a5">More...</a><br /></td></tr>
+<tr class="separator:aa9e0146837a33e5f42accd8cef8404a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fe8ff2aa7f73b807a7f5f5cdd8eba94"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="serialize_8h.html#a1fe8ff2aa7f73b807a7f5f5cdd8eba94">FqSerialize</a> (<a class="el" href="struct_fq_elem_str.html">FqElemStr</a> *dest, <a class="el" href="struct_fq_elem.html">FqElem</a> const *src)</td></tr>
 <tr class="memdesc:a1fe8ff2aa7f73b807a7f5f5cdd8eba94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an element of Fq to a portable buffer.  <a href="#a1fe8ff2aa7f73b807a7f5f5cdd8eba94">More...</a><br /></td></tr>
 <tr class="separator:a1fe8ff2aa7f73b807a7f5f5cdd8eba94"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,7 +159,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -232,7 +235,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -308,7 +311,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -384,7 +387,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -460,7 +463,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -540,7 +543,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Serialize or deserailize a sequence of math objects. </p>
+<p>Serialize or deserialize a sequence of math objects. </p>
 <p>Converts layouts between native and portable or between portable and native of the following types: <a class="el" href="struct_very_large_int.html" title="Large integer. ">VeryLargeInt</a> and <a class="el" href="struct_big_num_str.html" title="Serialized BigNum. ">BigNumStr</a>, <a class="el" href="struct_fq_elem.html" title="Element of Fq. ">FqElem</a> and <a class="el" href="struct_fq_elem_str.html" title="a number in [0, q-1] ">FqElemStr</a>, <a class="el" href="struct_fp_elem.html" title="Element of Fp. ">FpElem</a> and <a class="el" href="struct_fp_elem_str.html" title="a number in [0, p-1] ">FpElemStr</a>, <a class="el" href="struct_ecc_point_fq.html" title="Point in EFq. ">EccPointFq</a> and <a class="el" href="struct_g1_elem_str.html" title="Serialized G1 element. ">G1ElemStr</a>, <a class="el" href="struct_fq12_elem.html" title="Element of Fq12. ">Fq12Elem</a> and <a class="el" href="struct_fq12_elem_str.html" title="Serialized Fq2^3^2 element. ">Fq12ElemStr</a>.</p>
 <p>If input contain multiple values of supported types all will be converted.</p>
 <dl class="section note"><dt>Note</dt><dd>The following types are not supported: <a class="el" href="struct_very_large_int_product.html" title="Used for multiplication. ">VeryLargeIntProduct</a>.</dd>
@@ -592,7 +595,7 @@ This function have the assumptions that the input structures are packed such tha
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -668,7 +671,45 @@ This function have the assumptions that the input structures are packed such tha
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from to src </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
+
+</div>
+</div>
+<a id="aa9e0146837a33e5f42accd8cef8404a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9e0146837a33e5f42accd8cef8404a5">&#9670;&nbsp;</a></span>VliProductDeserialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void const* VliProductDeserialize </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_very_large_int_product.html">VeryLargeIntProduct</a> *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_oct_str512.html">OctStr512</a> const *&#160;</td>
+          <td class="paramname"><em>src</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read a <a class="el" href="struct_very_large_int_product.html" title="Used for multiplication. ">VeryLargeIntProduct</a> from a portable buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">dest</td><td>target buffer </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>source data </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to next byte after final data read from src </dd></dl>
 
 </div>
 </div>
@@ -714,13 +755,14 @@ This function have the assumptions that the input structures are packed such tha
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="serialize_8h.html">serialize.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="serialize_8h.html">serialize.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

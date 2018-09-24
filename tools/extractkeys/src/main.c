@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ typedef struct EpidCompressedKeyOutputFileKey {
 } EpidCompressedKeyOutputFileKey;
 #pragma pack()
 
-/// Main entrypoint
+/// Main entry-point
 int main(int argc, char* argv[]) {
   // intermediate return value for C style functions
   int ret_value = EXIT_SUCCESS;
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
   struct arg_int* num_keys_to_extract =
       arg_int1(NULL, NULL, "NUM", "number of keys to extract");
   struct arg_lit* compressed =
-      arg_lit0("c", "compressed", "extract compressed keys");
-  struct arg_lit* help = arg_lit0(NULL, "help", "display this help and exit");
+      arg_lit0("z", "compressed", "extract compressed keys");
+  struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
   struct arg_lit* verbose =
       arg_lit0("v", "verbose", "print status messages to stdout");
   struct arg_end* end = arg_end(ARGPARSE_ERROR_MAX);
@@ -105,8 +105,9 @@ int main(int argc, char* argv[]) {
   // set program name for logging
   set_prog_name(PROGRAM_NAME);
   do {
-    /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0) {
+    /* verify the argtable[] entries were allocated successfully */
+    if (arg_nullcheck(argtable) != 0 || !keyfile || !num_keys_to_extract ||
+        !compressed || !help || !verbose || !end) {
       /* NULL entries were detected, some allocations must have failed */
       printf("%s: insufficient memory\n", PROGRAM_NAME);
       ret_value = EXIT_FAILURE;
@@ -198,15 +199,15 @@ int main(int argc, char* argv[]) {
         log_error("failed to extract key #%lu from '%s'", i,
                   keyfile->filename[0]);
       } else {
-        char outkeyname[256] = {0};
-        snprintf(outkeyname, sizeof(outkeyname), "mprivkey%010u.dat", i);
+        char out_key_name[256] = {0};
+        snprintf(out_key_name, sizeof(out_key_name), "mprivkey%010u.dat", i);
 
-        if (FileExists(outkeyname)) {
-          log_error("file '%s' already exists", outkeyname);
+        if (FileExists(out_key_name)) {
+          log_error("file '%s' already exists", out_key_name);
           ret_value = EXIT_FAILURE;
           break;
         }
-        if (0 != WriteLoud(privkey, privkey_size, outkeyname)) {
+        if (0 != WriteLoud(privkey, privkey_size, out_key_name)) {
           log_error("failed to write key #%lu from '%s'", i,
                     keyfile->filename[0]);
         } else {

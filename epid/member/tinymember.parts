@@ -1,6 +1,6 @@
 # pylint:disable=I0011,W0401,W0614,C0103,E0602
 ############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,64 +35,66 @@ install_files = Pattern(
     excludes=['*/platform_specific*/'],
     recursive=True)
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(install_files, sub_dir='epid/member/tiny')
+env.Part(parts_file='tiny/stdlib/tiny_stdlib.parts')
+env.Part(parts_file='tiny/math/math.parts')
+env.DependsOn([
+    Component('tinycommon', requires=REQ.HEADERS),
+    Component('member.tiny_stdlib'),
+    Component('member.math')
+])
 
+env.Append(CPPPATH='#')
+
+if 'use-sigrl-by-reference' in env['MODE']:
+    env.Append(CPPDEFINES=['USE_SIGRL_BY_REFERENCE'])
 else:
-    env.Part(parts_file='tiny/stdlib/tiny_stdlib.parts')
-    env.Part(parts_file='tiny/math/math.parts')
-    env.DependsOn([
-        Component('tinycommon', requires=REQ.HEADERS),
-        Component('member.tiny_stdlib'), Component('member.math')
-    ])
+    max_sigrl_entries = ARGUMENTS.get('MAX_SIGRL_ENTRIES', 0)
+    n2_max = int(max_sigrl_entries)
+    if n2_max:
+        env.Append(CPPDEFINES=['MAX_SIGRL_ENTRIES={0}'.format(n2_max)])
 
-    env.Append(CPPPATH='#')
+if 'static' in env['MODE'] and 'shared' in env['MODE']:
+    PrintError("both shared and static build mode specified for '{}'. ".format(
+        env.subst('$PART_SHORT_NAME')))
+if 'static' not in env['MODE'] and 'shared' not in env['MODE']:
+    PrintMessage("build mode not specified for '{}'. Defaulting to '{}'"
+                 .format(env.subst('$PART_SHORT_NAME'), default_build_mode))
+    env['MODE'].append(default_build_mode)
 
-    if 'use-sigrl-by-reference' in env['MODE']:
-        env.Append(CPPDEFINES=['USE_SIGRL_BY_REFERENCE'])
-    else:
-        max_sigrl_entries = ARGUMENTS.get('MAX_SIGRL_ENTRIES', 0)
-        n2_max = int(max_sigrl_entries)
-        if n2_max:
-            env.Append(CPPDEFINES=['MAX_SIGRL_ENTRIES={0}'.format(n2_max)])
+env.Append(CPPDEFINES=['TINY'])
+env.ExportCPPDEFINES(['TINY'])
+if 'shared' in env['MODE']:
+    env.Append(CPPDEFINES=['SHARED'])
+    env.ExportCPPDEFINES(['SHARED'])
+    outputs = env.SharedLibrary('${PART_SHORT_NAME}', src_files)
+elif 'static' in env['MODE']:
+    outputs = env.Library('${PART_SHORT_NAME}', src_files)
+else:
+    print env.subst('$PART_SHORT_NAME')
+    PrintError("build mode not specified for '{}'. {}".format(
+        env.subst('$PART_SHORT_NAME'), "Specify either 'shared' or 'static'."))
 
-    if 'static' in env['MODE'] and 'shared' in env['MODE']:
-        PrintError("both shared and static build mode specified for '{}'. "
-                   .format(env.subst('$PART_SHORT_NAME')))
-    if 'static' not in env['MODE'] and 'shared' not in env['MODE']:
-        PrintMessage(
-            "build mode not specified for '{}'. Defaulting to '{}'"
-            .format(env.subst('$PART_SHORT_NAME'), default_build_mode))
-        env['MODE'].append(default_build_mode)
+sdk_outs = env.Sdk(outputs)
+env.SdkInclude(include_files, sub_dir='epid/${PART_SHORT_NAME}')
 
-    if 'shared' in env['MODE']:
-        env.Append(CPPDEFINES=['SHARED'])
-        env.ExportCPPDEFINES(['SHARED'])
-        outputs = env.SharedLibrary('${PART_SHORT_NAME}', src_files)
-    elif 'static' in env['MODE']:
-        outputs = env.Library('${PART_SHORT_NAME}', src_files)
-    else:
-        print env.subst('$PART_SHORT_NAME')
-        PrintError("build mode not specified for '{}'. {}".format(
-            env.subst('$PART_SHORT_NAME'),
-            "Specify either 'shared' or 'static'."))
+if 'shared' in env['MODE']:
+    env.InstallTarget(outputs)
 
-    sdk_outs = env.Sdk(outputs)
-    env.SdkInclude(include_files, sub_dir='epid/${PART_SHORT_NAME}')
+if 'install_lib' in env['MODE']:
+    env.InstallInclude(include_files, sub_dir='epid/${PART_SHORT_NAME}')
+    if 'static' in env['MODE']:
+        env.InstallLib(outputs)
 
-    if 'shared' in env['MODE']:
-        env.InstallTarget(outputs)
+is_utest_build = False
+for i in BUILD_TARGETS:
+    if "utest::" in str(i):
+        is_utest_build = True
+if is_utest_build:
+    env.Part(
+        parts_file='tiny/unittests/utest.parts',
+        CONFIG=DefaultEnvironment().subst('$CONFIG'))
+if env.get('fuzzer', False):
+    env.Part(parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
+             INSTALL_BIN='${INSTALL_TEST_BIN}',
+             CONFIG=DefaultEnvironment().subst('$CONFIG'))
 
-    if 'install_lib' in env['MODE']:
-        env.InstallInclude(include_files, sub_dir='epid/${PART_SHORT_NAME}')
-        if 'static' in env['MODE']:
-            env.InstallLib(outputs)
-
-    is_utest_build = False
-    for i in BUILD_TARGETS:
-        if "utest::" in str(i):
-            is_utest_build = True
-    if is_utest_build:
-        env.Part(
-            parts_file='tiny/unittests/utest.parts',
-            CONFIG=DefaultEnvironment().subst('$CONFIG'))

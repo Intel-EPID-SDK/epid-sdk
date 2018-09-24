@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ parts.tools.GnuCommon.common.gxx.Register(
             install_scanner=[PathFinder(['/usr/bin'])],
             opt_dirs=['/opt/'],
             script=None,
-            subst_vars={},
+            subst_vars={'OBJCOPY': 'arm-linux-gnueabi-objcopy'},
             shell_vars={'PATH': '${GCC.INSTALL_ROOT}'},
             test_file='arm-linux-gnueabi-g++')
     ]
@@ -49,7 +49,7 @@ parts.tools.GnuCommon.common.gxx.Register(
             install_scanner=[PathFinder(['/usr/bin'])],
             opt_dirs=['/opt/'],
             script=None,
-            subst_vars={},
+            subst_vars={'OBJCOPY': 'arm-linux-gnueabihf-objcopy'},
             shell_vars={'PATH': '${GCC.INSTALL_ROOT}'},
             test_file='arm-linux-gnueabihf-g++')
     ]
@@ -65,7 +65,7 @@ parts.tools.GnuCommon.common.gxx.Register(
             install_scanner=[PathFinder(['/usr/bin'])],
             opt_dirs=['/opt/'],
             script=None,
-            subst_vars={},
+            subst_vars={'OBJCOPY': 'aarch64-linux-gnu-objcopy'},
             shell_vars={'PATH': '${GCC.INSTALL_ROOT}'},
             test_file='aarch64-linux-gnu-g++')
     ]

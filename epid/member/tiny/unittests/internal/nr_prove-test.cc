@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ extern "C" {
 #include "epid/member/tiny/src/nrprove.h"
 #include "epid/member/tiny/src/serialize.h"
 #include "epid/member/tiny/src/signbasic.h"
+#include "epid/verifier/src/rlverify.h"
 }
 
 #include "epid/common-testhelper/errors-testhelper.h"
@@ -41,20 +42,20 @@ TEST_F(EpidMemberTest, NrProveFailsGivenInvalidSigRlEntry) {
   auto msg = this->kTest1Msg;
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
   NrProof proof;
-  // make sure that can generate NrProof using incorrupt sig_rl_enty
+  // make sure that can generate NrProof using incorrupt sig_rl_entry
   THROW_ON_EPIDERR(EpidNrProve(member, msg.data(), msg.size(), &this->kBasicSig,
                                &sig_rl->bk[0], &proof));
-  SigRlEntry sig_rl_enty_invalid_k = sig_rl->bk[0];
-  sig_rl_enty_invalid_k.k.x.data.data[31]++;  // make it not in EC group
+  SigRlEntry sig_rl_entry_invalid_k = sig_rl->bk[0];
+  sig_rl_entry_invalid_k.k.x.data.data[31]++;  // make it not in EC group
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrProve(member, msg.data(), msg.size(), &this->kBasicSig,
-                        &sig_rl_enty_invalid_k, &proof));
+                        &sig_rl_entry_invalid_k, &proof));
 
-  SigRlEntry sig_rl_enty_invalid_b = sig_rl->bk[0];
-  sig_rl_enty_invalid_b.b.x.data.data[31]++;  // make it not in EC group
+  SigRlEntry sig_rl_entry_invalid_b = sig_rl->bk[0];
+  sig_rl_entry_invalid_b.b.x.data.data[31]++;  // make it not in EC group
   EXPECT_EQ(kEpidBadArgErr,
             EpidNrProve(member, msg.data(), msg.size(), &this->kBasicSig,
-                        &sig_rl_enty_invalid_b, &proof));
+                        &sig_rl_entry_invalid_b, &proof));
 }
 
 TEST_F(EpidMemberTest, NrProveFailsGivenInvalidBasicSig) {
@@ -93,8 +94,8 @@ TEST_F(EpidMemberTest, GeneratesNrProofForEmptyMessage) {
   BasicSignatureSerialize(&basic_sig, &this->kBasicSig);
   // Check proof by doing an NrVerify
   VerifierCtxObj ctx(this->kGroupPublicKey);
-  EXPECT_EQ(kEpidNoErr,
-            EpidNrVerify(ctx, &basic_sig, nullptr, 0, &sig_rl->bk[0], &proof));
+  EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, nullptr, 0,
+                                     &sig_rl->bk[0], &proof, sizeof(NrProof)));
 }
 
 TEST_F(EpidMemberTest, GeneratesNrProofForMsgContainingAllPossibleBytes) {
@@ -114,7 +115,7 @@ TEST_F(EpidMemberTest, GeneratesNrProofForMsgContainingAllPossibleBytes) {
   BasicSignatureSerialize(&basic_sig, &this->kBasicSig);
   VerifierCtxObj ctx(this->kGroupPublicKey);
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
-                                     &sig_rl->bk[0], &proof));
+                                     &sig_rl->bk[0], &proof, sizeof(NrProof)));
 }
 
 TEST_F(EpidMemberTest, GeneratesNrProof) {
@@ -134,27 +135,31 @@ TEST_F(EpidMemberTest, GeneratesNrProof) {
   BasicSignatureSerialize(&basic_sig, &this->kBasicSig);
   VerifierCtxObj ctx(this->kGroupPublicKey);
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
-                                     &sig_rl->bk[0], &proof));
+                                     &sig_rl->bk[0], &proof, sizeof(NrProof)));
 }
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingSha512) {
   Prng my_prng;
-  MemberCtxObj member(this->kGroupPublicKey, this->kMemberPrivateKey,
-                      this->kMemberPrecomp, &Prng::Generate, &my_prng);
+  GroupPubKey pubkey = this->kGroupPublicKey;
+  PrivKey mprivkey = this->kMemberPrivateKey;
+  // update gid to use sha512
+  pubkey.gid.data[1] = 0x02;
+  mprivkey.gid.data[1] = 0x02;
+  MemberCtxObj member(pubkey, mprivkey, this->kMemberPrecomp, &Prng::Generate,
+                      &my_prng);
 
   BasicSignature basic_sig;
   auto msg = this->kTest1Msg;
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha512));
   NrProof proof;
   EXPECT_EQ(kEpidNoErr, EpidNrProve(member, msg.data(), msg.size(),
                                     &this->kBasicSig, &sig_rl->bk[0], &proof));
 
   // Check proof by doing an NrVerify
   BasicSignatureSerialize(&basic_sig, &this->kBasicSig);
-  VerifierCtxObj ctx(this->kGroupPublicKey);
+  VerifierCtxObj ctx(pubkey);
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
-                                     &sig_rl->bk[0], &proof));
+                                     &sig_rl->bk[0], &proof, sizeof(NrProof)));
 }
 
 TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256) {
@@ -165,7 +170,6 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256) {
   BasicSignature basic_sig;
   auto msg = this->kTest1Msg;
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(this->kSigRlData.data());
-  THROW_ON_EPIDERR(EpidMemberSetHashAlg(member, kSha256));
   NrProof proof;
   EXPECT_EQ(kEpidNoErr, EpidNrProve(member, msg.data(), msg.size(),
                                     &this->kBasicSig, &sig_rl->bk[0], &proof));
@@ -173,9 +177,8 @@ TEST_F(EpidMemberTest, GeneratesNrProofUsingSha256) {
   // Check proof by doing an NrVerify
   BasicSignatureSerialize(&basic_sig, &this->kBasicSig);
   VerifierCtxObj ctx(this->kGroupPublicKey);
-  THROW_ON_EPIDERR(EpidVerifierSetHashAlg(ctx, kSha256));
   EXPECT_EQ(kEpidNoErr, EpidNrVerify(ctx, &basic_sig, msg.data(), msg.size(),
-                                     &sig_rl->bk[0], &proof));
+                                     &sig_rl->bk[0], &proof, sizeof(NrProof)));
 }
 }  // namespace
 #endif  // SHARED

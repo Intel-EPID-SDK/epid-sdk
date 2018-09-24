@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@
 #include "epid/member/tiny/stdlib/endian.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
 
-EpidStatus EPID_API EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
-                                       size_t sig_rl_size) {
+EpidStatus EPID_MEMBER_API EpidMemberSetSigRl(MemberCtx* ctx,
+                                              SigRl const* sig_rl,
+                                              size_t sig_rl_size) {
   uint32_t n2_in = 0;
   size_t calculated_sig_rl_size = 0;
   uint32_t i = 0;
@@ -39,7 +40,7 @@ EpidStatus EPID_API EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
   n2_in = be32toh(sig_rl->n2);
 
   // sanity check SigRl size
-  if (n2_in > MAX_SIGRL_ENTRIES) {
+  if (n2_in > ctx->max_sigrl_entries) {
     return kEpidBadArgErr;
   }
   calculated_sig_rl_size = MIN_SIGRL_SIZE + n2_in * sizeof(sig_rl->bk[0]);
@@ -69,7 +70,7 @@ EpidStatus EPID_API EpidMemberSetSigRl(MemberCtx* ctx, SigRl const* sig_rl,
   }
   ctx->sig_rl->version = sig_rl->version;
   ctx->sig_rl->n2 = sig_rl->n2;
-  memset(ctx->sig_rl->bk, 0, MAX_SIGRL_ENTRIES * sizeof(*ctx->sig_rl->bk));
+  memset(ctx->sig_rl->bk, 0, ctx->max_sigrl_entries * sizeof(*ctx->sig_rl->bk));
 
   for (i = 0; i < n2_in; i++) {
     ctx->sig_rl->bk[i] = sig_rl->bk[i];

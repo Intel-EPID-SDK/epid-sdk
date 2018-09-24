@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class Epid11VerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kSigGrp01Member0Sha256kBsn0Data_0_255;
   /// the privrl of group X
   static const std::vector<uint8_t> kGrpXPrivRl;
-  /// currpted privrl of group X
+  /// corrupted privrl of group X
   static const std::vector<uint8_t> kGrpXCorruptedPrivRl;
   /// a single entry privrl for group X
   static const std::vector<uint8_t> kGrpXPrivRlSingleEntry;

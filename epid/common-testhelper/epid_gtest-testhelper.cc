@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -51,7 +51,10 @@ static const struct EpidStatusTextEntry kEnumToText[] = {
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidDuplicateErr),
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidInconsistentBasenameSetErr),
     EPID_STATUS_TEXT_ENTRY_VALUE(kEpidMathQuadraticNonResidueError),
-    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidOutOfSequenceError)};
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidOutOfSequenceError),
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidJoinRequestInvalid),
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidSchemaNotSupportedErr),
+    EPID_STATUS_TEXT_ENTRY_VALUE(kEpidKeyNotInGroupErr)};
 
 const char* EpidStatusToName(EpidStatus e) {
   size_t i = 0;

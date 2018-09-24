@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -34,7 +34,12 @@ EpidStatus CreateGroupPubKey(GroupPubKey const* pub_key_str, EcGroup* G1,
       result = kEpidMemAllocErr;
       break;
     }
+    pubkey->h1_str = pub_key_str->h1;
     result = NewEcPoint(G1, &pubkey->h1);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = NewEcPoint(G1, &pubkey->h1_split);
     if (kEpidNoErr != result) {
       break;
     }
@@ -70,9 +75,16 @@ EpidStatus CreateGroupPubKey(GroupPubKey const* pub_key_str, EcGroup* G1,
     DeleteEcPoint(&pubkey->w);
     DeleteEcPoint(&pubkey->h2);
     DeleteEcPoint(&pubkey->h1);
+    DeleteEcPoint(&pubkey->h1_split);
     SAFE_FREE(pubkey);
   }
   return result;
+}
+
+EpidStatus GroupPubKeySetHashAlg(GroupPubKey_* ctx, EcGroup* G1,
+                                 HashAlg hash_alg) {
+  return EcHash(G1, &ctx->h1_str, sizeof(ctx->h1_str), hash_alg, ctx->h1_split,
+                0);
 }
 
 void DeleteGroupPubKey(GroupPubKey_** pub_key) {
@@ -80,6 +92,7 @@ void DeleteGroupPubKey(GroupPubKey_** pub_key) {
     DeleteEcPoint(&(*pub_key)->w);
     DeleteEcPoint(&(*pub_key)->h2);
     DeleteEcPoint(&(*pub_key)->h1);
+    DeleteEcPoint(&(*pub_key)->h1_split);
 
     SAFE_FREE(*pub_key);
   }

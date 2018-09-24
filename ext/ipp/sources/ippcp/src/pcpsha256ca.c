@@ -441,7 +441,7 @@ static void cpFinalizeSHA256(DigestSHA256 pHash, const Ipp8u* inpBuffer, int inp
 
    /* put processed message length in bits */
    processedMsgLen = ENDIANNESS64(processedMsgLen<<3);
-   ((Ipp64u*)(buffer+bufferLen))[-1] = processedMsgLen;
+   *((Ipp64u*)(buffer+bufferLen-sizeof(Ipp64u))) = processedMsgLen;
 
    /* copmplete hash computation */
    updateFunc(pHash, buffer, bufferLen, sha256_cnt);
@@ -621,8 +621,8 @@ static IppStatus cpSHA256MessageDigest(DigestSHA256 hash, const Ipp8u* pMsg, int
       #endif
 
       /* message length in the multiple MBS and the rest */
-      int msgLenBlks = msgLen & (-MBS_SHA256);
-      int msgLenRest = msgLen - msgLenBlks;
+      int msgLenBlks = (msgLen / MBS_SHA256) * MBS_SHA256;
+      int msgLenRest = msgLen % MBS_SHA256;
 
       /* init hash */
       hash[0] = IV[0];

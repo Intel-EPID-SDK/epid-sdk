@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -25,6 +25,11 @@
 #include <string.h>
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/src/memory.h"
+
+/// A security parameter. In this version of Intel(R) EPID SDK, slen = 128
+#define EPID_SLEN 128
+/// number of bits required for random generation in Fp and Fq
+#define RAND_NUM_BITS (sizeof(BigNumStr) * CHAR_BIT + EPID_SLEN)
 
 #ifndef MIN
 /// Evaluate to minimum of two values
@@ -59,7 +64,7 @@ static size_t Nlz32(uint32_t x) {
   return nlz;
 }
 
-/// Bit size of bit number representated as array of Ipp32u.
+/// Bit size of bit number represented as array of Ipp32u.
 #define BNU_BITSIZE(bnu, len) \
   ((len) * sizeof(Ipp32u) * 8 - Nlz32((bnu)[(len)-1]))
 
@@ -161,9 +166,9 @@ EpidStatus NewFiniteField(BigNumStr const* prime, FiniteField** ff) {
   return result;
 }
 
-EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
-                                             FfElement const* ground_element,
-                                             int degree, FiniteField** ff) {
+EpidStatus NewFiniteFieldViaBinomialExtension(FiniteField const* ground_field,
+                                              FfElement const* ground_element,
+                                              int degree, FiniteField** ff) {
   EpidStatus result = kEpidErr;
   IppsGFpState* ipp_finitefield_ctx = NULL;
   IppOctStr ff_elem_str = NULL;
@@ -231,10 +236,6 @@ EpidStatus NewFiniteFieldViaBinomalExtension(FiniteField const* ground_field,
     }
     status = NewBigNum(ground_field->element_len * sizeof(Ipp32u), &modulus_0);
     if (kEpidNoErr != status) {
-      break;
-    }
-    if (kEpidNoErr != status) {
-      result = kEpidMathErr;
       break;
     }
     result =
@@ -534,7 +535,7 @@ EpidStatus SetFfElementOctString(ConstOctStr ff_elem_str, int strlen,
   }
   do {
     IppStatus sts;
-    // Ipp2017u2 contians a bug in ippsGFpSetElementOctString, does not check
+    // Ipp2017u2 contains a bug in ippsGFpSetElementOctString, does not check
     // whether ff_elem_str < modulus
     result = IsValidFfElemOctString(ff_elem_str, strlen, ff);
     if (kEpidNoErr != result) {
@@ -1061,7 +1062,7 @@ EpidStatus FfMultiExp(FiniteField* ff, FfElement const** p, BigNumStr const** b,
     }
     result = kEpidNoErr;
   } while (0);
-  if (NULL != bignums) {  // delete big nums only if it was really allocated
+  if (NULL != bignums) {  // delete bignums only if it was really allocated
     for (i = 0; i < ipp_m; i++) {
       DeleteBigNum(&bignums[i]);
     }
@@ -1263,15 +1264,14 @@ EpidStatus FfHash(FiniteField* ff, ConstOctStr msg, size_t msg_len,
   return result;
 }
 
-/// Number of tries for RNG
-#define RNG_WATCHDOG (10)
 EpidStatus FfGetRandom(FiniteField* ff, BigNumStr const* low_bound,
                        BitSupplier rnd_func, void* rnd_param, FfElement* r) {
   EpidStatus result = kEpidErr;
-  FfElement* low = NULL;
+  uint8_t element_str[RAND_NUM_BITS / CHAR_BIT] = {0};
+  BigNum* element = NULL;
+  BigNum* low = NULL;
+  BigNum* mod_low = NULL;
   do {
-    IppStatus sts = ippStsNoErr;
-    unsigned int rngloopCount = RNG_WATCHDOG;
     if (!ff || !low_bound || !rnd_func || !r) {
       result = kEpidBadArgErr;
       break;
@@ -1283,40 +1283,64 @@ EpidStatus FfGetRandom(FiniteField* ff, BigNumStr const* low_bound,
     if (ff->element_len != r->element_len) {
       return kEpidBadArgErr;
     }
-    // create a new FfElement to hold low_bound
-    result = NewFfElement(ff, &low);
+    if (ff->basic_degree != 1 || ff->ground_degree != 1) {
+      return kEpidBadArgErr;
+    }
+
+    // mod_low = ff->modulus - low
+    result = NewBigNum(sizeof(BigNumStr), &low);
     if (kEpidNoErr != result) {
       break;
     }
-    result = ReadFfElement(ff, low_bound, sizeof(*low_bound), low);
+    result = ReadBigNum(low_bound, sizeof(*low_bound), low);
     if (kEpidNoErr != result) {
       break;
     }
-    do {
-      int cmpResult = IPP_IS_NE;
-      sts = ippsGFpSetElementRandom(r->ipp_ff_elem, ff->ipp_ff,
-                                    (IppBitSupplier)rnd_func, rnd_param);
-      if (ippStsNoErr != sts) {
-        result = kEpidMathErr;
-        break;
-      }
-      sts = ippsGFpCmpElement(r->ipp_ff_elem, low->ipp_ff_elem, &cmpResult,
-                              ff->ipp_ff);
-      if (ippStsNoErr != sts) {
-        result = kEpidMathErr;
-        break;
-      }
-      if (IPP_IS_LT != cmpResult) {
-        // we have a valid value, proceed
-        result = kEpidNoErr;
-        break;
-      } else {
-        result = kEpidRandMaxIterErr;
-        continue;
-      }
-    } while (--rngloopCount);
+    result = NewBigNum(sizeof(BigNumStr), &mod_low);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = BigNumSub(ff->modulus_0, low, mod_low);
+    if (kEpidNoErr != result) {
+      break;
+    }
+
+    // r = (384_random_bits % mod_low) + low
+    result = NewBigNum(sizeof(element_str), &element);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    if (0 != rnd_func((unsigned int*)element_str,
+                      sizeof(element_str) * CHAR_BIT, rnd_param)) {
+      result = kEpidErr;
+      break;
+    }
+    result = ReadBigNum(element_str, sizeof(element_str), element);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = BigNumMod(element, mod_low, element);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = BigNumAdd(element, low, element);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = WriteBigNum(element, sizeof(element_str), element_str);
+    if (kEpidNoErr != result) {
+      break;
+    }
+    result = ReadFfElement(ff, element_str + EPID_SLEN / CHAR_BIT,
+                           sizeof(BigNumStr), r);
+    if (kEpidNoErr != result) {
+      break;
+    }
   } while (0);
-  DeleteFfElement(&low);
+  EpidZeroMemory(&element_str, sizeof(element_str));
+  DeleteBigNum(&element);
+  DeleteBigNum(&low);
+  DeleteBigNum(&mod_low);
   return result;
 }
 

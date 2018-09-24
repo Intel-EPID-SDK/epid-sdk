@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ bool CreateStack(size_t element_size, Stack** stack);
   Array of elements to push to the stack. Can be NULL
 
   \returns A pointer to an array of new elements in the stack or NULL if
-    stack is empty or push operation were failed.
+    stack is empty or push operation failed.
 
   \see CreateStack
 */
@@ -63,9 +63,9 @@ void* StackPushN(Stack* stack, size_t n, void* elements);
   \param[in] n
   Number of elements to pop from the stack
   \param[out] elements
-  Pointer to a buffer to store elements removed from the stack
+  Pointer to a buffer to store elements removed from the stack. Ignored if NULL
 
-  \returns true is operation succeed, false otherwise
+  \returns true if operation succeed, false otherwise
 
   \see CreateStack
 */

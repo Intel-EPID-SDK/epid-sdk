@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -110,34 +110,54 @@ TEST(TinySerializeTest, VliDeserializeWorks) {
 }
 
 ////////////////////////////////////////////////////////////////////////
+// VliProductDeserialize
+
+TEST(TinySerializeTest, VliProductDeserializeWorks) {
+  VeryLargeIntProduct vli = {0};
+  const VeryLargeIntProduct expected_vli = {
+      0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10, 0x11121314, 0x15161718,
+      0x191A1B1C, 0x1D1E1F20, 0x21222324, 0x25262728, 0x292a2b2c, 0x2d2e2f30,
+      0x31323334, 0x35363738, 0x393a3b3c, 0x3d3e3f40};
+  const OctStr512 serialize_vli = {
+      0x3d, 0x3e, 0x3f, 0x40, 0x39, 0x3a, 0x3b, 0x3c, 0x35, 0x36, 0x37,
+      0x38, 0x31, 0x32, 0x33, 0x34, 0x2d, 0x2e, 0x2f, 0x30, 0x29, 0x2a,
+      0x2b, 0x2c, 0x25, 0x26, 0x27, 0x28, 0x21, 0x22, 0x23, 0x24, 0x1D,
+      0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17, 0x18,
+      0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A, 0x0B,
+      0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
+  VliProductDeserialize(&vli, &serialize_vli);
+  EXPECT_EQ(expected_vli, vli);
+}
+
+////////////////////////////////////////////////////////////////////////
 // FqSerialize
 
 TEST(TinySerializeTest, FqSerializeWorks) {
-  const FqElem fqelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
-  FqElemStr serialize_fqelm = {0};
-  const FqElemStr expected_serialize_fqelm = {
+  const FqElem fq_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  FqElemStr serialize_fq_elem = {0};
+  const FqElemStr expected_serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  FqSerialize(&serialize_fqelm, &fqelm);
-  EXPECT_EQ(expected_serialize_fqelm, serialize_fqelm);
+  FqSerialize(&serialize_fq_elem, &fq_elem);
+  EXPECT_EQ(expected_serialize_fq_elem, serialize_fq_elem);
 }
 
 ////////////////////////////////////////////////////////////////////////
 // FqDeserialize
 
 TEST(TinySerializeTest, FqDeserializeWorks) {
-  const FqElemStr serialize_fqelm = {
+  const FqElemStr serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  FqElem fqelm = {0};
-  const FqElem expected_fqelm = {0x01020304, 0x05060708, 0x090A0B0C,
-                                 0x0D0E0F10, 0x11121314, 0x15161718,
-                                 0x191A1B1C, 0x1D1E1F20};
-  FqDeserialize(&fqelm, &serialize_fqelm);
-  EXPECT_EQ(expected_fqelm, fqelm);
+  FqElem fq_elem = {0};
+  const FqElem expected_fq_elem = {0x01020304, 0x05060708, 0x090A0B0C,
+                                   0x0D0E0F10, 0x11121314, 0x15161718,
+                                   0x191A1B1C, 0x1D1E1F20};
+  FqDeserialize(&fq_elem, &serialize_fq_elem);
+  EXPECT_EQ(expected_fq_elem, fq_elem);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -322,14 +342,14 @@ TEST(TinySerializeTest, Fq12DeserializeWorks) {
 // FpSerialize
 
 TEST(TinySerializeTest, FpSerializeWorks) {
-  const FpElem fpelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  const FpElem fp_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
   FpElemStr serialize_fpelm = {0};
   const FpElemStr expected_serialize_fpelm = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  FpSerialize(&serialize_fpelm, &fpelm);
+  FpSerialize(&serialize_fpelm, &fp_elem);
   EXPECT_EQ(expected_serialize_fpelm, serialize_fpelm);
 }
 
@@ -341,28 +361,28 @@ TEST(TinySerializeTest, FpDeserializeWorks) {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  FpElem fpelm = {0};
+  FpElem fp_elem = {0};
   const FpElem expected_fpelm = {0x01020304, 0x05060708, 0x090A0B0C,
                                  0x0D0E0F10, 0x11121314, 0x15161718,
                                  0x191A1B1C, 0x1D1E1F20};
-  FpDeserialize(&fpelm, &serialize_fpelm);
-  EXPECT_EQ(expected_fpelm, fpelm);
+  FpDeserialize(&fp_elem, &serialize_fpelm);
+  EXPECT_EQ(expected_fpelm, fp_elem);
 }
 
 ////////////////////////////////////////////////////////////////////////
 // EFqSerialize
 
 TEST(TinySerializeTest, EFqSerializeWorks) {
-  const FqElem fqelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
-  const EccPointFq efq_point = {fqelm, fqelm};
-  const FqElemStr serialize_fqelm = {
+  const FqElem fq_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  const EccPointFq efq_point = {fq_elem, fq_elem};
+  const FqElemStr serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
   G1ElemStr efq_point_serialize = {0};
-  const G1ElemStr expected_efq_point_serialize = {serialize_fqelm,
-                                                  serialize_fqelm};
+  const G1ElemStr expected_efq_point_serialize = {serialize_fq_elem,
+                                                  serialize_fq_elem};
   EFqSerialize(&efq_point_serialize, &efq_point);
   EXPECT_EQ(expected_efq_point_serialize, efq_point_serialize);
 }
@@ -371,15 +391,15 @@ TEST(TinySerializeTest, EFqSerializeWorks) {
 // EFqDeserialize
 
 TEST(TinySerializeTest, EFqDeserializeWorks) {
-  const FqElemStr serialize_fqelm = {
+  const FqElemStr serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  const G1ElemStr serialize_efq_point = {serialize_fqelm, serialize_fqelm};
+  const G1ElemStr serialize_efq_point = {serialize_fq_elem, serialize_fq_elem};
   EccPointFq efq_point = {0};
-  const FqElem fqelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
-  const EccPointFq expected_efq_point = {fqelm, fqelm};
+  const FqElem fq_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  const EccPointFq expected_efq_point = {fq_elem, fq_elem};
   EFqDeserialize(&efq_point, &serialize_efq_point);
   EXPECT_EQ(expected_efq_point, efq_point);
 }
@@ -388,16 +408,17 @@ TEST(TinySerializeTest, EFqDeserializeWorks) {
 // EFq2Serialize
 
 TEST(TinySerializeTest, EFq2SerializeWorks) {
-  const FqElem fqelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
-  const EccPointFq2 efq2_point = {{fqelm, fqelm}, {fqelm, fqelm}};
-  const FqElemStr serialize_fqelm = {
+  const FqElem fq_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  const EccPointFq2 efq2_point = {{fq_elem, fq_elem}, {fq_elem, fq_elem}};
+  const FqElemStr serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
   G2ElemStr efq2_point_serialize = {0};
   const G2ElemStr expected_efq2_point_serialize = {
-      {serialize_fqelm, serialize_fqelm}, {serialize_fqelm, serialize_fqelm}};
+      {serialize_fq_elem, serialize_fq_elem},
+      {serialize_fq_elem, serialize_fq_elem}};
   EFq2Serialize(&efq2_point_serialize, &efq2_point);
   EXPECT_EQ(expected_efq2_point_serialize, efq2_point_serialize);
 }
@@ -406,16 +427,18 @@ TEST(TinySerializeTest, EFq2SerializeWorks) {
 // EFq2Deserialize
 
 TEST(TinySerializeTest, EFq2DeserializeWorks) {
-  const FqElemStr serialize_fqelm = {
+  const FqElemStr serialize_fq_elem = {
       0x1D, 0x1E, 0x1F, 0x20, 0x19, 0x1A, 0x1B, 0x1C, 0x15, 0x16, 0x17,
       0x18, 0x11, 0x12, 0x13, 0x14, 0x0D, 0x0E, 0x0F, 0x10, 0x09, 0x0A,
       0x0B, 0x0C, 0x05, 0x06, 0x07, 0x08, 0x01, 0x02, 0x03, 0x04};
-  const G2ElemStr serialize_efq2_point = {{serialize_fqelm, serialize_fqelm},
-                                          {serialize_fqelm, serialize_fqelm}};
+  const G2ElemStr serialize_efq2_point = {
+      {serialize_fq_elem, serialize_fq_elem},
+      {serialize_fq_elem, serialize_fq_elem}};
   EccPointFq2 efq2_point = {0};
-  const FqElem fqelm = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
-                        0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
-  const EccPointFq2 expected_efq2_point = {{fqelm, fqelm}, {fqelm, fqelm}};
+  const FqElem fq_elem = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+                          0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
+  const EccPointFq2 expected_efq2_point = {{fq_elem, fq_elem},
+                                           {fq_elem, fq_elem}};
   EFq2Deserialize(&efq2_point, &serialize_efq2_point);
   EXPECT_EQ(expected_efq2_point, efq2_point);
 }

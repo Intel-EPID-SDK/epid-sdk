@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ bool IsSigRlValid(GroupId const* gid, SigRl const* sig_rl, size_t sig_rl_size) {
   if (ntohl(sig_rl->n2) > (SIZE_MAX - kMinSigRlSize) / sizeof(sig_rl->bk[0])) {
     return false;
   }
-  // sanity check of intput SigRl size
+  // sanity check of input SigRl size
   input_sig_rl_size = kMinSigRlSize + ntohl(sig_rl->n2) * sizeof(sig_rl->bk[0]);
   if (input_sig_rl_size != sig_rl_size) {
     return false;

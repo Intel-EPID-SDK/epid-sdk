@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -77,38 +77,7 @@ MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key,
     DeleteMember(&ctx_);
     printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
     throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionKey()");
-  }
-  sts = EpidMemberStartup(ctx_);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidMemberStartup()");
-  }
-}
-
-MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-                           HashAlg hash_alg, BitSupplier rnd_func,
-                           void* rnd_param)
-    : ctx_(nullptr) {
-  EpidStatus sts = kEpidErr;
-  MemberParams params = {0};
-  SetMemberParams(rnd_func, rnd_param, &priv_key.f, &params);
-  ctx_ = CreateMember(&params);
-  sts = EpidMemberSetHashAlg(ctx_, hash_alg);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidMemberSetHashAlg()");
-  }
-  sts = EpidProvisionKey(ctx_, &pub_key, &priv_key, nullptr);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionKey()");
+                           "EpidProvisionCredential()");
   }
   sts = EpidMemberStartup(ctx_);
   if (kEpidNoErr != sts) {
@@ -154,37 +123,6 @@ MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
   }
 }
 
-MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-                           HashAlg hash_alg, MemberPrecomp const& precomp,
-                           BitSupplier rnd_func, void* rnd_param)
-    : ctx_(nullptr) {
-  EpidStatus sts = kEpidErr;
-  MemberParams params = {0};
-  SetMemberParams(rnd_func, rnd_param, &priv_key.f, &params);
-  ctx_ = CreateMember(&params);
-  sts = EpidMemberSetHashAlg(ctx_, hash_alg);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionKey()");
-  }
-  sts = EpidProvisionKey(ctx_, &pub_key, &priv_key, &precomp);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionKey()");
-  }
-  sts = EpidMemberStartup(ctx_);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidMemberStartup()");
-  }
-}
-
 MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key,
                            MembershipCredential const& cred,
                            MemberPrecomp const& precomp, BitSupplier rnd_func,
@@ -195,37 +133,6 @@ MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key,
   SetMemberParams(rnd_func, rnd_param, nullptr, &params);
   ctx_ = CreateMember(&params);
   sts = EpidProvisionCredential(ctx_, &pub_key, &cred, &precomp);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionCredential()");
-  }
-  sts = EpidMemberStartup(ctx_);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidMemberStartup()");
-  }
-}
-
-MemberCtxObj::MemberCtxObj(GroupPubKey const& pub_key,
-                           MembershipCredential const& cred, HashAlg hash_alg,
-                           BitSupplier rnd_func, void* rnd_param)
-    : ctx_(nullptr) {
-  EpidStatus sts = kEpidErr;
-  MemberParams params = {0};
-  SetMemberParams(rnd_func, rnd_param, nullptr, &params);
-  ctx_ = CreateMember(&params);
-  sts = EpidMemberSetHashAlg(ctx_, hash_alg);
-  if (kEpidNoErr != sts) {
-    DeleteMember(&ctx_);
-    printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");
-    throw std::logic_error(std::string("Failed to call: ") +
-                           "EpidProvisionKey()");
-  }
-  sts = EpidProvisionCredential(ctx_, &pub_key, &cred, nullptr);
   if (kEpidNoErr != sts) {
     DeleteMember(&ctx_);
     printf("%s(%d): %s\n", __FILE__, __LINE__, "test defect:");

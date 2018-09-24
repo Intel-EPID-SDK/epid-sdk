@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,11 +56,14 @@ config.VersionRange(
             # do not link standard system libraries
             '-nodefaultlibs',
             '-nostdlib',
-            # do not use stadard system startup
+            # do not use standard system startup
             '-nostartfiles',
             # remove all symbol table and relocation information
             '-s',
             # link only what is used
             '-Xlinker',
             '--gc-sections',
-        ],))
+            # Deny undefined symbols
+            '-Wl,--no-undefined',
+        ],
+    ))

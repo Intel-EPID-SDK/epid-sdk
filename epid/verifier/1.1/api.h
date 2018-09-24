@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -46,10 +46,9 @@
   verifier context (::Epid11VerifierCtx) represents a verifier for a
   single group.
 
-  The Intel&reg; EPID 1.1 specification does not provide hash algorithm
-  selection and verifier blacklist revocation. Therefore, APIs such as
-  ::EpidVerifierSetHashAlg and ::EpidVerifierSetVerifierRl are not
-  available.
+  The Intel&reg; EPID 1.1 specification does not provide verifier
+  blacklist revocation. Therefore, APIs such as ::EpidVerifierSetVerifierRl
+  are not available.
 
   You can find the Intel&reg; EPID 1.1 API headers in the 1.1
   directories, for example, `epid/verifier/1.1/api.h`.

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -35,14 +35,14 @@ struct EcGroupDeleter {
   }
 };
 
-/// ecgroup deleter singlton
+/// ecgroup deleter singleton
 EcGroupDeleter ecgroup_deleter;
 
 /// Internal state of the ecgroup wrapper
 struct EcGroupObj::State {
   /// The stored EcGroup
   std::shared_ptr<EcGroup> group_;
-  FiniteFieldObj fintefield_;
+  FiniteFieldObj finite_field_;
 
   /// constructor
   State() : group_(nullptr, ecgroup_deleter) {}
@@ -86,17 +86,17 @@ EcGroupObj::EcGroupObj() : state_(new State()) {
              FfElementObj(&fq, g1_str.x), FfElementObj(&fq, g1_str.y),
              BigNumObj(p_str), BigNumObj(h1), &temp);
   state_->group_.reset(temp, ecgroup_deleter);
-  state_->fintefield_ = fq;
+  state_->finite_field_ = fq;
 }
 
 EcGroupObj::EcGroupObj(EcGroupObj const& other) : state_(new State) {
   state_->group_ = other.state_->group_;
-  state_->fintefield_ = other.state_->fintefield_;
+  state_->finite_field_ = other.state_->finite_field_;
 }
 
 EcGroupObj& EcGroupObj::operator=(EcGroupObj const& other) {
   state_->group_ = other.state_->group_;
-  state_->fintefield_ = other.state_->fintefield_;
+  state_->finite_field_ = other.state_->finite_field_;
   return *this;
 }
 
@@ -108,7 +108,7 @@ EcGroupObj::EcGroupObj(FiniteFieldObj* ff, FfElement const* a,
   EcGroup* temp = nullptr;
   NewEcGroup(*ff, a, b, x, y, order, cofactor, &temp);
   state_->group_.reset(temp, ecgroup_deleter);
-  state_->fintefield_ = *ff;
+  state_->finite_field_ = *ff;
 }
 
 EcGroupObj::~EcGroupObj() {}
@@ -122,5 +122,5 @@ EcGroup* EcGroupObj::get() { return state_->group_.get(); }
 EcGroup const* EcGroupObj::getc() const { return state_->group_.get(); }
 
 size_t EcGroupObj::GetElementMaxSize() const {
-  return 2 * state_->fintefield_.GetElementMaxSize();
+  return 2 * state_->finite_field_.GetElementMaxSize();
 }

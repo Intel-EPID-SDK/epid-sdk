@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ typedef struct FqElem FqElem;
 typedef struct VeryLargeInt VeryLargeInt;
 /// \endcond
 
-/// Test if an element is in Fq.
+/// Reinterpret a buffer as an element of Fq
 /*!
-\param[in] in the element to test.
-\returns A value different from zero (i.e., true) indeed
-         the value is in the field. Zero (i.e., false) otherwise.
+\param[out] result target.
+\param[in] hash buffer to reinterpret.
+\param[in] len length of hash in bytes.
 */
-int FqInField(FqElem const* in);
+void FqFromHash(FqElem* result, unsigned char const* hash, size_t len);
 
 /// Add two elements of Fq.
 /*!
@@ -68,21 +68,6 @@ void FqMul(FqElem* result, FqElem const* left, FqElem const* right);
 */
 void FqExp(FqElem* result, FqElem const* base, VeryLargeInt const* exp);
 
-/// Copy an element's value
-/*!
-\param[out] result copy target.
-\param[in] in copy source.
-*/
-void FqCp(FqElem* result, FqElem const* in);
-
-/// Test if an element is zero.
-/*!
-\param[in] value the element to test.
-\returns A value different from zero (i.e., true) if indeed
-         the value is zero. Zero (i.e., false) otherwise.
-*/
-int FqIsZero(FqElem const* value);
-
 /// Invert an element of Fq.
 /*!
 \param[out] result the inverse of the element.
@@ -106,38 +91,6 @@ void FqNeg(FqElem* result, FqElem const* in);
 */
 void FqSquare(FqElem* result, FqElem const* in);
 
-/// Clear an element's value.
-/*!
-\param[out] result element to clear.
-*/
-void FqClear(FqElem* result);
-
-/// Set an element's value.
-/*!
-\param[out] result target.
-\param[in] in value to set.
-*/
-void FqSet(FqElem* result, uint32_t in);
-
-/// Test if two elements in Fq are equal
-/*!
-\param[in] left The first operand to be tested.
-\param[in] right The second operand to be tested.
-\returns A value different from zero (i.e., true) if indeed
-         the values are equal. Zero (i.e., false) otherwise.
-*/
-int FqEq(FqElem const* left, FqElem const* right);
-
-/// Conditionally Set an element's value to one of two values.
-/*!
-\param[out] result target.
-\param[in] true_val value to set if condition is true.
-\param[in] false_val value to set if condition is false.
-\param[in] truth_val value of condition.
-*/
-void FqCondSet(FqElem* result, FqElem const* true_val, FqElem const* false_val,
-               int truth_val);
-
 /// Compute the Square root of an element of Fq.
 /*!
 \param[out] result the square root of the element.
@@ -157,12 +110,59 @@ int FqSqrt(FqElem* result, FqElem const* in);
 */
 int FqRand(FqElem* result, BitSupplier rnd_func, void* rnd_param);
 
-/// Reinterpret a buffer as an element of Fq
+/// Test if an element is in Fq.
+/*!
+\param[in] in the element to test.
+\returns A value different from zero (i.e., true) indeed
+         the value is in the field. Zero (i.e., false) otherwise.
+*/
+int FqInField(FqElem const* in);
+
+/// Test if an element is zero.
+/*!
+\param[in] value the element to test.
+\returns A value different from zero (i.e., true) if indeed
+         the value is zero. Zero (i.e., false) otherwise.
+*/
+int FqIsZero(FqElem const* value);
+
+/// Test if two elements in Fq are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns A value different from zero (i.e., true) if indeed
+         the values are equal. Zero (i.e., false) otherwise.
+*/
+int FqEq(FqElem const* left, FqElem const* right);
+
+/// Copy an element's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void FqCp(FqElem* result, FqElem const* in);
+
+/// Set an element's value.
 /*!
 \param[out] result target.
-\param[in] hash buffer to reinterpret.
-\param[in] len length of hash in bytes.
+\param[in] in value to set.
 */
-void FqFromHash(FqElem* result, unsigned char const* hash, size_t len);
+void FqSet(FqElem* result, uint32_t in);
+
+/// Conditionally Set an element's value to one of two values.
+/*!
+\param[out] result target.
+\param[in] true_val value to set if condition is true.
+\param[in] false_val value to set if condition is false.
+\param[in] truth_val value of condition.
+*/
+void FqCondSet(FqElem* result, FqElem const* true_val, FqElem const* false_val,
+               int truth_val);
+
+/// Clear an element's value.
+/*!
+\param[out] result element to clear.
+*/
+void FqClear(FqElem* result);
 
 #endif  // EPID_MEMBER_TINY_MATH_FQ_H_

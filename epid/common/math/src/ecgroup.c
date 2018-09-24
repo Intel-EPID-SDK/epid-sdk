@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -261,9 +261,9 @@ void DeleteEcPoint(EcPoint** p) {
   internal FfElement format.
 
   \param[in] g
-  The eliptic curve group in which to perform the check
+  The elliptic curve group in which to perform the check
   \param[in] p_str
-  Serialized eliptic curve group element to check
+  Serialized elliptic curve group element to check
   \param[in] strlen
   The size of p_str in bytes.
   \param[out] p

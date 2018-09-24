@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ typedef struct FpElem FpElem;
 typedef struct VeryLargeInt VeryLargeInt;
 /// \endcond
 
-/// Test if an element is in Fp
+/// Reinterpret a buffer as an element of Fp
 /*!
-\param[in] in the element to test
-\returns A value different from zero (i.e., true) indeed
-         the value is in the field. Zero (i.e., false) otherwise.
+\param[out] result target.
+\param[in] hash buffer to reinterpret.
+\param[in] len length of hash in bytes.
 */
-int FpInField(FpElem const* in);
+void FpFromHash(FpElem* result, unsigned char const* hash, size_t len);
 
 /// Add two elements of Fp
 /*!
@@ -44,14 +44,6 @@ int FpInField(FpElem const* in);
 */
 void FpAdd(FpElem* result, FpElem const* left, FpElem const* right);
 
-/// Multiply two elements of Fp.
-/*!
-\param[out] result of multiplying left and right.
-\param[in] left The first operand to be multiplied.
-\param[in] right The second operand to be multiplied.
-*/
-void FpMul(FpElem* result, FpElem const* left, FpElem const* right);
-
 /// Subtract two elements of Fp.
 /*!
 \param[out] result of subtracting left from right.
@@ -59,6 +51,14 @@ void FpMul(FpElem* result, FpElem const* left, FpElem const* right);
 \param[in] right The operand to subtract.
 */
 void FpSub(FpElem* result, FpElem const* left, FpElem const* right);
+
+/// Multiply two elements of Fp.
+/*!
+\param[out] result of multiplying left and right.
+\param[in] left The first operand to be multiplied.
+\param[in] right The second operand to be multiplied.
+*/
+void FpMul(FpElem* result, FpElem const* left, FpElem const* right);
 
 /// Exponentiate an element of Fp by a large integer.
 /*!
@@ -74,15 +74,6 @@ void FpExp(FpElem* result, FpElem const* base, VeryLargeInt const* exp);
 \param[in] in the value to negate.
 */
 void FpNeg(FpElem* result, FpElem const* in);
-
-/// Test if two elements in Fp are equal
-/*!
-\param[in] left The first operand to be tested.
-\param[in] right The second operand to be tested.
-\returns A value different from zero (i.e., true) if indeed
-         the values are equal. Zero (i.e., false) otherwise.
-*/
-int FpEq(FpElem const* left, FpElem const* right);
 
 /// Invert an element of Fp.
 /*!
@@ -111,11 +102,22 @@ int FpRand(FpElem* result, BitSupplier rnd_func, void* rnd_param);
 */
 int FpRandNonzero(FpElem* result, BitSupplier rnd_func, void* rnd_param);
 
-/// Clear an element of Fp.
+/// Test if an element is in Fp
 /*!
-\param[out] result value to clear.
+\param[in] in the element to test
+\returns A value different from zero (i.e., true) indeed
+         the value is in the field. Zero (i.e., false) otherwise.
 */
-void FpClear(FpElem* result);
+int FpInField(FpElem const* in);
+
+/// Test if two elements in Fp are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns A value different from zero (i.e., true) if indeed
+         the values are equal. Zero (i.e., false) otherwise.
+*/
+int FpEq(FpElem const* left, FpElem const* right);
 
 /// Set a element of Fp's value.
 /*!
@@ -124,12 +126,10 @@ void FpClear(FpElem* result);
 */
 void FpSet(FpElem* result, uint32_t in);
 
-/// Reinterpret a buffer as an element of Fp
+/// Clear an element of Fp.
 /*!
-\param[out] result target.
-\param[in] hash buffer to reinterpret.
-\param[in] len length of hash in bytes.
+\param[out] result value to clear.
 */
-void FpFromHash(FpElem* result, unsigned char const* hash, size_t len);
+void FpClear(FpElem* result);
 
 #endif  // EPID_MEMBER_TINY_MATH_FP_H_

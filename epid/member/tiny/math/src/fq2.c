@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,43 +21,9 @@
 #include "epid/member/tiny/math/fq.h"
 #include "epid/member/tiny/math/mathtypes.h"
 
-void Fq2Cp(Fq2Elem* result, Fq2Elem const* in) {
-  FqCp(&(result->x0), &(in->x0));
-  FqCp(&(result->x1), &(in->x1));
-}
-
-void Fq2Set(Fq2Elem* result, uint32_t in) {
-  FqSet(&(result->x0), in);
-  FqClear(&(result->x1));
-}
-
-void Fq2Clear(Fq2Elem* result) {
-  FqClear(&result->x0);
-  FqClear(&result->x1);
-}
-
 void Fq2Add(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right) {
   FqAdd(&(result->x0), &(left->x0), &(right->x0));
   FqAdd(&(result->x1), &(left->x1), &(right->x1));
-}
-
-void Fq2Exp(Fq2Elem* result, Fq2Elem const* base, VeryLargeInt const* exp) {
-  int i, j;
-  Fq2Elem tmp;
-  Fq2Elem tmp2;
-  Fq2Elem* temp = &tmp;
-  Fq2Elem* temp2 = &tmp2;
-  FqSet(&(temp->x0), 1);
-  FqClear(&(temp->x1));
-  for (i = NUM_ECC_DIGITS - 1; i >= 0; i--) {
-    for (j = 31; j >= 0; j--) {
-      Fq2Square(temp, temp);
-      Fq2Mul(temp2, temp, base);
-
-      Fq2CondSet(temp, temp2, temp, (int)((exp->word[i] >> j) & (0x1)));
-    }
-  }
-  Fq2Cp(result, temp);
 }
 
 void Fq2Sub(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right) {
@@ -80,6 +46,25 @@ void Fq2Mul(Fq2Elem* result, Fq2Elem const* left, Fq2Elem const* right) {
   FqSub(&result->x1, a, b);
   FqNeg(b, b);  // b = b*beta
   FqAdd(&result->x0, &result->x0, b);
+}
+
+void Fq2Exp(Fq2Elem* result, Fq2Elem const* base, VeryLargeInt const* exp) {
+  int i, j;
+  Fq2Elem tmp;
+  Fq2Elem tmp2;
+  Fq2Elem* temp = &tmp;
+  Fq2Elem* temp2 = &tmp2;
+  FqSet(&(temp->x0), 1);
+  FqClear(&(temp->x1));
+  for (i = NUM_ECC_DIGITS - 1; i >= 0; i--) {
+    for (j = 31; j >= 0; j--) {
+      Fq2Square(temp, temp);
+      Fq2Mul(temp2, temp, base);
+
+      Fq2CondSet(temp, temp2, temp, (int)((exp->word[i] >> j) & (0x1)));
+    }
+  }
+  Fq2Cp(result, temp);
 }
 
 void Fq2Inv(Fq2Elem* result, Fq2Elem const* in) {
@@ -107,30 +92,18 @@ void Fq2Conj(Fq2Elem* result, Fq2Elem const* in) {
 }
 
 void Fq2Square(Fq2Elem* result, Fq2Elem const* in) {
-  FqElem tmpa;
-  FqElem* temp_a = &tmpa;
-  FqElem tmpb;
-  FqElem* temp_b = &tmpb;
-  FqAdd(temp_a, &in->x0, &in->x1);
-  FqMul(temp_b, &in->x0, &in->x1);
+  FqElem temp_a;
+  FqElem temp_b;
+  FqAdd(&temp_a, &in->x0, &in->x1);
+  FqMul(&temp_b, &in->x0, &in->x1);
   FqSub(&result->x0, &in->x0, &in->x1);
-  FqMul(&result->x0, temp_a, &result->x0);
-  FqAdd(&result->x1, temp_b, temp_b);
+  FqMul(&result->x0, &temp_a, &result->x0);
+  FqAdd(&result->x1, &temp_b, &temp_b);
 }
 
 void Fq2MulScalar(Fq2Elem* result, Fq2Elem const* left, FqElem const* right) {
   FqMul(&(result->x0), &(left->x0), right);
   FqMul(&(result->x1), &(left->x1), right);
-}
-
-void Fq2CondSet(Fq2Elem* result, Fq2Elem const* true_val,
-                Fq2Elem const* false_val, int truth_val) {
-  FqCondSet(&(result->x0), &(true_val->x0), &(false_val->x0), truth_val);
-  FqCondSet(&(result->x1), &(true_val->x1), &(false_val->x1), truth_val);
-}
-
-int Fq2Eq(Fq2Elem const* left, Fq2Elem const* right) {
-  return FqEq(&(left->x0), &(right->x0)) && FqEq(&(left->x1), &(right->x1));
 }
 
 void Fq2MulXi(Fq2Elem* result, Fq2Elem const* in) {
@@ -145,6 +118,31 @@ void Fq2MulXi(Fq2Elem* result, Fq2Elem const* in) {
   FqCp(&result->x0, temp);
 }
 
+int Fq2Eq(Fq2Elem const* left, Fq2Elem const* right) {
+  return FqEq(&(left->x0), &(right->x0)) && FqEq(&(left->x1), &(right->x1));
+}
+
 int Fq2IsZero(Fq2Elem const* value) {
   return FqIsZero(&value->x0) && FqIsZero(&value->x1);
+}
+
+void Fq2Cp(Fq2Elem* result, Fq2Elem const* in) {
+  FqCp(&(result->x0), &(in->x0));
+  FqCp(&(result->x1), &(in->x1));
+}
+
+void Fq2Set(Fq2Elem* result, uint32_t in) {
+  FqSet(&(result->x0), in);
+  FqClear(&(result->x1));
+}
+
+void Fq2CondSet(Fq2Elem* result, Fq2Elem const* true_val,
+                Fq2Elem const* false_val, int truth_val) {
+  FqCondSet(&(result->x0), &(true_val->x0), &(false_val->x0), truth_val);
+  FqCondSet(&(result->x1), &(true_val->x1), &(false_val->x1), truth_val);
+}
+
+void Fq2Clear(Fq2Elem* result) {
+  FqClear(&result->x0);
+  FqClear(&result->x1);
 }

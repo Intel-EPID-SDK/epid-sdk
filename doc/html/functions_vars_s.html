@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -64,6 +64,7 @@ $(document).ready(function(){initNavTree('functions_vars_s.html','');});
 <h3><a id="index_s"></a>- s -</h3><ul>
 <li>s
 : <a class="el" href="struct_join_request.html#a73bf8989df5f90eb3d06e7a42ad74d1d">JoinRequest</a>
+, <a class="el" href="struct_split_join_request.html#aeb51561edfd5e8afb1a16cb2cb45e241">SplitJoinRequest</a>
 </li>
 <li>sa
 : <a class="el" href="struct_basic_signature.html#a69115a4776d15b48411dd6c3a76d0f3d">BasicSignature</a>
@@ -92,6 +93,18 @@ $(document).ready(function(){initNavTree('functions_vars_s.html','');});
 <li>sha256s
 : <a class="el" href="structtiny__sha.html#a40fd76fa2a0395295d4747ce2cb80888">tiny_sha</a>
 </li>
+<li>sha384_digest
+: <a class="el" href="unionsha__digest.html#a0226b08ac3650d6f0e758498d8df2198">sha_digest</a>
+</li>
+<li>sha384s
+: <a class="el" href="structtiny__sha.html#a4c7a2917a3a523075cba224eb2575b57">tiny_sha</a>
+</li>
+<li>sha512_256_digest
+: <a class="el" href="unionsha__digest.html#a62b8c4bb54c9214abf05ad5a3d234444">sha_digest</a>
+</li>
+<li>sha512_256s
+: <a class="el" href="structtiny__sha.html#a783cf112b3bac7b48f89f4e6609bda77">tiny_sha</a>
+</li>
 <li>sha512_digest
 : <a class="el" href="unionsha__digest.html#a2c5fa88c4f65cc62d1839bd9a166b843">sha_digest</a>
 </li>
@@ -103,11 +116,13 @@ $(document).ready(function(){initNavTree('functions_vars_s.html','');});
 </li>
 <li>sigma
 : <a class="el" href="struct_epid11_signature.html#abf24a8df563ba3f535486d8dad7384f4">Epid11Signature</a>
-, <a class="el" href="struct_epid_signature.html#a89d2e38223944310b6eeeadf6061a2dd">EpidSignature</a>
+, <a class="el" href="struct_epid_non_split_signature.html#a4e25006ca2f2b772f6bdb233e11df399">EpidNonSplitSignature</a>
+, <a class="el" href="struct_epid_split_signature.html#afe20efc32021d444a35328a9b004181f">EpidSplitSignature</a>
 </li>
 <li>sigma0
 : <a class="el" href="struct_epid11_signature.html#a48526e73f02ad3f1544c4c71c481f153">Epid11Signature</a>
-, <a class="el" href="struct_epid_signature.html#ab0fe5f98bff737fcfbfe0b4d658e83f2">EpidSignature</a>
+, <a class="el" href="struct_epid_non_split_signature.html#a3b6159c91861f586476cb07ac5eb7e86">EpidNonSplitSignature</a>
+, <a class="el" href="struct_epid_split_signature.html#a802c899a0752205fa33c3272422b3cbf">EpidSplitSignature</a>
 </li>
 <li>signature
 : <a class="el" href="struct_epid_ca_certificate.html#a2f8f09ae02919c379c38386668b47418">EpidCaCertificate</a>
@@ -115,10 +130,17 @@ $(document).ready(function(){initNavTree('functions_vars_s.html','');});
 <li>smu
 : <a class="el" href="struct_epid11_nr_proof.html#a1ad7fe6b32c09f2504ee49731c0ad145">Epid11NrProof</a>
 , <a class="el" href="struct_nr_proof.html#a717ec36a6c91acd01d9b642bb20fc178">NrProof</a>
+, <a class="el" href="struct_split_nr_proof.html#a1dab9fd1ccea5040d1e52a3185a0f1b7">SplitNrProof</a>
 </li>
 <li>snu
 : <a class="el" href="struct_epid11_nr_proof.html#aa8406e938b2f87bded9e374e93a8ee5d">Epid11NrProof</a>
 , <a class="el" href="struct_nr_proof.html#ae2e9f22089793a4d44a0f7f5cdb78a0c">NrProof</a>
+, <a class="el" href="struct_split_nr_proof.html#ae63384bd5e9cf10bc8003fe9a17c0cf2">SplitNrProof</a>
+</li>
+<li>state
+: <a class="el" href="structsha384__state.html#abdabc726dac308236ed6a5b444cb64a9">sha384_state</a>
+, <a class="el" href="structsha512__256__state.html#a262a83c9423dfb52fd88d44a4ab4ee09">sha512_256_state</a>
+, <a class="el" href="structsha512__state.html#a6d3a3308dddc539fdf09f1539bc61d2b">sha512_state</a>
 </li>
 <li>sx
 : <a class="el" href="struct_basic_signature.html#a0e8ea6a2cd3af10e9b59d96d7d06bc69">BasicSignature</a>
@@ -132,12 +154,13 @@ $(document).ready(function(){initNavTree('functions_vars_s.html','');});
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

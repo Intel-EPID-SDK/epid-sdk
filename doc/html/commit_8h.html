@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm2/commit.h File Reference</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/split/tpm2/commit.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,9 +74,9 @@ $(document).ready(function(){initNavTree('commit_8h.html','');});
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga750e38b6d6cea1b05f605e476df065d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#ga750e38b6d6cea1b05f605e476df065d9">Tpm2Commit</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *p1, void const *s2, size_t s2_len, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> const *y2, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *k, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *l, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *e, uint16_t *counter)</td></tr>
-<tr class="memdesc:ga750e38b6d6cea1b05f605e476df065d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs TPM2_Commit TPM operation.  <a href="group___tpm2_module.html#ga750e38b6d6cea1b05f605e476df065d9">More...</a><br /></td></tr>
-<tr class="separator:ga750e38b6d6cea1b05f605e476df065d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacfd8e4867cad3b0e467c02df9ea22dd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#gacfd8e4867cad3b0e467c02df9ea22dd6">Tpm2Commit</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="struct_tpm2_key.html">Tpm2Key</a> const *key, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> const *p1, void const *s2, size_t s2_len, <a class="el" href="group___finite_field_primitives.html#ga6cff5c7c06b07a87442b810ccc0a86fa">FfElement</a> const *y2, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *k, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *l, <a class="el" href="group___ec_group_primitives.html#ga85c1d5e106031b385a6e23e598ac98fa">EcPoint</a> *e, uint16_t *counter)</td></tr>
+<tr class="memdesc:gacfd8e4867cad3b0e467c02df9ea22dd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs TPM2_Commit TPM operation.  <a href="group___tpm2_module.html#gacfd8e4867cad3b0e467c02df9ea22dd6">More...</a><br /></td></tr>
+<tr class="separator:gacfd8e4867cad3b0e467c02df9ea22dd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>SDK TPM Commit API. </p>
@@ -84,13 +84,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_0d59f1b8006345e373e07b4691e0da76.html">tpm2</a></li><li class="navelem"><a class="el" href="commit_8h.html">commit.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_a16c19eb5cab01f5b64e19de6ee56195.html">split</a></li><li class="navelem"><a class="el" href="dir_2680c2152b7ba3f69d3c47ecffa4629c.html">tpm2</a></li><li class="navelem"><a class="el" href="commit_8h.html">commit.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

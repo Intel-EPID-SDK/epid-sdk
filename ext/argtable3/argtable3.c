@@ -31,6 +31,7 @@
  // * fix warnings
  // * fix issues found by static code analisys:
  //   - Null pointer dereference in trex_compile
+ // * fix to return "option doesn't take an argument"
 
 #include "argtable3.h"
 
@@ -342,6 +343,7 @@ char    *optarg;		/* argument associated with option */
 
 /* return values */
 #define	BADCH		(int)'?'
+#define	HASVALUE	(int)';'
 #define	BADARG		((*options == ':') ? (int)':' : (int)'?')
 #define	INORDER 	(int)1
 
@@ -537,7 +539,7 @@ parse_long_options(char * const *nargv, const char *options,
 				optopt = long_options[match].val;
 			else
 				optopt = 0;
-			return (BADARG);
+			return (HASVALUE);
 		}
 		if (long_options[match].has_arg == required_argument ||
 		    long_options[match].has_arg == optional_argument) {
@@ -1744,6 +1746,9 @@ static void arg_end_errorfn(
     case ARG_EMISSARG:
         fprintf(fp, "option \"%s\" requires an argument", argval);
         break;
+    case ARG_EHASARG:
+        fprintf(fp, "option \"%s\" doesn't take an argument", argval);
+        break;
     case ARG_ELONGOPT:
         fprintf(fp, "invalid option \"%s\"", argval);
         break;
@@ -2174,6 +2179,9 @@ static long int strtol0X(const char * str,
         /* conversion failed */
         *endptr = str;
         return 0;
+    }
+    if ( val > LONG_MAX || val < LONG_MIN ) {
+        val = 0;
     }
 
     /* success */
@@ -3179,7 +3187,7 @@ static int trex_class(TRex *exp)
 	while(*exp->_p != ']' && exp->_p != exp->_eol) {
 		if(*exp->_p == '-' && first != -1){
 			int r,t;
-			if(*exp->_p++ == ']') trex_error(exp,_SC("unfinished range"));
+			exp->_p++;
 			r = trex_newnode(exp,OP_RANGE);
 			if(first>*exp->_p) trex_error(exp,_SC("invalid range"));
 			if(exp->_nodes[first].type == OP_CCLASS) trex_error(exp,_SC("cannot use character classes in ranges"));
@@ -4196,6 +4204,15 @@ void arg_parse_tagged(int argc,
                                argv[optind - 1]);
             break;
 
+         case ';':
+            /*
+             * getopt_long() found an option with an argument that doesn't take an argument.
+             */
+            /*printf(": option %s doesn't take an argument\n",argv[optind-1]); */
+            arg_register_error(endtable, endtable, ARG_EHASARG,
+                               argv[optind - 1]);
+            break;
+
         default:
         {
             /* getopt_long() found a valid short option */
@@ -4877,10 +4894,6 @@ void arg_print_formatted( FILE *fp,
     unsigned line_start = 0;
     unsigned line_end = textlen + 1;
     const unsigned colwidth = (rmargin - lmargin) + 1;
-
-    /* Someone doesn't like us... */
-    if ( line_end < line_start )
-    { fprintf( fp, "%s\n", text ); }
 
     while (line_end - 1 > line_start )
     {

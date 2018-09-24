@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,6 +74,18 @@ $(document).ready(function(){initNavTree('efq_8h.html','');});
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a97ce025667b076986a6d92b3d41a7827"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a97ce025667b076986a6d92b3d41a7827">EFqFromAffine</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
+<tr class="memdesc:a97ce025667b076986a6d92b3d41a7827"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a point from Affine to Jacobi representation.  <a href="#a97ce025667b076986a6d92b3d41a7827">More...</a><br /></td></tr>
+<tr class="separator:a97ce025667b076986a6d92b3d41a7827"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf3f26e855b85e869cb80fae780a4e6a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#aaf3f26e855b85e869cb80fae780a4e6a">EFqToAffine</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
+<tr class="memdesc:aaf3f26e855b85e869cb80fae780a4e6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a point from Jacobi to Affine representation.  <a href="#aaf3f26e855b85e869cb80fae780a4e6a">More...</a><br /></td></tr>
+<tr class="separator:aaf3f26e855b85e869cb80fae780a4e6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cf130d65a5f35237a88046faad43c0a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a6cf130d65a5f35237a88046faad43c0a">EFqAffineAdd</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *left, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *right)</td></tr>
+<tr class="memdesc:a6cf130d65a5f35237a88046faad43c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two points in EFq.  <a href="#a6cf130d65a5f35237a88046faad43c0a">More...</a><br /></td></tr>
+<tr class="separator:a6cf130d65a5f35237a88046faad43c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf04f5ec866fc77d0203beb8a8991f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#abf04f5ec866fc77d0203beb8a8991f25">EFqAdd</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *left, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *right)</td></tr>
+<tr class="memdesc:abf04f5ec866fc77d0203beb8a8991f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two points in EFq.  <a href="#abf04f5ec866fc77d0203beb8a8991f25">More...</a><br /></td></tr>
+<tr class="separator:abf04f5ec866fc77d0203beb8a8991f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84e5231cee67eeba5b2a0f99088bc70e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a84e5231cee67eeba5b2a0f99088bc70e">EFqMulSSCM</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *base, <a class="el" href="struct_fp_elem.html">FpElem</a> const *exp)</td></tr>
 <tr class="memdesc:a84e5231cee67eeba5b2a0f99088bc70e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply two points in EFq.  <a href="#a84e5231cee67eeba5b2a0f99088bc70e">More...</a><br /></td></tr>
 <tr class="separator:a84e5231cee67eeba5b2a0f99088bc70e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -86,66 +98,54 @@ Functions</h2></td></tr>
 <tr class="memitem:abbcd39b964e4fd685d1dba73ec110c86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#abbcd39b964e4fd685d1dba73ec110c86">EFqMultiExp</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *base0, <a class="el" href="struct_fp_elem.html">FpElem</a> const *exp0, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *base1, <a class="el" href="struct_fp_elem.html">FpElem</a> const *exp1)</td></tr>
 <tr class="memdesc:abbcd39b964e4fd685d1dba73ec110c86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum the results of exponentiating two points in EFq by elements of Fp.  <a href="#abbcd39b964e4fd685d1dba73ec110c86">More...</a><br /></td></tr>
 <tr class="separator:abbcd39b964e4fd685d1dba73ec110c86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6cf130d65a5f35237a88046faad43c0a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a6cf130d65a5f35237a88046faad43c0a">EFqAffineAdd</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *left, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *right)</td></tr>
-<tr class="memdesc:a6cf130d65a5f35237a88046faad43c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two points in EFq.  <a href="#a6cf130d65a5f35237a88046faad43c0a">More...</a><br /></td></tr>
-<tr class="separator:a6cf130d65a5f35237a88046faad43c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a975f92abdaf431f2fb152fca84d468b3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a975f92abdaf431f2fb152fca84d468b3">EFqAffineDbl</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
 <tr class="memdesc:a975f92abdaf431f2fb152fca84d468b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Double a point in EFq.  <a href="#a975f92abdaf431f2fb152fca84d468b3">More...</a><br /></td></tr>
 <tr class="separator:a975f92abdaf431f2fb152fca84d468b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23b6331263b002e6e07d2be5216fd6e8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a23b6331263b002e6e07d2be5216fd6e8">EFqDbl</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
 <tr class="memdesc:a23b6331263b002e6e07d2be5216fd6e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Double a point in EFq.  <a href="#a23b6331263b002e6e07d2be5216fd6e8">More...</a><br /></td></tr>
 <tr class="separator:a23b6331263b002e6e07d2be5216fd6e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf04f5ec866fc77d0203beb8a8991f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#abf04f5ec866fc77d0203beb8a8991f25">EFqAdd</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *left, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *right)</td></tr>
-<tr class="memdesc:abf04f5ec866fc77d0203beb8a8991f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two points in EFq.  <a href="#abf04f5ec866fc77d0203beb8a8991f25">More...</a><br /></td></tr>
-<tr class="separator:abf04f5ec866fc77d0203beb8a8991f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40588e2618ed9a38043532785a8d5785"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a40588e2618ed9a38043532785a8d5785">EFqRand</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> rnd_func, void *rnd_param)</td></tr>
 <tr class="memdesc:a40588e2618ed9a38043532785a8d5785"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a random point in EFq.  <a href="#a40588e2618ed9a38043532785a8d5785">More...</a><br /></td></tr>
 <tr class="separator:a40588e2618ed9a38043532785a8d5785"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d1841f9e29bc604054536de7a4a861d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7d1841f9e29bc604054536de7a4a861d">EFqSet</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *x, <a class="el" href="struct_fq_elem.html">FqElem</a> const *y)</td></tr>
-<tr class="memdesc:a7d1841f9e29bc604054536de7a4a861d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a point's value.  <a href="#a7d1841f9e29bc604054536de7a4a861d">More...</a><br /></td></tr>
-<tr class="separator:a7d1841f9e29bc604054536de7a4a861d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae38257cf97872a4fa855033ad44e2e10"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#ae38257cf97872a4fa855033ad44e2e10">EFqIsInf</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
-<tr class="memdesc:ae38257cf97872a4fa855033ad44e2e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a point is infinity.  <a href="#ae38257cf97872a4fa855033ad44e2e10">More...</a><br /></td></tr>
-<tr class="separator:ae38257cf97872a4fa855033ad44e2e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97ce025667b076986a6d92b3d41a7827"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a97ce025667b076986a6d92b3d41a7827">EFqFromAffine</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
-<tr class="memdesc:a97ce025667b076986a6d92b3d41a7827"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a point from Affine to Jacobi representation.  <a href="#a97ce025667b076986a6d92b3d41a7827">More...</a><br /></td></tr>
-<tr class="separator:a97ce025667b076986a6d92b3d41a7827"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf3f26e855b85e869cb80fae780a4e6a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#aaf3f26e855b85e869cb80fae780a4e6a">EFqToAffine</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
-<tr class="memdesc:aaf3f26e855b85e869cb80fae780a4e6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a point from Jacobi to Affine representation.  <a href="#aaf3f26e855b85e869cb80fae780a4e6a">More...</a><br /></td></tr>
-<tr class="separator:aaf3f26e855b85e869cb80fae780a4e6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15bda5d411f7c6d602994e6444034414"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a15bda5d411f7c6d602994e6444034414">EFqJRand</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> rnd_func, void *rnd_param)</td></tr>
+<tr class="memdesc:a15bda5d411f7c6d602994e6444034414"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a random point in EFq.  <a href="#a15bda5d411f7c6d602994e6444034414">More...</a><br /></td></tr>
+<tr class="separator:a15bda5d411f7c6d602994e6444034414"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f7309ab07d4d3e0556a32f1839ae6fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a0f7309ab07d4d3e0556a32f1839ae6fe">EFqNeg</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
 <tr class="memdesc:a0f7309ab07d4d3e0556a32f1839ae6fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Negate a point on EFq.  <a href="#a0f7309ab07d4d3e0556a32f1839ae6fe">More...</a><br /></td></tr>
 <tr class="separator:a0f7309ab07d4d3e0556a32f1839ae6fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7fbfe9d25cf08f4dcbd950cfb07471ff">EFqEq</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *left, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *right)</td></tr>
-<tr class="memdesc:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two points on EFq are equal.  <a href="#a7fbfe9d25cf08f4dcbd950cfb07471ff">More...</a><br /></td></tr>
-<tr class="separator:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf80ad8b8e3e506f4c46ec57de1c4846"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#abf80ad8b8e3e506f4c46ec57de1c4846">EFqHash</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, unsigned char const *msg, size_t len, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hashalg)</td></tr>
 <tr class="memdesc:abf80ad8b8e3e506f4c46ec57de1c4846"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashes an arbitrary message to a point on EFq.  <a href="#abf80ad8b8e3e506f4c46ec57de1c4846">More...</a><br /></td></tr>
 <tr class="separator:abf80ad8b8e3e506f4c46ec57de1c4846"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a7863639a5b96d44522d579d7d32e40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7a7863639a5b96d44522d579d7d32e40">EFqCp</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
-<tr class="memdesc:a7a7863639a5b96d44522d579d7d32e40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy a point's value.  <a href="#a7a7863639a5b96d44522d579d7d32e40">More...</a><br /></td></tr>
-<tr class="separator:a7a7863639a5b96d44522d579d7d32e40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfc458ea689ea3aa637c9c817dfa44c5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#acfc458ea689ea3aa637c9c817dfa44c5">EFqEqAffine</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *left, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *right)</td></tr>
 <tr class="memdesc:acfc458ea689ea3aa637c9c817dfa44c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two points on EFq are equal.  <a href="#acfc458ea689ea3aa637c9c817dfa44c5">More...</a><br /></td></tr>
 <tr class="separator:acfc458ea689ea3aa637c9c817dfa44c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a9b2fcab6bc74601f9c302c5b34400ae4">EFqCondSet</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *true_val, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *false_val, int truth_val)</td></tr>
-<tr class="memdesc:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conditionally Set a point's value to one of two values.  <a href="#a9b2fcab6bc74601f9c302c5b34400ae4">More...</a><br /></td></tr>
-<tr class="separator:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a31d069739c4da17011280a8ae6354a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a1a31d069739c4da17011280a8ae6354a">EFqJCp</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
-<tr class="memdesc:a1a31d069739c4da17011280a8ae6354a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy a point's value.  <a href="#a1a31d069739c4da17011280a8ae6354a">More...</a><br /></td></tr>
-<tr class="separator:a1a31d069739c4da17011280a8ae6354a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73fd77b7cc14c0decd95fd294b5b250c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a73fd77b7cc14c0decd95fd294b5b250c">EFqInf</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result)</td></tr>
-<tr class="memdesc:a73fd77b7cc14c0decd95fd294b5b250c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element's value to infinity.  <a href="#a73fd77b7cc14c0decd95fd294b5b250c">More...</a><br /></td></tr>
-<tr class="separator:a73fd77b7cc14c0decd95fd294b5b250c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7fbfe9d25cf08f4dcbd950cfb07471ff">EFqEq</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *left, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *right)</td></tr>
+<tr class="memdesc:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two points on EFq are equal.  <a href="#a7fbfe9d25cf08f4dcbd950cfb07471ff">More...</a><br /></td></tr>
+<tr class="separator:a7fbfe9d25cf08f4dcbd950cfb07471ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81470fed188d5043f89b6b8ab6031a42"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a81470fed188d5043f89b6b8ab6031a42">EFqOnCurve</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
 <tr class="memdesc:a81470fed188d5043f89b6b8ab6031a42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a point is on EFq.  <a href="#a81470fed188d5043f89b6b8ab6031a42">More...</a><br /></td></tr>
 <tr class="separator:a81470fed188d5043f89b6b8ab6031a42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada751265a36ee3236fce90105a62909e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#ada751265a36ee3236fce90105a62909e">EFqJOnCurve</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
 <tr class="memdesc:ada751265a36ee3236fce90105a62909e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a point is on EFq.  <a href="#ada751265a36ee3236fce90105a62909e">More...</a><br /></td></tr>
 <tr class="separator:ada751265a36ee3236fce90105a62909e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15bda5d411f7c6d602994e6444034414"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a15bda5d411f7c6d602994e6444034414">EFqJRand</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> rnd_func, void *rnd_param)</td></tr>
-<tr class="memdesc:a15bda5d411f7c6d602994e6444034414"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a random point in EFq.  <a href="#a15bda5d411f7c6d602994e6444034414">More...</a><br /></td></tr>
-<tr class="separator:a15bda5d411f7c6d602994e6444034414"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae38257cf97872a4fa855033ad44e2e10"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#ae38257cf97872a4fa855033ad44e2e10">EFqIsInf</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
+<tr class="memdesc:ae38257cf97872a4fa855033ad44e2e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a point is infinity.  <a href="#ae38257cf97872a4fa855033ad44e2e10">More...</a><br /></td></tr>
+<tr class="separator:ae38257cf97872a4fa855033ad44e2e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73fd77b7cc14c0decd95fd294b5b250c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a73fd77b7cc14c0decd95fd294b5b250c">EFqInf</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result)</td></tr>
+<tr class="memdesc:a73fd77b7cc14c0decd95fd294b5b250c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element's value to infinity.  <a href="#a73fd77b7cc14c0decd95fd294b5b250c">More...</a><br /></td></tr>
+<tr class="separator:a73fd77b7cc14c0decd95fd294b5b250c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a7863639a5b96d44522d579d7d32e40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7a7863639a5b96d44522d579d7d32e40">EFqCp</a> (<a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> *result, <a class="el" href="struct_ecc_point_fq.html">EccPointFq</a> const *in)</td></tr>
+<tr class="memdesc:a7a7863639a5b96d44522d579d7d32e40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy a point's value.  <a href="#a7a7863639a5b96d44522d579d7d32e40">More...</a><br /></td></tr>
+<tr class="separator:a7a7863639a5b96d44522d579d7d32e40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a31d069739c4da17011280a8ae6354a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a1a31d069739c4da17011280a8ae6354a">EFqJCp</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *in)</td></tr>
+<tr class="memdesc:a1a31d069739c4da17011280a8ae6354a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy a point's value.  <a href="#a1a31d069739c4da17011280a8ae6354a">More...</a><br /></td></tr>
+<tr class="separator:a1a31d069739c4da17011280a8ae6354a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d1841f9e29bc604054536de7a4a861d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a7d1841f9e29bc604054536de7a4a861d">EFqSet</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *x, <a class="el" href="struct_fq_elem.html">FqElem</a> const *y)</td></tr>
+<tr class="memdesc:a7d1841f9e29bc604054536de7a4a861d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a point's value.  <a href="#a7d1841f9e29bc604054536de7a4a861d">More...</a><br /></td></tr>
+<tr class="separator:a7d1841f9e29bc604054536de7a4a861d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="efq_8h.html#a9b2fcab6bc74601f9c302c5b34400ae4">EFqCondSet</a> (<a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> *result, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *true_val, <a class="el" href="struct_ecc_point_jacobi_fq.html">EccPointJacobiFq</a> const *false_val, int truth_val)</td></tr>
+<tr class="memdesc:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conditionally Set a point's value to one of two values.  <a href="#a9b2fcab6bc74601f9c302c5b34400ae4">More...</a><br /></td></tr>
+<tr class="separator:a9b2fcab6bc74601f9c302c5b34400ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Definition of EFq math. </p>
@@ -1134,13 +1134,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="efq_8h.html">efq.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="efq_8h.html">efq.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

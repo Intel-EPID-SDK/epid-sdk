@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -32,10 +32,6 @@ class MemberCtxObj {
   explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
                         BitSupplier rnd_func, void* rnd_param);
   /// Create a MemberCtx
-  explicit MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-                        HashAlg hash_alg, BitSupplier rnd_func,
-                        void* rnd_param);
-  /// Create a MemberCtx
   explicit MemberCtxObj(BitSupplier rnd_func, void* rnd_param);
   /// Create a MemberCtx
   explicit MemberCtxObj(MemberParams const* params);
@@ -48,16 +44,9 @@ class MemberCtxObj {
                MemberPrecomp const& precomp, BitSupplier rnd_func,
                void* rnd_param);
   /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, PrivKey const& priv_key,
-               HashAlg hash_alg, MemberPrecomp const& precomp,
-               BitSupplier rnd_func, void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
   MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
                MemberPrecomp const& precomp, BitSupplier rnd_func,
                void* rnd_param);
-  /// Create a MemberCtx given precomputation blob
-  MemberCtxObj(GroupPubKey const& pub_key, MembershipCredential const& cred,
-               HashAlg hash_alg, BitSupplier rnd_func, void* rnd_param);
   // This class instances are not meant to be copied.
   // Explicitly delete copy constructor and assignment operator.
   MemberCtxObj(const MemberCtxObj&) = delete;

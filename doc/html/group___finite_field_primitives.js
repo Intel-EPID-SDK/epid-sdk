@@ -21,7 +21,7 @@ var group___finite_field_primitives =
     [ "InitFfElementFromBn", "group___finite_field_primitives.html#ga90b2c192708973b54b7a3e82b34536ed", null ],
     [ "NewFfElement", "group___finite_field_primitives.html#gacc54f315ede2dbeb8c5990c024a0de6c", null ],
     [ "NewFiniteField", "group___finite_field_primitives.html#ga7d99fdc5e4573668a5744e49df7ab67c", null ],
-    [ "NewFiniteFieldViaBinomalExtension", "group___finite_field_primitives.html#ga83041e3be9984a4bd8f1021934bfa3a2", null ],
+    [ "NewFiniteFieldViaBinomialExtension", "group___finite_field_primitives.html#ga932e4890c5f81673477f34ee49029f43", null ],
     [ "NewFiniteFieldViaPolynomialExtension", "group___finite_field_primitives.html#gae69af62a03179718cac81b004549c598", null ],
     [ "ReadFfElement", "group___finite_field_primitives.html#ga8a143a5a815a62f4947be2de1653c50f", null ],
     [ "WriteFfElement", "group___finite_field_primitives.html#gaa3c1f7515dd823ddad8764091ebc665f", null ]

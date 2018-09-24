@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "epid/common/src/sig_types.h"
 #include "gtest/gtest.h"
 
 extern "C" {
@@ -143,7 +144,7 @@ class EpidVerifierTest : public ::testing::Test {
   static const GroupPubKey kGrpXKey;
   /// the privrl of group X
   static const std::vector<uint8_t> kGrpXPrivRl;
-  /// currpted privrl of group X
+  /// corrupted privrl of group X
   static const std::vector<uint8_t> kGrpXCorruptedPrivRl;
   /// the privrl of group X with single entry PrivKey000 revoked
   static const std::vector<uint8_t> kGrpXPrivRlRevokedPrivKey000OnlyEntry;
@@ -164,7 +165,7 @@ class EpidVerifierTest : public ::testing::Test {
   /// a verifierrl of group X with bsn1 for some verifier with 0-2 revoked
   static const std::vector<uint8_t> kGrpXBsn1VerRl_012;
 
-  /// the sigrl of group X corrputed
+  /// the sigrl of group X corrupted
   static const std::vector<uint8_t> kGrpXSigRlVersion2;
 
   /// a group key in group Y
@@ -247,7 +248,6 @@ class EpidVerifierTest : public ::testing::Test {
   static const std::vector<uint8_t> kSigGrpXVerRevokedMember3Sha256Bsn1Msg0;
   /// signature of msg0 by member1 of groupX with Sha256 bsn0
   static const std::vector<uint8_t> kSigGrpXMember1Sha256Bsn0Msg0;
-
   /////////////////////////////////////////////////////////////////////
   // EpidVerify Signature Based Revocation List Reject
   /// GroupPubKey to be used for EpidVerify Signature Based Revocation List
@@ -258,11 +258,11 @@ class EpidVerifierTest : public ::testing::Test {
   /// SigRl with 1 entry
   static const std::vector<uint8_t> kSigRlFiveEntries;
   /// First entry in sigrl_five_entries
-  static const EpidSignature kSignatureSigrlFirst;
+  static const EpidNonSplitSignature kSignatureSigrlFirst;
   /// Middle entry in sigrl_five_entries
-  static const EpidSignature kSignatureSigrlMiddle;
+  static const EpidNonSplitSignature kSignatureSigrlMiddle;
   /// Last entry in sigrl_five_entries
-  static const EpidSignature kSignatureSigrlLast;
+  static const EpidNonSplitSignature kSignatureSigrlLast;
 
   /// setup called before each TEST_F starts
   virtual void SetUp() {}
@@ -277,4 +277,62 @@ class EpidVerifierTest : public ::testing::Test {
   static const OctStr32 kOctStr32_1;
 };
 
+/// Test fixture class for EpidVerifierSplitTest
+class EpidVerifierSplitTest : public EpidVerifierTest {
+ public:
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256kBsn0Data_0_255NoSigRl;
+  static const std::vector<uint8_t> kSplitSigGrpXMember3Sha512kBsn0Data_0_255;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256RandombaseTest1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256Basename1Test1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember4Sha256Basename1Test1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256Basename1Test2NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha384RandombaseTest1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512RandombaseTest1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512256RndbaseTest1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512Basename1Test1NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256HugeBsnMsg0NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigRevokedGidMember0Sha256Bsn0Msg0NoSigRlIkgf;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXRevokedPrivKey000Sha256Bsn0Msg0NoSigRl;
+  static const std::vector<uint8_t> kSplitSigSha256Basename1Test1NoSigRlIkgf;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256Bsn0Msg0SingleEntrySigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXVerRevokedMember0Sha256Bsn0Msg0NoSigRl;
+  static const std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Msg0;
+  static const std::vector<uint8_t> kSplitSigGrpXMember3Sha384Bsn0Msg0;
+  static const std::vector<uint8_t> kSplitSigGrpXMember4Sha256Bsn0Msg0;
+  static const std::vector<uint8_t> kSplitSigGrpXMember3Sha512256Bsn0Msg0;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256RndBsnTest1WithSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha384RndBsnTest1WithSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512RndBsnTest1WithSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512_256RndBsnTest1WithSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256RndBsnData_0_255WithSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha256RndBsn2Data_0_255NoSigRl;
+  static const std::vector<uint8_t>
+      kSplitSigGrpXMember3Sha512HugeBsnMsg0NoSigRl;
+  static const std::vector<uint8_t> kSigRl5EntrySha256Data;
+  static const std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Msg0OnlyEntry;
+  /// setup called before each TEST_F starts
+  virtual void SetUp() {}
+  /// teardown called after each TEST_F finishes
+  virtual void TearDown() {}
+};
 #endif  // EPID_VERIFIER_UNITTESTS_VERIFIER_TESTHELPER_H_

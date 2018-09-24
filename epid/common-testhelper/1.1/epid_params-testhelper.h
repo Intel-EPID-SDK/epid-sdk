@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ class Epid11ParamsObj {
   static const std::vector<uint8_t> h_str_;
   static const FqElemStr a_str_;
   static const FqElemStr b_str_;
-  static const BigNumStr coeffs_str_[3];
+  static const BigNumStr coefficients_str_[3];
   static const FqElemStr qnr_str;
 
   static const std::vector<uint8_t> orderG2_str;

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,29 +27,7 @@
 #include <string.h>
 #include "util/envutil.h"
 
-const char* hash_alg_to_string[] = {"SHA-256",     "SHA-384",  "SHA-512",
-                                    "SHA-512/256", "SHA3/256", "SHA3/384",
-                                    "SHA3/512"};
-
 #define COUNT_OF(A) (sizeof(A) / sizeof((A)[0]))
-
-char const* HashAlgToString(HashAlg alg) {
-  if ((int)alg < 0 || (size_t)alg >= COUNT_OF(hash_alg_to_string))
-    return "unknown";
-  return hash_alg_to_string[alg];
-}
-
-bool StringToHashAlg(char const* str, HashAlg* alg) {
-  size_t i;
-  if (!alg || !str) return false;
-  for (i = 0; i < COUNT_OF(hash_alg_to_string); i++) {
-    if (0 == strcmp(str, hash_alg_to_string[i])) {
-      *alg = (HashAlg)i;
-      return true;
-    }
-  }
-  return false;
-}
 
 const char* epid_version_to_string[kNumEpidVersions] = {"1", "2"};
 
@@ -92,17 +70,4 @@ bool StringToEpidFileType(char const* str, EpidFileType* type) {
   }
   log_error("epid file type \"%s\" is unknown", str);
   return false;
-}
-
-void SetMemberParams(BitSupplier rnd_func, void* rnd_param, FpElemStr* f,
-                     MemberParams* params) {
-#ifdef TPM_TSS
-  (void)rnd_func;
-  (void)rnd_param;
-  params->f = f;
-#else
-  params->rnd_func = rnd_func;
-  params->rnd_param = rnd_param;
-  params->f = f;
-#endif
 }

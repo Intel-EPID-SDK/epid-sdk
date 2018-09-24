@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,99 @@
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/math/vli.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
+
+void EFqFromAffine(EccPointJacobiFq* result, EccPointFq const* in) {
+  FqCp(&result->X, &in->x);
+  FqCp(&result->Y, &in->y);
+  FqSet(&result->Z, 1);
+}
+
+int EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in) {
+  FqElem fq_inv;
+  if (EFqIsInf(in)) {
+    return 0;
+  }
+  FqInv(&fq_inv, &in->Z);
+  FqMul(&result->x, &in->X, &fq_inv);
+  FqMul(&result->x, &result->x, &fq_inv);
+  FqMul(&result->y, &in->Y, &fq_inv);
+  FqMul(&result->y, &result->y, &fq_inv);
+  FqMul(&result->y, &result->y, &fq_inv);
+
+  return 1;
+}
+
+int EFqAffineAdd(EccPointFq* result, EccPointFq const* left,
+                 EccPointFq const* right) {
+  EccPointJacobiFq efqj_a;
+  EccPointJacobiFq efqj_b;
+  if (EFqEqAffine(left, right)) return EFqAffineDbl(result, left);
+
+  EFqFromAffine(&efqj_a, left);
+  EFqFromAffine(&efqj_b, right);
+  EFqAdd(&efqj_a, &efqj_a, &efqj_b);
+
+  return EFqToAffine(result, &efqj_a);
+}
+
+void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
+            EccPointJacobiFq const* right) {
+  FqElem fq0;
+  FqElem fq1;
+  FqElem fq2;
+  FqElem fq3;
+  FqElem fq4;
+  FqElem fq5;
+
+  if (FqIsZero(&(left->Z))) {
+    EFqJCp(result, right);
+    return;
+  }
+  if (FqIsZero(&(right->Z))) {
+    EFqJCp(result, left);
+    return;
+  }
+
+  FqSquare(&fq2, &(right->Z));
+  FqSquare(&fq3, &(left->Z));
+  // P.X * Q.Z^2
+  FqMul(&fq0, &(left->X), &fq2);
+  // Q.X * P.Z^2
+  FqMul(&fq1, &(right->X), &fq3);
+  // Q.X*P.Z^2 - P*X+Q*Z^2
+  FqSub(&fq5, &fq1, &fq0);
+  FqMul(&fq3, &(right->Y), &fq3);
+  // P.Y * Q.Z^3
+  FqMul(&fq3, &(left->Z), &fq3);
+  FqMul(&fq2, &(left->Y), &fq2);
+  // Q.Y * P.Z^3
+  FqMul(&fq2, &(right->Z), &fq2);
+  FqSub(&fq4, &fq3, &fq2);
+
+  if (FqIsZero(&fq5)) {
+    if (FqIsZero(&fq4)) {
+      EFqDbl(result, left);
+      return;
+    } else {
+      EFqInf(result);
+      return;
+    }
+  }
+  FqMul(&(result->Z), &(left->Z), &(right->Z));
+  FqMul(&(result->Z), &(result->Z), &fq5);
+  // Q.X*P.Z^2 + P*X+Q*Z^2
+  FqAdd(&fq1, &fq0, &fq1);
+  FqMul(&fq2, &fq2, &fq5);
+  FqSquare(&fq5, &fq5);
+  FqMul(&fq1, &fq1, &fq5);
+  FqSquare(&(result->X), &fq4);
+  FqSub(&(result->X), &(result->X), &fq1);
+  FqMul(&fq2, &fq2, &fq5);
+  FqMul(&fq0, &fq0, &fq5);
+  FqSub(&fq0, &fq0, &(result->X));
+  FqMul(&(result->Y), &fq4, &fq0);
+  FqSub(&(result->Y), &(result->Y), &fq2);
+}
 
 static int EFqMakePoint(EccPointFq* output, FqElem* in) {
   FqElem fq_sqrt = {0};
@@ -108,19 +201,6 @@ void EFqMultiExp(EccPointJacobiFq* result, EccPointJacobiFq const* base0,
   EFqJCp(result, &efqj_a);
 }
 
-int EFqAffineAdd(EccPointFq* result, EccPointFq const* left,
-                 EccPointFq const* right) {
-  EccPointJacobiFq efqj_a;
-  EccPointJacobiFq efqj_b;
-  if (EFqEqAffine(left, right)) return EFqAffineDbl(result, left);
-
-  EFqFromAffine(&efqj_a, left);
-  EFqFromAffine(&efqj_b, right);
-  EFqAdd(&efqj_a, &efqj_a, &efqj_b);
-
-  return EFqToAffine(result, &efqj_a);
-}
-
 int EFqAffineDbl(EccPointFq* result, EccPointFq const* in) {
   EccPointJacobiFq efqj_a;
   EFqFromAffine(&efqj_a, in);
@@ -152,65 +232,6 @@ void EFqDbl(EccPointJacobiFq* result, EccPointJacobiFq const* in) {
   FqSub(&(result->Y), &fq_a, &(result->Y));
 }
 
-void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
-            EccPointJacobiFq const* right) {
-  FqElem fq0;
-  FqElem fq1;
-  FqElem fq2;
-  FqElem fq3;
-  FqElem fq4;
-  FqElem fq5;
-
-  if (FqIsZero(&(left->Z))) {
-    EFqJCp(result, right);
-    return;
-  }
-  if (FqIsZero(&(right->Z))) {
-    EFqJCp(result, left);
-    return;
-  }
-
-  FqSquare(&fq2, &(right->Z));
-  FqSquare(&fq3, &(left->Z));
-  // P.X * Q.Z^2
-  FqMul(&fq0, &(left->X), &fq2);
-  // Q.X * P.Z^2
-  FqMul(&fq1, &(right->X), &fq3);
-  // Q.X*P.Z^2 - P*X+Q*Z^2
-  FqSub(&fq5, &fq1, &fq0);
-  FqMul(&fq3, &(right->Y), &fq3);
-  // P.Y * Q.Z^3
-  FqMul(&fq3, &(left->Z), &fq3);
-  FqMul(&fq2, &(left->Y), &fq2);
-  // Q.Y * P.Z^3
-  FqMul(&fq2, &(right->Z), &fq2);
-  FqSub(&fq4, &fq3, &fq2);
-
-  if (FqIsZero(&fq5)) {
-    if (FqIsZero(&fq4)) {
-      EFqDbl(result, left);
-      return;
-    } else {
-      EFqInf(result);
-      return;
-    }
-  }
-  FqMul(&(result->Z), &(left->Z), &(right->Z));
-  FqMul(&(result->Z), &(result->Z), &fq5);
-  // Q.X*P.Z^2 + P*X+Q*Z^2
-  FqAdd(&fq1, &fq0, &fq1);
-  FqMul(&fq2, &fq2, &fq5);
-  FqSquare(&fq5, &fq5);
-  FqMul(&fq1, &fq1, &fq5);
-  FqSquare(&(result->X), &fq4);
-  FqSub(&(result->X), &(result->X), &fq1);
-  FqMul(&fq2, &fq2, &fq5);
-  FqMul(&fq0, &fq0, &fq5);
-  FqSub(&fq0, &fq0, &(result->X));
-  FqMul(&(result->Y), &fq4, &fq0);
-  FqSub(&(result->Y), &(result->Y), &fq2);
-}
-
 int EFqRand(EccPointFq* result, BitSupplier rnd_func, void* rnd_param) {
   FqElem fq;
   do {
@@ -221,33 +242,15 @@ int EFqRand(EccPointFq* result, BitSupplier rnd_func, void* rnd_param) {
   return 1;
 }
 
-void EFqSet(EccPointJacobiFq* result, FqElem const* x, FqElem const* y) {
-  FqCp(&result->X, x);
-  FqCp(&result->Y, y);
+int EFqJRand(EccPointJacobiFq* result, BitSupplier rnd_func, void* rnd_param) {
+  FqElem fq;
+  do {
+    if (!FqRand(&fq, rnd_func, rnd_param)) {
+      return 0;
+    }
+  } while (!EFqMakePoint((EccPointFq*)result, &fq));
+
   FqSet(&result->Z, 1);
-}
-
-int EFqIsInf(EccPointJacobiFq const* in) {
-  return FqIsZero(&in->X) && FqIsZero(&in->Z) && (!FqIsZero(&in->Y));
-}
-
-void EFqFromAffine(EccPointJacobiFq* result, EccPointFq const* in) {
-  FqCp(&result->X, &in->x);
-  FqCp(&result->Y, &in->y);
-  FqSet(&result->Z, 1);
-}
-
-int EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in) {
-  FqElem fq_inv;
-  if (EFqIsInf(in)) {
-    return 0;
-  }
-  FqInv(&fq_inv, &in->Z);
-  FqMul(&result->x, &in->X, &fq_inv);
-  FqMul(&result->x, &result->x, &fq_inv);
-  FqMul(&result->y, &in->Y, &fq_inv);
-  FqMul(&result->y, &result->y, &fq_inv);
-  FqMul(&result->y, &result->y, &fq_inv);
 
   return 1;
 }
@@ -256,6 +259,52 @@ void EFqNeg(EccPointJacobiFq* result, EccPointJacobiFq const* in) {
   FqCp(&result->X, &in->X);
   FqNeg(&result->Y, &in->Y);
   FqCp(&result->Z, &in->Z);
+}
+
+int EFqHash(EccPointFq* result, unsigned char const* msg, size_t len,
+            HashAlg hashalg) {
+  tiny_sha hash_context;
+  FqElem three;
+  FqElem tmp;
+  uint32_t hash_salt = 0;
+  uint32_t buf = 0;
+  sha_digest hash_buf;
+  // 1/q in Fq
+  FqElem montgomery_r = {
+      0x512ccfed, 0x2cd6d224, 0xed67f57d, 0xf3239a04,
+      0x118e5b60, 0xb91a0da1, 0x00030f32, 0,
+  };
+  FqSet(&three, 3);
+
+  for (hash_salt = 0; hash_salt < 0xFFFFFFFF; ++hash_salt) {
+    if (!tinysha_init(hashalg, &hash_context)) {
+      return 0;
+    }
+
+    Uint32Serialize((OctStr32*)&buf, hash_salt);
+    tinysha_update(&hash_context, &buf, sizeof(buf));
+    tinysha_update(&hash_context, msg, len);
+
+    tinysha_final(hash_buf.digest, &hash_context);
+
+    FqFromHash(&result->x, hash_buf.digest, tinysha_digest_size(&hash_context));
+    FqSquare(&tmp, &result->x);
+    FqMul(&tmp, &tmp, &result->x);
+    FqAdd(&tmp, &tmp, &three);
+    if (FqSqrt(&result->y, &tmp)) {
+      FqNeg(&tmp, &result->y);
+      // Verify and Non-tiny member use montgomery representation to determine
+      // if negation is needed: this is to be compatible with them
+      FqMul(&montgomery_r, &result->y, &montgomery_r);
+      FqCondSet(&result->y, &tmp, &result->y, montgomery_r.limbs.word[0] & 1);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int EFqEqAffine(EccPointFq const* left, EccPointFq const* right) {
+  return FqEq(&left->x, &right->x) && FqEq(&left->y, &right->y);
 }
 
 int EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right) {
@@ -289,75 +338,8 @@ int EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right) {
   return FqEq(&fq1, &fq2) && FqEq(&fq3, &fq4);
 }
 
-int EFqHash(EccPointFq* result, unsigned char const* msg, size_t len,
-            HashAlg hashalg) {
-  tiny_sha hash_context;
-  FqElem three;
-  FqElem tmp;
-  uint32_t hash_salt = 0;
-  uint32_t buf = 0;
-  sha_digest hash_buf;
-  // 1/q in Fq
-  FqElem montgomery_r = {
-      0x512ccfed, 0x2cd6d224, 0xed67f57d, 0xf3239a04,
-      0x118e5b60, 0xb91a0da1, 0x00030f32, 0,
-  };
-  if ((kSha512 != hashalg) && (kSha256 != hashalg)) {
-    return 0;
-  }
-  FqSet(&three, 3);
-
-  for (hash_salt = 0; hash_salt < 0xFFFFFFFF; ++hash_salt) {
-    tinysha_init(hashalg, &hash_context);
-
-    Uint32Serialize((OctStr32*)&buf, hash_salt);
-    tinysha_update(&hash_context, &buf, sizeof(buf));
-    tinysha_update(&hash_context, msg, len);
-
-    tinysha_final(hash_buf.digest, &hash_context);
-
-    FqFromHash(&result->x, hash_buf.digest, tinysha_digest_size(&hash_context));
-    FqSquare(&tmp, &result->x);
-    FqMul(&tmp, &tmp, &result->x);
-    FqAdd(&tmp, &tmp, &three);
-    if (FqSqrt(&result->y, &tmp)) {
-      FqNeg(&tmp, &result->y);
-      // Verify and Non-tiny member use montgomery representation to determine
-      // if negation is needed: this is to be compatible with them
-      FqMul(&montgomery_r, &result->y, &montgomery_r);
-      FqCondSet(&result->y, &tmp, &result->y, montgomery_r.limbs.word[0] & 1);
-      return 1;
-    }
-  }
-  return 0;
-}
-
-void EFqCp(EccPointFq* result, EccPointFq const* in) {
-  FqCp(&result->x, &in->x);
-  FqCp(&result->y, &in->y);
-}
-
-int EFqEqAffine(EccPointFq const* left, EccPointFq const* right) {
-  return FqEq(&left->x, &right->x) && FqEq(&left->y, &right->y);
-}
-
-void EFqCondSet(EccPointJacobiFq* result, EccPointJacobiFq const* true_val,
-                EccPointJacobiFq const* false_val, int truth_val) {
-  FqCondSet(&result->X, &true_val->X, &false_val->X, truth_val);
-  FqCondSet(&result->Y, &true_val->Y, &false_val->Y, truth_val);
-  FqCondSet(&result->Z, &true_val->Z, &false_val->Z, truth_val);
-}
-
-void EFqJCp(EccPointJacobiFq* result, EccPointJacobiFq const* in) {
-  FqCp(&result->X, &in->X);
-  FqCp(&result->Y, &in->Y);
-  FqCp(&result->Z, &in->Z);
-}
-
-void EFqInf(EccPointJacobiFq* result) {
-  FqSet(&result->X, 0);
-  FqSet(&result->Y, 1);
-  FqSet(&result->Z, 0);
+int EFqIsInf(EccPointJacobiFq const* in) {
+  return FqIsZero(&in->X) && FqIsZero(&in->Z) && (!FqIsZero(&in->Y));
 }
 
 int EFqOnCurve(EccPointFq const* in) {
@@ -398,15 +380,32 @@ int EFqJOnCurve(EccPointJacobiFq const* in) {
   return FqEq(&fq1, &fq2);  // check Y^2 = X^3 + 3 Z^6
 }
 
-int EFqJRand(EccPointJacobiFq* result, BitSupplier rnd_func, void* rnd_param) {
-  FqElem fq;
-  do {
-    if (!FqRand(&fq, rnd_func, rnd_param)) {
-      return 0;
-    }
-  } while (!EFqMakePoint((EccPointFq*)result, &fq));
+void EFqInf(EccPointJacobiFq* result) {
+  FqSet(&result->X, 0);
+  FqSet(&result->Y, 1);
+  FqSet(&result->Z, 0);
+}
 
+void EFqCp(EccPointFq* result, EccPointFq const* in) {
+  FqCp(&result->x, &in->x);
+  FqCp(&result->y, &in->y);
+}
+
+void EFqJCp(EccPointJacobiFq* result, EccPointJacobiFq const* in) {
+  FqCp(&result->X, &in->X);
+  FqCp(&result->Y, &in->Y);
+  FqCp(&result->Z, &in->Z);
+}
+
+void EFqSet(EccPointJacobiFq* result, FqElem const* x, FqElem const* y) {
+  FqCp(&result->X, x);
+  FqCp(&result->Y, y);
   FqSet(&result->Z, 1);
+}
 
-  return 1;
+void EFqCondSet(EccPointJacobiFq* result, EccPointJacobiFq const* true_val,
+                EccPointJacobiFq const* false_val, int truth_val) {
+  FqCondSet(&result->X, &true_val->X, &false_val->X, truth_val);
+  FqCondSet(&result->Y, &true_val->Y, &false_val->Y, truth_val);
+  FqCondSet(&result->Z, &true_val->Z, &false_val->Z, truth_val);
 }

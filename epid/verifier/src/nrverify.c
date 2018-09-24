@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 /*!
  * \file
- * \brief NrVerfy implementation.
+ * \brief NrVerify implementation.
  */
-
+#define EXPORT_EPID_APIS
+#include "epid/common/src/hashsize.h"
 #include "epid/common/src/memory.h"
 #include "epid/verifier/api.h"
 #include "epid/verifier/src/context.h"
@@ -28,6 +29,14 @@
   if (kEpidNoErr != (ret)) {     \
     break;                       \
   }
+
+/// Sha Digest Element
+typedef union sha_digest {
+  uint8_t sha512_digest[EPID_SHA512_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t sha384_digest[EPID_SHA384_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t sha256_digest[EPID_SHA256_DIGEST_BITSIZE / CHAR_BIT];
+  uint8_t digest[1];  ///< Pointer to digest
+} sha_digest;
 
 #pragma pack(1)
 /// Storage for values to create commitment in NrVerify algorithm
@@ -43,11 +52,19 @@ typedef struct NrVerifyCommitValues {
   G1ElemStr r2;    //!< element of G1
   uint8_t msg[1];  //!< message
 } NrVerifyCommitValues;
+
+typedef struct EpidNrVerifyCommitValuesNoncekDigest {
+  BigNumStr noncek;  //!< random number (256-bit)
+  sha_digest digest;
+} EpidNrVerifyCommitValuesNoncekDigest;
 #pragma pack()
 
-EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
-                        void const* msg, size_t msg_len,
-                        SigRlEntry const* sigrl_entry, NrProof const* proof) {
+EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
+                                          BasicSignature const* sig,
+                                          void const* msg, size_t msg_len,
+                                          SigRlEntry const* sigrl_entry,
+                                          void const* nr_proof,
+                                          size_t nr_proof_len) {
   size_t const cv_header_len = sizeof(NrVerifyCommitValues) - sizeof(uint8_t);
   EpidStatus sts = kEpidErr;
   NrVerifyCommitValues* commit_values = NULL;
@@ -60,11 +77,13 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
   EcPoint* r1_pt = NULL;
   EcPoint* r2_pt = NULL;
   FfElement* c_el = NULL;
+  FfElement* t = NULL;
   FfElement* nc_el = NULL;
   FfElement* smu_el = NULL;
   FfElement* snu_el = NULL;
   FfElement* commit_hash = NULL;
-  if (!ctx || !sig || !proof || !sigrl_entry) {
+  NrProof* proof = NULL;
+  if (!ctx || !sig || !nr_proof || !sigrl_entry) {
     return kEpidBadArgErr;
   }
   if (!msg && (0 != msg_len)) {
@@ -74,6 +93,9 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
     return kEpidBadArgErr;
   }
   if (!ctx->epid2_params || !ctx->epid2_params->G1 || !ctx->epid2_params->Fp) {
+    return kEpidBadArgErr;
+  }
+  if (nr_proof_len != sizeof(NrProof) && nr_proof_len != sizeof(SplitNrProof)) {
     return kEpidBadArgErr;
   }
   do {
@@ -90,6 +112,7 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
     FpElemStr nc_str;
     bool t_is_identity;
     bool c_is_equal;
+    proof = (NrProof*)nr_proof;
 
     commit_values = SAFE_ALLOC(commit_len);
     if (commit_values == NULL) {
@@ -113,6 +136,8 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
     sts = NewEcPoint(G1, &r2_pt);
     BREAK_ON_EPID_ERROR(sts);
     sts = NewFfElement(Fp, &c_el);
+    BREAK_ON_EPID_ERROR(sts);
+    sts = NewFfElement(Fp, &t);
     BREAK_ON_EPID_ERROR(sts);
     sts = NewFfElement(Fp, &nc_el);
     BREAK_ON_EPID_ERROR(sts);
@@ -145,11 +170,43 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
     BREAK_ON_EPID_ERROR(sts);
     sts = ReadFfElement(Fp, &proof->snu, sizeof(proof->snu), snu_el);
     BREAK_ON_EPID_ERROR(sts);
+    if (nr_proof_len == sizeof(SplitNrProof)) {
+      // t = hashFp(k || c)
+      EpidNrVerifyCommitValuesNoncekDigest commit_values_noncek_digest = {0};
+      SplitNrProof* split_nr_proof = (SplitNrProof*)nr_proof;
+      size_t digest_len = EpidGetHashSize(ctx->hash_alg);
+      size_t commit_len_noncek_digest =
+          sizeof(commit_values_noncek_digest.noncek) + digest_len;
 
-    // 4. The verifier computes nc = (- c) mod p.
-    sts = FfNeg(Fp, c_el, nc_el);
-    BREAK_ON_EPID_ERROR(sts);
-
+      if (sizeof(commit_values_noncek_digest.digest) < digest_len) {
+        sts = kEpidBadArgErr;
+        BREAK_ON_EPID_ERROR(sts);
+      }
+      if (0 != memcpy_S(&commit_values_noncek_digest.noncek,
+                        sizeof(commit_values_noncek_digest.noncek),
+                        &split_nr_proof->noncek,
+                        sizeof(split_nr_proof->noncek))) {
+        sts = kEpidBadArgErr;
+        BREAK_ON_EPID_ERROR(sts);
+      }
+      if (0 != memcpy_S(commit_values_noncek_digest.digest.digest + digest_len -
+                            sizeof(split_nr_proof->c),
+                        sizeof(split_nr_proof->c), &split_nr_proof->c,
+                        sizeof(split_nr_proof->c))) {
+        sts = kEpidBadArgErr;
+        BREAK_ON_EPID_ERROR(sts);
+      }
+      sts = FfHash(Fp, &commit_values_noncek_digest, commit_len_noncek_digest,
+                   ctx->hash_alg, t);
+      BREAK_ON_EPID_ERROR(sts);
+      // 4. The verifier computes nc = (- t) mod p.
+      sts = FfNeg(Fp, t, nc_el);
+      BREAK_ON_EPID_ERROR(sts);
+    } else {
+      // 4. The verifier computes nc = (- c) mod p.
+      sts = FfNeg(Fp, c_el, nc_el);
+      BREAK_ON_EPID_ERROR(sts);
+    }
     sts = WriteFfElement(Fp, nc_el, &nc_str, sizeof(nc_str));
     BREAK_ON_EPID_ERROR(sts);
 
@@ -233,6 +290,7 @@ EpidStatus EpidNrVerify(VerifierCtx const* ctx, BasicSignature const* sig,
   DeleteFfElement(&smu_el);
   DeleteFfElement(&nc_el);
   DeleteFfElement(&c_el);
+  DeleteFfElement(&t);
   DeleteEcPoint(&r2_pt);
   DeleteEcPoint(&r1_pt);
   DeleteEcPoint(&bp_pt);

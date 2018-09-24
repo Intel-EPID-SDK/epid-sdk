@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -226,7 +226,7 @@ EpidStatus NewFqk(Epid11Params const* params, FiniteField* Fq, FiniteField* Fqd,
                            sizeof(ground_element_str), ground_element);
     BREAK_ON_EPID_ERROR(result);
 
-    result = NewFiniteFieldViaBinomalExtension(Fqd, ground_element, 2, Fqk);
+    result = NewFiniteFieldViaBinomialExtension(Fqd, ground_element, 2, Fqk);
     BREAK_ON_EPID_ERROR(result);
   } while (0);
 

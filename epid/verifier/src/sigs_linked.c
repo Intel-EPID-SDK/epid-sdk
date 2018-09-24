@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
  * \file
  * \brief AreSigsLinked implementation.
  */
-
+#define EXPORT_EPID_APIS
 #include <epid/verifier/api.h>
 
 #include <string.h>
 
 // implements section 4.3 "Signature Linking" from Intel(R) EPID 2.0 Spec
-bool EpidAreSigsLinked(BasicSignature const* sig1, BasicSignature const* sig2) {
+bool EPID_VERIFIER_API EpidAreSigsLinked(BasicSignature const* sig1,
+                                         BasicSignature const* sig2) {
   // Step 1. If B1 = B2 and K1 = K2, output true, otherwise output false.
   return (sig1 && sig2 && 0 == memcmp(&sig1->B, &sig2->B, sizeof(sig2->B)) &&
           0 == memcmp(&sig1->K, &sig2->K, sizeof(sig2->K)));

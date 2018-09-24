@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ typedef struct FqElem {
 
 /// Element of Fq2.
 typedef struct Fq2Elem {
-  FqElem x0;  ///< A coefficent in Fq
-  FqElem x1;  ///< A coefficent in Fq
+  FqElem x0;  ///< A coefficient in Fq
+  FqElem x1;  ///< A coefficient in Fq
 } Fq2Elem;
 
 /// Point in EFq.
@@ -68,15 +68,15 @@ typedef struct EccPointFq2 {
 
 /// Element of Fq6.
 typedef struct Fq6Elem {
-  Fq2Elem y0;  ///< A coefficent in Fq2
-  Fq2Elem y1;  ///< A coefficent in Fq2
-  Fq2Elem y2;  ///< A coefficent in Fq2
+  Fq2Elem y0;  ///< A coefficient in Fq2
+  Fq2Elem y1;  ///< A coefficient in Fq2
+  Fq2Elem y2;  ///< A coefficient in Fq2
 } Fq6Elem;
 
 /// Element of Fq12.
 typedef struct Fq12Elem {
-  Fq6Elem z0;  ///< A coefficent in Fq6
-  Fq6Elem z1;  ///< A coefficent in Fq6
+  Fq6Elem z0;  ///< A coefficient in Fq6
+  Fq6Elem z1;  ///< A coefficient in Fq6
 } Fq12Elem;
 
 /// Element of EFq in Jacobi format.

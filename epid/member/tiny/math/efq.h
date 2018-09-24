@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,42 @@ typedef struct EccPointJacobiFq EccPointJacobiFq;
 typedef struct FpElem FpElem;
 typedef struct FqElem FqElem;
 /// \endcond
+
+/// Convert a point from Affine to Jacobi representation.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+*/
+void EFqFromAffine(EccPointJacobiFq* result, EccPointFq const* in);
+
+/// Convert a point from Jacobi to Affine representation.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+\returns A value different from zero (i.e., true) if on success.
+         Zero (i.e., false) otherwise.
+*/
+int EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in);
+
+/// Add two points in EFq.
+/*!
+\param[out] result of adding left and right.
+\param[in] left The first operand to be added.
+\param[in] right The second operand to be added.
+\returns A value different from zero (i.e., true) if on success.
+         Zero (i.e., false) otherwise.
+*/
+int EFqAffineAdd(EccPointFq* result, EccPointFq const* left,
+                 EccPointFq const* right);
+
+/// Add two points in EFq.
+/*!
+\param[out] result of adding left and right.
+\param[in] left The first operand to be added.
+\param[in] right The second operand to be added.
+*/
+void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
+            EccPointJacobiFq const* right);
 
 /// Multiply two points in EFq.
 /*!
@@ -80,17 +116,6 @@ void EFqMultiExp(EccPointJacobiFq* result, EccPointJacobiFq const* base0,
                  FpElem const* exp0, EccPointJacobiFq const* base1,
                  FpElem const* exp1);
 
-/// Add two points in EFq.
-/*!
-\param[out] result of adding left and right.
-\param[in] left The first operand to be added.
-\param[in] right The second operand to be added.
-\returns A value different from zero (i.e., true) if on success.
-         Zero (i.e., false) otherwise.
-*/
-int EFqAffineAdd(EccPointFq* result, EccPointFq const* left,
-                 EccPointFq const* right);
-
 /// Double a point in EFq.
 /*!
 \param[out] result target.
@@ -107,15 +132,6 @@ int EFqAffineDbl(EccPointFq* result, EccPointFq const* in);
 */
 void EFqDbl(EccPointJacobiFq* result, EccPointJacobiFq const* in);
 
-/// Add two points in EFq.
-/*!
-\param[out] result of adding left and right.
-\param[in] left The first operand to be added.
-\param[in] right The second operand to be added.
-*/
-void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
-            EccPointJacobiFq const* right);
-
 /// Generate a random point in EFq.
 /*!
 \param[in] result the random value.
@@ -126,37 +142,15 @@ void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
 */
 int EFqRand(EccPointFq* result, BitSupplier rnd_func, void* rnd_param);
 
-/// Set a point's value.
+/// Generate a random point in EFq.
 /*!
-\param[out] result target.
-\param[in] x value to set.
-\param[in] y value to set.
-*/
-void EFqSet(EccPointJacobiFq* result, FqElem const* x, FqElem const* y);
-
-/// Test if a point is infinity.
-/*!
-\param[in] in the point to test.
-\returns A value different from zero (i.e., true) indeed
-         the value is infinity. Zero (i.e., false) otherwise.
-*/
-int EFqIsInf(EccPointJacobiFq const* in);
-
-/// Convert a point from Affine to Jacobi representation.
-/*!
-\param[out] result target.
-\param[in] in value to set.
-*/
-void EFqFromAffine(EccPointJacobiFq* result, EccPointFq const* in);
-
-/// Convert a point from Jacobi to Affine representation.
-/*!
-\param[out] result target.
-\param[in] in value to set.
+\param[in] result the random value.
+\param[in] rnd_func Random number generator.
+\param[in] rnd_param Pass through context data for rnd_func.
 \returns A value different from zero (i.e., true) if on success.
          Zero (i.e., false) otherwise.
 */
-int EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in);
+int EFqJRand(EccPointJacobiFq* result, BitSupplier rnd_func, void* rnd_param);
 
 /// Negate a point on EFq.
 /*!
@@ -164,15 +158,6 @@ int EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in);
 \param[in] in the element to negate.
 */
 void EFqNeg(EccPointJacobiFq* result, EccPointJacobiFq const* in);
-
-/// Test if two points on EFq are equal
-/*!
-\param[in] left The first operand to be tested.
-\param[in] right The second operand to be tested.
-\returns A value different from zero (i.e., true) if indeed
-         the values are equal. Zero (i.e., false) otherwise.
-*/
-int EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right);
 
 /// Hashes an arbitrary message to a point on EFq.
 /*!
@@ -186,13 +171,6 @@ int EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right);
 int EFqHash(EccPointFq* result, unsigned char const* msg, size_t len,
             HashAlg hashalg);
 
-/// Copy a point's value
-/*!
-\param[out] result copy target.
-\param[in] in copy source.
-*/
-void EFqCp(EccPointFq* result, EccPointFq const* in);
-
 /// Test if two points on EFq are equal
 /*!
 \param[in] left The first operand to be tested.
@@ -202,28 +180,14 @@ void EFqCp(EccPointFq* result, EccPointFq const* in);
 */
 int EFqEqAffine(EccPointFq const* left, EccPointFq const* right);
 
-/// Conditionally Set a point's value to one of two values.
+/// Test if two points on EFq are equal
 /*!
-\param[out] result target.
-\param[in] true_val value to set if condition is true.
-\param[in] false_val value to set if condition is false.
-\param[in] truth_val value of condition.
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns A value different from zero (i.e., true) if indeed
+         the values are equal. Zero (i.e., false) otherwise.
 */
-void EFqCondSet(EccPointJacobiFq* result, EccPointJacobiFq const* true_val,
-                EccPointJacobiFq const* false_val, int truth_val);
-
-/// Copy a point's value
-/*!
-\param[out] result copy target.
-\param[in] in copy source.
-*/
-void EFqJCp(EccPointJacobiFq* result, EccPointJacobiFq const* in);
-
-/// Set an element's value to infinity.
-/*!
-\param[out] result element to set.
-*/
-void EFqInf(EccPointJacobiFq* result);
+int EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right);
 
 /// Test if a point is on EFq.
 /*!
@@ -241,14 +205,50 @@ int EFqOnCurve(EccPointFq const* in);
 */
 int EFqJOnCurve(EccPointJacobiFq const* in);
 
-/// Generate a random point in EFq.
+/// Test if a point is infinity.
 /*!
-\param[in] result the random value.
-\param[in] rnd_func Random number generator.
-\param[in] rnd_param Pass through context data for rnd_func.
-\returns A value different from zero (i.e., true) if on success.
-         Zero (i.e., false) otherwise.
+\param[in] in the point to test.
+\returns A value different from zero (i.e., true) indeed
+         the value is infinity. Zero (i.e., false) otherwise.
 */
-int EFqJRand(EccPointJacobiFq* result, BitSupplier rnd_func, void* rnd_param);
+int EFqIsInf(EccPointJacobiFq const* in);
+
+/// Set an element's value to infinity.
+/*!
+\param[out] result element to set.
+*/
+void EFqInf(EccPointJacobiFq* result);
+
+/// Copy a point's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void EFqCp(EccPointFq* result, EccPointFq const* in);
+
+/// Copy a point's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void EFqJCp(EccPointJacobiFq* result, EccPointJacobiFq const* in);
+
+/// Set a point's value.
+/*!
+\param[out] result target.
+\param[in] x value to set.
+\param[in] y value to set.
+*/
+void EFqSet(EccPointJacobiFq* result, FqElem const* x, FqElem const* y);
+
+/// Conditionally Set a point's value to one of two values.
+/*!
+\param[out] result target.
+\param[in] true_val value to set if condition is true.
+\param[in] false_val value to set if condition is false.
+\param[in] truth_val value of condition.
+*/
+void EFqCondSet(EccPointJacobiFq* result, EccPointJacobiFq const* true_val,
+                EccPointJacobiFq const* false_val, int truth_val);
 
 #endif  // EPID_MEMBER_TINY_MATH_EFQ_H_

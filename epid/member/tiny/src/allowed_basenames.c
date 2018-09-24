@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,12 +19,6 @@
 #include "epid/member/tiny/src/allowed_basenames.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
 
-#if defined(SHA256_SUPPORT)
-#define BASENAME_SHA_ALG kSha256
-#elif defined(SHA512_SUPPORT)
-#define BASENAME_SHA_ALG kSha512
-#endif
-
 size_t BasenamesGetSize(size_t num_basenames) {
   return sizeof(AllowedBasenames) - sizeof(sha_digest) +
          sizeof(sha_digest) * (num_basenames);
@@ -43,12 +37,14 @@ int IsBasenameAllowed(AllowedBasenames const* basename_container,
   tiny_sha sha_state;
   sha_digest digest;
   // calculate hash of input basename
-  tinysha_init(BASENAME_SHA_ALG, &sha_state);
+  if (!tinysha_init(SHORTEST_HASH_ALG, &sha_state)) {
+    return 0;
+  }
   tinysha_update(&sha_state, basename, length);
   tinysha_final(digest.digest, &sha_state);
   // compare hash of input basename with stored hashes
   for (d = 0; d < basename_container->current_bsn_number; d++) {
-    if (!memcmp(digest.digest, &basename_container->basename_digest[d].digest,
+    if (!memcmp(digest.digest, &basename_container->basename_digest[d],
                 tinysha_digest_size(&sha_state))) {
       return 1;
     }
@@ -65,7 +61,9 @@ int AllowBasename(AllowedBasenames* basename_container, void const* basename,
     return 0;
   }
   // calculate hash of input basename
-  tinysha_init(BASENAME_SHA_ALG, &sha_state);
+  if (!tinysha_init(SHORTEST_HASH_ALG, &sha_state)) {
+    return 0;
+  }
   tinysha_update(&sha_state, basename, length);
   tinysha_final(digest.digest, &sha_state);
   // copy hash of input basename into digest buffer

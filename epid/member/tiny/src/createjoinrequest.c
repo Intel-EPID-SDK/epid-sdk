@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,10 +26,12 @@
 #include "epid/member/tiny/math/mathtypes.h"
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/src/gid_parser.h"
 #include "epid/member/tiny/src/native_types.h"
 #include "epid/member/tiny/src/serialize.h"
 #include "epid/member/tiny/src/validate.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny_member.h"
 
 static const FpElemStr epid20_p_str = {
     {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5, 0xF2,
@@ -58,10 +60,9 @@ static const G1ElemStr epid20_g1_str = {
        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02}}}};
 
-EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
-                                          GroupPubKey const* pub_key,
-                                          IssuerNonce const* ni,
-                                          JoinRequest* join_request) {
+EpidStatus EPID_MEMBER_API
+EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
+                      IssuerNonce const* ni, MemberJoinRequest* join_request) {
   EccPointFq F;
   EccPointFq R_str;
   FpElem r;
@@ -71,12 +72,20 @@ EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
   sha_digest digest;
   G1ElemStr g1_str;
   NativeGroupPubKey deserialized_pkey;
+  JoinRequest* request = &join_request->request;
+  EpidStatus sts = kEpidNoErr;
+  HashAlg hash_alg = kInvalidHashAlg;
 
   if (!ctx || !pub_key || !ni || !join_request) {
     return kEpidBadArgErr;
   }
-  if (!ctx->f_is_set) {
-    return kEpidBadArgErr;
+
+  sts = EpidTinyParseHashAlg(&pub_key->gid, &hash_alg);
+  if (kEpidNoErr != sts) {
+    return sts;
+  }
+  if (!tinysha_init(hash_alg, &sha_state)) {
+    return kEpidHashAlgorithmNotSupported;
   }
 
   GroupPubKeyDeserialize(&deserialized_pkey, pub_key);
@@ -87,6 +96,13 @@ EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
   if (!FpRandNonzero(&r, ctx->rnd_func, ctx->rnd_param)) {
     return kEpidMathErr;
   }
+  if (!ctx->f_is_set) {
+    // pick number f between 1 - (p-1)
+    if (!FpRandNonzero(&ctx->f, ctx->rnd_func, ctx->rnd_param)) {
+      return kEpidMathErr;
+    }
+    ctx->f_is_set = true;
+  }
 
   // F = h1^f
   EFqAffineExp(&F, &deserialized_pkey.h1, &ctx->f);
@@ -94,7 +110,6 @@ EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
   EFqAffineExp(&R_str, &deserialized_pkey.h1, &r);
 
   // c = hash(p || g1 || g2 || h1 || h2 || w || F || R || NI) mod p
-  tinysha_init(ctx->hash_alg, &sha_state);
   tinysha_update(&sha_state, (void const*)&epid20_p_str, sizeof(epid20_p_str));
   tinysha_update(&sha_state, (void const*)&epid20_g1_str,
                  sizeof(epid20_g1_str));
@@ -103,19 +118,19 @@ EpidStatus EPID_API EpidCreateJoinRequest(MemberCtx* ctx,
   tinysha_update(&sha_state, (void const*)&pub_key->h1, sizeof(pub_key->h1));
   tinysha_update(&sha_state, (void const*)&pub_key->h2, sizeof(pub_key->h2));
   tinysha_update(&sha_state, (void const*)&pub_key->w, sizeof(pub_key->w));
-  EFqSerialize(&join_request->F, &F);
-  tinysha_update(&sha_state, (void const*)&join_request->F,
-                 sizeof(join_request->F));
+  EFqSerialize(&request->F, &F);
+  tinysha_update(&sha_state, (void const*)&request->F, sizeof(request->F));
   EFqSerialize(&g1_str, &R_str);
   tinysha_update(&sha_state, (void const*)&g1_str, sizeof(g1_str));
   tinysha_update(&sha_state, (void const*)ni, sizeof(*ni));
   tinysha_final(digest.digest, &sha_state);
   FpFromHash(&c, digest.digest, tinysha_digest_size(&sha_state));
-  FpSerialize(&join_request->c, &c);
+  FpSerialize(&request->c, &c);
 
   // computes s = (r + c * f) mod p
   FpMul(&t, &c, &ctx->f);
   FpAdd(&t, &t, &r);
-  FpSerialize(&join_request->s, &t);
+  FpSerialize(&request->s, &t);
+
   return kEpidNoErr;
 }

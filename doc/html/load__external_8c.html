@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
-<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/tpm2/ibm_tss/load_external.c File Reference</title>
+<title>Intel&reg; Enhanced Privacy ID SDK: epid/member/split/tpm2/ibm_tss/load_external.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -69,13 +69,15 @@ $(document).ready(function(){initNavTree('load__external_8c.html','');});
 
 <p>TPM2_LoadExternal command implementation.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="load__external_8h.html">epid/member/tpm2/load_external.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="load__external_8h.html">epid/member/split/tpm2/load_external.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ecgroup_8h.html">epid/common/math/ecgroup.h</a>&quot;</code><br />
 <code>#include &quot;epid/common/src/epid2params.h&quot;</code><br />
 <code>#include &quot;epid/common/src/memory.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="conversion_8h.html">epid/member/tpm2/ibm_tss/conversion.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="printtss_8h.html">epid/member/tpm2/ibm_tss/printtss.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="state_8h.html">epid/member/tpm2/ibm_tss/state.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="flushcontext_8h.html">epid/member/split/tpm2/flushcontext.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="conversion_8h.html">epid/member/split/tpm2/ibm_tss/conversion.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="printtss_8h.html">epid/member/split/tpm2/ibm_tss/printtss.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="registerkey_8h.html">epid/member/split/tpm2/ibm_tss/registerkey.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="state_8h.html">epid/member/split/tpm2/ibm_tss/state.h</a>&quot;</code><br />
 <code>#include &quot;tss2/TPM_Types.h&quot;</code><br />
 <code>#include &quot;tss2/tss.h&quot;</code><br />
 </div><table class="memberdecls">
@@ -87,9 +89,9 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gac2507260f635a9c7abd9113cda6918f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#gac2507260f635a9c7abd9113cda6918f9">Tpm2LoadExternal</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f_str)</td></tr>
-<tr class="memdesc:gac2507260f635a9c7abd9113cda6918f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invokes TPM2_LoadExternal command.  <a href="group___tpm2_module.html#gac2507260f635a9c7abd9113cda6918f9">More...</a><br /></td></tr>
-<tr class="separator:gac2507260f635a9c7abd9113cda6918f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa531d68f0b22f9e854e0e318ad67c85b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___error_codes.html#gafdb27c77c2c4b32c807e326a8a0da360">EpidStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___tpm2_module.html#gaa531d68f0b22f9e854e0e318ad67c85b">Tpm2LoadExternal</a> (<a class="el" href="struct_tpm2_ctx.html">Tpm2Ctx</a> *ctx, <a class="el" href="group___epid_types.html#ga5e450438f6f9a5eacd0cf5ce354ec890">HashAlg</a> hash_alg, <a class="el" href="struct_fp_elem_str.html">FpElemStr</a> const *f_str, <a class="el" href="struct_tpm2_key.html">Tpm2Key</a> **key)</td></tr>
+<tr class="memdesc:gaa531d68f0b22f9e854e0e318ad67c85b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invokes TPM2_LoadExternal command.  <a href="group___tpm2_module.html#gaa531d68f0b22f9e854e0e318ad67c85b">More...</a><br /></td></tr>
+<tr class="separator:gaa531d68f0b22f9e854e0e318ad67c85b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>TPM2_LoadExternal command implementation. </p>
@@ -119,13 +121,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_0d59f1b8006345e373e07b4691e0da76.html">tpm2</a></li><li class="navelem"><a class="el" href="dir_b7525369f2fbc378c6814b573b9a2bc3.html">ibm_tss</a></li><li class="navelem"><a class="el" href="load__external_8c.html">load_external.c</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_a16c19eb5cab01f5b64e19de6ee56195.html">split</a></li><li class="navelem"><a class="el" href="dir_2680c2152b7ba3f69d3c47ecffa4629c.html">tpm2</a></li><li class="navelem"><a class="el" href="dir_89ddffefce5102d437718458993602a8.html">ibm_tss</a></li><li class="navelem"><a class="el" href="load__external_8c.html">load_external.c</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

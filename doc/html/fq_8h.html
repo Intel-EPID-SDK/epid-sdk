@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">6.0.1</span>
+&#160;<span id="projectnumber">7.0.0</span>
 </div>
   </td>
  </tr>
@@ -74,9 +74,9 @@ $(document).ready(function(){initNavTree('fq_8h.html','');});
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aceb37a8f5538fe9ca682058ff0e36091"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#aceb37a8f5538fe9ca682058ff0e36091">FqInField</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
-<tr class="memdesc:aceb37a8f5538fe9ca682058ff0e36091"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if an element is in Fq.  <a href="#aceb37a8f5538fe9ca682058ff0e36091">More...</a><br /></td></tr>
-<tr class="separator:aceb37a8f5538fe9ca682058ff0e36091"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a7794f72bcc506f8d8a60dbfae1a70ed0">FqFromHash</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, unsigned char const *hash, size_t len)</td></tr>
+<tr class="memdesc:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reinterpret a buffer as an element of Fq.  <a href="#a7794f72bcc506f8d8a60dbfae1a70ed0">More...</a><br /></td></tr>
+<tr class="separator:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab52f69c761454d976c3fc56a26549419"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ab52f69c761454d976c3fc56a26549419">FqAdd</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *left, <a class="el" href="struct_fq_elem.html">FqElem</a> const *right)</td></tr>
 <tr class="memdesc:ab52f69c761454d976c3fc56a26549419"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add two elements of Fq.  <a href="#ab52f69c761454d976c3fc56a26549419">More...</a><br /></td></tr>
 <tr class="separator:ab52f69c761454d976c3fc56a26549419"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -89,12 +89,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a276d3747aefdac5503982f2aa5eccbf8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a276d3747aefdac5503982f2aa5eccbf8">FqExp</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *base, <a class="el" href="struct_very_large_int.html">VeryLargeInt</a> const *exp)</td></tr>
 <tr class="memdesc:a276d3747aefdac5503982f2aa5eccbf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exponentiate an element of Fq by a large integer.  <a href="#a276d3747aefdac5503982f2aa5eccbf8">More...</a><br /></td></tr>
 <tr class="separator:a276d3747aefdac5503982f2aa5eccbf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a17133e5b777baa8c745b7dfcf1c8ad8d">FqCp</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
-<tr class="memdesc:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy an element's value.  <a href="#a17133e5b777baa8c745b7dfcf1c8ad8d">More...</a><br /></td></tr>
-<tr class="separator:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac08ca8c781cd18cbadabbeeb85722e49"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ac08ca8c781cd18cbadabbeeb85722e49">FqIsZero</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *value)</td></tr>
-<tr class="memdesc:ac08ca8c781cd18cbadabbeeb85722e49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if an element is zero.  <a href="#ac08ca8c781cd18cbadabbeeb85722e49">More...</a><br /></td></tr>
-<tr class="separator:ac08ca8c781cd18cbadabbeeb85722e49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b60a8996973d474d2fb7a31838c6d8c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a7b60a8996973d474d2fb7a31838c6d8c">FqInv</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
 <tr class="memdesc:a7b60a8996973d474d2fb7a31838c6d8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invert an element of Fq.  <a href="#a7b60a8996973d474d2fb7a31838c6d8c">More...</a><br /></td></tr>
 <tr class="separator:a7b60a8996973d474d2fb7a31838c6d8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -104,27 +98,33 @@ Functions</h2></td></tr>
 <tr class="memitem:ab62c8f43f78a0c4f830c9ed65048b8f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ab62c8f43f78a0c4f830c9ed65048b8f9">FqSquare</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
 <tr class="memdesc:ab62c8f43f78a0c4f830c9ed65048b8f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Square an element of Fq.  <a href="#ab62c8f43f78a0c4f830c9ed65048b8f9">More...</a><br /></td></tr>
 <tr class="separator:ab62c8f43f78a0c4f830c9ed65048b8f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac85eb642d3b3973477749769e04d45af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ac85eb642d3b3973477749769e04d45af">FqClear</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result)</td></tr>
-<tr class="memdesc:ac85eb642d3b3973477749769e04d45af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear an element's value.  <a href="#ac85eb642d3b3973477749769e04d45af">More...</a><br /></td></tr>
-<tr class="separator:ac85eb642d3b3973477749769e04d45af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab28f9df688a669a64dc04fa33f4cbb64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ab28f9df688a669a64dc04fa33f4cbb64">FqSet</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, uint32_t in)</td></tr>
-<tr class="memdesc:ab28f9df688a669a64dc04fa33f4cbb64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element's value.  <a href="#ab28f9df688a669a64dc04fa33f4cbb64">More...</a><br /></td></tr>
-<tr class="separator:ab28f9df688a669a64dc04fa33f4cbb64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd40d255e0094f7156092db44a3b90fa"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#abd40d255e0094f7156092db44a3b90fa">FqEq</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *left, <a class="el" href="struct_fq_elem.html">FqElem</a> const *right)</td></tr>
-<tr class="memdesc:abd40d255e0094f7156092db44a3b90fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two elements in Fq are equal.  <a href="#abd40d255e0094f7156092db44a3b90fa">More...</a><br /></td></tr>
-<tr class="separator:abd40d255e0094f7156092db44a3b90fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afbb0976ef343b14c66305db0a48647ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#afbb0976ef343b14c66305db0a48647ca">FqCondSet</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *true_val, <a class="el" href="struct_fq_elem.html">FqElem</a> const *false_val, int truth_val)</td></tr>
-<tr class="memdesc:afbb0976ef343b14c66305db0a48647ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conditionally Set an element's value to one of two values.  <a href="#afbb0976ef343b14c66305db0a48647ca">More...</a><br /></td></tr>
-<tr class="separator:afbb0976ef343b14c66305db0a48647ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cbded46e28a1e6f641c5c0ae37fd744"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a0cbded46e28a1e6f641c5c0ae37fd744">FqSqrt</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
 <tr class="memdesc:a0cbded46e28a1e6f641c5c0ae37fd744"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the Square root of an element of Fq.  <a href="#a0cbded46e28a1e6f641c5c0ae37fd744">More...</a><br /></td></tr>
 <tr class="separator:a0cbded46e28a1e6f641c5c0ae37fd744"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cc7d7d7640cd0bbcb635e95be3ed8a3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a5cc7d7d7640cd0bbcb635e95be3ed8a3">FqRand</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="group___epid_common.html#ga6119a2c0323a3fca9e502b24bc378c2c">BitSupplier</a> rnd_func, void *rnd_param)</td></tr>
 <tr class="memdesc:a5cc7d7d7640cd0bbcb635e95be3ed8a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a random element of Fq.  <a href="#a5cc7d7d7640cd0bbcb635e95be3ed8a3">More...</a><br /></td></tr>
 <tr class="separator:a5cc7d7d7640cd0bbcb635e95be3ed8a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a7794f72bcc506f8d8a60dbfae1a70ed0">FqFromHash</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, unsigned char const *hash, size_t len)</td></tr>
-<tr class="memdesc:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reinterpret a buffer as an element of Fq.  <a href="#a7794f72bcc506f8d8a60dbfae1a70ed0">More...</a><br /></td></tr>
-<tr class="separator:a7794f72bcc506f8d8a60dbfae1a70ed0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aceb37a8f5538fe9ca682058ff0e36091"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#aceb37a8f5538fe9ca682058ff0e36091">FqInField</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
+<tr class="memdesc:aceb37a8f5538fe9ca682058ff0e36091"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if an element is in Fq.  <a href="#aceb37a8f5538fe9ca682058ff0e36091">More...</a><br /></td></tr>
+<tr class="separator:aceb37a8f5538fe9ca682058ff0e36091"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac08ca8c781cd18cbadabbeeb85722e49"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ac08ca8c781cd18cbadabbeeb85722e49">FqIsZero</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *value)</td></tr>
+<tr class="memdesc:ac08ca8c781cd18cbadabbeeb85722e49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if an element is zero.  <a href="#ac08ca8c781cd18cbadabbeeb85722e49">More...</a><br /></td></tr>
+<tr class="separator:ac08ca8c781cd18cbadabbeeb85722e49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd40d255e0094f7156092db44a3b90fa"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#abd40d255e0094f7156092db44a3b90fa">FqEq</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> const *left, <a class="el" href="struct_fq_elem.html">FqElem</a> const *right)</td></tr>
+<tr class="memdesc:abd40d255e0094f7156092db44a3b90fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two elements in Fq are equal.  <a href="#abd40d255e0094f7156092db44a3b90fa">More...</a><br /></td></tr>
+<tr class="separator:abd40d255e0094f7156092db44a3b90fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#a17133e5b777baa8c745b7dfcf1c8ad8d">FqCp</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *in)</td></tr>
+<tr class="memdesc:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy an element's value.  <a href="#a17133e5b777baa8c745b7dfcf1c8ad8d">More...</a><br /></td></tr>
+<tr class="separator:a17133e5b777baa8c745b7dfcf1c8ad8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab28f9df688a669a64dc04fa33f4cbb64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ab28f9df688a669a64dc04fa33f4cbb64">FqSet</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, uint32_t in)</td></tr>
+<tr class="memdesc:ab28f9df688a669a64dc04fa33f4cbb64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an element's value.  <a href="#ab28f9df688a669a64dc04fa33f4cbb64">More...</a><br /></td></tr>
+<tr class="separator:ab28f9df688a669a64dc04fa33f4cbb64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbb0976ef343b14c66305db0a48647ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#afbb0976ef343b14c66305db0a48647ca">FqCondSet</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result, <a class="el" href="struct_fq_elem.html">FqElem</a> const *true_val, <a class="el" href="struct_fq_elem.html">FqElem</a> const *false_val, int truth_val)</td></tr>
+<tr class="memdesc:afbb0976ef343b14c66305db0a48647ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conditionally Set an element's value to one of two values.  <a href="#afbb0976ef343b14c66305db0a48647ca">More...</a><br /></td></tr>
+<tr class="separator:afbb0976ef343b14c66305db0a48647ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac85eb642d3b3973477749769e04d45af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fq_8h.html#ac85eb642d3b3973477749769e04d45af">FqClear</a> (<a class="el" href="struct_fq_elem.html">FqElem</a> *result)</td></tr>
+<tr class="memdesc:ac85eb642d3b3973477749769e04d45af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear an element's value.  <a href="#ac85eb642d3b3973477749769e04d45af">More...</a><br /></td></tr>
+<tr class="separator:ac85eb642d3b3973477749769e04d45af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Definition of Fq math. </p>
@@ -791,13 +791,14 @@ Functions</h2></td></tr>
 </div><!-- doc-content -->
 <!-- HTML footer for doxygen 1.8.10-->
 <!-- start footer part -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-    <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="fq_8h.html">fq.h</a></li>
-    <li class="footer">
-      &copy; 2016-2017 Intel Corporation
-    </li>
-  </ul>
+<div id="nav-path" class="navpath">
+    <!-- id is needed for treeview function! -->
+    <ul>
+        <li class="navelem"><a class="el" href="dir_12b90d9c027aaf878a834df729679a56.html">epid</a></li><li class="navelem"><a class="el" href="dir_512d3e62841a8535b716ec4cf8b9e950.html">member</a></li><li class="navelem"><a class="el" href="dir_ea12d375fc1eb79df248c0adf953af4f.html">tiny</a></li><li class="navelem"><a class="el" href="dir_5f2fc2cf41db41de2b55e03ffa7a1d16.html">math</a></li><li class="navelem"><a class="el" href="fq_8h.html">fq.h</a></li>
+        <li class="footer">
+            &copy; 2016-2018 Intel Corporation
+        </li>
+    </ul>
 </div>
 </body>
 </html>

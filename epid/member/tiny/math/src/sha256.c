@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 ############################################################################*/
 
 /*
- *  Copyright (C) 2017 by Intel Corporation, All Rights Reserved.
+ *  Copyright (C) 2017-2018 by Intel Corporation, All Rights Reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -50,7 +50,7 @@
 
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
 
-static void sha256_compress(unsigned int* iv, const uint8_t* data);
+static void sha256_compress(uint32_t* iv, const uint8_t* data);
 
 void tc_sha256_init(sha256_state* s) {
   /*
@@ -82,7 +82,7 @@ void tc_sha256_update(sha256_state* s, const uint8_t* data, size_t datalen) {
 }
 
 void tc_sha256_final(uint8_t* digest, sha256_state* s) {
-  unsigned int i;
+  uint32_t i;
 
   s->bits_hashed += (s->leftover_offset << 3);
 
@@ -112,7 +112,7 @@ void tc_sha256_final(uint8_t* digest, sha256_state* s) {
 
   /* copy the iv out to digest */
   for (i = 0; i < SHA256_STATE_BLOCKS; ++i) {
-    unsigned int t = *((unsigned int*)&s->iv[i]);
+    uint32_t t = s->iv[i];
     *digest++ = (uint8_t)(t >> 24);
     *digest++ = (uint8_t)(t >> 16);
     *digest++ = (uint8_t)(t >> 8);
@@ -128,7 +128,7 @@ void tc_sha256_final(uint8_t* digest, sha256_state* s) {
  * These values correspond to the first 32 bits of the fractional parts of the
  * cube roots of the first 64 primes between 2 and 311.
  */
-static const unsigned int k256[64] = {
+static const uint32_t k256[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
     0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
     0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
@@ -141,7 +141,7 @@ static const unsigned int k256[64] = {
     0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
-static unsigned int ROTR(unsigned int a, unsigned int n) {
+static uint32_t ROTR(uint32_t a, uint32_t n) {
   return (((a) >> n) | ((a) << (32 - n)));
 }
 
@@ -153,23 +153,23 @@ static unsigned int ROTR(unsigned int a, unsigned int n) {
 #define Ch(a, b, c) (((a) & (b)) ^ ((~(a)) & (c)))
 #define Maj(a, b, c) (((a) & (b)) ^ ((a) & (c)) ^ ((b) & (c)))
 
-static unsigned int BigEndian(const uint8_t** c) {
-  unsigned int n = 0;
+static uint32_t BigEndian(const uint8_t** c) {
+  uint32_t n = 0;
 
-  n = (((unsigned int)(*((*c)++))) << 24);
-  n |= ((unsigned int)(*((*c)++)) << 16);
-  n |= ((unsigned int)(*((*c)++)) << 8);
-  n |= ((unsigned int)(*((*c)++)));
+  n = (((uint32_t)(*((*c)++))) << 24);
+  n |= ((uint32_t)(*((*c)++)) << 16);
+  n |= ((uint32_t)(*((*c)++)) << 8);
+  n |= ((uint32_t)(*((*c)++)));
   return n;
 }
 
-static void sha256_compress(unsigned int* iv, const uint8_t* data) {
-  unsigned int a, b, c, d, e, f, g, h;
-  unsigned int s0, s1;
-  unsigned int t1, t2;
-  unsigned int work_space[16];
-  unsigned int n;
-  unsigned int i;
+static void sha256_compress(uint32_t* iv, const uint8_t* data) {
+  uint32_t a, b, c, d, e, f, g, h;
+  uint32_t s0, s1;
+  uint32_t t1, t2;
+  uint32_t work_space[16];
+  uint32_t n;
+  uint32_t i;
 
   a = iv[0];
   b = iv[1];

@@ -5,7 +5,7 @@ IPP_INCLUDE_DIR = ../../ext/ipp/sources/ippcp/src
 GTEST_INCLUDE_DIR = ../../ext
 
 LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
-TEST_INSTALL_DIR = $(epidinstalldir)/test/
+TEST_INSTALL_DIR = $(epidinstalldir)/utest/
 HEADERS_INSTALL_DIR :=  $(epidinstalldir)/include/epid/common/
 HEADERS_11_INSTALL_DIR :=  $(epidinstalldir)/include/epid/common/1.1
 

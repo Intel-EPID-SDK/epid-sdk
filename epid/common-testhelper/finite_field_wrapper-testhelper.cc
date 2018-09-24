@@ -33,7 +33,7 @@ struct FiniteFieldDeleter {
   }
 };
 
-/// finite field deleter singlton
+/// finite field deleter singleton
 FiniteFieldDeleter finite_field_deleter;
 
 /// Internal state of the finite field wrapper
@@ -92,7 +92,7 @@ struct FiniteFieldObj::State {
       if (!inner_state) {
         inner_state = new InnerState;
       }
-      if (!inner_state) {
+      if (!inner_state->gf_) {
         inner_state->gf_ = state->gf_;
       }
     } else {
@@ -141,8 +141,8 @@ FiniteFieldObj::FiniteFieldObj(FiniteFieldObj const& ground_field,
     : state_(new State) {
   FiniteField* temp = nullptr;
   state_->SetInnerState(ground_field);
-  NewFiniteFieldViaBinomalExtension(ground_field, ground_element, degree,
-                                    &temp);
+  NewFiniteFieldViaBinomialExtension(ground_field, ground_element, degree,
+                                     &temp);
   state_->ff_.reset(temp, finite_field_deleter);
   state_->size_ = ground_field.GetElementMaxSize() * degree;
 }

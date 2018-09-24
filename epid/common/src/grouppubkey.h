@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@
 
 /// Internal representation of GroupPubKey
 typedef struct GroupPubKey_ {
-  GroupId gid;  ///< group ID
-  EcPoint* h1;  ///< an element in G1
-  EcPoint* h2;  ///< an element in G1
-  EcPoint* w;   ///< an element in G2
+  GroupId gid;        ///< group ID
+  EcPoint* h1;        ///< an element in G1
+  EcPoint* h2;        ///< an element in G1
+  EcPoint* w;         ///< an element in G2
+  G1ElemStr h1_str;   ///< serialized h1 value
+  EcPoint* h1_split;  ///< G1 point used instead h1 for split signatures
 } GroupPubKey_;
 
 /// Constructs internal representation of GroupPubKey
@@ -52,6 +54,10 @@ typedef struct GroupPubKey_ {
 */
 EpidStatus CreateGroupPubKey(GroupPubKey const* pub_key_str, EcGroup* G1,
                              EcGroup* G2, GroupPubKey_** pub_key);
+
+/// Configures group public key for hash_alg
+EpidStatus GroupPubKeySetHashAlg(GroupPubKey_* ctx, EcGroup* G1,
+                                 HashAlg hash_alg);
 
 /// Deallocates storage for internal representation of GroupPubKey
 /*!

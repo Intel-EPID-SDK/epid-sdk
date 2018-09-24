@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,22 +37,15 @@ typedef struct VeryLargeIntProduct VeryLargeIntProduct;
 uint32_t VliAdd(VeryLargeInt* result, VeryLargeInt const* left,
                 VeryLargeInt const* right);
 
-/// Multiply two large integers.
-/*!
-\param[out] result of multiplying left and right.
-\param[in] left The first operand to be multiplied.
-\param[in] right The second operand to be multiplied.
-*/
-void VliMul(VeryLargeIntProduct* result, VeryLargeInt const* left,
-            VeryLargeInt const* right);
-
-/// Right shift a large integers.
+/// Add two large integers modulo a value.
 /*!
 \param[out] result target.
-\param[in] in The value to be shifted.
-\param[in] shift The number of bits to shift.
+\param[in] left The first operand to be added.
+\param[in] right The second operand to be added.
+\param[in] mod The modulo.
 */
-void VliRShift(VeryLargeInt* result, VeryLargeInt const* in, uint32_t shift);
+void VliModAdd(VeryLargeInt* result, VeryLargeInt const* left,
+               VeryLargeInt const* right, VeryLargeInt const* mod);
 
 /// Subtract two large integers.
 /*!
@@ -64,75 +57,6 @@ void VliRShift(VeryLargeInt* result, VeryLargeInt const* in, uint32_t shift);
 uint32_t VliSub(VeryLargeInt* result, VeryLargeInt const* left,
                 VeryLargeInt const* right);
 
-/// Set a large integer's value.
-/*!
-\param[out] result target.
-\param[in] in value to set.
-*/
-void VliSet(VeryLargeInt* result, VeryLargeInt const* in);
-
-/// Clear a large integer's value.
-/*!
-\param[out] result value to clear.
-*/
-void VliClear(VeryLargeInt* result);
-
-/// Test if a large integer is zero.
-/*!
-\param[in] in the value to test.
-\returns A value different from zero (i.e., true) if indeed
-         the value is zero. Zero (i.e., false) otherwise.
-*/
-int VliIsZero(VeryLargeInt const* in);
-
-/// Conditionally Set a large inter's value to one of two values.
-/*!
-\param[out] result target.
-\param[in] true_val value to set if condition is true.
-\param[in] false_val value to set if condition is false.
-\param[in] truth_val value of condition.
-*/
-void VliCondSet(VeryLargeInt* result, VeryLargeInt const* true_val,
-                VeryLargeInt const* false_val, int truth_val);
-
-/// Test the value of a bit in a large integer.
-/*!
-\param[in] in the value to test.
-\param[in] bit the bit index.
-
-\returns value of the bit (1 or 0).
-*/
-uint32_t VliTestBit(VeryLargeInt const* in, uint32_t bit);
-
-/// Generate a random large integer.
-/*!
-\param[in] result the random value.
-\param[in] rnd_func Random number generator.
-\param[in] rnd_param Pass through context data for rnd_func.
-\returns A value different from zero (i.e., true) if on success.
-         Zero (i.e., false) otherwise.
-*/
-int VliRand(VeryLargeInt* result, BitSupplier rnd_func, void* rnd_param);
-
-/// compare two large integers.
-/*!
-\param[in] left the left hand value.
-\param[in] right the right hand value.
-
-\returns the sign of left - right
-*/
-int VliCmp(VeryLargeInt const* left, VeryLargeInt const* right);
-
-/// Add two large integers modulo a value.
-/*!
-\param[out] result target.
-\param[in] left The first operand to be added.
-\param[in] right The second operand to be added.
-\param[in] mod The modulo.
-*/
-void VliModAdd(VeryLargeInt* result, VeryLargeInt const* left,
-               VeryLargeInt const* right, VeryLargeInt const* mod);
-
 /// Subtract two large integers modulo a value.
 /*!
 \param[out] result target.
@@ -143,6 +67,15 @@ void VliModAdd(VeryLargeInt* result, VeryLargeInt const* left,
 void VliModSub(VeryLargeInt* result, VeryLargeInt const* left,
                VeryLargeInt const* right, VeryLargeInt const* mod);
 
+/// Multiply two large integers.
+/*!
+\param[out] result of multiplying left and right.
+\param[in] left The first operand to be multiplied.
+\param[in] right The second operand to be multiplied.
+*/
+void VliMul(VeryLargeIntProduct* result, VeryLargeInt const* left,
+            VeryLargeInt const* right);
+
 /// Multiply two large integers modulo a value.
 /*!
 \param[out] result target.
@@ -152,6 +85,24 @@ void VliModSub(VeryLargeInt* result, VeryLargeInt const* left,
 */
 void VliModMul(VeryLargeInt* result, VeryLargeInt const* left,
                VeryLargeInt const* right, VeryLargeInt const* mod);
+
+/// Right shift a large integers.
+/*!
+\param[out] result target.
+\param[in] in The value to be shifted.
+\param[in] shift The number of bits to shift.
+*/
+void VliRShift(VeryLargeInt* result, VeryLargeInt const* in, uint32_t shift);
+
+/// Generate a random large integer.
+/*!
+\param[in] result the random value.
+\param[in] rnd_func Random number generator.
+\param[in] rnd_param Pass through context data for rnd_func.
+\returns A value different from zero (i.e., true) if on success.
+         Zero (i.e., false) otherwise.
+*/
+int VliRand(VeryLargeInt* result, BitSupplier rnd_func, void* rnd_param);
 
 /// Exponentiate a large integer modulo a value.
 /*!
@@ -181,6 +132,23 @@ void VliModInv(VeryLargeInt* result, VeryLargeInt const* input,
 void VliModSquare(VeryLargeInt* result, VeryLargeInt const* input,
                   VeryLargeInt const* mod);
 
+/// Reduce a value to a modulo and clear a stack that contains secret value.
+/*!
+This function is used just in cases when value, that contains secrets
+is being reduced. In other cases VliModBarrett() is used
+
+\param[out] result target.
+\param[in] input the base.
+\param[in] mod The modulo.
+
+\warning This function makes significant assumptions about
+the range of values input
+
+\see VliModBarrett
+*/
+void VliModBarrettSecure(VeryLargeInt* result, VeryLargeIntProduct const* input,
+                         VeryLargeInt const* mod);
+
 /// Reduce a value to a modulo.
 /*!
 \param[out] result target.
@@ -189,8 +157,59 @@ void VliModSquare(VeryLargeInt* result, VeryLargeInt const* input,
 
 \warning This function makes significant assumptions about
 the range of values input
+
+\see VliModBarrettSecure
 */
 void VliModBarrett(VeryLargeInt* result, VeryLargeIntProduct const* input,
                    VeryLargeInt const* mod);
+
+/// Test if a large integer is zero.
+/*!
+\param[in] in the value to test.
+\returns A value different from zero (i.e., true) if indeed
+         the value is zero. Zero (i.e., false) otherwise.
+*/
+int VliIsZero(VeryLargeInt const* in);
+
+/// Test the value of a bit in a large integer.
+/*!
+\param[in] in the value to test.
+\param[in] bit the bit index.
+
+\returns value of the bit (1 or 0).
+*/
+uint32_t VliTestBit(VeryLargeInt const* in, uint32_t bit);
+
+/// compare two large integers.
+/*!
+\param[in] left the left hand value.
+\param[in] right the right hand value.
+
+\returns the sign of left - right
+*/
+int VliCmp(VeryLargeInt const* left, VeryLargeInt const* right);
+
+/// Conditionally Set a large inter's value to one of two values.
+/*!
+\param[out] result target.
+\param[in] true_val value to set if condition is true.
+\param[in] false_val value to set if condition is false.
+\param[in] truth_val value of condition.
+*/
+void VliCondSet(VeryLargeInt* result, VeryLargeInt const* true_val,
+                VeryLargeInt const* false_val, int truth_val);
+
+/// Set a large integer's value.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+*/
+void VliSet(VeryLargeInt* result, VeryLargeInt const* in);
+
+/// Clear a large integer's value.
+/*!
+\param[out] result value to clear.
+*/
+void VliClear(VeryLargeInt* result);
 
 #endif  // EPID_MEMBER_TINY_MATH_VLI_H_

@@ -108,7 +108,7 @@ static int gfec_IsAffinePointAtInfinity(int ecInfinity,
    }
 
    /* check if (x,y) represents point at infinity */
-   atInfinity &= GFP_EQ(pY, tmpY, elmLen);
+   atInfinity = atInfinity && GFP_EQ(pY, tmpY, elmLen);
 
    cpGFpReleasePool(1, pGFE);
    return atInfinity;

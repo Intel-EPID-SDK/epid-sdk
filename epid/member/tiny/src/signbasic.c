@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 #include "epid/member/tiny/math/serialize.h"
 #include "epid/member/tiny/src/context.h"
 #include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/presig_compute.h"
+#include "epid/member/tiny/src/presig-internal.h"
 #include "epid/member/tiny/stdlib/tiny_stdlib.h"
 
 static const FpElemStr epid20_p_str = {
@@ -59,7 +59,7 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
                          void const* basename, size_t basename_len,
                          NativeBasicSignature* sig) {
   EpidStatus sts = kEpidErr;
-  PreComputedSignatureData presig;
+  PreComputedSignatureData* presig = NULL;
   tiny_sha sha_state;
   sha_digest digest;
   G1ElemStr g1_str;
@@ -67,9 +67,13 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
   FpElemStr fp_str;
   FpElem x;
 
+  if (!tinysha_init(ctx->hash_alg, &sha_state)) {
+    return kEpidHashAlgorithmNotSupported;
+  }
+
   FpDeserialize(&x, &ctx->credential.x);
   do {
-    sts = EpidMemberComputePreSig(ctx, &presig);
+    sts = MemberTopPreSig((MemberCtx*)ctx, &presig);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -93,19 +97,17 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
     // K <- B^f
     // guaranteed not to fail, based on f nonzero, B not identity
     EFqAffineExp(&sig->K, &sig->B, &ctx->f);
-    EFqCp(&sig->T, &presig.T);
+    EFqCp(&sig->T, &presig->T);
 
     // R1 = B^rf
     // guaranteed not to fail, if rf != p or 0, but bad inputs could cause it to
     // fail
-    if (!EFqAffineExp(&presig.R1, &sig->B, &presig.rf)) {
+    if (!EFqAffineExp(&presig->R1, &sig->B, &presig->rf)) {
       break;
     }
 
     // 5.  The member computes
     // t3 = Fp.hash(p || g1 || g2 || h1 || h2 || w || B || K || T || R1 || R2).
-    tinysha_init(ctx->hash_alg, &sha_state);
-
     tinysha_update(&sha_state, (void const*)&epid20_p_str,
                    sizeof(epid20_p_str));
     tinysha_update(&sha_state, (void const*)&epid20_g1_str,
@@ -124,15 +126,15 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
     tinysha_update(&sha_state, (void const*)&g1_str, sizeof(g1_str));
     EFqSerialize(&g1_str, &sig->T);
     tinysha_update(&sha_state, (void const*)&g1_str, sizeof(g1_str));
-    EFqSerialize(&g1_str, &presig.R1);
+    EFqSerialize(&g1_str, &presig->R1);
     tinysha_update(&sha_state, (void const*)&g1_str, sizeof(g1_str));
-    Fq12Serialize(&fq12_str, &presig.R2);
+    Fq12Serialize(&fq12_str, &presig->R2);
     tinysha_update(&sha_state, (void const*)&fq12_str, sizeof(fq12_str));
     tinysha_final(digest.digest, &sha_state);
     FpFromHash(&sig->c, digest.digest, tinysha_digest_size(&sha_state));
 
     // 6.  The member computes c = Fp.hash(t3 || m).
-    tinysha_init(ctx->hash_alg, &sha_state);
+    tinysha_init(ctx->hash_alg, &sha_state);  // reset hash state
     FpSerialize(&fp_str, &sig->c);
     tinysha_update(&sha_state, (void const*)&fp_str, sizeof(fp_str));
     tinysha_update(&sha_state, msg, msg_len);
@@ -145,15 +147,15 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
     // no secret information
     FpMul(&sig->sx, &sig->c, &x);
     FpMul(&sig->sf, &sig->c, &ctx->f);
-    FpMul(&sig->sa, &sig->c, &presig.a);
-    FpMul(&sig->sb, &sig->c, &presig.b);
-    FpAdd(&sig->sx, &sig->sx, &presig.rx);
-    FpAdd(&sig->sf, &sig->sf, &presig.rf);
-    FpAdd(&sig->sa, &sig->sa, &presig.ra);
-    FpAdd(&sig->sb, &sig->sb, &presig.rb);
+    FpMul(&sig->sa, &sig->c, &presig->a);
+    FpMul(&sig->sb, &sig->c, &presig->b);
+    FpAdd(&sig->sx, &sig->sx, &presig->rx);
+    FpAdd(&sig->sf, &sig->sf, &presig->rf);
+    FpAdd(&sig->sa, &sig->sa, &presig->ra);
+    FpAdd(&sig->sb, &sig->sb, &presig->rb);
     sts = kEpidNoErr;
   } while (0);
-  // clearing stack-allocated variables before function return
-  (void)memset(&presig, 0, sizeof(presig));
+  // remove once used presig from member's pool to prevent reusing it
+  MemberPopPreSig((MemberCtx*)ctx);
   return sts;
 }

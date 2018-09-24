@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,21 @@
 /*! \file */
 #include "epid/member/tiny/math/hashwrap.h"
 
-void tinysha_init(HashAlg sha_type, tiny_sha* s) {
+int tinysha_init(HashAlg sha_type, tiny_sha* s) {
   switch (sha_type) {
 #ifdef SHA512_SUPPORT
     case kSha512:
       tinysha512_init(&s->sha_state_t.sha512s);
+      break;
+#endif
+#ifdef SHA512_256_SUPPORT
+    case kSha512_256:
+      tinysha512_256_init(&s->sha_state_t.sha512_256s);
+      break;
+#endif
+#ifdef SHA384_SUPPORT
+    case kSha384:
+      tinysha384_init(&s->sha_state_t.sha384s);
       break;
 #endif
 #ifdef SHA256_SUPPORT
@@ -31,9 +41,10 @@ void tinysha_init(HashAlg sha_type, tiny_sha* s) {
 #endif
     default:
       s->hash_alg = kInvalidHashAlg;
-      return;
+      return 0;  // false
   }
   s->hash_alg = sha_type;
+  return 1;  // true
 }
 
 void tinysha_update(tiny_sha* s, void const* data, size_t data_length) {
@@ -41,6 +52,16 @@ void tinysha_update(tiny_sha* s, void const* data, size_t data_length) {
 #ifdef SHA512_SUPPORT
     case kSha512:
       tinysha512_update(&s->sha_state_t.sha512s, data, data_length);
+      break;
+#endif
+#ifdef SHA512_256_SUPPORT
+    case kSha512_256:
+      tinysha512_256_update(&s->sha_state_t.sha512_256s, data, data_length);
+      break;
+#endif
+#ifdef SHA384_SUPPORT
+    case kSha384:
+      tinysha384_update(&s->sha_state_t.sha384s, data, data_length);
       break;
 #endif
 #ifdef SHA256_SUPPORT
@@ -60,6 +81,16 @@ void tinysha_final(unsigned char* digest, tiny_sha* s) {
       tinysha512_final(digest, &s->sha_state_t.sha512s);
       break;
 #endif
+#ifdef SHA512_256_SUPPORT
+    case kSha512_256:
+      tinysha512_256_final(digest, &s->sha_state_t.sha512_256s);
+      break;
+#endif
+#ifdef SHA384_SUPPORT
+    case kSha384:
+      tinysha384_final(digest, &s->sha_state_t.sha384s);
+      break;
+#endif
 #ifdef SHA256_SUPPORT
     case kSha256:
       tc_sha256_final(digest, &s->sha_state_t.sha256s);
@@ -75,6 +106,14 @@ size_t tinysha_digest_size(tiny_sha* s) {
 #ifdef SHA512_SUPPORT
     case kSha512:
       return SHA512_DIGEST_SIZE;
+#endif
+#ifdef SHA512_256_SUPPORT
+    case kSha512_256:
+      return SHA512_256_DIGEST_SIZE;
+#endif
+#ifdef SHA384_SUPPORT
+    case kSha384:
+      return SHA384_DIGEST_SIZE;
 #endif
 #ifdef SHA256_SUPPORT
     case kSha256:

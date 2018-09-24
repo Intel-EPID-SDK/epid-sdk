@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -278,7 +278,7 @@ EpidStatus NewFq2(Epid2Params const* param, FiniteField* Fq,
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFiniteFieldViaBinomalExtension(Fq, neg_beta, 2, &Ff);
+    result = NewFiniteFieldViaBinomialExtension(Fq, neg_beta, 2, &Ff);
     if (kEpidNoErr != result) {
       break;
     }
@@ -308,7 +308,7 @@ EpidStatus NewFq6(Epid2Params const* param, FiniteField* Fq2, FfElement* xi,
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFiniteFieldViaBinomalExtension(Fq2, neg_xi, 3, &Ff);
+    result = NewFiniteFieldViaBinomialExtension(Fq2, neg_xi, 3, &Ff);
     if (kEpidNoErr != result) {
       break;
     }
@@ -343,7 +343,7 @@ EpidStatus NewG1(Epid2Params const* param, FiniteField* Fq, EcGroup** G1) {
     // G1 is an elliptic curve group E(Fq).It can be initialized as follows :
     //   1. Set G1 = E(Fq).init(p, q, n = p, h = 1, a = 0, b, g1.x, g1.y).
     // a = 0
-    // NewFfelement is Identidy
+    // NewFfelement is identity
     result = NewFfElement(Fq, &fq_a);
     if (kEpidNoErr != result) {
       break;
@@ -564,7 +564,7 @@ EpidStatus NewGT(FiniteField* Fq6, FiniteField** GT) {
     if (kEpidNoErr != result) {
       break;
     }
-    result = NewFiniteFieldViaBinomalExtension(Fq6, neg_v, 2, &Ff);
+    result = NewFiniteFieldViaBinomialExtension(Fq6, neg_v, 2, &Ff);
     if (kEpidNoErr != result) {
       break;
     }

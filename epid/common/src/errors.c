@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2018 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -52,7 +52,9 @@ static const struct ErrorTextEntry kEnumToText[] = {
     {kEpidRandMaxIterErr, "reached max iteration for random number generation"},
     {kEpidDuplicateErr, "argument would add duplicate entry"},
     {kEpidInconsistentBasenameSetErr,
-     "the set basename is inconsistent with supplied parameters"}};
+     "the set basename is inconsistent with supplied parameters"},
+    {kEpidSchemaNotSupportedErr, "schema is not supported"},
+    {kEpidKeyNotInGroupErr, "private key not in group"}};
 
 char const* EpidStatusToString(EpidStatus e) {
   size_t i = 0;
