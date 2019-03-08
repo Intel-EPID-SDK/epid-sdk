@@ -1,9 +1,10 @@
 #!/usr/bin/make -f
 
 #define path variables
-IPP_SRC_INCLUDE_DIR = ../../ext/ipp/sources/ippcp/src/
-IPP_INCLUDE_DIR = ../../ext/ipp/sources/include/
-GTEST_INCLUDE_DIR = ../../ext/
+IPP_INCLUDE_DIR = ../../ext/ipp-crypto/include
+IPP_SRC_INCLUDE_DIR = ../../ext/ipp-crypto/sources/ippcp
+IPP_INTERNAL_INCLUDE_DIR = ../../ext/ipp-crypto/sources/include
+GTEST_INCLUDE_DIR = ../../ext/googletest/googletest/include
 
 LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
 TEST_INSTALL_DIR = $(epidinstalldir)/utest/
@@ -70,14 +71,16 @@ LIB_MEMBER_DIR = .
 LIB_VERIFIER_DIR = ../verifier
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
 LIB_COMMON_DIR = ../common
-LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
+LIB_IPPCP_DIR = ../../ext/ipp-crypto/sources/ippcp
+LIB_GTEST_DIR = ../../ext/googletest
+
 ifneq ($(SHARED_MODE),yes)
 	MEMBER_LIBS_TO_LINK = -lmember
 else
 	MEMBER_LIBS_TO_LINK = $(LIB_MEMBER_DIR)/libmember.so
 endif
 #set flags for linker
-LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR)  \
+LDFLAGS += -L$(LIB_GTEST_DIR) -L$(LIB_COMMON_TESTHELPER_DIR)  \
 	-L$(LIB_MEMBER_DIR) -L$(LIB_VERIFIER_DIR) -L$(LIB_COMMON_DIR) \
 	-L$(LIB_IPPCP_DIR) -lgtest -lcommon-testhelper \
 	$(MEMBER_LIBS_TO_LINK) -lverifier -lcommon -lippcp
@@ -116,7 +119,8 @@ ifeq ($(SHARED_MODE),yes)
 endif
 
 $(MEMBER_OBJ): %.o: %.c
-	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_SRC_INCLUDE_DIR) \
+	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_INTERNAL_INCLUDE_DIR) \
+	-I$(IPP_SRC_INCLUDE_DIR) \
 	-I$(MEMBER_INCLUDE_DIR) -c $^ -o $@
 
 $(MEMBER_STATIC_LIB): $(MEMBER_OBJ)

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  * \brief Big number implementation.
  */
 #include "epid/common/math/bignum.h"
+#include <ippcp.h>
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/src/memory.h"
-#include "ext/ipp/include/ippcp.h"
 
 EpidStatus NewBigNum(size_t data_size_bytes, BigNum** bignum) {
   EpidStatus result = kEpidErr;

@@ -32,7 +32,7 @@
                             id="projectlink" 
                             class="index.html" 
                             href="index.html">Intel&reg; Enhanced Privacy ID SDK</a>
-&#160;<span id="projectnumber">7.0.0</span>
+&#160;<span id="projectnumber">7.0.1</span>
 </div>
   </td>
  </tr>
@@ -68,7 +68,7 @@ $(document).ready(function(){initNavTree('_building_sdk.html','');});
 <li class="level1"><a href="#BuildingSdk_Building_SCons">Building SDK with SCons</a></li>
 <li class="level1"><a href="#BuildingSdk_Building_Makefile">Alternate Makefile Based Build Approach</a></li>
 <li class="level1"><a href="#BuildingSdk_Split">Building in Split Signature Mode</a></li>
-<li class="level1"><a href="#BuildingSdk_CommercialIpp">Improving Performance with Commercial IPP</a></li>
+<li class="level1"><a href="#BuildingSdk_CommercialIpp">Improving Performance with Optimized IPP</a></li>
 <li class="level1"><a href="#BuildingSdk_Examples">Example Programs</a></li>
 </ul>
 </div>
@@ -165,11 +165,8 @@ make all
 make check
 make install
 </pre><h1><a class="anchor" id="BuildingSdk_CommercialIpp"></a>
-Improving Performance with Commercial IPP</h1>
-<p>For higher performance, you can use the commercial version of Cryptography for Intel&reg; Integrated Performance Primitives, available at <a href="https://software.intel.com/get-ipp-cryptography-libraries">https://software.intel.com/get-ipp-cryptography-libraries</a>.</p>
-<dl class="section note"><dt>Note</dt><dd>The SDK has been validated with version 2018 (Update 2.1) of the cryptography library.</dd></dl>
-<p>To build the SDK using a commercial Intel&reg; IPP installation, the <code>IPPCRYPTOROOT</code> environment variable must be properly configured to point to the IPP installation directory, as described in <em>Setting Environment Variables</em> in the <a href="https://software.intel.com/ipp-crypto-dev-guide-setting-environment-variables">Intel&reg; IPP Crypto Developer Guide</a>.</p>
-<p>Once the environment is configured, you can build using commercial IPP by specifying <code>--use-commercial-ipp</code> as a command line option.</p>
+Improving Performance with Optimized IPP</h1>
+<p>The SDK uses the C only implementation of Intel&reg; Integrated Performance Primitives Cryptography. For higher performance, you can use the full version available at <a href="https://github.com/intel/ipp-crypto">https://github.com/intel/ipp-crypto</a>.</p>
 <h1><a class="anchor" id="BuildingSdk_Examples"></a>
 Example Programs</h1>
 <p>The SDK includes several examples that show you different aspects of how the Intel&reg; EPID scheme works. In the SDK build, these examples are located in <code>_install/bin</code>.</p>

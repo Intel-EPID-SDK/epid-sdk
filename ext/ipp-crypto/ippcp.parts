@@ -1,0 +1,115 @@
+# pylint:disable=I0011,W0401,W0614,C0103,E0602
+############################################################################
+# Copyright 2016-2019 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+############################################################################
+"""Build configuration for Ipp Crypto
+"""
+import os
+Import('*')
+
+env.PartVersion("2019.0.1")
+env.PartName("ippcp")
+ippcp_libname = '${PART_SHORT_NAME}'
+
+include_files = Pattern(
+    src_dir='include/', includes=['*.h'], excludes=[], recursive=True)
+
+src_files = Pattern(
+    src_dir='sources/ippcp/',
+    includes=[
+        '*.c',
+    ],
+    excludes=[
+        'pcparcfour*.c',
+        'pcpmain.c',
+        '*sm2.c',
+        'pcpsha1ca.c',
+        'pcpaes*.c',
+        'pcpdes*.c',
+        'pcpdlp*.c',
+        'pcphmac*.c',
+        'pcpmd5*.c',
+        'pcpng*.c',
+        'pcpprime*.c',
+        'pcprij*.c',
+        'pcprsa*.c',
+        'pcpsm3*.c',
+        'pcpsms4*.c',
+        'pcptdes*.c',
+        'pcpmont_expbinbnu_sscm.c',
+        'pcpmont_expwinbnu.c',
+        'pcpmont_expwinbnu_sscm.c',
+    ],
+    recursive=False)
+
+env.Append(CPPPATH=[AbsDir('include/')])
+env.ExportCPPPATH([AbsDir('include/')])
+env.Append(CPPPATH=[AbsDir('sources/include/')])
+env.Append(CPPPATH=[AbsDir('sources/ippcp/')])
+
+# ipp defines
+if env['TARGET_ARCH'] == 'x86':
+    env.Append(CPPDEFINES='_ARCH_IA32')
+else:
+    env.Append(CPPDEFINES='_ARCH_EM64T')
+# env.Append(CPPDEFINES = '_IPP_BE')  #only for BE targets
+env.Append(CPPDEFINES='_IPP_DEBUG')  #enable function sanity checking
+env.Append(CPPDEFINES='_IPP_C99')
+env.Append(CPPDEFINES='_IPP_v50_')
+env.Append(CPPDEFINES='_PX')
+env.Append(CPPDEFINES='_ABL_')
+
+env.Append(CPPDEFINES=['_DISABLE_ECP_SM2_'])
+env.Append(CPPDEFINES=[
+    '_DISABLE_ALG_SHA224_', '_DISABLE_ALG_SHA512_224_', '_DISABLE_ALG_MD5_',
+    '_DISABLE_ALG_SM3_'
+])  #disable unused hash algs
+
+env.SdkInclude(include_files)
+
+if 'use_commercial_ipp' in env['MODE']:
+    env['CCOPY_LOGIC'] = 'copy'
+    try:
+        IPPCRYPTOROOT = os.environ['IPPCRYPTOROOT']
+    except KeyError, e:
+        env.PrintError(
+            "Necessary environment variable not set: ", e, show_stack=False)
+    if env['TARGET_PLATFORM']['OS'] == 'win32':
+        libpre = ''
+        libpost = '.lib'
+        IPP_TH_SYMBOL = 'mt'
+    else:
+        libpre = 'lib'
+        libpost = '.a'
+        IPP_TH_SYMBOL = ''
+    if env['TARGET_PLATFORM']['ARCH'] == 'x86':
+        archdir = 'ia32/'
+    else:
+        archdir = 'intel64/'
+
+    ippcp_libname = libpre + 'ippcp' + IPP_TH_SYMBOL + libpost
+    ippcp_dir = IPPCRYPTOROOT + '/lib/' + archdir
+    env.SdkLib(ippcp_dir + ippcp_libname)
+else:
+    all_c_files = src_files.files()
+    if 'build_ipp_shared' in env['MODE']:
+        env.Append(CPPDEFINES=['IPP_W32DLL'])
+        outputs = env.SharedLibrary(ippcp_libname, all_c_files)
+        env.InstallTarget(outputs)
+    else:
+        outputs = env.Library(ippcp_libname, all_c_files)
+        env.SdkLib(outputs)
+        if 'install_lib' in env['MODE']:
+            env.InstallLib(outputs)

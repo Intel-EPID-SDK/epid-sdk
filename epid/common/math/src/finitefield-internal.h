@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
 #ifndef EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 #define EPID_COMMON_MATH_SRC_FINITEFIELD_INTERNAL_H_
 
+#include <ippcp.h>
 #include "epid/common/math/bignum.h"
 #include "epid/common/math/src/bignum-internal.h"
-#include "ext/ipp/include/ippcp.h"
 
 /// Finite Field
 struct FiniteField {

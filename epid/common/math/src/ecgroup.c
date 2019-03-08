@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
  */
 
 #include "epid/common/math/ecgroup.h"
+#include <ippcp.h>
 #include <string.h>
 #include "epid/common/1.1/types.h"
 #include "epid/common/math/hash.h"
@@ -28,8 +29,6 @@
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/src/endian_convert.h"
 #include "epid/common/src/memory.h"
-#include "ext/ipp/include/ippcp.h"
-#include "ext/ipp/include/ippcpdefs.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

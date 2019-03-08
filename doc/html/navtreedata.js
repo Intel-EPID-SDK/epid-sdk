@@ -64,7 +64,7 @@ var NAVTREE =
       [ "Building SDK with SCons", "_building_sdk.html#BuildingSdk_Building_SCons", null ],
       [ "Alternate Makefile Based Build Approach", "_building_sdk.html#BuildingSdk_Building_Makefile", null ],
       [ "Building in Split Signature Mode", "_building_sdk.html#BuildingSdk_Split", null ],
-      [ "Improving Performance with Commercial IPP", "_building_sdk.html#BuildingSdk_CommercialIpp", null ],
+      [ "Improving Performance with Optimized IPP", "_building_sdk.html#BuildingSdk_CommercialIpp", null ],
       [ "Example Programs", "_building_sdk.html#BuildingSdk_Examples", null ]
     ] ],
     [ "Signing and Verification Tutorial", "_sign_verify_tutorial.html", [

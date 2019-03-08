@@ -137,26 +137,22 @@ ifneq ("$(wildcard ./epid/issuer)","")
 endif
 
 clean:
-	$(MAKE) -C ./ext/ipp/sources/ippcp clean
+	$(MAKE) -C ./ext/ipp-crypto clean
 	$(MAKE) -C ./epid/common/ clean
 	$(MAKE) -C ./epid/member/ clean
 	$(MAKE) -C ./epid/verifier/ clean
 	$(MAKE) -C ./example/util/ clean
 	$(MAKE) -C ./example/ clean
 	$(MAKE) -C ./tools/ clean
-	$(MAKE) -C ./ext/gtest/ clean
+	$(MAKE) -C ./ext/googletest/ clean
 	$(MAKE) -C ./epid/common-testhelper/ clean
 	$(MAKE) -C ./ext/argtable3/ clean
 ifneq ("$(wildcard ./epid/issuer)","")
 	$(MAKE) -C ./epid/issuer/ clean
 endif
-ifneq ("$(wildcard ./ext/google_benchmark)","")
-	$(MAKE) -C ./ext/google_benchmark/ clean
-endif
-
 
 install:
-	$(MAKE) -C ./ext/ipp/sources/ippcp install
+	$(MAKE) -C ./ext/ipp-crypto install
 	$(MAKE) -C ./epid/common/ install
 	$(MAKE) -C ./epid/member/ install
 	$(MAKE) -C ./epid/verifier/ install
@@ -172,7 +168,7 @@ uninstall:
 	rm -rf  $(epidinstalldir)
 
 ipp:
-	$(MAKE) -C ./ext/ipp/sources/ippcp all
+	$(MAKE) -C ./ext/ipp-crypto all
 
 common-testhelper:
 	$(MAKE) -C ./epid/common-testhelper/ all
@@ -209,7 +205,7 @@ ifneq ("$(wildcard ./epid/issuer)","")
 endif
 
 gtest:
-	$(MAKE) -C ./ext/gtest/ all
+	$(MAKE) -C ./ext/googletest/ all
 
 argtable3:
 	$(MAKE) -C ./ext/argtable3/ all
@@ -243,13 +239,6 @@ examples:
 
 epid_tools:
 	$(MAKE) -C ./tools/ all
-
-perf:
-ifneq ("$(wildcard ./ext/google_benchmark/)","")
-	$(MAKE) -C ./ext/google_benchmark/ all
-	$(MAKE) -C ./ext/google_benchmark/ utest
-	$(MAKE) -C ./ext/google_benchmark/ run_utest
-endif
 
 build:
 	$(MAKE) all

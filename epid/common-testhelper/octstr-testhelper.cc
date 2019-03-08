@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@
  * \brief OctString handling utility implementation.
  */
 #include "epid/common-testhelper/octstr-testhelper.h"
+
+#include <ippcp.h>
 extern "C" {
 #include "epid/common/src/memory.h"
 }
 #include "epid/common/types.h"
-#include "ext/ipp/include/ippcp.h"
 
 typedef Ipp8u* IppOctStr;
 

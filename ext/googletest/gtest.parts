@@ -1,0 +1,50 @@
+############################################################################
+# Copyright 2016-2019 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+############################################################################
+Import('*')
+
+env.PartVersion("1.8.1")
+env.PartName("gtest")
+
+include_files = Pattern(
+    src_dir='googletest/include/',
+    includes=['*.h'],
+    excludes=[],
+    recursive=True)
+
+src_files = Pattern(
+    src_dir='googletest/src/',
+    includes=[
+        'gtest-all.cc',
+    ],
+).files()
+
+env.Append(CPPPATH=[AbsDir('googletest/include/')])
+env.ExportCPPPATH([AbsDir('googletest/include/')])
+env.Append(CPPPATH=[AbsDir('googletest/')])
+
+# defines
+cppdefines = [
+    'GTEST_HAS_PTHREAD=0',
+    '_VARIADIC_MAX=10',  # VS 2012
+    '_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING',  # VS 2017
+]
+env.Append(CPPDEFINES=cppdefines)
+env.ExportCPPDEFINES(cppdefines)
+
+outputs = env.Library('${PART_NAME}', src_files)
+sdk_outs = env.Sdk(outputs)
+
+env.SdkInclude(include_files)

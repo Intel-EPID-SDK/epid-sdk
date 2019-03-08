@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 #define variables
-IPP_API_INCLUDE_DIR = ../ext/ipp/include
+IPP_API_INCLUDE_DIR = ../ext/ipp-crypto/include
 EXAMPLE_INSTALL_DIR = $(epidinstalldir)/bin
 DATA_INSTALL_DIR = $(epidinstalldir)/data
 NON_SPLIT_DATA_INSTALL_DIR = $(DATA_INSTALL_DIR)/non_split
@@ -20,7 +20,7 @@ VERIFYSIG_EXE = ./verifysig/src/verifysig$(EXE_EXTENSION)
 
 LIB_UTIL_DIR = ./util/src
 LIB_ARGTABLE_DIR = ../ext/argtable3
-LIB_IPPCP_DIR = ../ext/ipp/sources/ippcp/src
+LIB_IPPCP_DIR = ../ext/ipp-crypto/sources/ippcp
 LIB_MEMBER_DIR = ../epid/member
 LIB_VERIFIER_DIR = ../epid/verifier
 LIB_COMMON_DIR = ../epid/common

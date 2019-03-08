@@ -38,12 +38,12 @@ MPRECMP_SRC = $(wildcard ./mprecmp/src/*.c)
 MPRECMP_OBJ = $(MPRECMP_SRC:.c=.o)
 MPRECMP_EXE = ./mprecmp/src/mprecmp$(EXE_EXTENSION)
 
-IPP_API_INCLUDE_DIR = ../ext/ipp/include
+IPP_API_INCLUDE_DIR = ../ext/ipp-crypto/include
 EPID_SDK_ROOT_DIR = ..
 EXAMPLE_DIR = $(EPID_SDK_ROOT_DIR)/example
 LIB_ARGTABLE_DIR = $(EPID_SDK_ROOT_DIR)/ext/argtable3
 LIB_UTIL_DIR = $(EPID_SDK_ROOT_DIR)/example/util/src
-LIB_IPPCP_DIR = $(EPID_SDK_ROOT_DIR)/ext/ipp/sources/ippcp/src
+LIB_IPPCP_DIR = $(EPID_SDK_ROOT_DIR)/ext/ipp-crypto/sources/ippcp
 LIB_MEMBER_DIR = $(EPID_SDK_ROOT_DIR)/epid/member
 LIB_COMMON_DIR = $(EPID_SDK_ROOT_DIR)/epid/common
 

@@ -1,9 +1,10 @@
 #!/usr/bin/make -f
 
 #define variables
-IPP_SRC_INCLUDE_DIR = ../../ext/ipp/sources/ippcp/src/
-IPP_INCLUDE_DIR = ../../ext/ipp/sources/include/
-GTEST_INCLUDE_DIR = ../../ext/
+IPP_INCLUDE_DIR = ../../ext/ipp-crypto/include
+IPP_SRC_INCLUDE_DIR = ../../ext/ipp-crypto/sources/ippcp
+IPP_INTERNAL_INCLUDE_DIR = ../../ext/ipp-crypto/sources/include
+GTEST_INCLUDE_DIR = ../../ext/googletest/googletest/include
 
 LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
 TEST_INSTALL_DIR = $(epidinstalldir)/utest/
@@ -29,10 +30,11 @@ VERIFIER_UTEST_OBJ = $(VERIFIER_UTEST_SRC:.cc=.o)
 LIB_VERIFIER_DIR = .
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
 LIB_COMMON_DIR = ../common
-LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
+LIB_IPPCP_DIR = ../../ext/ipp-crypto/sources/ippcp
+LIB_GTEST_DIR = ../../ext/googletest
 
 #set flags for linker
-LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR) \
+LDFLAGS += -L$(LIB_GTEST_DIR) -L$(LIB_COMMON_TESTHELPER_DIR) \
 	-L$(LIB_VERIFIER_DIR) -L$(LIB_COMMON_DIR) \
 	-L$(LIB_IPPCP_DIR) -lgtest -lcommon-testhelper -lverifier -lcommon \
 	-lippcp
@@ -43,7 +45,8 @@ endif
 
 #target part
 $(VERIFIER_OBJ): %.o: %.c
-	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_SRC_INCLUDE_DIR) \
+	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_INTERNAL_INCLUDE_DIR) \
+	-I$(IPP_SRC_INCLUDE_DIR) \
 	-I$(VERIFIER_INCLUDE_DIR) -I$(VERIFIER_11_INCLUDE_DIR) -c $^ -o $@
 
 $(VERIFIER_LIB): $(VERIFIER_OBJ)

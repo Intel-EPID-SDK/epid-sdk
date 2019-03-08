@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@
  */
 
 #include "epid/common/math/pairing.h"
+#include <ippcp.h>
 #include <limits.h>
 #include "epid/common/math/src/bignum-internal.h"
 #include "epid/common/math/src/ecgroup-internal.h"
 #include "epid/common/math/src/finitefield-internal.h"
 #include "epid/common/math/src/pairing-internal.h"
 #include "epid/common/src/memory.h"
-#include "ext/ipp/include/ippcp.h"
 
 /// Handle Ipp Errors with Break
 #define BREAK_ON_IPP_ERROR(sts, ret)           \

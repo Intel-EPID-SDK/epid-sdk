@@ -1,5 +1,5 @@
 Intel(R) EPID SDK
-Copyright 2016-2018 Intel Corporation
+Copyright 2016-2019 Intel Corporation
 
 ==========
 
@@ -14,8 +14,7 @@ and their respective licenses.
 
 ----------
 
-The source code used for math primitives in the Intel(R) EPID SDK is a
-subset of Intel(R) IPP Cryptography 2017 Update 2 written in C. For
-higher performance, you can use the commercial version of the IPP
-Cryptography libraries, which are available at
-https://software.intel.com/articles/download-ipp-cryptography-libraries.
+The source code used for math primitives in the Intel(R) EPID SDK is a subset of
+Intel(R) IPP Cryptography 2019 Update 1 written in C. For higher performance,
+you can obtain the full version including architecture specific optimizations at
+https://github.com/intel/ipp-crypto.

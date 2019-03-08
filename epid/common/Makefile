@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
 #define path variables
-IPP_INCLUDE_DIR = ../../ext/ipp/sources/ippcp/src
-GTEST_INCLUDE_DIR = ../../ext
+IPP_INCLUDE_DIR = ../../ext/ipp-crypto/include
+IPP_INTERNAL_INCLUDE_DIR = ../../ext/ipp-crypto/sources/ippcp
+GTEST_INCLUDE_DIR = ../../ext/googletest/googletest/include
 
 LIB_INSTALL_DIR = $(epidinstalldir)/lib/posix-$(ARCH)/
 TEST_INSTALL_DIR = $(epidinstalldir)/utest/
@@ -28,16 +29,18 @@ COMMON_UTEST_SRC += $(wildcard ./1.1/unittests/*.cc)
 COMMON_UTEST_OBJ = $(COMMON_UTEST_SRC:.cc=.o)
 LIB_COMMON_DIR = .
 LIB_COMMON_TESTHELPER_DIR = ../common-testhelper
-LIB_IPPCP_DIR = ../../ext/ipp/sources/ippcp/src
+LIB_IPPCP_DIR = ../../ext/ipp-crypto/sources/ippcp
+LIB_GTEST_DIR = ../../ext/googletest
 
 #set flags for linker
-LDFLAGS += -L$(GTEST_INCLUDE_DIR)/gtest  -L$(LIB_COMMON_TESTHELPER_DIR)  \
+LDFLAGS += -L$(LIB_GTEST_DIR) -L$(LIB_COMMON_TESTHELPER_DIR)  \
 	-L$(LIB_COMMON_DIR) -L$(LIB_IPPCP_DIR) \
 	-lgtest -lcommon-testhelper -lcommon -lippcp
 
 #target part
 $(COMMON_OBJ): %.o: %.c
-	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(COMMON_MATH_INCLUDE_DIR) -I$(COMMON_INCLUDE_DIR) -c $^ -o $@
+	$(CC) $(CFLAGS) -I$(IPP_INCLUDE_DIR) -I$(IPP_INTERNAL_INCLUDE_DIR) \
+	-I$(COMMON_MATH_INCLUDE_DIR) -I$(COMMON_INCLUDE_DIR) -c $^ -o $@
 
 $(COMMON_LIB): $(COMMON_OBJ)
 	$(AR) rc $(COMMON_LIB) $(COMMON_OBJ)
@@ -47,7 +50,8 @@ $(COMMON_UTEST_EXE): $(COMMON_UTEST_OBJ)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(COMMON_UTEST_OBJ): %.o: %.cc
-	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(COMMON_INCLUDE_DIR) -I$(GTEST_INCLUDE_DIR) -c $^
+	$(CXX) -o $@ $(CXXFLAGS) $(GTEST_DEFINES) -I$(IPP_INCLUDE_DIR) \
+	-I$(COMMON_INCLUDE_DIR) -I$(GTEST_INCLUDE_DIR) -c $^
 
 build: all
 

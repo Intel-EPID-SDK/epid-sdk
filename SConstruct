@@ -102,7 +102,7 @@ if GetOption("use-commercial-ipp"):
     mode.append('use_commercial_ipp')
 
 AddOption("--ipp-shared",
-          help=("Build /ext/ipp as shared library."),
+          help=("Build /ext/ipp-crypto as shared library."),
           action='store_true', dest='ipp-shared',
           default=False)
 if GetOption('ipp-shared'):
@@ -119,11 +119,9 @@ def include_parts(part_list, **kwargs):
 
 sdk_parts = [
     # deps
-    'ext/gtest/gtest.parts',
-    'ext/ipp/ippcp.parts',
+    'ext/googletest/gtest.parts',
+    'ext/ipp-crypto/ippcp.parts',
     'ext/argtable3/argtable3.parts',
-    #'ext/google_benchmark/google_benchmark.parts',
-
 
     'epid/fuzz-testhelper/fuzz-testhelper.parts',
     'epid/common-testhelper/common-testhelper.parts',
@@ -175,11 +173,10 @@ sdk_parts = [
     'test/tss/tss.parts',
     'test/fuzz/fuzz.parts',
     #'test/epid_data/epid_data.parts',
-    #'test/performance/performance.parts',
 ]
 
 if 'dist' in COMMAND_LINE_TARGETS:
-    sdk_parts += [
+    sdk_parts = [
         'dist_sdk.parts',
         'dist_issuer.parts',
         'dist.parts'

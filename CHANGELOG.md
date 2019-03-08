@@ -1,5 +1,25 @@
 # Intel(R) EPID SDK ChangeLog                                   {#ChangeLog}
 
+## [7.0.1] - 2019-03-08
+
+### Changed
+
+- Updated Intel(R) IPP Cryptography library to version 2019 Update 1.
+
+### Known Issues
+
+- Only the SHA-256 hash algorithm is supported when using the SDK with
+  the IBM TPM simulator due to a defect in version 1119 of the
+  simulator.
+
+- Basenames are limited to 124 bytes in TPM mode.
+
+- Scons build will not work natively on ARM. You can still build using
+  `make` or cross compile.
+
+- Compressed private keys are not supported.
+
+
 ## [7.0.0] - 2018-09-21
 
 ### Added

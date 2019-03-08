@@ -1,6 +1,6 @@
 # pylint: disable=locally-disabled, import-error
 ############################################################################
-# Copyright 2016-2018 Intel Corporation
+# Copyright 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -87,8 +87,19 @@ def _try_compile(code, env):
                 cmd_content)
     else:
         raise ConfigurationError
+    py2 = sys.version_info[0] == 2
+    win = sys.platform.startswith('win')
+    text_type = unicode if py2 else str
     env_variables = copy.deepcopy(env['ENV'])
     env_variables['PATH'] = str(env_variables.get('PATH', ''))
+    if py2 and win:
+        for key, val in env_variables.items():
+            if py2 and win:
+                if isinstance(key, text_type) or isinstance(val, text_type):
+                    key_ = key.encode('ascii')
+                    val_ = val.encode('ascii')
+                    del env_variables[key]
+                    env_variables[key_] = val_
     return _execute(env.subst(cmd_content), env_variables)
 
 
