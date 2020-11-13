@@ -1,45 +1,21 @@
 /*******************************************************************************
-* Copyright 2009-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2009-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
 // 
-// Intel(R) Integrated Performance Primitives (Intel(R) IPP) Cryptography
+// Intel® Integrated Performance Primitives Cryptography (Intel® IPP Cryptography)
 //
 
 #ifndef __DISPATCHER_H__
@@ -50,7 +26,7 @@ extern "C" {
 #endif
 
 /*
-  Intel(R) IPP libraries and CPU features mask fitness. Implemented only for IA32 and Intel64 (emt)
+  Intel IPP Cryptography libraries and CPU features mask fitness. Implemented only for IA32 and Intel64 (emt)
 */
 
 #if defined( _ARCH_IA32 )
@@ -101,7 +77,7 @@ extern "C" {
 #define AVX3X_MSK ( AVX2_MSK  | ippCPUID_AVX512F | ippCPUID_AVX512CD | ippCPUID_AVX512VL | ippCPUID_AVX512BW | ippCPUID_AVX512DQ )
 #define AVX3M_MSK ( AVX2_MSK  | ippCPUID_AVX512F | ippCPUID_AVX512CD | ippCPUID_AVX512PF | ippCPUID_AVX512ER )
 
-#if defined( _ARCH_IA32 ) && !defined( OSX32 ) && !defined( ANDROID )
+#if defined( _ARCH_IA32 ) && !defined( OSX32 )
   enum lib_enum {
      LIB_W7=0, LIB_S8=1, LIB_P8=2, LIB_G9=3, LIB_H9=4, LIB_NOMORE
   };
@@ -112,28 +88,12 @@ extern "C" {
   };
   #define LIB_PX LIB_S8
   #define LIB_W7 LIB_S8
-#elif defined( ANDROID ) && defined( _ARCH_IA32 )
-  enum lib_enum {
-     LIB_S8=0, LIB_P8=1, LIB_G9=2, LIB_H9=3, LIB_NOMORE
-  };
-  #define LIB_PX LIB_S8
-  #define LIB_W7 LIB_S8
-
-#elif defined( ANDROID ) && defined( _ARCH_EM64T )
-  enum lib_enum {
-     LIB_N8=0, LIB_Y8=1, LIB_E9=2, LIB_L9=3, LIB_NOMORE
-  };
-  #define LIB_PX LIB_N8
-  #define LIB_M7 LIB_N8
-  #define LIB_K0 LIB_L9
-  #define LIB_N0 LIB_L9
-
-#elif defined( _ARCH_EM64T ) && !defined( OSXEM64T ) && !defined( ANDROID ) && !defined( _WIN32E ) /* Linux* OS Intel64 supports N0 */
+#elif defined( _ARCH_EM64T ) && !defined( OSXEM64T ) && !defined( WIN32E ) /* Linux* OS Intel64 supports N0 */
   enum lib_enum {
      LIB_M7=0, LIB_N8=1, LIB_Y8=2, LIB_E9=3, LIB_L9=4, LIB_N0=5, LIB_K0=6, LIB_NOMORE
   };
   #define LIB_PX LIB_M7
-#elif defined( _ARCH_EM64T ) && !defined( OSXEM64T ) && !defined( ANDROID ) /* Windows* OS Intel64 doesn't support N0 */
+#elif defined( _ARCH_EM64T ) && !defined( OSXEM64T ) /* Windows* OS Intel64 doesn't support N0 */
   enum lib_enum {
      LIB_M7=0, LIB_N8=1, LIB_Y8=2, LIB_E9=3, LIB_L9=4, LIB_K0=5, LIB_NOMORE
   };
@@ -141,10 +101,11 @@ extern "C" {
   #define LIB_N0 LIB_L9
 #elif defined( OSXEM64T )
   enum lib_enum {
-     LIB_N8=0, LIB_Y8=1, LIB_E9=2, LIB_L9=3, LIB_K0=4, LIB_NOMORE
+     LIB_Y8=0, LIB_E9=1, LIB_L9=2, LIB_K0=3, LIB_NOMORE
   };
-  #define LIB_PX LIB_N8
-  #define LIB_M7 LIB_N8
+  #define LIB_PX LIB_Y8
+  #define LIB_M7 LIB_Y8
+  #define LIB_N8 LIB_Y8
   #define LIB_N0 LIB_L9
 #elif defined( _ARCH_LRB2 )
   enum lib_enum {
@@ -156,7 +117,7 @@ extern "C" {
 #endif
 
 #if defined( _ARCH_IA32 )
-  #if defined( OSX32 )       /* OSX supports starting with Intel(R) architecture formerly codenamed Penryn only */
+  #if defined( OSX32 )       /* OSX supports starting with Intel® architecture formerly codenamed Penryn only */
     #define LIB_MMX   LIB_S8
     #define LIB_SSE   LIB_S8
     #define LIB_SSE2  LIB_S8
@@ -167,8 +128,8 @@ extern "C" {
     #define LIB_SSE42 LIB_P8
     #define LIB_AVX   LIB_G9
     #define LIB_AVX2  LIB_H9
-    #define LIB_AVX3M LIB_H9 /* no ia32 library for Intel(R) Xeon Phi(TM) processor (formerly Knight Landing) */
-    #define LIB_AVX3X LIB_H9 /* no ia32 library for Intel(R) Xeon(R) processor (formerly Skylake) */
+    #define LIB_AVX3M LIB_H9 /* no ia32 library for Intel® Xeon Phi(TM) processor (formerly Knight Landing) */
+    #define LIB_AVX3X LIB_H9 /* no ia32 library for Intel® Xeon® processor (formerly Skylake) */
   #else
     #define LIB_MMX   LIB_W7
     #define LIB_SSE   LIB_W7
@@ -176,12 +137,12 @@ extern "C" {
     #define LIB_SSE3  LIB_W7
     #define LIB_ATOM  LIB_S8
     #define LIB_SSSE3 LIB_S8
-    #define LIB_SSE41 LIB_S8 /* P8 is oriented for new Intel Atom(R) processor (formerly Silvermont) */
+    #define LIB_SSE41 LIB_S8 /* P8 is oriented for new Intel Atom® processor (formerly Silvermont) */
     #define LIB_SSE42 LIB_P8
     #define LIB_AVX   LIB_G9
     #define LIB_AVX2  LIB_H9
-    #define LIB_AVX3M LIB_H9 /* no ia32 library for Intel(R) Xeon Phi(TM) processor (formerly Knight Landing) */
-    #define LIB_AVX3X LIB_H9 /* no ia32 library for Intel(R) Xeon(R) processor (formerly Skylake) */
+    #define LIB_AVX3M LIB_H9 /* no ia32 library for Intel® Xeon Phi(TM) processor (formerly Knight Landing) */
+    #define LIB_AVX3X LIB_H9 /* no ia32 library for Intel® Xeon® processor (formerly Skylake) */
   #endif
 #elif defined (_ARCH_EM64T)
   #if defined( OSXEM64T )    /* OSX supports starting PNR only */
@@ -204,7 +165,7 @@ extern "C" {
     #define LIB_SSE3  LIB_M7
     #define LIB_ATOM  LIB_N8
     #define LIB_SSSE3 LIB_N8
-    #define LIB_SSE41 LIB_N8 /* Y8 is oriented for new Intel Atom(R) processor (formerly Silvermont) */
+    #define LIB_SSE41 LIB_N8 /* Y8 is oriented for new Intel Atom® processor (formerly Silvermont) */
     #define LIB_SSE42 LIB_Y8
     #define LIB_AVX   LIB_E9
     #define LIB_AVX2  LIB_L9
@@ -215,7 +176,8 @@ extern "C" {
     #define LIB_MIC   LIB_B2
 #endif
 
-#if defined( _IPP_DYNAMIC )
+//gres: #if defined( _IPP_DYNAMIC )
+#if defined( _PCS )
 #if defined( _ARCH_IA32 )
 
 /* Describe Intel CPUs and libraries */
@@ -254,7 +216,7 @@ static const dll_enum dllUsage[][DLL_NOMORE+1] = {
 #if defined( _PCS )
 
 /* Names of the Intel libraries which can be loaded */
-#if defined ( _WIN32 ) && !defined( _WIN64 ) && !defined( _WIN32E )
+#if defined ( WIN32 )
 static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T(IPP_LIB_PREFIX()) _T("w7") _T(".dll"),
     _T(IPP_LIB_PREFIX()) _T("s8") _T(".dll"),
@@ -262,7 +224,7 @@ static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T(IPP_LIB_PREFIX()) _T("g9") _T(".dll"),
     _T(IPP_LIB_PREFIX()) _T("h9") _T(".dll")
 };
-#elif defined(linux32)
+#elif defined(LINUX32)
 static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T("lib") _T(IPP_LIB_PREFIX()) _T("w7.so"),
     _T("lib") _T(IPP_LIB_PREFIX()) _T("s8.so"),
@@ -277,7 +239,7 @@ static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T("lib") _T(IPP_LIB_PREFIX()) _T("g9") _T(".dylib"),
     _T("lib") _T(IPP_LIB_PREFIX()) _T("h9") _T(".dylib")
 };
-#elif defined( _WIN32E )
+#elif defined( WIN32E )
 static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T(IPP_LIB_PREFIX()) _T("m7") _T(".dll"),
     _T(IPP_LIB_PREFIX()) _T("n8") _T(".dll"),
@@ -294,7 +256,7 @@ static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T("lib") _T(IPP_LIB_PREFIX()) _T("l9") _T(".dylib"),
     _T("lib") _T(IPP_LIB_PREFIX()) _T("k0") _T(".dylib")
 };
-#elif defined( linux32e )
+#elif defined( LINUX32E )
 static const _TCHAR* dllNames[DLL_NOMORE] = {
     _T("lib") _T(IPP_LIB_PREFIX()) _T("m7.so"),
     _T("lib") _T(IPP_LIB_PREFIX()) _T("n8.so"),

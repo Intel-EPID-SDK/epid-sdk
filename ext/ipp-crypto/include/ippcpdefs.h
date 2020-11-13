@@ -1,48 +1,24 @@
 /*******************************************************************************
-* Copyright 2012-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2012-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
 /*
-//              Intel(R) Integrated Performance Primitives (Intel(R) IPP)
-//              Cryptographic Primitives (ippCP) definitions
-//              Basic Types and Macro Definitions
 //
+//              Intel® Integrated Performance Primitives Cryptography (Intel® IPP Cryptography)
+//
+//              Purpose: Basic Types and Macro Definitions
 //
 */
 
@@ -61,85 +37,91 @@ extern "C" {
 
 #if !defined( IPPAPI )
 
+  /* Specify explicit calling convention for public functions */
   #if defined( IPP_W32DLL ) && (defined( _WIN32 ) || defined( _WIN64 ))
     #if defined( _MSC_VER ) || defined( __ICL )
       #define IPPAPI( type,name,arg ) \
-                     __declspec(dllimport)   type IPP_STDCALL name arg;
+                     __declspec(dllimport)   type IPP_CALL name arg;
     #else
-      #define IPPAPI( type,name,arg )        type IPP_STDCALL name arg;
+      #define IPPAPI( type,name,arg )        type IPP_CALL name arg;
     #endif
   #else
-    #define   IPPAPI( type,name,arg )        type IPP_STDCALL name arg;
+    #define   IPPAPI( type,name,arg )        type IPP_CALL name arg;
   #endif
 
 #endif
 
-#if (defined( __ICL ) || defined( __ECL ) || defined(_MSC_VER)) && !defined( _PCS ) && !defined( _PCS_GENSTUBS )
-  #if( __INTEL_COMPILER >= 1100 ) /* icl 11.0 supports additional comment */
-    #if( _MSC_VER >= 1400 )
-      #define IPP_DEPRECATED( comment ) __declspec( deprecated ( comment ))
-    #else
-      #pragma message ("your icl version supports additional comment for deprecated functions but it can't be displayed")
-      #pragma message ("because internal _MSC_VER macro variable setting requires compatibility with MSVC7.1")
-      #pragma message ("use -Qvc8 switch for icl command line to see these additional comments")
-      #define IPP_DEPRECATED( comment ) __declspec( deprecated )
-    #endif
-  #elif( _MSC_FULL_VER >= 140050727 )&&( !defined( __INTEL_COMPILER )) /* VS2005 supports additional comment */
-    #define IPP_DEPRECATED( comment ) __declspec( deprecated ( comment ))
-  #elif( _MSC_VER <= 1200 )&&( !defined( __INTEL_COMPILER )) /* VS 6 doesn't support deprecation */
-    #define IPP_DEPRECATED( comment )
-  #else
-    #define IPP_DEPRECATED( comment ) __declspec( deprecated )
-  #endif
-#elif (defined(__ICC) || defined(__ECC) || defined( __GNUC__ )) && !defined( _PCS ) && !defined( _PCS_GENSTUBS )
-  #if defined( __GNUC__ )
-    #if __GNUC__ >= 4 && __GNUC_MINOR__ >= 5
-      #define IPP_DEPRECATED( message ) __attribute__(( deprecated( message )))
-    #else
-      #define IPP_DEPRECATED( message ) __attribute__(( deprecated ))
-    #endif
-  #else
-    #define IPP_DEPRECATED( comment ) __attribute__(( deprecated ))
-  #endif
+#if !defined(_NO_IPP_DEPRECATED)
+   #if (defined( __ICL ) || defined( __ECL ) || defined(_MSC_VER)) && !defined( _PCS ) && !defined( _PCS_GENSTUBS )
+     #if( __INTEL_COMPILER >= 1100 ) /* icl 11.0 supports additional comment */
+       #if( _MSC_VER >= 1400 )
+         #define IPP_DEPRECATED( comment ) __declspec( deprecated ( comment ))
+       #else
+         #pragma message ("your icl version supports additional comment for deprecated functions but it can't be displayed")
+         #pragma message ("because internal _MSC_VER macro variable setting requires compatibility with MSVC7.1")
+         #pragma message ("use -Qvc8 switch for icl command line to see these additional comments")
+         #define IPP_DEPRECATED( comment ) __declspec( deprecated )
+       #endif
+     #elif( _MSC_FULL_VER >= 140050727 )&&( !defined( __INTEL_COMPILER )) /* VS2005 supports additional comment */
+       #define IPP_DEPRECATED( comment ) __declspec( deprecated ( comment ))
+     #elif( _MSC_VER <= 1200 )&&( !defined( __INTEL_COMPILER )) /* VS 6 doesn't support deprecation */
+       #define IPP_DEPRECATED( comment )
+     #else
+       #define IPP_DEPRECATED( comment ) __declspec( deprecated )
+     #endif
+   #elif (defined(__ICC) || defined(__ECC) || defined( __GNUC__ )) && !defined( _PCS ) && !defined( _PCS_GENSTUBS )
+     #if defined( __GNUC__ )
+       #if (__GNUC__ * 100 + __GNUC_MINOR__) >= 405
+         #define IPP_DEPRECATED( message ) __attribute__(( deprecated( message )))
+       #else
+         #define IPP_DEPRECATED( message ) __attribute__(( deprecated ))
+       #endif
+     #else
+       #define IPP_DEPRECATED( comment ) __attribute__(( deprecated ))
+     #endif
+   #else
+     #define IPP_DEPRECATED( comment )
+   #endif
 #else
-  #define IPP_DEPRECATED( comment )
+   #define IPP_DEPRECATED( comment )
 #endif
 
 #if (defined( __ICL ) || defined( __ECL ) || defined(_MSC_VER))
   #if !defined( IPP_NO_DEFAULT_LIB )
-    #if  (( defined( _IPP_PARALLEL_DYNAMIC ) && !defined( _IPP_PARALLEL_STATIC ) && !defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC )) || \
-          (!defined( _IPP_PARALLEL_DYNAMIC ) &&  defined( _IPP_PARALLEL_STATIC ) && !defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC )) || \
-          (!defined( _IPP_PARALLEL_DYNAMIC ) && !defined( _IPP_PARALLEL_STATIC ) &&  defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC )) || \
-          (!defined( _IPP_PARALLEL_DYNAMIC ) && !defined( _IPP_PARALLEL_STATIC ) && !defined( _IPP_SEQUENTIAL_DYNAMIC ) &&  defined( _IPP_SEQUENTIAL_STATIC )))
-    #elif (!defined( _IPP_PARALLEL_DYNAMIC ) && !defined( _IPP_PARALLEL_STATIC ) && !defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC ))
+    #if  ((defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC )) || \
+          (!defined( _IPP_SEQUENTIAL_DYNAMIC ) &&  defined( _IPP_SEQUENTIAL_STATIC )))
+    #elif (!defined( _IPP_SEQUENTIAL_DYNAMIC ) && !defined( _IPP_SEQUENTIAL_STATIC ))
       #define IPP_NO_DEFAULT_LIB
     #else
-      #error Illegal combination of _IPP_PARALLEL_DYNAMIC/_IPP_PARALLEL_STATIC/_IPP_SEQUENTIAL_DYNAMIC/_IPP_SEQUENTIAL_STATIC, only one definition can be defined
+      #error Illegal combination of _IPP_SEQUENTIAL_DYNAMIC/_IPP_SEQUENTIAL_STATIC, only one definition can be defined
     #endif
   #endif
 #else
   #define IPP_NO_DEFAULT_LIB
-  #if (defined( _IPP_PARALLEL_DYNAMIC ) || defined( _IPP_PARALLEL_STATIC ) || defined(_IPP_SEQUENTIAL_DYNAMIC) || defined(_IPP_SEQUENTIAL_STATIC))
-    #pragma message ("defines _IPP_PARALLEL_DYNAMIC/_IPP_PARALLEL_STATIC/_IPP_SEQUENTIAL_DYNAMIC/_IPP_SEQUENTIAL_STATIC do not have any effect in current configuration")
+  #if (defined(_IPP_SEQUENTIAL_DYNAMIC) || defined(_IPP_SEQUENTIAL_STATIC))
+    #pragma message ("defines _IPP_SEQUENTIAL_DYNAMIC/_IPP_SEQUENTIAL_STATIC do not have any effect in current configuration")
   #endif
 #endif
 
-#if !defined( IPP_NO_DEFAULT_LIB )
-  #if defined( _IPP_PARALLEL_STATIC )
-    #pragma comment( lib, "libiomp5md" )
-  #endif
-#endif
 
-#if defined( _WIN32 ) || defined ( _WIN64 )
-  #define IPP_STDCALL  __stdcall
+#if defined (_MSC_VER)
   #define IPP_CDECL    __cdecl
+#elif (defined (__INTEL_COMPILER) || defined (__GNUC__ ) || defined (__clang__)) && defined (_ARCH_IA32)
+  #define IPP_CDECL    __attribute((cdecl))
+#else
+  #define IPP_CDECL
+#endif
+
+#if defined( _WIN32 ) || defined( _WIN64 )
+  #define IPP_STDCALL  __stdcall
+  #define IPP_CALL     IPP_STDCALL
   #define IPP_INT64    __int64
   #define IPP_UINT64    unsigned __int64
 #else
   #define IPP_STDCALL
-  #define IPP_CDECL
+  #define IPP_CALL     IPP_CDECL
   #define IPP_INT64    long long
-  #define IPP_UINT64    unsigned long long
+  #define IPP_UINT64   unsigned long long
 #endif
 
 #define IPP_COUNT_OF( obj )  (sizeof(obj)/sizeof(obj[0]))
@@ -200,7 +182,7 @@ typedef struct {
     int    minor;                     /* e.g. 2                               */
     int    majorBuild;                /* e.g. 3                               */
     int    build;                     /* e.g. 10, always >= majorBuild        */
-    char  targetCpu[4];               /* corresponding to Intel(R) processor  */
+    char  targetCpu[4];               /* corresponding to Intel® processor    */
     const char* Name;                 /* e.g. "ippsw7"                        */
     const char* Version;              /* e.g. "v1.2 Beta"                     */
     const char* BuildDate;            /* e.g. "Jul 20 99"                     */
@@ -278,9 +260,9 @@ typedef enum {
    ipp64fc  = 20
 } IppDataType;
 
-typedef enum { 
-    ippFalse = 0, 
-    ippTrue = 1 
+typedef enum {
+    ippFalse = 0,
+    ippTrue = 1
 } IppBool;
 
 #ifdef __cplusplus
@@ -292,47 +274,52 @@ typedef enum {
 #ifndef IPP_CPU_FEATURES__
 #define IPP_CPU_FEATURES__
 
-#define   ippCPUID_MMX             0x00000001   /* Intel(R) architecture with MMX(TM) technology supported                     */
-#define   ippCPUID_SSE             0x00000002   /* Intel(R) Streaming SIMD Extensions instruction set                          */
-#define   ippCPUID_SSE2            0x00000004   /* Intel(R) Streaming SIMD Extensions 2 instruction set                        */
-#define   ippCPUID_SSE3            0x00000008   /* Intel(R) Streaming SIMD Extensions 3 instruction set                        */
-#define   ippCPUID_SSSE3           0x00000010   /* Supplemental Streaming SIMD Extensions 3 instruction set                    */
-#define   ippCPUID_MOVBE           0x00000020   /* Intel(R) instruction MOVBE                                                  */
-#define   ippCPUID_SSE41           0x00000040   /* Intel(R) Streaming SIMD Extensions 4.1 instruction set                      */
-#define   ippCPUID_SSE42           0x00000080   /* Intel(R) Streaming SIMD Extensions 4.2 instruction set                      */
-#define   ippCPUID_AVX             0x00000100   /* Intel(R) Advanced Vector Extensions instruction set                         */
-#define   ippAVX_ENABLEDBYOS       0x00000200   /* Intel(R) Advanced Vector Extensions instruction set is supported by OS      */
-#define   ippCPUID_AES             0x00000400   /* Intel(R) AES New Instructions                                               */
-#define   ippCPUID_CLMUL           0x00000800   /* Intel(R) instruction PCLMULQDQ                                              */
-#define   ippCPUID_ABR             0x00001000   /* Reserved                                                                    */
-#define   ippCPUID_RDRAND          0x00002000   /* Intel(R) instruction RDRAND                                                 */
-#define   ippCPUID_F16C            0x00004000   /* Intel(R) instruction F16C                                                   */
-#define   ippCPUID_AVX2            0x00008000   /* Intel(R) Advanced Vector Extensions 2                                       */
-#define   ippCPUID_ADCOX           0x00010000   /* Intel(R) instructions ADOX/ADCX                                             */
-#define   ippCPUID_RDSEED          0x00020000   /* Intel(R) instruction RDSEED                                                 */
-#define   ippCPUID_PREFETCHW       0x00040000   /* Intel(R) instruction PREFETCHW                                              */
-#define   ippCPUID_SHA             0x00080000   /* Intel(R) Secure Hash Algorithm Extensions                                   */
-#define   ippCPUID_AVX512F         0x00100000   /* Intel(R) Advanced Vector Extensions 512 Foundation instruction set          */
-#define   ippCPUID_AVX512CD        0x00200000   /* Intel(R) Advanced Vector Extensions 512 CD instruction set                  */
-#define   ippCPUID_AVX512ER        0x00400000   /* Intel(R) Advanced Vector Extensions 512 ER instruction set                  */
-#define   ippCPUID_AVX512PF        0x00800000   /* Intel(R) Advanced Vector Extensions 512 PF instruction set                  */
-#define   ippCPUID_AVX512BW        0x01000000   /* Intel(R) Advanced Vector Extensions 512 BW instruction set                  */
-#define   ippCPUID_AVX512DQ        0x02000000   /* Intel(R) Advanced Vector Extensions 512 DQ instruction set                  */
-#define   ippCPUID_AVX512VL        0x04000000   /* Intel(R) Advanced Vector Extensions 512 VL instruction set                  */
-#define   ippCPUID_AVX512VBMI      0x08000000   /* Intel(R) Advanced Vector Extensions 512 Bit Manipulation instructions       */
-#define   ippCPUID_MPX             0x10000000   /* Intel(R) Memory Protection Extensions                                       */
-#define   ippCPUID_AVX512_4FMADDPS 0x20000000   /* Intel(R) Advanced Vector Extensions 512 DL floating-point single precision  */
-#define   ippCPUID_AVX512_4VNNIW   0x40000000   /* Intel(R) Advanced Vector Extensions 512 DL enhanced word variable precision */
-#define   ippCPUID_KNC             0x80000000   /* Intel(R) Xeon Phi(TM) Coprocessor                                           */
+#define   ippCPUID_MMX             0x00000001   /* Intel® architecture with MMX(TM) technology supported                     */
+#define   ippCPUID_SSE             0x00000002   /* Intel® Streaming SIMD Extensions (Intel® SSE) instruction set             */
+#define   ippCPUID_SSE2            0x00000004   /* Intel® Streaming SIMD Extensions 2 (Intel® SSE2) instruction set          */
+#define   ippCPUID_SSE3            0x00000008   /* Intel® Streaming SIMD Extensions 3 (Intel® SSE3) instruction set          */
+#define   ippCPUID_SSSE3           0x00000010   /* Supplemental Streaming SIMD Extensions 3 (SSSE3) instruction set          */
+#define   ippCPUID_MOVBE           0x00000020   /* Intel® instruction MOVBE                                                  */
+#define   ippCPUID_SSE41           0x00000040   /* Intel® Streaming SIMD Extensions 4.1 (Intel® SSE4.1) instruction set      */
+#define   ippCPUID_SSE42           0x00000080   /* Intel® Streaming SIMD Extensions 4.2 (Intel® SSE4.2) instruction set      */
+#define   ippCPUID_AVX             0x00000100   /* Intel® Advanced Vector Extensions instruction set                         */
+#define   ippAVX_ENABLEDBYOS       0x00000200   /* Intel® Advanced Vector Extensions instruction set is supported by OS      */
+#define   ippCPUID_AES             0x00000400   /*                                                                           */
+#define   ippCPUID_CLMUL           0x00000800   /* Intel® instruction PCLMULQDQ                                              */
+#define   ippCPUID_ABR             0x00001000   /* Reserved                                                                  */
+#define   ippCPUID_RDRAND          0x00002000   /* Intel® instruction RDRAND                                                 */
+#define   ippCPUID_F16C            0x00004000   /* Intel® instruction F16C                                                   */
+#define   ippCPUID_AVX2            0x00008000   /* Intel® Advanced Vector Extensions 2                                       */
+#define   ippCPUID_ADCOX           0x00010000   /* Intel® instructions ADOX/ADCX                                             */
+#define   ippCPUID_RDSEED          0x00020000   /* Intel® instruction RDSEED                                                 */
+#define   ippCPUID_PREFETCHW       0x00040000   /* Intel® instruction PREFETCHW                                              */
+#define   ippCPUID_SHA             0x00080000   /* Intel® Secure Hash Algorithm Extensions                                   */
+#define   ippCPUID_AVX512F         0x00100000   /* Intel® Advanced Vector Extensions 512 Foundation instruction set          */
+#define   ippCPUID_AVX512CD        0x00200000   /* Intel® Advanced Vector Extensions 512 CD instruction set                  */
+#define   ippCPUID_AVX512ER        0x00400000   /* Intel® Advanced Vector Extensions 512 ER instruction set                  */
+#define   ippCPUID_AVX512PF        0x00800000   /* Intel® Advanced Vector Extensions 512 PF instruction set                  */
+#define   ippCPUID_AVX512BW        0x01000000   /* Intel® Advanced Vector Extensions 512 BW instruction set                  */
+#define   ippCPUID_AVX512DQ        0x02000000   /* Intel® Advanced Vector Extensions 512 DQ instruction set                  */
+#define   ippCPUID_AVX512VL        0x04000000   /* Intel® Advanced Vector Extensions 512 VL instruction set                  */
+#define   ippCPUID_AVX512VBMI      0x08000000   /* Intel® Advanced Vector Extensions 512 Bit Manipulation instructions       */
+#define   ippCPUID_MPX             0x10000000   /* Intel® Memory Protection Extensions                                       */
+#define   ippCPUID_AVX512_4FMADDPS 0x20000000   /* Intel® Advanced Vector Extensions 512 DL floating-point single precision  */
+#define   ippCPUID_AVX512_4VNNIW   0x40000000   /* Intel® Advanced Vector Extensions 512 DL enhanced word variable precision */
+#define   ippCPUID_KNC             0x80000000   /* Intel® Xeon Phi(TM) Coprocessor                                           */
 #if defined( _WIN32 ) || defined ( _WIN64 )
   #define INT64_SUFFIX(name) name##L
 #else
   #define INT64_SUFFIX(name) name##LL
 #endif
- #define   ippCPUID_AVX512IFMA   INT64_SUFFIX(0x100000000)        /* Intel(R) Advanced Vector Extensions 512 IFMA (PMADD52) instruction set      */
- #define   ippCPUID_NOCHECK      INT64_SUFFIX(0x8000000000000000) /* Force ippSetCpuFeatures to set CPU features without check                   */
- #define   ippCPUID_GETINFO_A    INT64_SUFFIX(0x616f666e69746567) /* Force ippGetCpuFeatures to work as cpuid instruction                        */
- #define   ippAVX512_ENABLEDBYOS INT64_SUFFIX(0x200000000)        /* Intel(R) Advanced Vector Extensions 512 is supported by OS                  */
+ #define   ippCPUID_AVX512IFMA   INT64_SUFFIX(0x100000000)        /* Intel® Advanced Vector Extensions 512 IFMA (PMADD52) instruction set      */
+ #define   ippCPUID_NOCHECK      INT64_SUFFIX(0x8000000000000000) /* Force ippSetCpuFeatures to set CPU features without check                 */
+ #define   ippCPUID_GETINFO_A    INT64_SUFFIX(0x616f666e69746567) /* Force ippGetCpuFeatures to work as cpuid instruction                      */
+ #define   ippAVX512_ENABLEDBYOS INT64_SUFFIX(0x200000000)        /* Intel® Advanced Vector Extensions 512 is supported by OS                  */
+
+ #define   ippCPUID_AVX512GFNI   INT64_SUFFIX(0x400000000)        /*                                                                           */
+ #define   ippCPUID_AVX512VAES   INT64_SUFFIX(0x800000000)        /*                                                                           */
+ #define   ippCPUID_AVX512VCLMUL INT64_SUFFIX(0x1000000000)       /*                                                                           */
+ #define   ippCPUID_AVX512VBMI2  INT64_SUFFIX(0x2000000000)       /* Intel® Advanced Vector Extensions 512 Bit Manipulation instructions 2     */
 
 
 #endif /* IPP_CPU_FEATURES__ */
@@ -346,23 +333,23 @@ extern "C" {
 #endif
 typedef signed int IppStatus;
 
-    /* start of common with ippCrypto part - any changes MUST be done in both repositories - IPP & ippCrypto */
-#define ippStsCpuNotSupportedErr         -9999 /* The target CPU is not supported. */
-#define ippStsUnknownStatusCodeErr        -216 /* Unknown status code. */
-#define ippStsLoadDynErr                  -221 /* Error when loading the dynamic library. */
-#define ippStsLengthErr                    -15 /* Incorrect value for string length. */
-#define ippStsNotSupportedModeErr          -14 /* The requested mode is currently not supported. */
-#define ippStsContextMatchErr              -13 /* Context parameter does not match the operation. */
-#define ippStsScaleRangeErr                -12 /* Scale bounds are out of range. */
-#define ippStsOutOfRangeErr                -11 /* Argument is out of range, or point is outside the image. */
-#define ippStsDivByZeroErr                 -10 /* An attempt to divide by zero. */
-#define ippStsMemAllocErr                   -9 /* Memory allocated for the operation is not enough.*/
-#define ippStsNullPtrErr                    -8 /* Null pointer error. */
+    /* start of common with ippCrypto part - any changes MUST be done in both repositories - IPP & ippCrypto                    */
+#define ippStsCpuNotSupportedErr         -9999 /* The target CPU is not supported.                                              */
+#define ippStsUnknownStatusCodeErr        -216 /* Unknown status code.                                                          */
+#define ippStsLoadDynErr                  -221 /* Error when loading the dynamic library.                                       */
+#define ippStsLengthErr                    -15 /* Incorrect value for string length.                                            */
+#define ippStsNotSupportedModeErr          -14 /* The requested mode is currently not supported.                                */
+#define ippStsContextMatchErr              -13 /* Context parameter does not match the operation.                               */
+#define ippStsScaleRangeErr                -12 /* Scale bounds are out of range.                                                */
+#define ippStsOutOfRangeErr                -11 /* Argument is out of range, or point is outside the image.                      */
+#define ippStsDivByZeroErr                 -10 /* An attempt to divide by zero.                                                 */
+#define ippStsMemAllocErr                   -9 /* Memory allocated for the operation is not enough.                             */
+#define ippStsNullPtrErr                    -8 /* Null pointer error.                                                           */
 #define ippStsRangeErr                      -7 /* Incorrect values for bounds: the lower bound is greater than the upper bound. */
-#define ippStsSizeErr                       -6 /* Incorrect value for data size. */
-#define ippStsBadArgErr                     -5 /* Incorrect arg/param of the function. */
-#define ippStsNoMemErr                      -4 /* Not enough memory for the operation. */
-#define ippStsErr                           -2 /* Unknown/unspecified error */
+#define ippStsSizeErr                       -6 /* Incorrect value for data size.                                                */
+#define ippStsBadArgErr                     -5 /* Incorrect arg/param of the function.                                          */
+#define ippStsNoMemErr                      -4 /* Not enough memory for the operation.                                          */
+#define ippStsErr                           -2 /* Unknown/unspecified error                                                     */
      /* no errors */
 #define ippStsNoErr                          0 /* No errors. */
      /* warnings  */
@@ -397,6 +384,7 @@ typedef signed int IppStatus;
 #define ippStsBadModulusErr              -1001 /* Bad modulus caused a failure in module inversion. */
 #define ippStsInsufficientEntropy           25 /* Generation of the prime/key failed due to insufficient entropy in the random seed and stimulus bit string. */
 #define ippStsNotSupportedCpu               36 /* The CPU is not supported. */
+#define ippStsMbWarning                     53 /* Error(s) in statuses array. */
      /* end of ippCrypto specific statuses - any changes MUST be done in both repositories - IPP & ippCrypto */
 
 #if (!defined IPPCPDEFS_H__) || defined( _OWN_BLDPCS )
@@ -508,12 +496,6 @@ typedef struct _cpHashCtx  IppsHashState;
 typedef struct _cpHashMethod_rmf IppsHashMethod;
 typedef struct _cpHashCtx_rmf    IppsHashState_rmf;
 
-
-/* MGF */
-typedef IppStatus (IPP_STDCALL *IppMGF)(const Ipp8u* pSeed, int seedLen, Ipp8u* pMask, int maskLen);
-/* HASH function */
-typedef IppStatus (IPP_STDCALL *IppHASH)(const Ipp8u* pMsg, int len, Ipp8u* pMD);
-
 #define   IPP_SHA1_DIGEST_BITSIZE  160   /* digest size (bits) */
 #define IPP_SHA256_DIGEST_BITSIZE  256
 #define IPP_SHA224_DIGEST_BITSIZE  224
@@ -569,7 +551,7 @@ typedef struct _cpPRNG        IppsPRNGState;
 typedef struct _cpPrime       IppsPrimeState;
 
 /*  External Bit Supplier */
-typedef IppStatus (IPP_STDCALL *IppBitSupplier)(Ipp32u* pRand, int nBits, void* pEbsParams);
+typedef IppStatus (IPP_CALL *IppBitSupplier)(Ipp32u* pRand, int nBits, void* pEbsParams);
 
 #define IPP_IS_EQ (0)
 #define IPP_IS_GT (1)
@@ -670,7 +652,7 @@ typedef enum {
    ippDLInvalidPublicKey,     /* !(1 < public  <=(P-1))        */
    ippDLInvalidKeyPair,       /* !(G^private == public         */
 
-   ippDLInvalidSignature       /* invalid signature             */
+   ippDLInvalidSignature       /* invalid signature            */
 } IppDLResult;
 
 /*
@@ -682,29 +664,29 @@ typedef enum {
 
 /* operation result */
 typedef enum {
-   ippECValid,             /* validation pass successfully     */
+   ippECValid,             /* validation pass successfully                                 */
 
-   ippECCompositeBase,     /* field based on composite         */
+   ippECCompositeBase,     /* field based on composite                                     */
    ippECComplicatedBase,   /* number of non-zero terms in the polynomial (> PRIME_ARR_MAX) */
-   ippECIsZeroDiscriminant,/* zero discriminant */
-   ippECCompositeOrder,    /* composite order of base point    */
-   ippECInvalidOrder,      /* invalid base point order         */
-   ippECIsWeakMOV,         /* weak Meneze-Okamoto-Vanstone  reduction attack */
-   ippECIsWeakSSSA,        /* weak Semaev-Smart,Satoh-Araki reduction attack */
-   ippECIsSupersingular,   /* supersingular curve */
+   ippECIsZeroDiscriminant,/* zero discriminant                                            */
+   ippECCompositeOrder,    /* composite order of base point                                */
+   ippECInvalidOrder,      /* invalid base point order                                     */
+   ippECIsWeakMOV,         /* weak Meneze-Okamoto-Vanstone  reduction attack               */
+   ippECIsWeakSSSA,        /* weak Semaev-Smart,Satoh-Araki reduction attack               */
+   ippECIsSupersingular,   /* supersingular curve                                          */
 
-   ippECInvalidPrivateKey, /* !(0 < Private < order) */
-   ippECInvalidPublicKey,  /* (order*PublicKey != Infinity)    */
-   ippECInvalidKeyPair,    /* (Private*BasePoint != PublicKey) */
+   ippECInvalidPrivateKey, /* !(0 < Private < order)                                       */
+   ippECInvalidPublicKey,  /* (order*PublicKey != Infinity)                                */
+   ippECInvalidKeyPair,    /* (Private*BasePoint != PublicKey)                             */
 
-   ippECPointOutOfGroup,   /* out of group (order*P != Infinity)  */
-   ippECPointIsAtInfinite, /* point (P=(Px,Py)) at Infinity  */
-   ippECPointIsNotValid,   /* point (P=(Px,Py)) out-of EC    */
+   ippECPointOutOfGroup,   /* out of group (order*P != Infinity)                           */
+   ippECPointIsAtInfinite, /* point (P=(Px,Py)) at Infinity                                */
+   ippECPointIsNotValid,   /* point (P=(Px,Py)) out-of EC                                  */
 
-   ippECPointIsEqual,      /* compared points are equal     */
-   ippECPointIsNotEqual,   /* compared points are different  */
+   ippECPointIsEqual,      /* compared points are equal                                    */
+   ippECPointIsNotEqual,   /* compared points are different                                */
 
-   ippECInvalidSignature   /* invalid signature */
+   ippECInvalidSignature   /* invalid signature                                            */
 } IppECResult;
 
 /* domain parameter set/get flags */
@@ -727,7 +709,7 @@ typedef enum {
    ippEC_TPM_SM2_P256= ippECPstd+11,
    ippEC_TPM_BN_P256 = ippECPstd+12,                                /* TPM BN_P256 curve */
 
-   /* curves over binary finit fields are not supported in Intel(R) IPP 9.0 */
+   /* curves over binary finit fields are not supported in Intel® IPP 9.0 */
    IppECCBStd      = 0x20000,       /* random (recommended) EC over FG(2^m): */
    IppECCBStd113r1 = IppECCBStd,    /* sect113r1 curve */
    IppECCBStd113r2 = IppECCBStd+1,  /* sect113r2 curve */
@@ -776,18 +758,22 @@ typedef struct _cpGFpEC       IppsECCPState;
 typedef struct _cpGFpECPoint  IppsECCPPointState;
 
 typedef struct {
-   const IppsGFpState* pBasicGF;
-   const IppsGFpState* pGroundGF;
+   int   hashSize;
+   int   msgBlockSize;
+} IppsHashInfo;
+
+typedef struct {
+ //const IppsGFpState* pBasicGF;
+ //const IppsGFpState* pGroundGF;
+   int   parentGFdegree;
    int   basicGFdegree;
-   int   groundGFdegree;
-   int   elementLen;
+   int   basicElmBitSize;
 } IppsGFpInfo;
 
 typedef struct _cpStateECES_SM2 IppsECESState_SM2;
 
 #endif /* !defined( _OWN_BLDPCS ) */
 
-#ifndef _PCS
 IPPAPI( IppStatus, ippcpGetCpuFeatures, ( Ipp64u* pFeaturesMask ))
 IPPAPI( IppStatus, ippcpSetCpuFeatures, ( Ipp64u features ))
 IPPAPI( Ipp64u, ippcpGetEnabledCpuFeatures, ( void ) )
@@ -797,7 +783,6 @@ IPPAPI( IppStatus, ippcpGetNumThreads, (int* pNumThr) )
 IPPAPI( const char*, ippcpGetStatusString, ( IppStatus StsCode ))
 IPPAPI( int, ippcpGetEnabledNumThreads, ( void ) )
 IPPAPI( Ipp64u, ippcpGetCpuClocks, (void) )
-#endif
 
 #ifdef __cplusplus
 }

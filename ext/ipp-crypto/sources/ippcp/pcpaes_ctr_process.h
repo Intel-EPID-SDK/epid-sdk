@@ -1,69 +1,38 @@
 /*******************************************************************************
-* Copyright 2013-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2013-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
-/* 
-// 
+/*
+//
 //  Purpose:
 //     Cryptography Primitive.
 //     AES encryption/decryption (CTR mode)
-// 
+//
 //  Contents:
 //     cpProcessAES_ctr()
 //     cpProcessAES_ctr128()
 //
 */
 
-#if !defined(_OPENMP)
-
 #include "owndefs.h"
 #include "owncp.h"
 #include "pcpaesm.h"
 #include "pcptool.h"
 
-#if (_ALG_AES_SAFE_==_ALG_AES_SAFE_COMPOSITE_GF_)
-#  pragma message("_ALG_AES_SAFE_COMPOSITE_GF_ enabled")
-#elif (_ALG_AES_SAFE_==_ALG_AES_SAFE_COMPACT_SBOX_)
-#  pragma message("_ALG_AES_SAFE_COMPACT_SBOX_ enabled")
+#if (_ALG_AES_SAFE_==_ALG_AES_SAFE_COMPACT_SBOX_)
 #  include "pcprijtables.h"
-#else
-#  pragma message("_ALG_AES_SAFE_ disabled")
 #endif
 
 /*
@@ -77,6 +46,7 @@
 //    ippStsContextMatchErr   !VALID_AES_ID()
 //    ippStsLengthErr         len <1
 //    ippStsCTRSizeErr        128 < ctrNumBitSize < 1
+//    ippStsCTRSizeErr        data blocks number > 2^ctrNumBitSize
 //    ippStsNoErr             no errors
 //
 // Parameters:
@@ -97,13 +67,13 @@ __INLINE void MaskCounter128(Ipp8u* pMaskIV, int ctrBtSize)
    int maskPosition = (MBS_RIJ128*8-ctrBtSize)/8;
    Ipp8u maskValue = (Ipp8u)(0xFF >> (MBS_RIJ128*8-ctrBtSize)%8 );
 
-   Ipp8u maskIV[MBS_RIJ128];
+   //Ipp8u maskIV[MBS_RIJ128];
    int n;
    for(n=0; n<MBS_RIJ128; n++) {
       int d = n - maskPosition;
-      Ipp8u storedMaskValue = maskValue & ~cpIsMsb_ct(d);
+      Ipp8u storedMaskValue = maskValue & ~cpIsMsb_ct((BNU_CHUNK_T)d);
       pMaskIV[n] = storedMaskValue;
-      maskValue |= ~cpIsMsb_ct(d);
+      maskValue |= ~cpIsMsb_ct((BNU_CHUNK_T)d);
    }
 }
 
@@ -114,8 +84,6 @@ IppStatus cpProcessAES_ctr(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen,
 {
    /* test context */
    IPP_BAD_PTR1_RET(pCtx);
-   /* use aligned AES context */
-   pCtx = (IppsAESSpec*)( IPP_ALIGNED_PTR(pCtx, AES_ALIGNMENT) );
    /* test the context ID */
    IPP_BADARG_RET(!VALID_AES_ID(pCtx), ippStsContextMatchErr);
 
@@ -127,27 +95,43 @@ IppStatus cpProcessAES_ctr(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen,
    /* test counter block size */
    IPP_BADARG_RET(((MBS_RIJ128*8)<ctrNumBitSize)||(ctrNumBitSize<1), ippStsCTRSizeErr);
 
+   /* test counter overflow */
+   if(ctrNumBitSize < (8 * sizeof(int) - 5))
+   {
+      /*
+      // dataLen is int, and it is always positive   
+      // data blocks number compute from dataLen     
+      // by dividing it to MBS_RIJ128 = 16           
+      // and additing 1 if dataLen % 16 != 0         
+      // so if ctrNumBitSize >= 8 * sizeof(int) - 5                      
+      // function can process data with any possible 
+      // passed dataLen without counter overflow     
+      */
+      
+      int dataBlocksNum = dataLen >> 4;
+      if(dataLen & 15){
+         dataBlocksNum++;
+      }
+
+      IPP_BADARG_RET(dataBlocksNum > (1 << ctrNumBitSize), ippStsCTRSizeErr);
+   }
+
    #if (_IPP>=_IPP_P8) || (_IPP32E>=_IPP32E_Y8)
    /* use pipelined version if possible */
    if(AES_NI_ENABLED==RIJ_AESNI(pCtx)) {
       /* construct ctr mask */
-      #if 0
-      int maskPosition = (MBS_RIJ128*8-ctrNumBitSize)/8;
-      Ipp8u maskValue = (Ipp8u)(0xFF >> (MBS_RIJ128*8-ctrNumBitSize)%8 );
-
-      Ipp8u maskIV[MBS_RIJ128];
-      int n;
-      for(n=0; n<maskPosition; n++)
-         maskIV[n] = 0;
-      maskIV[maskPosition] = maskValue;
-      for(n=maskPosition+1; n<MBS_RIJ128; n++)
-         maskIV[n] = 0xFF;
-      #endif
-
       Ipp8u maskIV[MBS_RIJ128];
       MaskCounter128(maskIV, ctrNumBitSize); /* const-exe-time version */
 
-      EncryptCTR_RIJ128pipe_AES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), dataLen, pCtrValue, maskIV);
+#if(_IPP32E>=_IPP32E_K0)
+      if (IsFeatureEnabled(ippCPUID_AVX512VAES)) {
+         EncryptCTR_RIJ128pipe_VAES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), dataLen, pCtrValue, maskIV);
+      }
+      else
+#endif
+      {
+         EncryptCTR_RIJ128pipe_AES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), dataLen, pCtrValue, maskIV);
+      }
       return ippStsNoErr;
    }
    else
@@ -225,8 +209,6 @@ IppStatus cpProcessAES_ctr128(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen, const
 {
    /* test context */
    IPP_BAD_PTR1_RET(pCtx);
-   /* use aligned AES context */
-   pCtx = (IppsAESSpec*)( IPP_ALIGNED_PTR(pCtx, AES_ALIGNMENT) );
    /* test the context ID */
    IPP_BADARG_RET(!VALID_AES_ID(pCtx), ippStsContextMatchErr);
 
@@ -237,7 +219,7 @@ IppStatus cpProcessAES_ctr128(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen, const
 
    {
       while(dataLen>=MBS_RIJ128) {
-         Ipp32u blocks = dataLen>>4; /* number of blocks per loop processing */
+         Ipp32u blocks = (Ipp32u)(dataLen>>4); /* number of blocks per loop processing */
 
          /* low LE 32 bit of counter */
          Ipp32u ctr32 = ((Ipp32u*)(pCtrValue))[3];
@@ -248,7 +230,13 @@ IppStatus cpProcessAES_ctr128(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen, const
          if(ctr32 < blocks)
             blocks -= ctr32;
 
-         EncryptStreamCTR32_AES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), blocks*MBS_RIJ128, pCtrValue);
+#if(_IPP32E>=_IPP32E_K0)
+         if (IsFeatureEnabled(ippCPUID_AVX512VAES)) {
+            EncryptStreamCTR32_VAES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), (Ipp32s)blocks*MBS_RIJ128, pCtrValue);
+         }
+         else
+#endif
+         EncryptStreamCTR32_AES_NI(pSrc, pDst, RIJ_NR(pCtx), RIJ_EKEYS(pCtx), (Ipp32s)blocks*MBS_RIJ128, pCtrValue);
 
          pSrc += blocks*MBS_RIJ128;
          pDst += blocks*MBS_RIJ128;
@@ -264,6 +252,3 @@ IppStatus cpProcessAES_ctr128(const Ipp8u* pSrc, Ipp8u* pDst, int dataLen, const
 }
 
 #endif /* #if (_IPP32E>=_IPP32E_Y8) */
-
-#endif /* #if !defined(_OPENMP) */
-

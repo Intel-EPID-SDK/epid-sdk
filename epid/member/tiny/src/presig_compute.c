@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017 Intel Corporation
+# Copyright 2017-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 /// Precomputed signature computation.
 /*! \file */
 
-#include "epid/member/tiny/src/presig_compute.h"
-
-#include "epid/member/tiny/math/efq.h"
-#include "epid/member/tiny/math/fp.h"
-#include "epid/member/tiny/math/fq12.h"
-#include "epid/member/tiny/math/serialize.h"
-#include "epid/member/tiny/math/vli.h"
-#include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/presig_compute.h"
+#include "epid/member/tiny/context.h"
+#include "tinymath/efq.h"
+#include "tinymath/fp.h"
+#include "tinymath/fq12.h"
+#include "tinymath/serialize.h"
+#include "tinymath/vli.h"
 
 static const EccPointFq epid20_g1 = {
     {{0x00000001, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,

@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2017 Intel Corporation
+# Copyright 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 # limitations under the License.
 ############################################################################
 # pylint: disable=locally-disabled, invalid-name, missing-docstring
-
 """Intel posix compiler configuration for debug
 """
 
 from parts.config import ConfigValues, configuration
+
 
 def map_default_version(env):
     return env['INTELC_VERSION']
@@ -26,23 +26,25 @@ def map_default_version(env):
 
 config = configuration(map_default_version)
 
-config.VersionRange("7-*",
-                    append=ConfigValues(
-                        CCFLAGS=['',
-                                 # second level optimization
-                                 '-O2',
-                                 # treat warnings as errors
-                                 '-Werror',
-                                 # enable all warnings
-                                 '-Wall',
-                                 # extra warnings
-                                 '-Wextra',
-                                 # pedantic warnings
-                                 # '-Wpedantic',
-                                 '-fPIC'],
-                        CXXFLAGS=['',
-                                  # modern C++ features support
-                                  '-std=c++0x',
-                                 ]
-                        )
-                   )
+config.VersionRange(
+    "7-*",
+    append=ConfigValues(
+        CCFLAGS=[
+            # produce debugging information
+            '-g',
+            # disable optimization
+            '-O0',
+            # treat warnings as errors
+            '-Werror',
+            # enable all warnings
+            '-Wall',
+            # extra warnings
+            '-Wextra',
+            # pedantic warnings
+            # '-Wpedantic',
+            '-fPIC'
+        ],
+        CXXFLAGS=[
+            # modern C++ features support
+            '-std=c++0x',
+        ]))

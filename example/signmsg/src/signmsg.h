@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
 #ifndef EXAMPLE_SIGNMSG_SRC_SIGNMSG_H_
 #define EXAMPLE_SIGNMSG_SRC_SIGNMSG_H_
 
-#include "epid/common/file_parser.h"
-#include "epid/common/stdtypes.h"
+#include "epid/file_parser.h"
 #include "epid/member/api.h"
+#include "epid/stdtypes.h"
 
 /// Check if opaque data blob containing CA certificate is authorized
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size);

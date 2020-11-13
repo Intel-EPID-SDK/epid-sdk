@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
 #include <epid/member/api.h>
 
 #include <string.h>
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/src/sig_types.h"
-#include "epid/common/src/sigrlvalid.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/nrprove.h"
-#include "epid/member/split/src/signbasic.h"
+#include "common/endian_convert.h"
+#include "common/sig_types.h"
+#include "common/sigrlvalid.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/nrprove.h"
+#include "epid/member/split/signbasic.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,24 +13,21 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
+/// CheckPrivRlEntry unit tests.
+/*! \file */
 
-/*!
- * \file
- * \brief CheckPrivRlEntry unit tests.
- */
-
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
+
+#include "epid/verifier.h"
 
 extern "C" {
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/rlverify.h"
+#include "rlverify.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 
 namespace {
 
@@ -45,10 +42,11 @@ TEST_F(EpidVerifierTest, CheckPrivRlEntryFailsGivenNullPtr) {
   BasicSignature basic_signature =
       ((EpidNonSplitSignature const*)sig.data())->sigma0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidCheckPrivRlEntry(nullptr, &basic_signature, &fp_str));
-  EXPECT_EQ(kEpidBadArgErr, EpidCheckPrivRlEntry(verifier, nullptr, &fp_str));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
+            EpidCheckPrivRlEntry(verifier, nullptr, &fp_str));
+  EXPECT_EQ(kEpidBadRlEntryErr,
             EpidCheckPrivRlEntry(verifier, &basic_signature, nullptr));
 }
 

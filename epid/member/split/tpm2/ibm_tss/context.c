@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,13 @@
 #include <tss2/TPM_Types.h>
 #include <tss2/tss.h>
 
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
+#include "common/epid2params.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/getrandom.h"
 #include "epid/member/split/tpm2/ibm_tss/printtss.h"
 #include "epid/member/split/tpm2/ibm_tss/state.h"
-#include "epid/member/tpm_member.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -52,7 +51,6 @@ EpidStatus Tpm2CreateContext(MemberParams const* params,
   EpidStatus sts = kEpidNoErr;
   TPM_RC rc = TPM_RC_FAILURE;
   Tpm2Ctx* tpm_ctx = NULL;
-  FfElement* ff_elem = NULL;
   if (!params || !epid2_params || !rnd_func || !rnd_param || !ctx) {
     return kEpidBadArgErr;
   }
@@ -82,7 +80,6 @@ EpidStatus Tpm2CreateContext(MemberParams const* params,
     *rnd_param = *ctx;
     sts = kEpidNoErr;
   } while (0);
-  DeleteFfElement(&ff_elem);
   if (kEpidNoErr != sts) {
     Tpm2DeleteContext(&tpm_ctx);
     *ctx = NULL;

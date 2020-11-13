@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2002-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2002-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -116,30 +92,30 @@ __INLINE void hashInit(Ipp64u* pHash, const Ipp64u* iv)
    pHash[6] = iv[6];
    pHash[7] = iv[7];
 }
-static void sha512_hashInit(void* pHash)
+IPP_OWN_DEFN (static void, sha512_hashInit, (void* pHash))
 {
    hashInit((Ipp64u*)pHash, sha512_iv);
 }
-static void sha512_384_hashInit(void* pHash)
+IPP_OWN_DEFN (static void, sha512_384_hashInit, (void* pHash))
 {
    hashInit((Ipp64u*)pHash, sha512_384_iv);
 }
-static void sha512_256_hashInit(void* pHash)
+IPP_OWN_DEFN (static void, sha512_256_hashInit, (void* pHash))
 {
    hashInit((Ipp64u*)pHash, sha512_256_iv);
 }
-static void sha512_224_hashInit(void* pHash)
+IPP_OWN_DEFN (static void, sha512_224_hashInit, (void* pHash))
 {
    hashInit((Ipp64u*)pHash, sha512_224_iv);
 }
 
-static void sha512_hashUpdate(void* pHash, const Ipp8u* pMsg, int msgLen)
+IPP_OWN_DEFN (static void, sha512_hashUpdate, (void* pHash, const Ipp8u* pMsg, int msgLen))
 {
    UpdateSHA512(pHash, pMsg, msgLen, sha512_cnt);
 }
 
 /* convert hash into big endian */
-static void sha512_hashOctString(Ipp8u* pMD, void* pHashVal)
+IPP_OWN_DEFN (static void, sha512_hashOctString, (Ipp8u* pMD, void* pHashVal))
 {
    ((Ipp64u*)pMD)[0] = ENDIANNESS64(((Ipp64u*)pHashVal)[0]);
    ((Ipp64u*)pMD)[1] = ENDIANNESS64(((Ipp64u*)pHashVal)[1]);
@@ -150,7 +126,7 @@ static void sha512_hashOctString(Ipp8u* pMD, void* pHashVal)
    ((Ipp64u*)pMD)[6] = ENDIANNESS64(((Ipp64u*)pHashVal)[6]);
    ((Ipp64u*)pMD)[7] = ENDIANNESS64(((Ipp64u*)pHashVal)[7]);
 }
-static void sha512_384_hashOctString(Ipp8u* pMD, void* pHashVal)
+IPP_OWN_DEFN (static void, sha512_384_hashOctString, (Ipp8u* pMD, void* pHashVal))
 {
    ((Ipp64u*)pMD)[0] = ENDIANNESS64(((Ipp64u*)pHashVal)[0]);
    ((Ipp64u*)pMD)[1] = ENDIANNESS64(((Ipp64u*)pHashVal)[1]);
@@ -159,14 +135,14 @@ static void sha512_384_hashOctString(Ipp8u* pMD, void* pHashVal)
    ((Ipp64u*)pMD)[4] = ENDIANNESS64(((Ipp64u*)pHashVal)[4]);
    ((Ipp64u*)pMD)[5] = ENDIANNESS64(((Ipp64u*)pHashVal)[5]);
 }
-static void sha512_256_hashOctString(Ipp8u* pMD, void* pHashVal)
+IPP_OWN_DEFN (static void, sha512_256_hashOctString, (Ipp8u* pMD, void* pHashVal))
 {
    ((Ipp64u*)pMD)[0] = ENDIANNESS64(((Ipp64u*)pHashVal)[0]);
    ((Ipp64u*)pMD)[1] = ENDIANNESS64(((Ipp64u*)pHashVal)[1]);
    ((Ipp64u*)pMD)[2] = ENDIANNESS64(((Ipp64u*)pHashVal)[2]);
    ((Ipp64u*)pMD)[3] = ENDIANNESS64(((Ipp64u*)pHashVal)[3]);
 }
-static void sha512_224_hashOctString(Ipp8u* pMD, void* pHashVal)
+IPP_OWN_DEFN (static void, sha512_224_hashOctString, (Ipp8u* pMD, void* pHashVal))
 {
    ((Ipp64u*)pMD)[0] = ENDIANNESS64(((Ipp64u*)pHashVal)[0]);
    ((Ipp64u*)pMD)[1] = ENDIANNESS64(((Ipp64u*)pHashVal)[1]);
@@ -174,7 +150,7 @@ static void sha512_224_hashOctString(Ipp8u* pMD, void* pHashVal)
    ((Ipp32u*)pMD)[6] = ENDIANNESS32(((Ipp32u*)pHashVal)[7]);
 }
 
-static void sha512_msgRep(Ipp8u* pDst, Ipp64u lenLo, Ipp64u lenHi)
+IPP_OWN_DEFN (static void, sha512_msgRep, (Ipp8u* pDst, Ipp64u lenLo, Ipp64u lenHi))
 {
    lenHi = LSL64(lenHi,3) | LSR64(lenLo,63-3);
    lenLo = LSL64(lenLo,3);
@@ -182,24 +158,22 @@ static void sha512_msgRep(Ipp8u* pDst, Ipp64u lenLo, Ipp64u lenHi)
    ((Ipp64u*)(pDst))[1] = ENDIANNESS64(lenLo);
 }
 
-static IppStatus GetSizeSHA512(int* pSize)
+IPP_OWN_DEFN (static IppStatus, GetSizeSHA512, (int* pSize))
 {
    /* test pointer */
    IPP_BAD_PTR1_RET(pSize);
-   *pSize = sizeof(IppsSHA512State) +(SHA512_ALIGNMENT-1);
+   *pSize = sizeof(IppsSHA512State);
    return ippStsNoErr;
 }
 
-//#define   cpFinalizeSHA512       OWNAPI(cpFinalizeSHA512)
-//void      cpFinalizeSHA512(DigestSHA512 pHash, const Ipp8u* inpBuffer, int inpLen, Ipp64u lenLo, Ipp64u lenHi);
-#define   cpSHA512MessageDigest  OWNAPI(cpSHA512MessageDigest)
-IppStatus cpSHA512MessageDigest(DigestSHA512 hash, const Ipp8u* pMsg, int msgLen, const DigestSHA512 IV);
-#define   InitSHA512             OWNAPI(InitSHA512)
-IppStatus InitSHA512(IppsSHA512State* pState, const DigestSHA512 IV);
+/* #define cpFinalizeSHA512 OWNAPI(cpFinalizeSHA512) */
+   /* IPP_OWN_DECL (void, cpFinalizeSHA512, (DigestSHA512 pHash, const Ipp8u* inpBuffer, int inpLen, Ipp64u lenLo, Ipp64u lenHi)) */
+#define cpSHA512MessageDigest OWNAPI(cpSHA512MessageDigest)
+   IPP_OWN_DECL (IppStatus, cpSHA512MessageDigest, (DigestSHA512 hash, const Ipp8u* pMsg, int msgLen, const DigestSHA512 IV))
+#define InitSHA512 OWNAPI(InitSHA512)
+   IPP_OWN_DECL (IppStatus, InitSHA512, (IppsSHA512State* pState, const DigestSHA512 IV))
 
-static void cpFinalizeSHA512(DigestSHA512 pHash,
-                       const Ipp8u* inpBuffer, int inpLen,
-                             Ipp64u lenLo, Ipp64u lenHi)
+IPP_OWN_DEFN (static void, cpFinalizeSHA512, (DigestSHA512 pHash, const Ipp8u* inpBuffer, int inpLen, Ipp64u lenLo, Ipp64u lenHi))
 {
    /* local buffer and it length */
    Ipp8u buffer[MBS_SHA512*2];
@@ -210,7 +184,7 @@ static void cpFinalizeSHA512(DigestSHA512 pHash,
 
    /* padd message */
    buffer[inpLen++] = 0x80;
-   PaddBlock(0, buffer+inpLen, bufferLen-inpLen-MLR_SHA512);
+   PadBlock(0, buffer+inpLen, (cpSize)(bufferLen-inpLen-(int)MLR_SHA512));
 
    /* message length representation */
    lenHi = LSL64(lenHi,3) | LSR64(lenLo,63-3);

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 /// Basename management implementation
 /*! \file */
 
-#include "epid/member/split/src/allowed_basenames.h"
+#include "epid/member/split/allowed_basenames.h"
 
 #include <stdint.h>
 
-#include "epid/common/src/memory.h"
+#include "ippmath/memory.h"
 
 typedef struct AllowedBasename {
   struct AllowedBasename* next;  ///< pointer to the next base name

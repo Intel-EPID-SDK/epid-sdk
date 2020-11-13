@@ -1,26 +1,3 @@
-/*
-@ @licstart  The following is the entire license notice for the
-JavaScript code in this file.
-
-Copyright (C) 1997-2017 by Dimitri van Heesch
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-@licend  The above is the entire license notice
-for the JavaScript code in this file
-*/
 var NAVTREE =
 [
   [ "Intel® Enhanced Privacy ID SDK", "index.html", [
@@ -62,7 +39,7 @@ var NAVTREE =
     [ "Building from Source", "_building_sdk.html", [
       [ "Prerequisites", "_building_sdk.html#BuildingSdk_Prerequisites", null ],
       [ "Building SDK with SCons", "_building_sdk.html#BuildingSdk_Building_SCons", null ],
-      [ "Alternate Makefile Based Build Approach", "_building_sdk.html#BuildingSdk_Building_Makefile", null ],
+      [ "Alternate CMake Based Build Approach", "_building_sdk.html#BuildingSdk_Building_CMake", null ],
       [ "Building in Split Signature Mode", "_building_sdk.html#BuildingSdk_Split", null ],
       [ "Improving Performance with Optimized IPP", "_building_sdk.html#BuildingSdk_CommercialIpp", null ],
       [ "Example Programs", "_building_sdk.html#BuildingSdk_Examples", null ]
@@ -206,8 +183,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_basenames.html",
-"group___epid_print.html#gga3e215d157eb205ad596bb84bce694a83ae2d5345c14f57fc992a613003c3c443d",
-"struct_epid_ca_certificate.html#ac03cf7257c52ad14e3dd3201b930dd50"
+"group___error_codes.html#ggafdb27c77c2c4b32c807e326a8a0da360a595a38fa5ab112b3275add096a698334",
+"struct_group_rl.html#a69c41d99cdfc5b6ece7442f466f7ec3f"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

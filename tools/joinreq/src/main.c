@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #include <argtable3.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,23 +26,15 @@
 #include <fcntl.h>
 #include <io.h>
 #endif  // defined(_WIN32)
-#include "src/entropy.h"
-#include "src/prng.h"
+#include "entropy.h"
+#include "prng.h"
 
-#include "epid/common/file_parser.h"
+#include "epid/file_parser.h"
 #include "epid/member/api.h"
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
-
-#ifdef TPM_TSS
-#include "epid/member/tpm_member.h"
-#elif defined TINY
-#include "epid/member/tiny_member.h"
-#else
-#include "epid/member/software_member.h"
-#endif
 
 // Defaults
 #define PROGRAM_NAME "joinreq"
@@ -73,7 +66,7 @@
   "random data.\n"
 #endif
 
-#define UNUSED(x) (void)x;
+#define UNUSED(x) (void)x
 
 bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
   // Implementation of this function is out of scope of the sample.
@@ -85,11 +78,10 @@ bool IsCaCertAuthorizedByRootCa(void const* data, size_t size) {
 }
 
 EpidStatus MakeJoinRequest(GroupPubKey const* pub_key, IssuerNonce const* ni,
-                           FpElemStr const* privatef,
-                           MemberJoinRequest* join_request,
-                           BitSupplier rnd_func, void* rnd_ctx) {
+                           FpElemStr const* privatef, uint8_t* join_request,
+                           size_t join_request_len, BitSupplier rnd_func,
+                           void* rnd_ctx) {
   EpidStatus sts;
-  MemberParams params = {0};
   MemberCtx* member = NULL;
 
   if (!pub_key || !ni || !join_request) {
@@ -97,24 +89,39 @@ EpidStatus MakeJoinRequest(GroupPubKey const* pub_key, IssuerNonce const* ni,
   }
 
   do {
+    MemberParams config = {0};
     size_t member_size = 0;
-
-    params.f = privatef;
+    // configure immutable member parameters
+    sts = EpidMemberSetPrivateF(privatef, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
 #ifdef TPM_TSS
-    UNUSED(rnd_func)
-    UNUSED(rnd_ctx)
+    UNUSED(rnd_func);
+    UNUSED(rnd_ctx);
 #else
-    params.rnd_func = rnd_func;
-    params.rnd_param = rnd_ctx;
+    sts = EpidMemberSetEntropyGenerator(rnd_func, rnd_ctx, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
 #endif
 #ifdef TINY
-    params.max_sigrl_entries = 5;
-    params.max_allowed_basenames = 5;
-    params.max_precomp_sig = 1;
+    sts = EpidMemberSetMaxSigRlEntries(5, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+    sts = EpidMemberSetMaxAllowedBasenames(5, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+    sts = EpidMemberSetMaxPrecomputedSigs(1, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
 #endif
 
     // create member
-    sts = EpidMemberGetSize(&params, &member_size);
+    sts = EpidMemberGetSize(&config, &member_size);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -123,12 +130,13 @@ EpidStatus MakeJoinRequest(GroupPubKey const* pub_key, IssuerNonce const* ni,
       sts = kEpidNoMemErr;
       break;
     }
-    sts = EpidMemberInit(&params, member);
+    sts = EpidMemberInit(&config, member);
     if (kEpidNoErr != sts) {
       break;
     }
 
-    sts = EpidCreateJoinRequest(member, pub_key, ni, join_request);
+    sts = EpidCreateJoinRequest(member, pub_key, ni, join_request,
+                                join_request_len);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -249,6 +257,8 @@ int main(int argc, char* argv[]) {
   FpElemStr privatef = {0};
   FpElemStr* privatef_ptr = NULL;
 
+  uint8_t* join_request = NULL;
+
   // entropy
   void* rnd_ctx = NULL;
   BitSupplier rnd_func = NULL;
@@ -291,7 +301,8 @@ int main(int argc, char* argv[]) {
     EpidStatus sts;
     GroupPubKey pub_key = {0};
     IssuerNonce nonce = {0};
-    MemberJoinRequest join_request = {0};
+    size_t joinreq_size;
+
     // size_t member_size = 0;
 
     /* verify the argtable[] entries were allocated sucessfully */
@@ -374,9 +385,15 @@ int main(int argc, char* argv[]) {
     }
 
     rnd_func = SupplyBits;
+    joinreq_size = EpidGetJoinRequestSize();
+    join_request = (uint8_t*)calloc(1, joinreq_size);
+    if (!join_request) {
+      sts = kEpidNoMemErr;
+      break;
+    }
 
-    sts = MakeJoinRequest(&pub_key, &nonce, privatef_ptr, &join_request,
-                          rnd_func, rnd_ctx);
+    sts = MakeJoinRequest(&pub_key, &nonce, privatef_ptr, join_request,
+                          joinreq_size, rnd_func, rnd_ctx);
 
     // Report Result
     if (kEpidNoErr != sts) {
@@ -396,7 +413,7 @@ int main(int argc, char* argv[]) {
 #if defined(_WIN32)
     _setmode(_fileno(stdout), _O_BINARY);
 #endif  // defined(_WIN32)
-    fwrite(&join_request, sizeof(join_request), 1, stdout);
+    fwrite(join_request, EpidGetJoinRequestSize(), 1, stdout);
 
     ret_value = EXIT_SUCCESS;
   } while (0);
@@ -405,6 +422,7 @@ int main(int argc, char* argv[]) {
 
   memset(&privatef, 0, sizeof(privatef));
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+  if (join_request) free(join_request);
 
   return ret_value;
 }

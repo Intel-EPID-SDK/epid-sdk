@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2018 Intel Corporation
+# Copyright 2016-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 Import('*')
 env.PartName('member')
 
-api_headers = Pattern(src_dir='.', includes=['*.h'], recursive=False).files()
+api_headers = Pattern(src_dir='include', includes=['*.h'], recursive=True).files()
 src_files = Pattern(
     src_dir='split/src', includes=['*.c'], recursive=False).files()
 internal_headers = Pattern(
-    src_dir='split/src', includes=['*.h'], recursive=False).files()
+    src_dir='split/headers', includes=['*.h'], recursive=True).files()
 
 tpm_utest_wrapper_files = Pattern(
     src_dir='split/tpm2/unittests',
@@ -68,14 +68,15 @@ if 'install_package' in env['MODE']:
 
 else:
     env.DependsOn([
+        Component('epiddefs'),
         Component('common'),
         Component('member.tpm2'),
     ])
 
-    env.Append(CPPPATH='#')
+    env.Append(CPPPATH=[AbsDir('split/headers'),AbsDir('include')])
 
     testenv = env.Clone()
-
+    testenv.Append(CPPPATH=[AbsDir('split/headers'),AbsDir('include'),AbsDir('split/tpm2/unittests'),AbsDir('../verifier/header')])
     outputs = env.Library('${PART_NAME}', src_files)
     env.Sdk(outputs)
     env.SdkInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
@@ -99,13 +100,14 @@ else:
                   or env.isConfigBasedOn('static_crt_debug')),
         depends=[
             Component('gtest'),
-            Component('common-testhelper'),
+            Component('testhelper'),
             Component('member'),
             Component('verifier')
         ],
         INSTALL_BIN='${INSTALL_TEST_BIN}')
 
 if env.get('fuzzer', False):
-    env.Part(parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
-             INSTALL_BIN='${INSTALL_TEST_BIN}',
-             CONFIG=DefaultEnvironment().subst('$CONFIG'))
+    env.Part(
+        parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
+        INSTALL_BIN='${INSTALL_TEST_BIN}',
+        CONFIG=DefaultEnvironment().subst('$CONFIG'))

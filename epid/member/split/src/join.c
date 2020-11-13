@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,28 +18,23 @@
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
 
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/grouppubkey.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
-#ifdef TPM_TSS
-#include "epid/member/tpm_member.h"
-#else
-#include "epid/member/software_member.h"
-#endif
-#include "epid/common/src/gid_parser.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/join_commitment.h"
-#include "epid/member/split/src/privateexp.h"
-#include "epid/member/split/src/resize.h"
+#include "common/endian_convert.h"
+#include "common/epid2params.h"
+#include "common/gid_parser.h"
+#include "common/grouppubkey.h"
+#include "common/hashsize.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/join_commitment.h"
+#include "epid/member/split/privateexp.h"
+#include "epid/member/split/resize.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/createprimary.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/load_external.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "epid/types.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -55,9 +50,15 @@ typedef struct S2CommitValues {
 } S2CommitValues;
 #pragma pack()
 
-EpidStatus EPID_MEMBER_API
-EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
-                      IssuerNonce const* ni, MemberJoinRequest* join_request) {
+size_t EPID_MEMBER_API EpidGetJoinRequestSize(void) {
+  return sizeof(SplitJoinRequest);
+}
+
+EpidStatus EPID_MEMBER_API EpidCreateJoinRequest(MemberCtx* ctx,
+                                                 GroupPubKey const* pub_key,
+                                                 IssuerNonce const* ni,
+                                                 JoinRequest* joinreq,
+                                                 size_t joinreq_len) {
   EpidStatus sts = kEpidErr;
   GroupPubKey_* pub_key_ = NULL;
   EcPoint* h1 = NULL;
@@ -69,15 +70,22 @@ EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
   FfElement* k = NULL;
   FfElement* s = NULL;
   uint8_t* digest = NULL;
+  uint16_t counter = 0;
+  bool is_counter_set = false;
 
   Tpm2Key* f_handle = NULL;
+  SplitJoinRequest* request = NULL;
 
-  if (!ctx || !pub_key || !ni || !join_request || !ctx->epid2_params) {
+  if (!ctx || !pub_key || !ni || !joinreq || !ctx->epid2_params) {
     return kEpidBadArgErr;
+  }
+  if (joinreq_len >= sizeof(SplitJoinRequest)) {
+    request = (SplitJoinRequest*)joinreq;
+  } else {
+    return kEpidNoMemErr;
   }
 
   do {
-    SplitJoinRequest* request = &join_request->request;
     G1ElemStr R = {0};
     G1ElemStr h1_str = {0};
     EcGroup* G1 = ctx->epid2_params->G1;
@@ -129,8 +137,9 @@ EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
     sts = ReadFfElement(Fq, &h1_str.y, sizeof(h1_str.y), h1_y);
     BREAK_ON_EPID_ERROR(sts);
     sts = Tpm2Commit(ctx->tpm2_ctx, f_handle, NULL, &commit_values,
-                     sizeof(commit_values), h1_y, K, l, e, &(ctx->join_ctr));
+                     sizeof(commit_values), h1_y, K, l, e, &(counter));
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = true;
     sts = WriteEcPoint(G1, l, &R, sizeof(R));
     BREAK_ON_EPID_ERROR(sts);
     sts = WriteEcPoint(G1, K, &request->F, sizeof(request->F));
@@ -155,9 +164,9 @@ EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
     BREAK_ON_EPID_ERROR(sts);
     sts = NewFfElement(Fp, &s);
     BREAK_ON_EPID_ERROR(sts);
-    sts = Tpm2Sign(ctx->tpm2_ctx, f_handle, digest, digest_size, ctx->join_ctr,
-                   k, s);
+    sts = Tpm2Sign(ctx->tpm2_ctx, f_handle, digest, digest_size, counter, k, s);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = false;
     sts = WriteFfElement(Fp, k, &request->k, sizeof(request->k));
     BREAK_ON_EPID_ERROR(sts);
     sts = WriteFfElement(Fp, s, &request->s, sizeof(request->s));
@@ -167,8 +176,8 @@ EpidCreateJoinRequest(MemberCtx* ctx, GroupPubKey const* pub_key,
     sts = kEpidNoErr;
   } while (0);
 
-  if (sts != kEpidNoErr) {
-    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->join_ctr, f_handle);
+  if (is_counter_set == true) {
+    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, counter, f_handle);
   }
 
   Tpm2FlushContext(ctx->tpm2_ctx, &f_handle);

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,15 +26,15 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/types.h"
-#include "epid/member/tiny/math/pairing.h"
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/validate.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/member/tiny/validate.h"
+#include "epid/types.h"
+#include "tinymath/pairing.h"
 }
 
 namespace {

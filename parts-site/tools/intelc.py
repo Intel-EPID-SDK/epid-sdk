@@ -1,13 +1,15 @@
 # pylint: disable=import-error,missing-docstring,wrong-import-order,invalid-name
-import IntelCommon
+import parts.tools.IntelCommon
 import parts.tools.Common
 import SCons.Util
 import SCons.Warnings
 import os
 
+from parts.tools.IntelCommon import Intelc
+
 
 def generate(env):
-    IntelCommon.Intelc.MergeShellEnv(env)
+    Intelc.MergeShellEnv(env)
     is_windows = env['TARGET_PLATFORM'].OS == 'win32'
     if is_windows:
         env['CC'] = parts.tools.Common.toolvar(
@@ -58,7 +60,7 @@ def generate(env):
 
 
 def exists(env):
-    return IntelCommon.Intelc.Exists(env)
+    return Intelc.Exists(env)
 
 
 # vim: set et ts=4 sw=4 ai ft=python :

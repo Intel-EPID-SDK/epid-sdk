@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 
 #include <string.h>
 
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/gid_parser.h"
-#include "epid/common/types.h"
-#include "epid/member/split/src/precomp.h"
-#include "epid/member/split/src/split_grouppubkey.h"
+#include "common/epid2params.h"
+#include "common/gid_parser.h"
+#include "epid/member/split/precomp.h"
+#include "epid/member/split/split_grouppubkey.h"
+#include "epid/types.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

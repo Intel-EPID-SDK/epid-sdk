@@ -15,7 +15,7 @@
   ############################################################################*/
 /// Random data supplier implementation.
 /*! \file */
-#include "src/entropy.h"
+#include "entropy.h"
 
 #include <errno.h>
 #include <limits.h>  // for CHAR_BIT
@@ -27,7 +27,7 @@
 #include <io.h>
 #endif  // defined(_WIN32)
 
-#include "src/prng.h"
+#include "prng.h"
 #include "util/envutil.h"
 
 typedef struct BitSupplierCtx {

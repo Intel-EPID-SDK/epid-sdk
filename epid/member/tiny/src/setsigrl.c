@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
 
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/stdlib/endian.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/context.h"
+#include "tinystdlib/endian.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 EpidStatus EPID_MEMBER_API EpidMemberSetSigRl(MemberCtx* ctx,
                                               SigRl const* sig_rl,
@@ -56,8 +56,8 @@ EpidStatus EPID_MEMBER_API EpidMemberSetSigRl(MemberCtx* ctx,
   if (ctx->sig_rl) {
     uint32_t current_ver = be32toh(ctx->sig_rl->version);
     uint32_t incoming_ver = be32toh(sig_rl->version);
-    if (current_ver >= incoming_ver) {
-      return kEpidBadArgErr;
+    if (incoming_ver < current_ver) {
+      return kEpidVersionMismatchErr;
     }
   }
 

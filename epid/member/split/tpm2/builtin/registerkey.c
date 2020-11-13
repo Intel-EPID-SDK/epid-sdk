@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 #include "epid/member/split/tpm2/builtin/registerkey.h"
 
-#include "epid/common/src/memory.h"
 #include "epid/member/split/tpm2/builtin/state.h"
+#include "ippmath/memory.h"
 
 EpidStatus Tpm2RegisterKey(Tpm2Ctx* ctx, Tpm2Key* key) {
   size_t index = 0;

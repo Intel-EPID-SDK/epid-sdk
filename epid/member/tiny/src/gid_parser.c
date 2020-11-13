@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 /// Group ID parsing implementation
 /*! \file */
 
-#include "epid/member/tiny/src/gid_parser.h"
+#include "epid/member/tiny/gid_parser.h"
 
 #define SCHEMA_VERSION(gid) ((gid->data[0] & 0xf0) >> 4)
 

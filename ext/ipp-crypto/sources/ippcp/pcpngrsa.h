@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2013-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2013-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -56,7 +32,7 @@
 #include "pcpngmontexpstuff.h"
 
 struct _cpRSA_public_key {
-   IppCtxId       id;            /* key ID */
+   Ipp32u         id;            /* key ID */
    int         maxbitSizeN;
    int         maxbitSizeE;
    int            bitSizeN;      /* RSA modulus bitsize */
@@ -66,22 +42,23 @@ struct _cpRSA_public_key {
    gsModEngine*   pMontN;        /* montgomery engine (N) */
 };
 
+#define RSA_PUB_KEY_SET_ID(x)    ((x)->id = (Ipp32u)idCtxRSA_PubKey ^ (Ipp32u)IPP_UINT_PTR(x))
 /* access */
 #define RSA_PUB_KEY_MAXSIZE_N(x) ((x)->maxbitSizeN)
 #define RSA_PUB_KEY_MAXSIZE_E(x) ((x)->maxbitSizeE)
-#define RSA_PUB_KEY_ID(x)        ((x)->id)
 #define RSA_PUB_KEY_BITSIZE_N(x) ((x)->bitSizeN)
 #define RSA_PUB_KEY_BITSIZE_E(x) ((x)->bitSizeE)
 #define RSA_PUB_KEY_E(x)         ((x)->pDataE)
 #define RSA_PUB_KEY_NMONT(x)     ((x)->pMontN)
-#define RSA_PUB_KEY_VALID_ID(x)  (RSA_PUB_KEY_ID((x))==idCtxRSA_PubKey)
+
+#define RSA_PUB_KEY_VALID_ID(x)  ((((x)->id) ^ (Ipp32u)IPP_UINT_PTR((x))) == (Ipp32u)idCtxRSA_PubKey)
 #define RSA_PUB_KEY_IS_SET(x)    (RSA_PUB_KEY_BITSIZE_N((x))>0)
 
 /* alignment */
 #define RSA_PUBLIC_KEY_ALIGNMENT ((int)(sizeof(void*)))
 
 struct _cpRSA_private_key {
-   IppCtxId       id;            /* key ID */
+   Ipp32u         id;            /* key ID */
    int         maxbitSizeN;
    int         maxbitSizeD;
    int            bitSizeN;      /* RSA modulus bitsize */
@@ -92,17 +69,18 @@ struct _cpRSA_private_key {
    BNU_CHUNK_T*   pDataD;        /* private exp */
    BNU_CHUNK_T*   pDataDp;       /* dp private exp */
    BNU_CHUNK_T*   pDataDq;       /* dq private exp */
-   BNU_CHUNK_T*   pDataQinv;     /* qinv coeff */
+   BNU_CHUNK_T*   pDataQinv;     /* qinv coeff in residue domain */
 
    gsModEngine* pMontP;          /* montgomery engine (P) */
    gsModEngine* pMontQ;          /* montgomery engine (Q) */
    gsModEngine* pMontN;          /* montgomery engine (N) */
 };
 
+#define RSA_PRV_KEY1_SET_ID(x)    ((x)->id = (Ipp32u)idCtxRSA_PrvKey1 ^ (Ipp32u)IPP_UINT_PTR(x))
+#define RSA_PRV_KEY2_SET_ID(x)    ((x)->id = (Ipp32u)idCtxRSA_PrvKey2 ^ (Ipp32u)IPP_UINT_PTR(x))
 /* access */
 #define RSA_PRV_KEY_MAXSIZE_N(x) ((x)->maxbitSizeN)
 #define RSA_PRV_KEY_MAXSIZE_D(x) ((x)->maxbitSizeD)
-#define RSA_PRV_KEY_ID(x)        ((x)->id)
 #define RSA_PRV_KEY_BITSIZE_N(x) ((x)->bitSizeN)
 #define RSA_PRV_KEY_BITSIZE_D(x) ((x)->bitSizeD)
 #define RSA_PRV_KEY_BITSIZE_P(x) ((x)->bitSizeP)
@@ -114,8 +92,9 @@ struct _cpRSA_private_key {
 #define RSA_PRV_KEY_PMONT(x)     ((x)->pMontP)
 #define RSA_PRV_KEY_QMONT(x)     ((x)->pMontQ)
 #define RSA_PRV_KEY_NMONT(x)     ((x)->pMontN)
-#define RSA_PRV_KEY1_VALID_ID(x) (RSA_PRV_KEY_ID((x))==idCtxRSA_PrvKey1)
-#define RSA_PRV_KEY2_VALID_ID(x) (RSA_PRV_KEY_ID((x))==idCtxRSA_PrvKey2)
+
+#define RSA_PRV_KEY1_VALID_ID(x) ((((x)->id) ^ (Ipp32u)IPP_UINT_PTR((x))) == (Ipp32u)idCtxRSA_PrvKey1)
+#define RSA_PRV_KEY2_VALID_ID(x) ((((x)->id) ^ (Ipp32u)IPP_UINT_PTR((x))) == (Ipp32u)idCtxRSA_PrvKey2)
 #define RSA_PRV_KEY_VALID_ID(x)  (RSA_PRV_KEY1_VALID_ID((x)) || RSA_PRV_KEY2_VALID_ID((x)))
 #define RSA_PRV_KEY_IS_SET(x)    (RSA_PRV_KEY_BITSIZE_N((x))>0)
 
@@ -128,18 +107,16 @@ struct _cpRSA_private_key {
 // Montgomery engine preparation (GetSize/init/Set)
 */
 #define rsaMontExpGetSize OWNAPI(rsaMontExpGetSize)
-void rsaMontExpGetSize(int length, int* pSize);
+   IPP_OWN_DECL (void, rsaMontExpGetSize, (int length, int* pSize))
 
 /*
 // pubic and private key operations
 */
 #define gsRSApub_cipher OWNAPI(gsRSApub_cipher)
-void    gsRSApub_cipher(IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPublicKeyState* pKey, BNU_CHUNK_T* pScratchBuffer);
-
+   IPP_OWN_DECL (void, gsRSApub_cipher, (IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPublicKeyState* pKey, BNU_CHUNK_T* pScratchBuffer))
 #define gsRSAprv_cipher OWNAPI(gsRSAprv_cipher)
-void    gsRSAprv_cipher(IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPrivateKeyState* pKey, BNU_CHUNK_T* pScratchBuffer);
-
+   IPP_OWN_DECL (void, gsRSAprv_cipher, (IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPrivateKeyState* pKey, BNU_CHUNK_T* pScratchBuffer))
 #define gsRSAprv_cipher_crt OWNAPI(gsRSAprv_cipher_crt)
-void    gsRSAprv_cipher_crt(IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPrivateKeyState* pKey, BNU_CHUNK_T* pScratchBuffer);
+   IPP_OWN_DECL (void, gsRSAprv_cipher_crt, (IppsBigNumState* pY, const IppsBigNumState* pX, const IppsRSAPrivateKeyState* pKey, BNU_CHUNK_T* pScratchBuffer))
 
 #endif /* _CP_NG_RSA_H */

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/context.h"
 }
 /// compares GroupPubKey values
 bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs);
@@ -359,7 +359,7 @@ TEST_F(EpidMemberTest, SetSigRlFailsGivenOldVersion) {
             EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
   OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
   srl.version = octstr32_0;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidVersionMismatchErr,
             EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
 }
 TEST_F(EpidMemberTest, SetSigRlPreservesOldRlOnFailure) {
@@ -369,12 +369,12 @@ TEST_F(EpidMemberTest, SetSigRlPreservesOldRlOnFailure) {
   SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
   size_t sig_rl_size = this->kGrpXSigRl.size();
   EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
-  // wrong sigrl contains revoked member0 and has lower version
-  SigRl const* wrong_sig_rl =
+  // old sigrl contains revoked member0 and has lower version
+  SigRl const* old_sig_rl =
       reinterpret_cast<SigRl const*>(this->kGrpXSigRlSingleEntry.data());
-  size_t wrong_sig_rl_size = this->kGrpXSigRlSingleEntry.size();
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidMemberSetSigRl(member_ctx, wrong_sig_rl, wrong_sig_rl_size));
+  size_t old_sig_rl_size = this->kGrpXSigRlSingleEntry.size();
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidMemberSetSigRl(member_ctx, old_sig_rl, old_sig_rl_size));
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(sig_rl));
   EpidSignature* sig = reinterpret_cast<EpidSignature*>(sig_data.data());
@@ -538,8 +538,9 @@ TEST_F(EpidMemberTest,
   THROW_ON_EPIDERR(EpidSign(member, msg.data(), msg.size(), bsn.data(),
                             bsn.size(), sig, sig_len));
   THROW_ON_EPIDERR(EpidClearRegisteredBasenames(member));
-  ASSERT_EQ(kEpidBadArgErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
-                                     bsn.size(), sig, sig_len));
+  ASSERT_EQ(kEpidBasenameNotRegisteredErr,
+            EpidSign(member, msg.data(), msg.size(), bsn.data(), bsn.size(),
+                     sig, sig_len));
 }
 
 TEST_F(EpidMemberTest, EpidProvisionKeyUsesHashAlgFromGroupId) {

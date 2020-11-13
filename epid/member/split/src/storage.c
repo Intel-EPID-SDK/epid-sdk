@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 /// Member credentials storage helper API implementation.
 /*! \file */
 
-#include "epid/member/split/src/storage.h"
+#include "epid/member/split/storage.h"
 
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
 #include "epid/member/split/tpm2/nv.h"
+#include "epid/types.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

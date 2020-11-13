@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 /// Basic signature computation.
 /*! \file */
 
-#include "epid/member/tiny/src/signbasic.h"
+#include "epid/member/tiny/signbasic.h"
 
-#include "epid/common/types.h"
-#include "epid/member/tiny/math/efq.h"
-#include "epid/member/tiny/math/fp.h"
-#include "epid/member/tiny/math/hashwrap.h"
-#include "epid/member/tiny/math/serialize.h"
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/presig-internal.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/context.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/member/tiny/presig-internal.h"
+#include "epid/types.h"
+#include "tinymath/efq.h"
+#include "tinymath/fp.h"
+#include "tinymath/hashwrap.h"
+#include "tinymath/serialize.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 static const FpElemStr epid20_p_str = {
     {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xF0, 0xCD, 0x46, 0xE5, 0xF2,
@@ -80,7 +80,7 @@ EpidStatus EpidSignBasic(MemberCtx const* ctx, void const* msg, size_t msg_len,
     // B <- random
     if (basename) {
       if (!IsBasenameAllowed(ctx->allowed_basenames, basename, basename_len)) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBasenameNotRegisteredErr;
         break;
       }
       /* Basename, K is linked to fixed B */

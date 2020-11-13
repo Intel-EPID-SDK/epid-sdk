@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief NrVerify implementation.
- */
+/// NrVerify implementation.
+/*! \file */
 #define EXPORT_EPID_APIS
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
+#include "common/hashsize.h"
+#include "epid/verifier.h"
+#include "ippmath/memory.h"
+#include "context.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -83,20 +80,22 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
   FfElement* snu_el = NULL;
   FfElement* commit_hash = NULL;
   NrProof* proof = NULL;
-  if (!ctx || !sig || !nr_proof || !sigrl_entry) {
-    return kEpidBadArgErr;
+  if (!ctx || !ctx->epid2_params || !ctx->epid2_params->G1 ||
+      !ctx->epid2_params->Fp) {
+    return kEpidBadCtxErr;
   }
-  if (!msg && (0 != msg_len)) {
-    return kEpidBadArgErr;
+  if (!sig) {
+    return kEpidBadSignatureErr;
   }
-  if (msg_len > (SIZE_MAX - cv_header_len)) {
-    return kEpidBadArgErr;
+  if (!sigrl_entry) {
+    return kEpidBadSigRlEntryErr;
   }
-  if (!ctx->epid2_params || !ctx->epid2_params->G1 || !ctx->epid2_params->Fp) {
-    return kEpidBadArgErr;
+  if ((!msg && (0 != msg_len)) || (msg_len > (SIZE_MAX - cv_header_len))) {
+    return kEpidBadMessageErr;
   }
-  if (nr_proof_len != sizeof(NrProof) && nr_proof_len != sizeof(SplitNrProof)) {
-    return kEpidBadArgErr;
+  if (!nr_proof || (nr_proof_len != sizeof(NrProof) &&
+                    nr_proof_len != sizeof(SplitNrProof))) {
+    return kEpidBadNrProofErr;
   }
   do {
     EcGroup* G1 = ctx->epid2_params->G1;
@@ -151,7 +150,7 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     // 1. The verifier verifies that G1.inGroup(T) = true.
     sts = ReadEcPoint(G1, &proof->T, sizeof(proof->T), t_pt);
     if (kEpidNoErr != sts) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
 
@@ -159,16 +158,25 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     sts = EcIsIdentity(G1, t_pt, &t_is_identity);
     BREAK_ON_EPID_ERROR(sts);
     if (t_is_identity) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
 
     // 3. The verifier verifies that c, smu, snu in [0, p-1].
     sts = ReadFfElement(Fp, &proof->c, sizeof(proof->c), c_el);
+    if (EPID_IS_BADARG_ERROR(sts)) {
+      sts = kEpidBadNrProofErr;
+    }
     BREAK_ON_EPID_ERROR(sts);
     sts = ReadFfElement(Fp, &proof->smu, sizeof(proof->smu), smu_el);
+    if (EPID_IS_BADARG_ERROR(sts)) {
+      sts = kEpidBadNrProofErr;
+    }
     BREAK_ON_EPID_ERROR(sts);
     sts = ReadFfElement(Fp, &proof->snu, sizeof(proof->snu), snu_el);
+    if (EPID_IS_BADARG_ERROR(sts)) {
+      sts = kEpidBadNrProofErr;
+    }
     BREAK_ON_EPID_ERROR(sts);
     if (nr_proof_len == sizeof(SplitNrProof)) {
       // t = hashFp(k || c)
@@ -179,25 +187,28 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
           sizeof(commit_values_noncek_digest.noncek) + digest_len;
 
       if (sizeof(commit_values_noncek_digest.digest) < digest_len) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBadCtxErr;
         BREAK_ON_EPID_ERROR(sts);
       }
       if (0 != memcpy_S(&commit_values_noncek_digest.noncek,
                         sizeof(commit_values_noncek_digest.noncek),
                         &split_nr_proof->noncek,
                         sizeof(split_nr_proof->noncek))) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBadNrProofErr;
         BREAK_ON_EPID_ERROR(sts);
       }
       if (0 != memcpy_S(commit_values_noncek_digest.digest.digest + digest_len -
                             sizeof(split_nr_proof->c),
                         sizeof(split_nr_proof->c), &split_nr_proof->c,
                         sizeof(split_nr_proof->c))) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBadNrProofErr;
         BREAK_ON_EPID_ERROR(sts);
       }
       sts = FfHash(Fp, &commit_values_noncek_digest, commit_len_noncek_digest,
                    ctx->hash_alg, t);
+      if (EPID_IS_BADARG_ERROR(sts)) {
+        sts = kEpidBadNrProofErr;
+      }
       BREAK_ON_EPID_ERROR(sts);
       // 4. The verifier computes nc = (- t) mod p.
       sts = FfNeg(Fp, t, nc_el);
@@ -213,12 +224,12 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     // 5. The verifier computes R1 = G1.multiExp(K, smu, B, snu).
     sts = ReadEcPoint(G1, k, sizeof(*k), k_pt);
     if (kEpidNoErr != sts) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
     sts = ReadEcPoint(G1, b, sizeof(*b), b_pt);
     if (kEpidNoErr != sts) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
     r1p[0] = k_pt;
@@ -231,12 +242,12 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     // 6. The verifier computes R2 = G1.multiExp(K', smu, B', snu, T, nc).
     sts = ReadEcPoint(G1, kp, sizeof(*kp), kp_pt);
     if (kEpidNoErr != sts) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
     sts = ReadEcPoint(G1, bp, sizeof(*bp), bp_pt);
     if (kEpidNoErr != sts) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
     r2p[0] = kp_pt;
@@ -257,7 +268,7 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     if (msg) {
       // Memory copy is used to copy a message of variable length
       if (0 != memcpy_S(&commit_values->msg[0], msg_len, msg, msg_len)) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBadMessageErr;
         break;
       }
     }
@@ -279,7 +290,7 @@ EpidStatus EPID_VERIFIER_API EpidNrVerify(VerifierCtx const* ctx,
     sts = FfIsEqual(Fp, c_el, commit_hash, &c_is_equal);
     BREAK_ON_EPID_ERROR(sts);
     if (!c_is_equal) {
-      sts = kEpidBadArgErr;
+      sts = kEpidBadNrProofErr;
       break;
     }
     sts = kEpidNoErr;

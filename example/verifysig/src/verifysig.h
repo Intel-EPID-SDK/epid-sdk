@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
 #define EXAMPLE_VERIFYSIG_SRC_VERIFYSIG_H_
 
 #include <stddef.h>
-#include "epid/common/errors.h"
-#include "epid/common/stdtypes.h"
-#include "epid/common/types.h"
+#include "epid/errors.h"
+#include "epid/stdtypes.h"
+#include "epid/types.h"
 
 struct EpidCaCertificate;
 

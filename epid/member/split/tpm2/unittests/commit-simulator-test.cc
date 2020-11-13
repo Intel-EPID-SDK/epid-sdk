@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@
 
 #include <cstring>
 
+#include "tpm2-testhelper.h"
 #include "gtest/gtest.h"
-
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/split/tpm2/unittests/tpm2-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 extern "C" {
-#include "epid/common/src/epid2params.h"
+#include "common/epid2params.h"
 #include "epid/member/split/tpm2/builtin/state.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/context.h"

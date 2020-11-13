@@ -1,45 +1,21 @@
 /*******************************************************************************
-* Copyright 1999-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 1999-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
-/******* FILE MODIFIED FROM ORIGINAL 2019u1 RELEASE TO AVOID WARNINGS *********/
+
 //
-// Intel(R) Integrated Performance Primitives (Intel(R) IPP) Cryptography
+//  Intel® Integrated Performance Primitives Cryptography (Intel® IPP Cryptography)
 //
 //  Purpose:
 //     Internal definitions
@@ -58,6 +34,7 @@
   #include "ippcpdefs.h"
 #endif
 
+#if !defined(__INLINE)
 #if defined(__INTEL_COMPILER) || defined(_MSC_VER)
   #define __INLINE static __inline
 #elif defined( __GNUC__ )
@@ -65,6 +42,17 @@
 #else
   #define __INLINE static
 #endif
+#endif /*__INLINE*/
+
+#if !defined(__FORCEINLINE)
+#if defined(_MSC_VER)
+  #define __FORCEINLINE __forceinline
+#elif defined(__INTEL_COMPILER) || defined( __GNUC__ )
+  #define __FORCEINLINE __INLINE __attribute__((always_inline))
+#else
+  #define __FORCEINLINE
+#endif
+#endif /*__FORCEINLINE*/
 
 #if defined(__INTEL_COMPILER)
  #define __RESTRICT restrict
@@ -82,64 +70,61 @@
   #define   IPPDEF(type) type
 #endif
 
-/* structure represeting 128 bit unsigned integer type */
-
-typedef struct{
-  Ipp64u low;
-  Ipp64u high;
-}Ipp128u;
-
 /* ia32 */
 #define _IPP_PX 0    /* pure C-code                                                                                                            */
-#define _IPP_M5 1    /* Intel(R) Quark(TM) processor                                                                                           */
-#define _IPP_W7 8    /* Intel(R) Streaming SIMD Extensions 2 (Intel(R) SSE2)                                                                   */
-#define _IPP_T7 16   /* Intel(R) Streaming SIMD Extensions 3 (Intel(R) SSE3)                                                                   */
+#define _IPP_M5 1    /* Intel® Quark(TM) processor                                                                                             */
+#define _IPP_W7 8    /* Intel® Streaming SIMD Extensions 2 (Intel® SSE2)                                                                       */
+#define _IPP_T7 16   /* Intel® Streaming SIMD Extensions 3 (Intel® SSE3)                                                                       */
 #define _IPP_V8 32   /* Supplemental Streaming SIMD Extensions 3 (SSSE3)                                                                       */
 #define _IPP_S8 33   /* Supplemental Streaming SIMD Extensions 3 (SSSE3) + MOVBE instruction                                                   */
-#define _IPP_P8 64   /* Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2)                                                               */
-#define _IPP_G9 128  /* Intel(R) Advanced Vector Extensions (Intel(R) AVX)                                                                     */
-#define _IPP_H9 256  /* Intel(R) Advanced Vector Extensions 2 (Intel(R) AVX2)                                                                  */
-#define _IPP_I0 512  /* Intel(R) Advanced Vector Extensions 512 (Intel(R) AVX512) - Intel(R) Xeon Phi(TM) Processor (formerly Knights Landing) */
-#define _IPP_S0 1024 /* Intel(R) Advanced Vector Extensions 512 (Intel(R) AVX512) - Intel(R) Xeon(R) Processor (formerly codenamed Skylake)              */
+#define _IPP_P8 64   /* Intel® Streaming SIMD Extensions 4.2 (Intel® SSE4.2)                                                                   */
+#define _IPP_G9 128  /* Intel® Advanced Vector Extensions (Intel® AVX)                                                                         */
+#define _IPP_H9 256  /* Intel® Advanced Vector Extensions 2 (Intel® AVX2)                                                                      */
+#define _IPP_I0 512  /* Intel® Advanced Vector Extensions 512 (Intel® AVX512) - Intel® Xeon Phi(TM) Processor (formerly Knights Landing)       */
+#define _IPP_S0 1024 /* Intel® Advanced Vector Extensions 512 (Intel® AVX512) - Intel® Xeon® Processor (formerly codenamed Skylake)            */
 
 /* intel64 */
-#define _IPP32E_PX _IPP_PX /* pure C-code                                                                                                            */
-#define _IPP32E_M7 32      /* Intel(R) Streaming SIMD Extensions 3 (Intel(R) SSE3)                                                                   */
-#define _IPP32E_U8 64      /* Supplemental Streaming SIMD Extensions 3 (SSSE3)                                                                       */
-#define _IPP32E_N8 65      /* Supplemental Streaming SIMD Extensions 3 (SSSE3) + MOVBE instruction                                                   */
-#define _IPP32E_Y8 128     /* Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2)                                                               */
-#define _IPP32E_E9 256     /* Intel(R) Advanced Vector Extensions (Intel(R) AVX)                                                                     */
-#define _IPP32E_L9 512     /* Intel(R) Advanced Vector Extensions 2 (Intel(R) AVX2)                                                                  */
-#define _IPP32E_N0 1024    /* Intel(R) Advanced Vector Extensions 512 (Intel(R) AVX512) - Intel(R) Xeon Phi(TM) Processor (formerly Knights Landing) */
-#define _IPP32E_K0 2048    /* Intel(R) Advanced Vector Extensions 512 (Intel(R) AVX512) - Intel(R) Xeon(R) Processor (formerly codenamed Skylake)              */
+#define _IPP32E_PX _IPP_PX /* pure C-code                                                                                                      */
+#define _IPP32E_M7 32      /* Intel® Streaming SIMD Extensions 3 (Intel® SSE3)                                                                 */
+#define _IPP32E_U8 64      /* Supplemental Streaming SIMD Extensions 3 (SSSE3)                                                                 */
+#define _IPP32E_N8 65      /* Supplemental Streaming SIMD Extensions 3 (SSSE3) + MOVBE instruction                                             */
+#define _IPP32E_Y8 128     /* Intel® Streaming SIMD Extensions 4.2 (Intel® SSE4.2)                                                             */
+#define _IPP32E_E9 256     /* Intel® Advanced Vector Extensions (Intel® AVX)                                                                   */
+#define _IPP32E_L9 512     /* Intel® Advanced Vector Extensions 2 (Intel® AVX2)                                                                */
+#define _IPP32E_N0 1024    /* Intel® Advanced Vector Extensions 512 (Intel® AVX512) - Intel® Xeon Phi(TM) Processor (formerly Knights Landing) */
+#define _IPP32E_K0 2048    /* Intel® Advanced Vector Extensions 512 (Intel® AVX512) - Intel® Xeon® Processor (formerly codenamed Skylake)      */
 
 
 #if defined(__INTEL_COMPILER) || (_MSC_VER >= 1300)
     #define __ALIGN8  __declspec (align(8))
     #define __ALIGN16 __declspec (align(16))
     #define __ALIGN32 __declspec (align(32))
-    #define __ALIGN64 __declspec (align(64))
+    #if !defined(__ALIGN64)
+        #define __ALIGN64 __declspec (align(64))
+    #endif/*__ALIGN64*/
 #elif defined(__GNUC__)
     #define __ALIGN8  __attribute__((aligned(8)))
     #define __ALIGN16 __attribute__((aligned(16)))
     #define __ALIGN32 __attribute__((aligned(32)))
-    #define __ALIGN64 __attribute__((aligned(64)))
+    #if !defined(__ALIGN64)
+        #define __ALIGN64 __attribute__((aligned(64)))
+    #endif/*__ALIGN64*/
 #else
    #error Intel, MS or GNU C compiler required
 #endif
 
 /* ia32 */
-#if defined ( _M5 ) /* Intel(R) Quark(TM) processor */
+#if defined ( _M5 ) /* Intel® Quark(TM) processor */
   #define _IPP    _IPP_M5
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) m5_##name
 
-#elif defined( _W7 ) /* Intel(R) SSE2 */
+#elif defined( _W7 ) /* Intel® SSE2 */
   #define _IPP    _IPP_W7
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) w7_##name
 
-#elif defined( _T7 ) /* Intel(R) SSE3 */
+#elif defined( _T7 ) /* Intel® SSE3 */
   #define _IPP    _IPP_T7
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) t7_##name
@@ -154,23 +139,23 @@ typedef struct{
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) s8_##name
 
-#elif defined( _P8 ) /* Intel(R) SSE4.2 */
+#elif defined( _P8 ) /* Intel® SSE4.2 */
   #define _IPP    _IPP_P8
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) p8_##name
 
-#elif defined( _G9 ) /* Intel(R) AVX */
+#elif defined( _G9 ) /* Intel® AVX */
   #define _IPP    _IPP_G9
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) g9_##name
 
-#elif defined( _H9 ) /* Intel(R) AVX2 */
+#elif defined( _H9 ) /* Intel® AVX2 */
   #define _IPP    _IPP_H9
   #define _IPP32E _IPP32E_PX
   #define OWNAPI(name) h9_##name
 
 /* intel64 */
-#elif defined( _M7 ) /* Intel(R) SSE3 */
+#elif defined( _M7 ) /* Intel® SSE3 */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_M7
   #define OWNAPI(name) m7_##name
@@ -185,27 +170,27 @@ typedef struct{
   #define _IPP32E _IPP32E_N8
   #define OWNAPI(name) n8_##name
 
-#elif defined( _Y8 ) /* Intel(R) SSE4.2 */
+#elif defined( _Y8 ) /* Intel® SSE4.2 */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_Y8
   #define OWNAPI(name) y8_##name
 
-#elif defined( _E9 ) /* Intel(R) AVX */
+#elif defined( _E9 ) /* Intel® AVX */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_E9
   #define OWNAPI(name) e9_##name
 
-#elif defined( _L9 ) /* Intel(R) AVX2 */
+#elif defined( _L9 ) /* Intel® AVX2 */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_L9
   #define OWNAPI(name) l9_##name
 
-#elif defined( _N0 ) /* Intel(R) AVX512 - formerly Knights Landing */
+#elif defined( _N0 ) /* Intel® AVX512 - formerly Knights Landing */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_N0
   #define OWNAPI(name) n0_##name
 
-#elif defined( _K0 ) /* Intel(R) AVX512 - formerly codenamed Skylake */
+#elif defined( _K0 ) /* Intel® AVX512 - formerly codenamed Skylake */
   #define _IPP    _IPP_PX
   #define _IPP32E _IPP32E_K0
   #define OWNAPI(name) k0_##name
@@ -220,23 +205,39 @@ typedef struct{
  #endif
 #endif
 
+#if defined(_MERGED_BLD)
+#define _OWN_MERGED_BLD
+#endif
+
 #ifndef _OWN_MERGED_BLD
   #undef OWNAPI
   #define OWNAPI(name) name
 #endif
 
-  #if defined( IPP_W32DLL )
-    #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
-      #define IPPFUN(type,name,arg) __declspec(dllexport) type IPP_STDCALL name arg
-    #else
-      #define IPPFUN(type,name,arg)                extern type IPP_STDCALL name arg
-    #endif
+/* Force __cdecl calling convention for internal functions declarations */
+#define IPP_OWN_DECL(type,name,param) type IPP_CDECL name param ;
+#define IPP_OWN_DEFN(type,name,param) type IPP_CDECL name param
+#define IPP_OWN_FUNPTR(type,name,param) typedef type (IPP_CDECL *name) param ;
+
+#if defined( IPP_W32DLL )
+  #if defined( _MSC_VER ) || defined( __INTEL_COMPILER )
+    #define IPPFUN(type,name,arg) __declspec(dllexport) type IPP_CALL name arg
   #else
-    #define   IPPFUN(type,name,arg)                extern type IPP_STDCALL name arg
+    #define IPPFUN(type,name,arg)                extern type IPP_CALL name arg
   #endif
+#else
+  #if defined(LINUX32E) && !defined(IPP_PIC)
+    #define IPPFUN(type,name,arg) __attribute__((force_align_arg_pointer)) extern type IPP_CALL name arg
+  #else
+    #define   IPPFUN(type,name,arg)                extern type IPP_CALL name arg
+  #endif
+#endif
 
 #define _IPP_ARCH_IA32    1
 #define _IPP_ARCH_EM64T   4
+#define _IPP_ARCH_LRB     16
+#define _IPP_ARCH_LRB2    128
+#define _IPP_ARCH_LP64    0
 
 #if defined ( _ARCH_IA32 )
   #define _IPP_ARCH    _IPP_ARCH_IA32
@@ -255,8 +256,8 @@ typedef struct{
 #endif
 
 #if ((_IPP_ARCH == _IPP_ARCH_IA32))
-__INLINE
-Ipp32s IPP_INT_PTR( const void* ptr )  {
+__INLINE Ipp32s IPP_INT_PTR ( const void* ptr )
+{
     union {
         void*   Ptr;
         Ipp32s  Int;
@@ -265,8 +266,8 @@ Ipp32s IPP_INT_PTR( const void* ptr )  {
     return dd.Int;
 }
 
-__INLINE
-Ipp32u IPP_UINT_PTR( const void* ptr )  {
+__INLINE Ipp32u IPP_UINT_PTR( const void* ptr )
+{
     union {
         void*   Ptr;
         Ipp32u  Int;
@@ -275,8 +276,8 @@ Ipp32u IPP_UINT_PTR( const void* ptr )  {
     return dd.Int;
 }
 #elif ((_IPP_ARCH == _IPP_ARCH_EM64T) || (_IPP_ARCH == _IPP_ARCH_LRB2))
-__INLINE
-Ipp64s IPP_INT_PTR( const void* ptr )  {
+__INLINE Ipp64s IPP_INT_PTR( const void* ptr )
+{
     union {
         void*   Ptr;
         Ipp64s  Int;
@@ -285,8 +286,8 @@ Ipp64s IPP_INT_PTR( const void* ptr )  {
     return dd.Int;
 }
 
-__INLINE
-Ipp64u IPP_UINT_PTR( const void* ptr )  {
+__INLINE Ipp64u IPP_UINT_PTR( const void* ptr )
+{
     union {
         void*    Ptr;
         Ipp64u   Int;
@@ -300,7 +301,7 @@ Ipp64u IPP_UINT_PTR( const void* ptr )  {
 #endif
 
 #define IPP_ALIGN_TYPE(type, align) ((align)/sizeof(type)-1)
-#define IPP_BYTES_TO_ALIGN(ptr, align) ((-(IPP_INT_PTR(ptr)&((align)-1)))&((align)-1))
+#define IPP_BYTES_TO_ALIGN(ptr, align) ((~(IPP_INT_PTR(ptr)&((align)-1))+1)&((align)-1))
 #define IPP_ALIGNED_PTR(ptr, align) (void*)( (unsigned char*)(ptr) + (IPP_BYTES_TO_ALIGN( ptr, align )) )
 
 #define IPP_ALIGNED_SIZE(size, align) (((size)+(align)-1)&~((align)-1))
@@ -320,7 +321,7 @@ extern "C" {
 
 /* /////////////////////////////////////////////////////////////////////////////
 
-           Intel(R) IPP Context Identification
+           Intel IPP Cryptography Context Identification
 
   /////////////////////////////////////////////////////////////////////////// */
 
@@ -386,38 +387,29 @@ typedef enum {
 #define IPP_NOERROR_RET()  return ippStsNoErr
 #define IPP_ERROR_RET( ErrCode )  return (ErrCode)
 
-#ifdef _IPP_DEBUG
+#define IPP_BADARG_RET( expr, ErrCode )\
+            {if (expr) { IPP_ERROR_RET( ErrCode ); }}
 
-    #define IPP_BADARG_RET( expr, ErrCode )\
-                {if (expr) { IPP_ERROR_RET( ErrCode ); }}
+#define IPP_BAD_SIZE_RET( n )\
+            IPP_BADARG_RET( (n)<=0, ippStsSizeErr )
 
-#else
+#define IPP_BAD_STEP_RET( n )\
+            IPP_BADARG_RET( (n)<=0, ippStsStepErr )
 
-    #define IPP_BADARG_RET( expr, ErrCode )
+#define IPP_BAD_PTR1_RET( ptr )\
+            IPP_BADARG_RET( NULL==(ptr), ippStsNullPtrErr )
 
-#endif
+#define IPP_BAD_PTR2_RET( ptr1, ptr2 )\
+            {IPP_BAD_PTR1_RET( ptr1 ); IPP_BAD_PTR1_RET( ptr2 )}
 
+#define IPP_BAD_PTR3_RET( ptr1, ptr2, ptr3 )\
+            {IPP_BAD_PTR2_RET( ptr1, ptr2 ); IPP_BAD_PTR1_RET( ptr3 )}
 
-    #define IPP_BAD_SIZE_RET( n )\
-                IPP_BADARG_RET( (n)<=0, ippStsSizeErr )
+#define IPP_BAD_PTR4_RET( ptr1, ptr2, ptr3, ptr4 )\
+            {IPP_BAD_PTR2_RET( ptr1, ptr2 ); IPP_BAD_PTR2_RET( ptr3, ptr4 )}
 
-    #define IPP_BAD_STEP_RET( n )\
-                IPP_BADARG_RET( (n)<=0, ippStsStepErr )
-
-    #define IPP_BAD_PTR1_RET( ptr )\
-                IPP_BADARG_RET( NULL==(ptr), ippStsNullPtrErr )
-
-    #define IPP_BAD_PTR2_RET( ptr1, ptr2 )\
-                {IPP_BAD_PTR1_RET( ptr1 ); IPP_BAD_PTR1_RET( ptr2 )}
-
-    #define IPP_BAD_PTR3_RET( ptr1, ptr2, ptr3 )\
-                {IPP_BAD_PTR2_RET( ptr1, ptr2 ); IPP_BAD_PTR1_RET( ptr3 )}
-
-    #define IPP_BAD_PTR4_RET( ptr1, ptr2, ptr3, ptr4 )\
-                {IPP_BAD_PTR2_RET( ptr1, ptr2 ); IPP_BAD_PTR2_RET( ptr3, ptr4 )}
-
-    #define IPP_BAD_ISIZE_RET(roi) \
-               IPP_BADARG_RET( ((roi).width<=0 || (roi).height<=0), ippStsSizeErr)
+#define IPP_BAD_ISIZE_RET(roi) \
+            IPP_BADARG_RET( ((roi).width<=0 || (roi).height<=0), ippStsSizeErr)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /*                              internal messages                             */
@@ -451,17 +443,12 @@ typedef union { /* single precision */
 #endif
 #endif
 
-#define UNREFERENCED_PARAMETER(p) (void)(p)
+#define IPP_UNREFERENCED_PARAMETER(p) (void)(p)
 
 #if defined( _IPP_MARK_LIBRARY )
 static char G[] = {73, 80, 80, 71, 101, 110, 117, 105, 110, 101, 243, 193, 210, 207, 215};
 #endif
 
-
-#define STR2(x)           #x
-#define STR(x)       STR2(x)
-#define MESSAGE( desc )\
-     message(__FILE__ "(" STR(__LINE__) "):" #desc)
 
 /*
 // endian definition
@@ -543,6 +530,9 @@ static char G[] = {73, 80, 80, 71, 101, 110, 117, 105, 110, 101, 243, 193, 210, 
             #endif
         #endif
     #endif
+    #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+      #include "x86intrin.h"
+    #endif
 #endif
 
 // **** intrinsics for bit casting ****
@@ -613,9 +603,31 @@ extern double            __intel_castu64_f64(unsigned __int64 val);
 #define __IVDEP message("message :: 'ivdep' is not defined")
 #endif
 
-#if !defined( _MERGED_BLD ) /* compile data if it isn't merged library */
-  #undef  _IPP_DATA
-  #define _IPP_DATA
+#if defined( _MERGED_BLD )
+   #if !defined( _IPP_DYNAMIC )
+      /* WIN-32, WIN-64 */
+      #if defined(WIN32) || defined(WIN32E)
+         #if ( defined(_W7) || defined(_M7) )
+         #define _IPP_DATA 1
+         #endif
+
+      #elif defined(linux)
+         /* LIN-32, LIN-64 */
+         #if ( defined(_W7) || defined(_M7) )
+         #define _IPP_DATA 1
+         #endif
+
+
+      /* OSX-32, OSX-64 */
+      #elif defined(OSX32) || defined(OSXEM64T)
+         #if ( defined(_Y8) )
+         #define _IPP_DATA 1
+         #endif
+      #endif
+   #endif
+#else
+   /* compile data unconditionally */
+   #define _IPP_DATA 1
 #endif
 
 

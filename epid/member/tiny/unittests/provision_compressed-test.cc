@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"

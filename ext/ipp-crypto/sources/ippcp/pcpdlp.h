@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2005-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2005-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -65,7 +41,7 @@
 //#define DEF_DLP_BITSIZER    (160)
 
 struct _cpDLP {
-   IppCtxId          idCtx;      /* DL identifier  */
+   Ipp32u            idCtx;      /* DL identifier  */
    Ipp32u            flag;       /* complete flag  */
 
    int               bitSizeP;   /* DH bitsize (P) */
@@ -102,7 +78,8 @@ struct _cpDLP {
 /*
 // Contetx Access Macros
 */
-#define DLP_ID(ctx)        ((ctx)->idCtx)
+#define DLP_SET_ID(ctx)    ((ctx)->idCtx = (Ipp32u)idCtxDLP ^ (Ipp32u)IPP_UINT_PTR(ctx))
+#define DLP_RESET_ID(ctx)  ((ctx)->idCtx = (Ipp32u)idCtxDLP)
 #define DLP_FLAG(ctx)      ((ctx)->flag)
 #define DLP_BITSIZEP(ctx)  ((ctx)->bitSizeP)
 #define DLP_BITSIZER(ctx)  ((ctx)->bitSizeR)
@@ -127,7 +104,7 @@ struct _cpDLP {
 #define DLP_BNUCTX1(ctx)   ((ctx)->pBnuList1)
 #endif
 
-#define DLP_VALID_ID(ctx)  (DLP_ID((ctx))==idCtxDLP)
+#define DLP_VALID_ID(ctx)  ((((ctx)->idCtx) ^ (Ipp32u)IPP_UINT_PTR((ctx))) == (Ipp32u)idCtxDLP)
 #define DLP_COMPLETE(ctx)  (DLP_FLAG((ctx))==(IppDLPkeyP|IppDLPkeyR|IppDLPkeyG))
 
 /* alignment */
@@ -137,8 +114,8 @@ struct _cpDLP {
 #define DLP_MONT_POOL_LENGTH (6)
 
 #define cpPackDLPCtx OWNAPI(cpPackDLPCtx)
-   void cpPackDLPCtx(const IppsDLPState* pDLP, Ipp8u* pBuffer);
+   IPP_OWN_DECL (void, cpPackDLPCtx, (const IppsDLPState* pDLP, Ipp8u* pBuffer))
 #define cpUnpackDLPCtx OWNAPI(cpUnpackDLPCtx)
-   void cpUnpackDLPCtx(const Ipp8u* pBuffer, IppsDLPState* pDLP);
+   IPP_OWN_DECL (void, cpUnpackDLPCtx, (const Ipp8u* pBuffer, IppsDLPState* pDLP))
 
 #endif /* _PCP_DLP_H */

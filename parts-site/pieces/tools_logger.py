@@ -42,7 +42,7 @@ class ConfigurationError(Exception):
 
 def get_parts_versions(env):
     """Get Parts related versions given SCons environment env"""
-    return OrderedDict({'python': string.split(sys.version, " ", 1)[0],
+    return OrderedDict({'python': str(sys.version).split(" ", 1)[0],
                         'scons': str(SCons.__version__),
                         'parts': str(env.PartsExtensionVersion())})
 
@@ -137,7 +137,7 @@ def _get_default_libs(build_verbose_out, env):
         raise ConfigurationError
 
     return list(
-        set(re.findall(defaultlib_regexp, build_verbose_out, re.M)))
+        set(re.findall(defaultlib_regexp, str(build_verbose_out), re.M)))
 
 
 def _get_crt(default_libs, env):
@@ -199,7 +199,7 @@ def dump_tool_versions(env, include_toolchain=True):
         'sdk_or_libc': 'Libc/SDK',
         'default_libs': 'Default Libs'
     }
-    for name, value in versions.iteritems():
+    for name, value in versions.items():
         if not isinstance(value, list):
             res += '\n* {0}: {1}'.format(long_names.get(name, name), value)
         else:

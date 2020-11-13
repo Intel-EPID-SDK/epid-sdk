@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
 #include <vector>
 
 extern "C" {
-#include "epid/common/bitsupplier.h"
-#include "epid/common/types.h"
+#include "epid/bitsupplier.h"
+#include "epid/types.h"
 }
 
 typedef struct Tpm2Ctx Tpm2Ctx;

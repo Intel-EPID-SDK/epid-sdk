@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
 
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
-#include "epid/common/src/sig_types.h"
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/nrprove.h"
-#include "epid/member/tiny/src/serialize.h"
-#include "epid/member/tiny/src/signbasic.h"
-#include "epid/member/tiny/stdlib/endian.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/context.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/member/tiny/nrprove.h"
+#include "epid/member/tiny/serialize.h"
+#include "epid/member/tiny/signbasic.h"
+#include "tinystdlib/endian.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 // SIZE_MAX is not guaranteed in C89/90
 #define SIZE_T_MAX ((size_t)(-1))

@@ -1,5 +1,58 @@
 # Intel(R) EPID SDK ChangeLog                                   {#ChangeLog}
 
+## [8.0.0] - 2020-11-13
+
+### Added
+
+- New context lifetime management APIs have been added to verifier to give
+  callers more control of memory allocation.
+
+- `EpidVerifierSetGroup` has been added to allow changing the group that
+  signatures will be verified against after the verifier has been created.
+
+- New member APIs that configure the initial parameters have been added.
+
+### Changed
+
+- Generic bad argument errors have been replaced with explicit error codes that
+  make it easier to determine which argument was problematic.
+
+- `EpidVerify` now returns a unique error code for mismatched SigRl version
+  during signature verification instead of a generic error.
+
+- EpidAreSigsLinked now takes signatures instead of basic signatures as a
+  parameter.
+
+- Implementation specific member parameter headers have been replaced with
+  member APIs that configure the initial parameters.
+
+- `EpidCreateJoinRequest` now requires the size of the buffer for the join
+  request. The minimum size can be obtained via `EpidGetJoinRequestSize`.
+ 
+ - Updated Intel(R) IPP Cryptography library to version 2020 Update 3
+
+### Deprecated
+
+- `EpidVerifierCreate` has been deprecated. This API has been superseded
+  by `EpidVerifierGetSize` and `EpidVerifierInit`.
+
+- `EpidVerifierDelete` has been deprecated. This API has been superseded
+  by `EpidVerifierDeinit`.
+
+### Fixed
+
+- Scons build now works natively on ARM.
+
+- Message strings for kEpidMemAllocErr and kEpidNoMemErr are now correct. Prior
+  releases had them swapped.
+
+### Known Issues
+
+- Only the SHA-256 hash algorithm is supported when using the SDK with the IBM
+  TPM simulator due to a defect in version 1119 of the simulator.
+
+- Basenames are limited to 124 bytes in TPM mode.
+
 ## [7.0.1] - 2019-03-08
 
 ### Changed

@@ -1,7 +1,7 @@
 # pylint: disable=unused-wildcard-import,missing-docstring,wildcard-import,import-error
 from parts.tools.IntelCommon.intelc_posix import *
-import filescanner
-import common
+import parts.tools.IntelCommon.filescanner
+import parts.common
 
 # 32-bit 16.0
 Intelc.Register(

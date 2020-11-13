@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,24 +20,22 @@
  */
 #include <cstring>
 #include <vector>
-
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "common/endian_convert.h"
 #include "gtest/gtest.h"
-
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/onetimepad.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common/src/endian_convert.h"
-#include "epid/member/split/tpm2/unittests/tpm2-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_gtest-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/onetimepad.h"
+#include "testhelper/prng-testhelper.h"
+#include "tpm2-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/split_grouppubkey.h"
-#include "epid/member/split/src/storage.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/split_grouppubkey.h"
+#include "epid/member/split/storage.h"
 #include "epid/member/split/tpm2/nv.h"
 }
 /// compares GroupPubKey values
@@ -446,24 +444,31 @@ TEST_F(EpidSplitMemberTest, SetSigRlFailsGivenOldVersion) {
   Prng my_prng;
   MemberCtxObj member_ctx(this->kGrpXKey, this->kGrpXMember3PrivKeySha256,
                           &Prng::Generate, &my_prng);
-  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
-  srl.gid = this->kGrpXKey.gid;
-  srl.version = this->kOctStr32_1;
-  EXPECT_EQ(kEpidNoErr,
-            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+
   OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
-  srl.version = octstr32_0;
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidMemberSetSigRl(member_ctx, &srl, sizeof(srl) - sizeof(srl.bk)));
+  SigRl sigrl_v0 = {0};
+  sigrl_v0.gid = this->kGrpXKey.gid;
+  sigrl_v0.version = octstr32_0;
+  OctStr32 octstr32_1 = {0x00, 0x00, 0x00, 0x01};
+  SigRl sigrl_v1 = {0};
+  sigrl_v1.version = octstr32_1;
+  sigrl_v1.gid = this->kGrpXKey.gid;
+
+  EXPECT_EQ(kEpidNoErr,
+            EpidMemberSetSigRl(member_ctx, &sigrl_v1,
+                               sizeof(sigrl_v1) - sizeof(sigrl_v1.bk)));
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidMemberSetSigRl(member_ctx, &sigrl_v0,
+                               sizeof(sigrl_v0) - sizeof(sigrl_v0.bk)));
 }
 TEST_F(EpidSplitMemberTest, SetSigRlPreservesOldRlOnFailure) {
-  auto wrong_sig_rl_raw = this->kGrpXSigRl;
-  SigRl* wrong_sig_rl = reinterpret_cast<SigRl*>(wrong_sig_rl_raw.data());
-  size_t wrong_sig_rl_size = wrong_sig_rl_raw.size();
+  auto old_sig_rl_raw = this->kGrpXSigRl;
+  SigRl* old_sig_rl = reinterpret_cast<SigRl*>(old_sig_rl_raw.data());
+  size_t old_sig_rl_size = old_sig_rl_raw.size();
   auto otp_data = kOtpDataWithoutRfAndNonce;
   otp_data.insert(otp_data.end(), rf.begin(), rf.end());
   otp_data.insert(otp_data.end(), kNoncek.begin(), kNoncek.end());
-  for (uint32_t i = 0; i < ntohl(wrong_sig_rl->n2); ++i) {
+  for (uint32_t i = 0; i < ntohl(old_sig_rl->n2); ++i) {
     otp_data.insert(otp_data.end(), NrProveEntropy.begin(),
                     NrProveEntropy.end());
   }
@@ -473,13 +478,13 @@ TEST_F(EpidSplitMemberTest, SetSigRlPreservesOldRlOnFailure) {
   auto sig_rl_raw = this->kGrpXSigRlMember3Sha256Bsn0Msg03EntriesFirstRevoked;
   SigRl* sig_rl = reinterpret_cast<SigRl*>(sig_rl_raw.data());
 
-  // wrong sigrl contains has lower version
+  // old sigrl contains has lower version
   ++sig_rl->version.data[sizeof(sig_rl->version) - 1];
-  wrong_sig_rl->version.data[sizeof(wrong_sig_rl->version) - 1] = 0x00;
+  old_sig_rl->version.data[sizeof(old_sig_rl->version) - 1] = 0x00;
   size_t sig_rl_size = sig_rl_raw.size();
   EXPECT_EQ(kEpidNoErr, EpidMemberSetSigRl(member_ctx, sig_rl, sig_rl_size));
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidMemberSetSigRl(member_ctx, wrong_sig_rl, wrong_sig_rl_size));
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidMemberSetSigRl(member_ctx, old_sig_rl, old_sig_rl_size));
   auto& msg = this->kMsg0;
   auto& bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidRegisterBasename(member_ctx, bsn.data(), bsn.size()));
@@ -656,8 +661,9 @@ TEST_F(EpidSplitMemberTest,
   THROW_ON_EPIDERR(EpidSign(member, msg.data(), msg.size(), bsn.data(),
                             bsn.size(), sig, sig_len));
   THROW_ON_EPIDERR(EpidClearRegisteredBasenames(member));
-  ASSERT_EQ(kEpidBadArgErr, EpidSign(member, msg.data(), msg.size(), bsn.data(),
-                                     bsn.size(), sig, sig_len));
+  ASSERT_EQ(kEpidBasenameNotRegisteredErr,
+            EpidSign(member, msg.data(), msg.size(), bsn.data(), bsn.size(),
+                     sig, sig_len));
 }
 #ifdef TPM_TSS
 //////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,46 +17,33 @@
 /*! \file */
 
 #include <cstring>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/src/sig_types.h"
-#include "epid/member/split/src/nrprove.h"
-#include "epid/member/split/src/signbasic.h"
-#include "epid/verifier/src/rlverify.h"
+#include "common/sig_types.h"
+#include "epid/member/split/nrprove.h"
+#include "epid/member/split/signbasic.h"
+#include "rlverify.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/onetimepad.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/onetimepad.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 
 bool operator==(SplitNrProof const& lhs, SplitNrProof const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
 namespace {
+#ifndef TPM_TSS  // unused function in TPM mode
 void set_gid_hashalg(GroupId* id, HashAlg hashalg) {
   id->data[1] = (id->data[1] & 0xf0) | (hashalg & 0x0f);
 }
+#endif  // TPM_TSS
 /// data for OneTimePad to be used in BasicSign: without rf and nonce
 const std::vector<uint8_t> kOtpDataWithoutRfAndNonce = {
-    // entropy of EpidMemberIsKeyValid
-    // r in Tpm2Commit =
-    // 0x531201cf42e8946136e516c3651a8b04c826283ab43829926e9277902962f15f
-    // OctStr representation:
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x53, 0x12, 0x01, 0xcf, 0x42, 0xe8, 0x94, 0x61,
-    0x36, 0xe5, 0x16, 0xc3, 0x65, 0x1a, 0x8b, 0x04, 0xc8, 0x26, 0x28, 0x3a,
-    0xb4, 0x38, 0x29, 0x92, 0x6e, 0x92, 0x77, 0x90, 0x29, 0x62, 0xf1, 0x5f,
-    // noncek =
-    // 0xe95408071241a77b0871d175c90185241ed61b5a150793015c903154d2636773
-    // OctStr representation:
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0xe9, 0x54, 0x08, 0x07, 0x12, 0x41, 0xa7, 0x7b,
-    0x08, 0x71, 0xd1, 0x75, 0xc9, 0x01, 0x85, 0x24, 0x1e, 0xd6, 0x1b, 0x5a,
-    0x15, 0x07, 0x93, 0x01, 0x5c, 0x90, 0x31, 0x54, 0xd2, 0x63, 0x67, 0x73,
     // entropy for other operations
     // bsn in presig
     0x25, 0xeb, 0x8c, 0x48, 0xff, 0x89, 0xcb, 0x85, 0x4f, 0xc0, 0x90, 0x81,

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,17 +20,16 @@
 #include <epid/member/api.h>
 
 #include <stdint.h>
-#include "epid/common/types.h"
-#include "epid/member/tiny/math/fp.h"
-#include "epid/member/tiny/math/mathtypes.h"
-#include "epid/member/tiny/math/pairing.h"
-#include "epid/member/tiny/math/serialize.h"
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/src/presig_compute.h"
-#include "epid/member/tiny/src/serialize.h"
-#include "epid/member/tiny/src/stack.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
-#include "epid/member/tiny_member.h"
+#include "epid/member/tiny/context.h"
+#include "epid/member/tiny/presig_compute.h"
+#include "epid/member/tiny/serialize.h"
+#include "epid/member/tiny/stack.h"
+#include "epid/types.h"
+#include "tinymath/fp.h"
+#include "tinymath/mathtypes.h"
+#include "tinymath/pairing.h"
+#include "tinymath/serialize.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 static size_t SigrlGetSize(size_t num_sigrls) {
   return MIN_SIGRL_SIZE + num_sigrls * sizeof(SigRlEntry);

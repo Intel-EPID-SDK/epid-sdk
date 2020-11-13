@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2018-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -75,33 +51,38 @@
 IPPFUN(IppStatus, ippsGFpECGetPointOctString, (const IppsGFpECPoint* pPoint,
    Ipp8u* pStr, int strLen, IppsGFpECState* pEC)) {
    IPP_BAD_PTR3_RET(pPoint, pEC, pStr);
-   IPP_BADARG_RET(pPoint->idCtx != idCtxGFPPoint, ippStsContextMatchErr);
-   IPP_BADARG_RET(pEC->idCtx != idCtxGFPEC, ippStsContextMatchErr);
-   IPP_BADARG_RET(!pEC->subgroup, ippStsContextMatchErr);
-   IPP_BADARG_RET(1 < pEC->pGF->pGFE->extdegree, ippStsNotSupportedModeErr);
+   IPP_BADARG_RET(!ECP_POINT_VALID_ID(pPoint), ippStsContextMatchErr);
+   IPP_BADARG_RET(!VALID_ECP_ID(pEC), ippStsContextMatchErr);
 
    {
       gsModEngine* pGFE = pEC->pGF->pGFE;
-      int elemLen = BITS2WORD8_SIZE(pGFE->modBitLen);
-      IPP_BADARG_RET(strLen != elemLen * 2, ippStsSizeErr);
-      IPP_BADARG_RET(pPoint->elementSize != pGFE->modLen, ippStsOutOfRangeErr);
+      IppsGFpInfo gfi;
+      ippsGFpGetInfo(&gfi, pEC->pGF);
 
       {
-         int finitePoint;
-         IppsGFpElement ptX, ptY;
+         int elemLenBits = gfi.basicGFdegree * gfi.basicElmBitSize;
+         int elemLenBytes = BITS2WORD8_SIZE(elemLenBits);
+         int elemLenChunks = BITS_BNU_CHUNK(elemLenBits);
+         IPP_BADARG_RET(strLen != elemLenBytes * 2, ippStsSizeErr);
+         IPP_BADARG_RET(pPoint->elementSize != elemLenChunks, ippStsOutOfRangeErr);
 
-         cpGFpElementConstruct(&ptX, cpGFpGetPool(1, pGFE), pGFE->modLen);
-         cpGFpElementConstruct(&ptY, cpGFpGetPool(1, pGFE), pGFE->modLen);
-         finitePoint = gfec_GetPoint(ptX.pData, ptY.pData, pPoint, pEC);
-         if (finitePoint) {
-            ippsGFpGetElementOctString(&ptX, pStr, elemLen, pEC->pGF);
-            pStr += elemLen;
-            ippsGFpGetElementOctString(&ptY, pStr, elemLen, pEC->pGF);
+         {
+            int finitePoint;
+            IppsGFpElement ptX, ptY;
+
+            cpGFpElementConstruct(&ptX, cpGFpGetPool(1, pGFE), elemLenChunks);
+            cpGFpElementConstruct(&ptY, cpGFpGetPool(1, pGFE), elemLenChunks);
+            finitePoint = gfec_GetPoint(ptX.pData, ptY.pData, pPoint, pEC);
+            if (finitePoint) {
+               ippsGFpGetElementOctString(&ptX, pStr, elemLenBytes, pEC->pGF);
+               pStr += elemLenBytes;
+               ippsGFpGetElementOctString(&ptY, pStr, elemLenBytes, pEC->pGF);
+            }
+
+            cpGFpReleasePool(2, pGFE); /* release ptX and ptY from the pool */
+
+            return finitePoint ? ippStsNoErr : ippStsPointAtInfinity;
          }
-
-         cpGFpReleasePool(2, pGFE); /* release ptX and ptY from the pool */
-
-         return finitePoint ? ippStsNoErr : ippStsPointAtInfinity;
       }
    }
 }

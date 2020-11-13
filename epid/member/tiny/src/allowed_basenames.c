@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 /// Basename management implementation
 /*! \file */
 
-#include "epid/member/tiny/src/allowed_basenames.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/allowed_basenames.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 size_t BasenamesGetSize(size_t num_basenames) {
   return sizeof(AllowedBasenames) - sizeof(sha_digest) +

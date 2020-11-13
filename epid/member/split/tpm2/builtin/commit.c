@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 /*! \file */
 
 #include "epid/member/split/tpm2/commit.h"
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
+#include "common/epid2params.h"
 #include "epid/member/split/tpm2/builtin/state.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

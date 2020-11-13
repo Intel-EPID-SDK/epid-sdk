@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@
 
 #include <tss2/TPM_Types.h>
 #include <tss2/tss.h>
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
+#include "common/epid2params.h"
 #include "epid/member/split/tpm2/ibm_tss/conversion.h"
 #include "epid/member/split/tpm2/ibm_tss/printtss.h"
 #include "epid/member/split/tpm2/ibm_tss/state.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -129,28 +129,29 @@ EpidStatus Tpm2Commit(Tpm2Ctx* ctx, Tpm2Key const* key, EcPoint const* p1,
       }
       break;
     }
-    if (out.E.size > 0) {
+    // must be released anyway, by caller function
+    *counter = out.counter;
+    if (out.E.size > (UINT16)sizeof(TPMS_EMPTY)) {
       G1ElemStr e_str = {0};
       sts = WriteTpm2EcPoint(&out.E, &e_str);
       BREAK_ON_EPID_ERROR(sts);
       sts = ReadEcPoint(G1, &e_str, sizeof(e_str), e);
       BREAK_ON_EPID_ERROR(sts);
     }
-    if (out.K.size > 0 && k) {
+    if (out.K.size > (UINT16)sizeof(TPMS_EMPTY) && k) {
       G1ElemStr k_str = {0};
       sts = WriteTpm2EcPoint(&out.K, &k_str);
       BREAK_ON_EPID_ERROR(sts);
       sts = ReadEcPoint(G1, &k_str, sizeof(k_str), k);
       BREAK_ON_EPID_ERROR(sts);
     }
-    if (out.L.size > 0 && l) {
+    if (out.L.size > (UINT16)sizeof(TPMS_EMPTY) && l) {
       G1ElemStr l_str = {0};
       sts = WriteTpm2EcPoint(&out.L, &l_str);
       BREAK_ON_EPID_ERROR(sts);
       sts = ReadEcPoint(G1, &l_str, sizeof(l_str), l);
       BREAK_ON_EPID_ERROR(sts);
     }
-    *counter = out.counter;
   } while (0);
   return sts;
 }

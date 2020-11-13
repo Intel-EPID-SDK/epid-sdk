@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,18 +19,15 @@
  * \brief Verify unit tests.
  */
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-extern "C" {
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/api.h"
-}
+#include "common/endian_convert.h"
+#include "epid/verifier.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 
 namespace {
 
@@ -42,12 +39,12 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenNullParameters) {
   auto& sig = this->kSigGrp01Member0Sha512RandombaseTest0;
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerify(nullptr, (EpidSignature const*)sig.data(), sig.size(),
                        msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, nullptr, sig.size(), msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
                        nullptr, msg.size()));
 }
@@ -57,10 +54,10 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenTooShortSigLen) {
   auto& sig = this->kSigGrp01Member0Sha512RandombaseTest0;
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), 0,
                        msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(),
                        sizeof(EpidNonSplitSignature) - sizeof(NrProof) - 1,
                        msg.data(), msg.size()));
@@ -77,7 +74,7 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooShortForRlCount) {
              (n2 - 2) * sizeof(((EpidNonSplitSignature*)0)->sigma));
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
                        msg.data(), msg.size()));
 }
@@ -93,7 +90,7 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenSigLenTooLongForRlCount) {
              n2 * sizeof(((EpidNonSplitSignature*)0)->sigma));
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
                        msg.data(), msg.size()));
 }
@@ -112,7 +109,7 @@ TEST_F(EpidVerifierTest, VerifyFailsGivenRlCountTooBig) {
   sig.resize(sizeof(EpidNonSplitSignature) + (n2 - 1) * sizeof(NrProof));
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
                        msg.data(), msg.size()));
 }
@@ -697,8 +694,9 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigRlverNotMatchSigRlRlver) {
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
-                                 sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
@@ -718,7 +716,7 @@ TEST_F(EpidVerifierTest, VerifyFailsOnSigN2NotMatchSigRlN2) {
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, sig_rl, sig_rl_size));
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerify(verifier, sig, sig_raw.size(), msg.data(), msg.size()));
 }
 
@@ -830,8 +828,9 @@ TEST_F(EpidVerifierTest,
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidErr, EpidVerify(verifier, (EpidSignature const*)sig.data(),
-                                 sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidVerify(verifier, (EpidSignature const*)sig.data(), sig.size(),
+                       msg.data(), msg.size()));
 }
 
 TEST_F(EpidVerifierTest, VerifyAcceptsSigFromEmptySigRlUsingIkgfData) {

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 /// Validate native types
 /*! \file */
 
-#include "epid/member/tiny/src/validate.h"
-#include "epid/member/tiny/math/efq.h"
-#include "epid/member/tiny/math/efq2.h"
-#include "epid/member/tiny/math/fp.h"
-#include "epid/member/tiny/math/fq12.h"
-#include "epid/member/tiny/math/mathtypes.h"
-#include "epid/member/tiny/math/pairing.h"
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/validate.h"
+#include "epid/member/tiny/native_types.h"
+#include "tinymath/efq.h"
+#include "tinymath/efq2.h"
+#include "tinymath/fp.h"
+#include "tinymath/fq12.h"
+#include "tinymath/mathtypes.h"
+#include "tinymath/pairing.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 static EccPointFq2 const epid20_g2 = {
     {{{{0xBF282394, 0xF6021343, 0x3D32470E, 0xD25D5268, 0x743CCF22, 0x21670413,

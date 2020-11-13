@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2018 Intel Corporation
+# Copyright 2018-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 /// Tiny stack container implementation.
 /*! \file */
 
-#include "epid/member/tiny/src/stack.h"
-#include "epid/member/tiny/src/presig_compute.h"
-#include "epid/member/tiny/stdlib/tiny_stdlib.h"
+#include "epid/member/tiny/stack.h"
+#include "epid/member/tiny/presig_compute.h"
+#include "tinystdlib/tiny_stdlib.h"
 
 void InitPreSigStack(Stack* presig_container, size_t num_presigs, void* heap) {
   presig_container->max_size = num_presigs;

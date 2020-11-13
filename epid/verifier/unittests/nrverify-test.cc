@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,18 +19,17 @@
  * \brief NrVerify unit tests.
  */
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
+#include "epid/verifier.h"
 extern "C" {
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/rlverify.h"
+#include "rlverify.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 
 namespace {
 
@@ -43,32 +42,32 @@ TEST_F(EpidVerifierTest, NrVerifyFailsGivenNullParameters) {
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
   SigRl const* sig_rl =
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidNrVerify(nullptr, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0], sizeof(NrProof)));
 
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadSignatureErr,
       EpidNrVerify(verifier, nullptr, this->kTest0.data(), this->kTest0.size(),
                    &sig_rl->bk[0], &epid_signature->sigma[0], sizeof(NrProof)));
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, nullptr,
                          this->kTest0.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0], sizeof(NrProof)));
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSigRlEntryErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), nullptr,
                          &epid_signature->sigma[0], sizeof(NrProof)));
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], nullptr,
                          sizeof(NrProof)));
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0], 0));
@@ -79,7 +78,6 @@ TEST_F(EpidVerifierTest, NrVerifyFailsGivenNullParameters) {
 
 TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTNotInG1) {
   // * 4.2.2 step 1 - The verifier verifies that G1.inGroup(T) = true.
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -87,7 +85,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTNotInG1) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.T.x.data.data[0]++;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof,
                          sizeof(NrProof)));
@@ -95,7 +93,6 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTNotInG1) {
 
 TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTIdentityOfG1) {
   // * 4.2.2 step 2 - The verifier verifies that G1.isIdentity(T) = false.
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -103,7 +100,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTIdentityOfG1) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.T = this->kG1IdentityStr;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof,
                          sizeof(NrProof)));
@@ -111,7 +108,6 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithTIdentityOfG1) {
 
 TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithCNotInRange) {
   // * 4.2.2 step 3 - The verifier verifies that c, smu, snu in [0, p-1].
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -119,7 +115,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithCNotInRange) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.c.data = this->kParamsStr.p.data;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof,
                          sizeof(NrProof)));
@@ -127,7 +123,6 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithCNotInRange) {
 
 TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSmuNotInRange) {
   // * 4.2.2 step 3 - The verifier verifies that c, smu, snu in [0, p-1].
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -135,7 +130,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSmuNotInRange) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.smu.data = this->kParamsStr.p.data;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof,
                          sizeof(NrProof)));
@@ -143,7 +138,6 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSmuNotInRange) {
 
 TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSnuNotInRange) {
   // * 4.2.2 step 3 - The verifier verifies that c, smu, snu in [0, p-1].
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -151,7 +145,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithSnuNotInRange) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   NrProof nr_proof = epid_signature->sigma[0];
   nr_proof.snu.data = this->kParamsStr.p.data;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, this->kTest0.data(),
                          this->kTest0.size(), &sig_rl->bk[0], &nr_proof,
                          sizeof(NrProof)));
@@ -172,7 +166,6 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithInvalidCommitment) {
   //                  B' || K' || T || R1 || R2 || m).
   //                  Refer to Section 7.1 for hash operation over a
   //                  prime field.
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrp01Key);
   auto epid_signature = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrp01Member0Sha256RandombaseTest0.data());
@@ -180,7 +173,7 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithInvalidCommitment) {
       reinterpret_cast<SigRl const*>(this->kGrp01SigRl.data());
   std::vector<uint8_t> test_msg = this->kTest0;
   test_msg[0]++;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature->sigma0, test_msg.data(),
                          test_msg.size(), &sig_rl->bk[0],
                          &epid_signature->sigma[0], sizeof(NrProof)));
@@ -191,18 +184,17 @@ TEST_F(EpidVerifierTest, NrVerifyRejectsSigWithValidCommitmentDiffHashAlg) {
   //                  B' || K' || T || R1 || R2 || m).
   //                  Refer to Section 7.1 for hash operation over a
   //                  prime field.
-  // result must be kEpidBadArgErr
   VerifierCtxObj verifier(this->kGrpXKey);
   auto epid_signature_sha384 = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrpXMember0Sha384RandbaseMsg0.data());
   auto epid_signature_sha512 = reinterpret_cast<EpidNonSplitSignature const*>(
       this->kSigGrpXMember0Sha512RandbaseMsg0.data());
   SigRl const* sig_rl = reinterpret_cast<SigRl const*>(this->kGrpXSigRl.data());
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature_sha384->sigma0,
                          this->kMsg0.data(), this->kMsg0.size(), &sig_rl->bk[0],
                          &epid_signature_sha384->sigma[0], sizeof(NrProof)));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadNrProofErr,
             EpidNrVerify(verifier, &epid_signature_sha512->sigma0,
                          this->kMsg0.data(), this->kMsg0.size(), &sig_rl->bk[0],
                          &epid_signature_sha512->sigma[0], sizeof(NrProof)));

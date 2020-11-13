@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,89 +22,100 @@ Import('*')
 
 env.PartName('tpm2')
 
-include_files = Pattern(src_dir='.',
-                        includes=['*.h'],
-                        recursive=False).files()
+include_files = Pattern(src_dir='.', includes=['*.h'], recursive=False).files()
 
-install_files = Pattern(src_dir='.',
-                        includes=[
-                            '*.h',
-                            '*.c',
-                            '*-test.cc',
-                            '*-testhelper.cc',
-                            '*.parts'],
-                        recursive=True)
+install_files = Pattern(
+    src_dir='.',
+    includes=['*.h', '*.c', '*-test.cc', '*-testhelper.cc', '*.parts'],
+    recursive=True)
 
 if 'install_package' in env['MODE']:
-    env.InstallTopLevel(install_files,
-                        sub_dir='epid/member/split/${PART_SHORT_NAME}')
+    env.InstallTopLevel(
+        install_files, sub_dir='epid/member/split/${PART_SHORT_NAME}')
 else:
     env.DependsOn([
+        Component('epiddefs'),
+        Component('ippmath'),
         Component('common'),
     ])
 
-    env.Append(CPPPATH='#')
+    env.Append(CPPPATH=[AbsDir('../headers'), AbsDir('../../include')])
 
     if 'use_tss' in env['MODE']:
-        src_files = Pattern(src_dir='ibm_tss',
-                            includes=['*.c'],
-                            recursive=False).files()
-        utest_files = Pattern(src_dir='unittests',
-                              includes=['*-test.cc',
-                                        '*-testhelper.cc'],
-                              excludes=['*-simulator-test.cc'],
-                              recursive=False).files()
+        src_files = Pattern(
+            src_dir='ibm_tss', includes=['*.c'], recursive=False).files()
+        utest_files = Pattern(
+            src_dir='unittests',
+            includes=['*-test.cc', '*-testhelper.cc'],
+            excludes=['*-simulator-test.cc'],
+            recursive=False).files()
         if env['TARGET_ARCH'] == 'x86_64' and env['TARGET_PLATFORM']['OS'] == 'win32':
             PrintError("--use-tss is not compatible with x86_64 target. "
                        "Try an x86 build.")
         try:
             TSSROOT = os.environ['TSSROOT138']
-        except KeyError, e:
-            env.PrintError("Necessary environment variable not set: ",
-                           e, show_stack=False)
+        except KeyError as e:
+            env.PrintError(
+                "Necessary environment variable not set: ",
+                e,
+                show_stack=False)
         env.Append(CPPPATH=TSSROOT)
         env.Append(LIBPATH=TSSROOT)
-        if 'cl' in env['CC']:
-            env.Append(CCFLAGS=['/wd4201',   # allow nameless struct
-                                '/wd4200',   # allow zero-sized array in struct
-                               ])
+        if env.get('MSVC_VERSION', None):
+            env.Append(CCFLAGS=[
+                '/wd4201',  # allow nameless struct
+                '/wd4200',  # allow zero-sized array in struct
+            ])
+        elif env.get('CLANG_VERSION', None):
+            # The following is a WORKAROUND to suppress compiler warning in
+            # TPM_Types.h (external TPM/TSS header). TPM defines TPMS_EMPTY
+            # structure that has size 0 in C and size 1 in C++ due to
+            # its implementation.
+            # Disabling warning in order to be able to build and run the code.
+            # Justification:
+            #   Only internal C code uses raw TPM interfaces and those are
+            #   abstracted by Intel(R) EPID TPM functions. Thus, it is very
+            #   unlikely that any C++ code is going to / able to access
+            #   problematic code/logic.
+            env.Append(CCFLAGS=['-Wno-extern-c-compat'])
         env.Append(CPPDEFINES=['TPM_TSS'])
-
     else:
-        src_files = Pattern(src_dir='builtin',
-                            includes=['*.c'],
-                            recursive=False).files()
+        src_files = Pattern(
+            src_dir='builtin', includes=['*.c'], recursive=False).files()
 
-        utest_files = Pattern(src_dir='unittests',
-                              includes=['*-test.cc',
-                                        '*-testhelper.cc'],
-                              excludes=['*-tss-test.cc'],
-                              recursive=False).files()
+        utest_files = Pattern(
+            src_dir='unittests',
+            includes=['*-test.cc', '*-testhelper.cc'],
+            excludes=['*-tss-test.cc'],
+            recursive=False).files()
 
     testenv = env.Clone()
+    testenv.Append(CPPPATH=[AbsDir('../headers'), AbsDir('../../include'), AbsDir('unittests')])
 
     outputs = env.Library('${PART_NAME}', src_files)
     env.Sdk(outputs)
-    env.SdkInclude(include_files,
-                   sub_dir='epid/member/${PART_SHORT_NAME}')
+    env.SdkInclude(include_files, sub_dir='epid/member/${PART_SHORT_NAME}')
 
     #unit tests
     testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
 
-    utest = testenv.UnitTest("utest",
-                             utest_files,
-                             command_args=[
-                                 '--gtest_color=yes',
-                                 '--gtest_print_time=1',
-                                 '--gtest_output=xml',
-                                 '--gtest_filter=**',
-                             ],
-                             make_pdb=(env.isConfigBasedOn('debug') or
-                                       env.isConfigBasedOn('static_crt_debug')),
-                             depends=[Component('gtest'),
-                                      Component('common-testhelper'),
-                                      Component('member.tpm2')],
-                             INSTALL_BIN='${INSTALL_TEST_BIN}')
+    utest = testenv.UnitTest(
+        "utest",
+        utest_files,
+        command_args=[
+            '--gtest_color=yes',
+            '--gtest_print_time=1',
+            '--gtest_output=xml',
+            '--gtest_filter=**',
+        ],
+        make_pdb=(env.isConfigBasedOn('debug')
+                  or env.isConfigBasedOn('static_crt_debug')),
+        depends=[
+            Component('gtest'),
+            Component('testhelper'),
+            Component('member.tpm2')
+        ],
+        INSTALL_BIN='${INSTALL_TEST_BIN}')
 
     if 'use_tss' in env['MODE']:
         # Build
@@ -133,7 +144,7 @@ else:
         if env['TARGET_PLATFORM']['OS'] == 'win32':
             install_locations = [
                 "${INSTALL_TEST_BIN}",  # member tests use tss
-                "${INSTALL_BIN}"        # joinreq/mprecmp use tss
+                "${INSTALL_BIN}"  # joinreq/mprecmp use tss
             ]
         else:
             install_locations = ["${INSTALL_LIB}"]
@@ -149,11 +160,12 @@ else:
         tss_files_to_copy = glob.glob(search_pattern)
 
         if not tss_files_to_copy:
-            env.PrintError("Failed to find any tss libs by pattern: ",
-                           search_pattern, show_stack=False)
+            env.PrintError(
+                "Failed to find any tss libs by pattern: ",
+                search_pattern,
+                show_stack=False)
 
         for install_location in install_locations:
             for tss_file in tss_files_to_copy:
-                tss_shlib = testenv.CCopy(install_location,
-                                          tss_file)
+                tss_shlib = testenv.CCopy(install_location, tss_file)
                 Depends(outputs, tss_shlib)

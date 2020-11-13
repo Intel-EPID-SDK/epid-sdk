@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 #include "epid/member/split/tpm2/ibm_tss/conversion.h"
 #include <string.h>
 #include <tss2/TPM_Types.h>
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
+#include "epid/types.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/memory.h"
 
 TPMI_ALG_HASH EpidToTpm2HashAlg(HashAlg hash_alg) {
   switch (hash_alg) {
@@ -114,7 +114,7 @@ EpidStatus WriteTpm2EcPoint(TPM2B_ECC_POINT const* tpm_point,
     return kEpidBadArgErr;
   }
 
-  memset(p_str, '\0', sizeof(G1ElemStr));
+  EpidZeroMemory(p_str, sizeof(G1ElemStr));
 
   //  copy X
   if (0 !=

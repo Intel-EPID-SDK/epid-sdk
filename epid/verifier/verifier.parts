@@ -1,5 +1,5 @@
 ############################################################################
-# Copyright 2016-2018 Intel Corporation
+# Copyright 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,109 +16,42 @@
 Import('*')
 env.PartName('verifier')
 
-api_headers = Pattern(src_dir='.',
-                      includes=['*.h'],
-                      recursive=False).files()
-src_files = Pattern(src_dir='src',
-                    includes=['*.c'],
-                    recursive=False).files()
-internal_headers = Pattern(src_dir='src',
-                           includes=['*.h', '*.inc'],
-                           recursive=False).files()
-utest_files = Pattern(src_dir='unittests',
-                      includes=['*-test.cc', '*-testhelper.cc'],
-                      recursive=False).files()
-utest_headers = Pattern(src_dir='unittests',
-                        includes=['*-testhelper.h',],
-                        recursive=False).files()
-utest_data_files = Pattern(src_dir='unittests/testdata/sigrl',
-                           includes=['*.inc'],
-                           excludes=[],
-                           recursive=False).files()
+include_files = Pattern(
+    src_dir='include/epid', includes=['*.h'], recursive=False).files()
+include_files11 = Pattern(
+    src_dir='include/epid/1.1', includes=['*.h'], recursive=False).files()
 
-epid11_headers = Pattern(src_dir='1.1',
-                         includes=['*.h'],
-                         recursive=False).files()
-epid11_src_files = Pattern(src_dir='1.1/src',
-                           includes=['*.c'],
-                           recursive=False).files()
-epid11_internal_headers = Pattern(src_dir='1.1/src',
-                                  includes=['*.h', '*.inc'],
-                                  recursive=False).files()
-epid11_utest_files = Pattern(src_dir='1.1/unittests',
-                             includes=['*-test.cc', '*-testhelper.cc'],
-                             recursive=False).files()
-epid11_utest_headers = Pattern(src_dir='1.1/unittests',
-                               includes=['*-testhelper.h',],
-                               recursive=False).files()
-epid11_utest_data_files = Pattern(src_dir='1.1/unittests/testdata',
-                                  includes=['*.inc'],
-                                  recursive=False).files()
+src_files = Pattern(src_dir='src', includes=['*.c'], recursive=True).files()
 
-build_files = Pattern(src_dir='.',
-                      includes=['*.parts', 'Makefile'],
-                      recursive=False).files()
+env.DependsOn([
+    Component('epiddefs'),
+    Component('common'),
+    Component('ippmath'),
+])
+lib_name = env.subst('${PART_SHORT_NAME}')
 
-if 'install_package' in env['MODE']:
-    env.InstallTopLevel(api_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}')
-    env.InstallTopLevel(src_files + internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/src')
-    env.InstallTopLevel(utest_files + utest_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/unittests')
-    env.InstallTopLevel(
-        utest_data_files,
-        sub_dir='epid/${PART_SHORT_NAME}/unittests/testdata/sigrl')
+env.Append(CPPPATH=[AbsDir('include'),AbsDir('header'),AbsDir('.')])
+env.ExportCPPPATH([AbsDir('include')])
 
-    env.InstallTopLevel(epid11_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/1.1')
-    env.InstallTopLevel(epid11_src_files + epid11_internal_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/1.1/src')
-    env.InstallTopLevel(epid11_utest_files + epid11_utest_headers,
-                        sub_dir='epid/${PART_SHORT_NAME}/1.1/unittests')
-    env.InstallTopLevel(
-        epid11_utest_data_files,
-        sub_dir='epid/${PART_SHORT_NAME}/1.1/unittests/testdata')
+outputs = env.Library(lib_name, src_files)
 
-    env.InstallTopLevel(build_files, sub_dir='epid/${PART_SHORT_NAME}')
+sdk_outs = env.Sdk(outputs)
+env.SdkInclude(include_files, sub_dir='epid')
+env.SdkInclude(include_files11, sub_dir='epid/1.1')
 
-else:
-    env.DependsOn([
-        Component('common'),
-    ])
+if 'install_lib' in env['MODE']:
+    env.InstallInclude(include_files, sub_dir='epid')
+    env.InstallInclude(include_files11, sub_dir='epid/1.1')
+    env.InstallLib(outputs)
 
-    env.Append(CPPPATH='#')
-
-    if 'use_tss' in env['MODE']:
-        env.Append(CPPDEFINES=['TPM_TSS'])
-
-    testenv = env.Clone()
-    outputs = env.Library('${PART_NAME}', src_files + epid11_src_files)
-    env.Sdk(outputs)
-    env.SdkInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
-    env.SdkInclude(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
-
-    if 'install_lib' in env['MODE']:
-        env.InstallLib(outputs)
-        env.InstallInclude(api_headers, sub_dir='epid/${PART_SHORT_NAME}')
-        env.InstallInclude(epid11_headers, sub_dir='epid/${PART_SHORT_NAME}/1.1')
-
-    testenv['UNIT_TEST_TARGET_NAME'] = "${PART_NAME}-${UNIT_TEST_TARGET}"
-    testenv.UnitTest("utest",
-                     utest_files + epid11_utest_files,
-                     command_args=[
-                         '--gtest_color=yes',
-                         '--gtest_print_time=1',
-                         '--gtest_output=xml',
-                         '--gtest_filter=**',
-                     ],
-                     make_pdb=(env.isConfigBasedOn('debug') or
-                               env.isConfigBasedOn('static_crt_debug')),
-                     depends=[Component('gtest'),
-                              Component('common-testhelper'),
-                              Component('verifier')],
-                     INSTALL_BIN='${INSTALL_TEST_BIN}')
-    if env.get('fuzzer', False):
-        env.Part(parts_file=env.subst('${PART_DIR}/fuzztests/fuzztests.parts'),
-                INSTALL_BIN='${INSTALL_TEST_BIN}')
-
+is_utest_build = False
+for i in BUILD_TARGETS:
+    if "utest::" in str(i):
+        is_utest_build = True
+if is_utest_build:
+    env.Part(
+        parts_file='utest.parts', CONFIG=DefaultEnvironment().subst('$CONFIG'))
+if env.get('fuzzer', False):
+    env.Part(
+        parts_file='fuzztests/fuzztests.parts',
+        INSTALL_BIN='${INSTALL_TEST_BIN}')

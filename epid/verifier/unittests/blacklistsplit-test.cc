@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,18 +22,18 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/src/endian_convert.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
+#include "common/endian_convert.h"
+#include "epid/verifier.h"
+#include "context.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 bool operator==(VerifierPrecomp const& lhs, VerifierPrecomp const& rhs);
 bool operator==(G1ElemStr const& lhs, G1ElemStr const& rhs);
 bool operator==(OctStr32 const& lhs, OctStr32 const& rhs);
@@ -46,12 +46,13 @@ TEST_F(EpidVerifierSplitTest, BlacklistSigFailsGivenNullPointer) {
   auto msg = this->kMsg0;
   auto bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidBlacklistSig(nullptr, (EpidSignature*)sig.data(), sig.size(),
                              msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidBlacklistSig(verifier, nullptr, sig.size(),
-                                             msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(
+      kEpidBadSignatureErr,
+      EpidBlacklistSig(verifier, nullptr, sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(), sig.size(),
                              nullptr, 1));
 }
@@ -61,13 +62,13 @@ TEST_F(EpidVerifierSplitTest, BlacklistSigFailsGivenInvalidSignatureLength) {
   auto msg = this->kMsg0;
   auto bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(), 0,
                              msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(),
                              sig.size() - 1, msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(),
                              sig.size() + 1, msg.data(), msg.size()));
 }

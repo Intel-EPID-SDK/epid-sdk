@@ -1,18 +1,18 @@
 /*############################################################################
-# Copyright 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-############################################################################*/
+  # Copyright 2018-2019 Intel Corporation
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  ############################################################################*/
 
 /*!
  * \file
@@ -20,14 +20,14 @@
  */
 #include <cstring>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
 }
 
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 
 bool operator==(MemberPrecomp const& lhs, MemberPrecomp const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
@@ -41,28 +41,28 @@ void set_gid_hashalg(GroupId* id, HashAlg hashalg) {
 // local constant for Write Precomp tests. This can be hoisted later if needed
 // avoids cpplint warning about multiple includes.
 static const MembershipCredential kGrpXMember3Sha256Credential = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha256_01.inc"
 };
 static const MembershipCredential kGrpXMember3Sha512Credential = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha512_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha512_01.inc"
 };
 static const MembershipCredential kGrpXMember3Sha384Credential = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha384_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha384_01.inc"
 };
 static const MembershipCredential kGrpXMember3Sha512256Credential = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha512_256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitmembercredential_grpx_member3_sha512_256_01.inc"
 };
 const MemberPrecomp kGrpXMember3Sha256Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
 };
 const MemberPrecomp kGrpXMember3Sha512Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_01.inc"
 };
 const MemberPrecomp kGrpXMember3Sha384Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha384_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha384_01.inc"
 };
 const MemberPrecomp kGrpXMember3Sha512256Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_256_01.inc"
 };
 
 //////////////////////////////////////////////////////////////////////////

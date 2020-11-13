@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/verifybasic.h"
+#include "epid/verifier.h"
+#include "verifybasic.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 
 namespace {
 
@@ -43,11 +43,11 @@ TEST_F(EpidVerifierTest, VerifyBasicSigFailsGivenNullPtr) {
   const BasicSignature basic_sig = sig->sigma0;
   auto& msg = this->kTest1;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerifyBasicSig(nullptr, &basic_sig, msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifyBasicSig(verifier, nullptr, msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidVerifyBasicSig(verifier, &basic_sig, nullptr, msg.size()));
 }
 

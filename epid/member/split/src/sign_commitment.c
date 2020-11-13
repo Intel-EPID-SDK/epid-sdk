@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 /// Host signing helper implementation
 /*! \file */
 
-#include "epid/member/split/src/sign_commitment.h"
+#include "epid/member/split/sign_commitment.h"
 
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/src/commitment.h"
+#include "common/commitment.h"
+#include "ippmath/ecgroup.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

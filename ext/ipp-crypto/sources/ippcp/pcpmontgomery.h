@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2002-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2002-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -60,17 +36,17 @@
 */
 struct _cpMontgomery
 {
-   IppCtxId       idCtx;      /* Montgomery spec identifier             */
+   Ipp32u         idCtx;      /* Montgomery spec identifier             */
    cpSize         maxLen;     /* Maximum length of modulus being stored */
    gsModEngine*   pEngine;    /* Modular arith engine structure         */
 };
 
 /* accessory macros */
-#define MNT_ID(eng)       ((eng)->idCtx)
+#define MNT_SET_ID(eng)   ((eng)->idCtx = (Ipp32u)idCtxMontgomery ^ (Ipp32u)IPP_UINT_PTR(eng))
 #define MNT_ROOM(eng)     ((eng)->maxLen)
 #define MNT_ENGINE(eng)   ((eng)->pEngine)
 
-#define MNT_VALID_ID(eng) (MNT_ID((eng))==idCtxMontgomery)
+#define MNT_VALID_ID(eng) ((((eng)->idCtx) ^ (Ipp32u)IPP_UINT_PTR((eng))) == (Ipp32u)idCtxMontgomery)
 
 /* default methos */
 #define EXPONENT_METHOD    (ippBinaryMethod)
@@ -83,10 +59,9 @@ struct _cpMontgomery
 // Pacp/unpack Montgomery context
 */
 #define cpPackMontCtx OWNAPI(cpPackMontCtx)
-void    cpPackMontCtx(const IppsMontState* pCtx, Ipp8u* pBuffer);
+   IPP_OWN_DECL (void, cpPackMontCtx, (const IppsMontState* pCtx, Ipp8u* pBuffer))
 #define cpUnpackMontCtx OWNAPI(cpUnpackMontCtx)
-void    cpUnpackMontCtx(const Ipp8u* pBuffer, IppsMontState* pCtx);
-
+   IPP_OWN_DECL (void, cpUnpackMontCtx, (const Ipp8u* pBuffer, IppsMontState* pCtx))
 
 /*
 // Montgomery reduction, multiplication and squaring
@@ -228,17 +203,10 @@ __INLINE void cpMontDec_BN(IppsBigNumState* pRbn,
 /*
 // Montgomery exponentiation (binary) "fast" and "safe" versions
 */
-#define cpMontExpBin_BNU_sscm OWNAPI(cpMontExpBin_BNU_sscm)
-cpSize  cpMontExpBin_BNU_sscm(BNU_CHUNK_T* pY,
-                       const BNU_CHUNK_T* pX, cpSize nsX,
-                       const BNU_CHUNK_T* pE, cpSize nsE,
-                             gsModEngine* pModEngine);
-
 #define cpMontExpBin_BNU OWNAPI(cpMontExpBin_BNU)
-cpSize  cpMontExpBin_BNU(BNU_CHUNK_T* pY,
-                   const BNU_CHUNK_T* pX, cpSize nsX,
-                   const BNU_CHUNK_T* pE, cpSize nsE,
-                         gsModEngine* pModEngine);
+   IPP_OWN_DECL (cpSize, cpMontExpBin_BNU, (BNU_CHUNK_T* pY, const BNU_CHUNK_T* pX, cpSize nsX, const BNU_CHUNK_T* pE, cpSize nsE, gsModEngine* pModEngine))
+#define cpMontExpBin_BNU_sscm OWNAPI(cpMontExpBin_BNU_sscm)
+   IPP_OWN_DECL (cpSize, cpMontExpBin_BNU_sscm, (BNU_CHUNK_T* pY, const BNU_CHUNK_T* pX, cpSize nsX, const BNU_CHUNK_T* pE, cpSize nsE, gsModEngine* pModEngine))
 
 __INLINE void cpMontExpBin_BN_sscm(IppsBigNumState* pYbn,
                              const IppsBigNumState* pXbn,
@@ -277,20 +245,13 @@ __INLINE void cpMontExpBin_BN(IppsBigNumState* pYbn,
 // Montgomery exponentiation (fixed window)
 */
 #define cpMontExp_WinSize OWNAPI(cpMontExp_WinSize)
-cpSize  cpMontExp_WinSize(int bitsize);
+   IPP_OWN_DECL (cpSize, cpMontExp_WinSize, (int bitsize))
 
 #if defined(_USE_WINDOW_EXP_)
 #define cpMontExpWin_BN_sscm OWNAPI(cpMontExpWin_BN_sscm)
-void    cpMontExpWin_BN_sscm(IppsBigNumState* pY,
-                      const IppsBigNumState* pX, const IppsBigNumState* pE,
-                            gsModEngine*     pMont,
-                            BNU_CHUNK_T* pPrecompResource);
-
+   IPP_OWN_DECL (void, cpMontExpWin_BN_sscm, (IppsBigNumState* pY, const IppsBigNumState* pX, const IppsBigNumState* pE, gsModEngine* pMont, BNU_CHUNK_T* pPrecompResource))
 #define cpMontExpWin_BN OWNAPI(cpMontExpWin_BN)
-void    cpMontExpWin_BN(IppsBigNumState* pY,
-                  const IppsBigNumState* pX, const IppsBigNumState* pE,
-                        gsModEngine*     pMont,
-                        BNU_CHUNK_T* pPrecompResource);
+   IPP_OWN_DECL (void, cpMontExpWin_BN, (IppsBigNumState* pY, const IppsBigNumState* pX, const IppsBigNumState* pE, gsModEngine* pMont, BNU_CHUNK_T* pPrecompResource))
 #endif
 
 /*
@@ -298,35 +259,28 @@ void    cpMontExpWin_BN(IppsBigNumState* pY,
 */
 /* precompute table for multi-exponentiation */
 #define cpMontMultiExpInitArray OWNAPI(cpMontMultiExpInitArray)
-void    cpMontMultiExpInitArray(BNU_CHUNK_T* pPrecomTbl,
-                         const BNU_CHUNK_T** ppX, cpSize xItemBitSize, cpSize numItems,
-                               gsModEngine* pMont);
+   IPP_OWN_DECL (void, cpMontMultiExpInitArray, (BNU_CHUNK_T* pPrecomTbl, const BNU_CHUNK_T** ppX, cpSize xItemBitSize, cpSize numItems, gsModEngine* pMont))
 
 /* multi-exponentiation */
 #define cpFastMontMultiExp OWNAPI(cpFastMontMultiExp)
-void    cpFastMontMultiExp(BNU_CHUNK_T* pY,
-                     const BNU_CHUNK_T* pPrecomTbl,
-                     const Ipp8u** ppE, cpSize eItemBitSize, cpSize numItems,
-                           gsModEngine* pMont);
+   IPP_OWN_DECL (void, cpFastMontMultiExp, (BNU_CHUNK_T* pY, const BNU_CHUNK_T* pPrecomTbl, const Ipp8u** ppE, cpSize eItemBitSize, cpSize numItems, gsModEngine* pMont))
 /*
 // Montgomery inversion
 */
-#define      cpMontInv_BNU OWNAPI(cpMontInv_BNU)
-BNU_CHUNK_T* cpMontInv_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsMontState* pMont);
-#define      cpRegInv_BNU OWNAPI(cpRegInv_BNU)
-BNU_CHUNK_T* cpRegInv_BNU(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsMontState* pMont);
+#define cpMontInv_BNU OWNAPI(cpMontInv_BNU)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpMontInv_BNU, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsMontState* pMont))
+#define cpRegInv_BNU OWNAPI(cpRegInv_BNU)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpRegInv_BNU, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, IppsMontState* pMont))
 
 
 /*
 // Montgomery internal GetSize/Init functions
 */
-#define   cpMontGetSize OWNAPI(cpMontGetSize)
-IppStatus cpMontGetSize(cpSize maxLen32, int poolLength, cpSize* pCtxSize);
-
-#define   cpMontInit OWNAPI(cpMontInit)
-IppStatus cpMontInit(int maxLen32, int poolLength, IppsMontState* pMont);
-
-#define   cpMontSet OWNAPI(cpMontSet)
-IppStatus cpMontSet(const Ipp32u* pModulus, cpSize len32, IppsMontState* pMont);
+#define cpMontGetSize OWNAPI(cpMontGetSize)
+   IPP_OWN_DECL (IppStatus, cpMontGetSize, (cpSize maxLen32, int poolLength, cpSize* pCtxSize))
+#define cpMontInit OWNAPI(cpMontInit)
+   IPP_OWN_DECL (IppStatus, cpMontInit, (int maxLen32, int poolLength, IppsMontState* pMont))
+#define cpMontSet OWNAPI(cpMontSet)
+   IPP_OWN_DECL (IppStatus, cpMontSet, (const Ipp32u* pModulus, cpSize len32, IppsMontState* pMont))
 
 #endif /* _CP_MONTGOMETRY_H */

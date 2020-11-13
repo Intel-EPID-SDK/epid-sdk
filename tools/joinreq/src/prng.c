@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "src/prng.h"
+#include "prng.h"
 
 EpidStatus PrngCreate(void** prng) {
   // Security note:

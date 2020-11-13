@@ -29,7 +29,7 @@
 #include <io.h>
 #endif  // defined(_WIN32)
 
-#include "src/mprecmp.h"
+#include "mprecmp.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 

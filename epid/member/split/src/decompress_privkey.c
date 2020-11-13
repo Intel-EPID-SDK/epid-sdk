@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2016-2018 Intel Corporation
+# Copyright 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
 #define EXPORT_EPID_APIS
 #include "epid/member/api.h"
 
-#include "epid/common/errors.h"
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/hash.h"
-#include "epid/common/math/src/bignum-internal.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
+#include "common/epid2params.h"
+#include "epid/errors.h"
+#include "epid/types.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/hash.h"
+#include "ippmath/memory.h"
+#include "ippmath/pairing.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -245,7 +245,7 @@ static EpidStatus DeriveXF(FpElemStr* x, FpElemStr* f, Seed const* seed,
 #pragma pack()
 
     Sha256Digest digest[2];
-    Ipp8u str512[512 / 8];
+    unsigned char str512[512 / 8];
 
     result = NewBigNum(sizeof(*p), &bn_p);
     BREAK_ON_EPID_ERROR(result);

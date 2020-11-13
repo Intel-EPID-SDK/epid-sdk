@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
   # limitations under the License.
   ############################################################################*/
 /// EpidProvisionKey implementation.
-/*!
- * \file
- */
+/*! \file */
 #define EXPORT_EPID_APIS
 #include <epid/member/api.h>
 
 #include <string.h>
-#include "epid/common/src/gid_parser.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/stdtypes.h"
-#include "epid/common/types.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/storage.h"
-#include "epid/member/split/src/validatekey.h"
+#include "common/gid_parser.h"
+#include "common/validate_privkey.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/storage.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/load_external.h"
+#include "epid/stdtypes.h"
+#include "epid/types.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -78,11 +76,8 @@ EpidStatus EPID_MEMBER_API EpidProvisionKey(MemberCtx* ctx,
     BREAK_ON_EPID_ERROR(sts);
 
     /////// validate
-    if (!EpidMemberIsKeyValid(ctx, &priv_key->A, &priv_key->x, new_f_handle,
-                              &pub_key->h1, &pub_key->w)) {
-      sts = kEpidKeyNotInGroupErr;
-      BREAK_ON_EPID_ERROR(sts);
-    }
+    sts = EpidValidateSplitPrivateKey(priv_key, pub_key);
+    BREAK_ON_EPID_ERROR(sts);
     ///////
 
     sts = EpidNvWriteMembershipCredential(ctx->tpm2_ctx, pub_key, &credential);

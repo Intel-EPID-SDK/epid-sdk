@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2010-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2010-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -51,6 +27,7 @@
 #include "pcpbnumisc.h"
 #include "pcpgfpxstuff.h"
 #include "gsscramble.h"
+#include "pcpmask_ct.h"
 
 //tbcd: temporary excluded: #include <assert.h>
 
@@ -85,7 +62,7 @@ static void cpPrecomputeMultiExp(BNU_CHUNK_T* pTable, const BNU_CHUNK_T* ppA[], 
    //tbcd: temporary excluded: assert(NULL!=pT);
 
    /* pTable[0] = 1 */
-   cpGFpElementCopyPadd(pT, elmLen, GFP_MNT_R(pBasicGFE), GFP_FELEN(pBasicGFE));
+   cpGFpElementCopyPad(pT, elmLen, GFP_MNT_R(pBasicGFE), GFP_FELEN(pBasicGFE));
    //cpScramblePut(pTable+0, nPrecomputed, (Ipp8u*)pT, elmDataSize);
    gsScramblePut(pTable, 0, pT, elmLen, nItems);
    /* pTable[1] = A[0] */
@@ -133,18 +110,20 @@ static void cpPrecomputeMultiExp(BNU_CHUNK_T* pTable, const BNU_CHUNK_T* ppA[], 
 
 static int cpGetMaxBitsizeExponent(const BNU_CHUNK_T* ppE[], int nsE[], int nItems)
 {
-   int n;
+   int n, tmp;
+   Ipp32u mask;
    /* find out the longest exponent */
    int expBitSize = BITSIZE_BNU(ppE[0], nsE[0]);
    for(n=1; n<nItems; n++) {
-      expBitSize = IPP_MAX(expBitSize, BITSIZE_BNU(ppE[n], nsE[n]));
+      tmp = BITSIZE_BNU(ppE[n], nsE[n]);
+      mask = (Ipp32u)cpIsMsb_ct((BNU_CHUNK_T)(expBitSize - tmp));
+      expBitSize = (int)(((BNU_CHUNK_T)expBitSize & ~mask) | ((BNU_CHUNK_T)tmp & mask));
    }
    return expBitSize;
 }
 
 /* sscm version */
-BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems,
-                          gsModEngine* pGFEx, Ipp8u* pScratchBuffer)
+IPP_OWN_DEFN (BNU_CHUNK_T*, cpGFpxMultiExp, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems, gsModEngine* pGFEx, Ipp8u* pScratchBuffer))
 {
    /* align scratch buffer */
    BNU_CHUNK_T* pTable = (BNU_CHUNK_T*)( IPP_ALIGNED_PTR(pScratchBuffer, CACHE_LINE_SIZE) );
@@ -166,7 +145,7 @@ BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU
          for(n=0; n<nItems; n++) {
             BNU_CHUNK_T* pData = cpGFpGetPool(1, pGFEx);
             //tbcd: temporary excluded: assert(NULL!=pData);
-            cpGFpElementCopyPadd(pData, elmLen, ppE[n], nsE[n]);
+            cpGFpElementCopyPad(pData, elmLen, ppE[n], nsE[n]);
             ppExponent[n] = pData;
          }
       }

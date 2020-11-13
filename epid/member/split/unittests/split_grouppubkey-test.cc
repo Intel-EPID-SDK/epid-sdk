@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
 /*! \file */
 
 #include <cstring>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/math/ecgroup.h"
-#include "epid/member/split/src/split_grouppubkey.h"
+#include "epid/member/split/split_grouppubkey.h"
+#include "ippmath/ecgroup.h"
 }
 
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
 
 /// compares GroupPubKey values
 bool operator!=(GroupPubKey const& lhs, GroupPubKey const& rhs) {

@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2004-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2004-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -58,7 +34,7 @@
 // Prime context
 */
 struct _cpPrime {
-   IppCtxId          idCtx;      /* Prime context identifier */
+   Ipp32u            idCtx;      /* Prime context identifier */
    cpSize            maxBitSize; /* max bit length             */
    BNU_CHUNK_T*      pPrime;     /* prime value   */
    BNU_CHUNK_T*      pT1;        /* temporary BNU */
@@ -71,7 +47,7 @@ struct _cpPrime {
 #define PRIME_ALIGNMENT ((int)sizeof(void*))
 
 /* Prime accessory macros */
-#define PRIME_ID(ctx)         ((ctx)->idCtx)
+#define PRIME_SET_ID(ctx)     ((ctx)->idCtx = (Ipp32u)idCtxPrimeNumber ^ (Ipp32u)IPP_UINT_PTR(ctx))
 #define PRIME_MAXBITSIZE(ctx) ((ctx)->maxBitSize)
 #define PRIME_NUMBER(ctx)     ((ctx)->pPrime)
 #define PRIME_TEMP1(ctx)      ((ctx)->pT1)
@@ -79,7 +55,7 @@ struct _cpPrime {
 #define PRIME_TEMP3(ctx)      ((ctx)->pT3)
 #define PRIME_MONT(ctx)       ((ctx)->pMont)
 
-#define PRIME_VALID_ID(ctx)   (PRIME_ID((ctx))==idCtxPrimeNumber)
+#define PRIME_VALID_ID(ctx)   ((((ctx)->idCtx) ^ (Ipp32u)IPP_UINT_PTR((ctx))) == (Ipp32u)idCtxPrimeNumber)
 
 /*
 // Number of Miller-Rabin rounds for an error rate of less than 1/2^80 for random 'b'-bit input, b >= 100.
@@ -100,18 +76,15 @@ struct _cpPrime {
 
 /* easy prime test */
 #define cpMimimalPrimeTest OWNAPI(cpMimimalPrimeTest)
-int cpMimimalPrimeTest(const Ipp32u* pPrime, cpSize ns);
+   IPP_OWN_DECL (int, cpMimimalPrimeTest, (const Ipp32u* pPrime, cpSize ns))
 
 /* prime test */
 #define cpPrimeTest OWNAPI(cpPrimeTest)
-int cpPrimeTest(const BNU_CHUNK_T* pPrime, cpSize primeLen,
-                cpSize nTrials,
-                IppsPrimeState* pCtx,
-                IppBitSupplier rndFunc, void* pRndParam);
+   IPP_OWN_DECL (int, cpPrimeTest, (const BNU_CHUNK_T* pPrime, cpSize primeLen, cpSize nTrials, IppsPrimeState* pCtx, IppBitSupplier rndFunc, void* pRndParam))
 
 #define cpPackPrimeCtx OWNAPI(cpPackPrimeCtx)
-void cpPackPrimeCtx(const IppsPrimeState* pCtx, Ipp8u* pBuffer);
+   IPP_OWN_DECL (void, cpPackPrimeCtx, (const IppsPrimeState* pCtx, Ipp8u* pBuffer))
 #define cpUnpackPrimeCtx OWNAPI(cpUnpackPrimeCtx)
-void cpUnpackPrimeCtx(const Ipp8u* pBuffer, IppsPrimeState* pCtx);
+   IPP_OWN_DECL (void, cpUnpackPrimeCtx, (const Ipp8u* pBuffer, IppsPrimeState* pCtx))
 
 #endif /* _CP_PRIME_H */

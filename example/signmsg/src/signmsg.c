@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "epid/common/file_parser.h"
+#include "epid/file_parser.h"
 #include "epid/member/api.h"
 #include "src/prng.h"
 #include "util/convutil.h"
@@ -45,11 +45,12 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
   SigRl* sig_rl = NULL;
 
   do {
+    MemberParams config = {0};
     GroupPubKey pub_key = {0};
     PrivKey priv_key = {0};
     MembershipCredential member_credential = {0};
     size_t sig_rl_size = 0;
-    MemberParams params = {0};
+
     size_t member_size = 0;
 
     if (!sig) {
@@ -85,25 +86,32 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       break;
     }
 
-    // Indicate that f should be selected by the member.
-    // Depending on the implmentation, This might mean
-    // selecting a new random value, or it might mean
-    // using a value previously stored in a secure location.
-    params.f = NULL;
 #ifndef TPM_TSS
-    // If the implmentation does not have a known secure
-    // random number generator one must be supplied.
-    params.rnd_func = &PrngGen;
-    params.rnd_param = prng;
+    // If the underlying member implementation does not have a built-in random
+    // number generator one must be supplied.
+    sts = EpidMemberSetEntropyGenerator(&PrngGen, prng, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
 #endif
+
 #ifdef TINY
-    params.max_sigrl_entries = 5;
-    params.max_allowed_basenames = 5;
-    params.max_precomp_sig = 1;
+    sts = EpidMemberSetMaxSigRlEntries(5, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+    sts = EpidMemberSetMaxAllowedBasenames(5, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
+    sts = EpidMemberSetMaxPrecomputedSigs(1, &config);
+    if (kEpidNoErr != sts) {
+      break;
+    }
 #endif
 
     // create member
-    sts = EpidMemberGetSize(&params, &member_size);
+    sts = EpidMemberGetSize(&config, &member_size);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -112,7 +120,7 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
       sts = kEpidNoMemErr;
       break;
     }
-    sts = EpidMemberInit(&params, member);
+    sts = EpidMemberInit(&config, member);
     if (kEpidNoErr != sts) {
       break;
     }
@@ -200,7 +208,6 @@ EpidStatus SignMsg(void const* msg, size_t msg_len, void const* basename,
   PrngDelete(&prng);
   EpidMemberDeinit(member);
   if (member) free(member);
-
   if (sig_rl) free(sig_rl);
 
   return sts;

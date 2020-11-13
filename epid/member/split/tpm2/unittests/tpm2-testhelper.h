@@ -1,18 +1,18 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-############################################################################*/
+  # Copyright 2017-2019 Intel Corporation
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  ############################################################################*/
 /// TPM fixture class.
 /*! \file */
 #ifndef EPID_MEMBER_SPLIT_TPM2_UNITTESTS_TPM2_TESTHELPER_H_
@@ -21,14 +21,13 @@
 #include <stdint.h>
 #include <climits>
 #include <vector>
-
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/member/split/tpm2/unittests/tpm2_wrapper-testhelper.h"
+#include "tpm2_wrapper-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/bitsupplier.h"
-#include "epid/common/src/hashsize.h"
+#include "common/hashsize.h"
+#include "epid/bitsupplier.h"
 #include "epid/member/split/tpm2/context.h"
 }
 

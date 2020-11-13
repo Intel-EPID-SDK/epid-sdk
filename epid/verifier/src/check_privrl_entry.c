@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  * \brief EpidCheckPrivRlEntry implementation.
  */
 #define EXPORT_EPID_APIS
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
-#include "epid/verifier/src/rlverify.h"
+#include "epid/verifier.h"
+#include "context.h"
+#include "rlverify.h"
 
 EpidStatus EPID_VERIFIER_API EpidCheckPrivRlEntry(VerifierCtx const* ctx,
                                                   BasicSignature const* sig,
@@ -32,11 +32,14 @@ EpidStatus EPID_VERIFIER_API EpidCheckPrivRlEntry(VerifierCtx const* ctx,
   EcPoint* t4 = NULL;
   EcGroup* G1 = NULL;
   FfElement* ff_elem = NULL;
-  if (!ctx || !sig || !f) {
-    return kEpidBadArgErr;
+  if (!ctx || !ctx->epid2_params || !ctx->epid2_params->G1) {
+    return kEpidBadCtxErr;
   }
-  if (!ctx->epid2_params || !ctx->epid2_params->G1) {
-    return kEpidBadArgErr;
+  if (!sig) {
+    return kEpidBadSignatureErr;
+  }
+  if (!f) {
+    return kEpidBadRlEntryErr;
   }
   do {
     // Section 4.1.2 Step 4.b For i = 0, ... , n1-1, the verifier computes t4

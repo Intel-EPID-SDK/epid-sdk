@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@
  * \brief DecompressPrivKey unit tests.
  */
 #include <cstring>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "member-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
 }
-
-#include "epid/member/split/unittests/member-testhelper.h"
 
 bool operator==(PrivKey const& lhs, PrivKey const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));

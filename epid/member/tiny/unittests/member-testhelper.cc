@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,18 +19,18 @@
  * \brief EpidMemberTest test fixture implementation.
  */
 
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 
 #include <cstdio>
 #include <cstring>
 #include <string>
 
 extern "C" {
-#include "epid/common/types.h"
-#include "epid/member/tiny/src/native_types.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/types.h"
 }
 
-#include "epid/common-testhelper/mem_params-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -271,25 +271,25 @@ const NativeBasicSignature EpidMemberTest::kBasicSig = {
      0x69E22FF7, 0xBAAF3219}};
 
 const std::vector<uint8_t> EpidMemberTest::kGroupPublicKeyDataIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/pubkey.inc"
+#include "testhelper/testdata/ikgf/groupa/pubkey.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kMemberPrivateKeyDataIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/member0/mprivkey.inc"
+#include "testhelper/testdata/ikgf/groupa/member0/mprivkey.inc"
 };
 
 const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha256 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha384 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha384.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha384.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kGrp01Member0SigTest1Sha512 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kTest1Msg = {'t', 'e', 's', 't',
                                                         '1'};
 std::vector<uint8_t> EpidMemberTest::kSigRlData = {
-#include "epid/common-testhelper/testdata/grp01/sigrl.inc"
+#include "testhelper/testdata/grp01/sigrl.inc"
 };
 std::vector<uint8_t> EpidMemberTest::kSigRl5EntryData = {
     // gid
@@ -395,34 +395,34 @@ const std::vector<uint8_t> EpidMemberTest::kOtpData = {
     0x44, 0x08, 0x4c, 0xc0, 0xed, 0x5c, 0x5e, 0xce, 0x66, 0xaf, 0xa7, 0xe9};
 
 const GroupPubKey EpidMemberTest::kGrpXKey = {
-#include "epid/common-testhelper/testdata/grp_x/pubkey.inc"
+#include "testhelper/testdata/grp_x/pubkey.inc"
 };
 const PrivKey EpidMemberTest::kGrpXMember0PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member0/mprivkey.inc"
+#include "testhelper/testdata/grp_x/member0/mprivkey.inc"
 };
 const PrivKey EpidMemberTest::kGrpXSigrevokedMember0PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/sigrevoked/mprivatekey000.inc"
+#include "testhelper/testdata/grp_x/sigrevoked/mprivatekey000.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kGrpXSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl.inc"
+#include "testhelper/testdata/grp_x/sigrl.inc"
 };
 const std::vector<uint8_t> EpidMemberTest::kGrpXSigRlSingleEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_single_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_single_entry.inc"
 };
 
 const CompressedPrivKey EpidMemberTest::kGrpXMember9CompressedKey = {
-#include "epid/common-testhelper/testdata/grp_x/cmember9/cmpprivkey.inc"
+#include "testhelper/testdata/grp_x/cmember9/cmpprivkey.inc"
 };
 const PrivKey EpidMemberTest::kGrpXMember9PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/cmember9/mprivkey.inc"
+#include "testhelper/testdata/grp_x/cmember9/mprivkey.inc"
 };
 
 const GroupPubKey EpidMemberTest::kGrpYKey = {
-#include "epid/common-testhelper/testdata/grp_y/pubkey.inc"
+#include "testhelper/testdata/grp_y/pubkey.inc"
 };
 
 const CompressedPrivKey EpidMemberTest::kGrpYMember9CompressedKey = {
-#include "epid/common-testhelper/testdata/grp_y/cmember9/cmpprivkey.inc"
+#include "testhelper/testdata/grp_y/cmember9/cmpprivkey.inc"
 };
 
 const OctStr32 EpidMemberTest::kOctStr32_1 = {0x00, 0x00, 0x00, 0x01};

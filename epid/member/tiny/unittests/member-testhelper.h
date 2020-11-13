@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@
 #include <stdint.h>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/common-testhelper/member_wrapper-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
+#include "testhelper/member_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"

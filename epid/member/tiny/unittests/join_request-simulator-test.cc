@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,48 +21,41 @@
 
 #include <cstring>
 #include <memory>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/common-testhelper/onetimepad.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
+#include "testhelper/onetimepad.h"
 
 extern "C" {
 #include "epid/member/api.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "epid/member/tiny/context.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 /// compares FpElemStr values
 bool operator==(FpElemStr const& lhs, FpElemStr const& rhs);
 
-/// compares MemberJoinRequest values
-bool operator==(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs);
-
-/// compares MemberJoinRequest values for inequality
-bool operator!=(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs);
-
 namespace {
-
 // local constant for Join Request tests. This can be hoisted later if needed
 // avoids cpplint warning about multiple includes.
 
-const JoinRequest joinreq_sha256_grp_x = {
-#include "epid/common-testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha256_01.inc"
+const std::vector<uint8_t> joinreq_sha256_grp_x = {
+#include "testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha256_01.inc"
 };
 
-const JoinRequest joinreq_sha384_grp_x = {
-#include "epid/common-testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha384_01.inc"
+const std::vector<uint8_t> joinreq_sha384_grp_x = {
+#include "testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha384_01.inc"
 };
 
-const JoinRequest joinreq_sha512_grp_x = {
-#include "epid/common-testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha512_01.inc"
+const std::vector<uint8_t> joinreq_sha512_grp_x = {
+#include "testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha512_01.inc"
 };
 
-const JoinRequest joinreq_sha512256_grp_x = {
-#include "epid/common-testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha512_256_01.inc"
+const std::vector<uint8_t> joinreq_sha512256_grp_x = {
+#include "testhelper/testdata/grp_x/member3/joinreq_grpx_member3_sha512_256_01.inc"
 };
 
 const FpElemStr f = {0x48, 0x40, 0xb5, 0x6c, 0x6d, 0x47, 0x09, 0x0b,
@@ -85,15 +78,15 @@ TEST_F(EpidMemberTest,
   prng.InitUint8(this->kOtpData);  // reinitialize prng with test data
   MemberParams params = {0};
   GroupPubKey pub_key = kGrpXKey;
-  MemberJoinRequest join_request;
-  MemberJoinRequest expected_join_request;
-  expected_join_request.request = joinreq_sha256_grp_x;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
+  std::vector<uint8_t> expected_join_request_buffer = joinreq_sha256_grp_x;
   SetMemberParams(OneTimePad::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   set_gid_hashalg(&pub_key.gid, kSha256);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_EQ(expected_join_request, join_request);
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_EQ(expected_join_request_buffer, join_request);
 }
 
 TEST_F(EpidMemberTest,
@@ -102,15 +95,16 @@ TEST_F(EpidMemberTest,
   GroupPubKey pub_key = kGrpXKey;
   OneTimePad prng;
   prng.InitUint8(this->kOtpData);  // reinitialize prng with test data
-  MemberJoinRequest join_request = {0};
-  MemberJoinRequest expected_join_request;
-  expected_join_request.request = joinreq_sha384_grp_x;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
+  std::vector<uint8_t> expected_join_request_buffer = joinreq_sha384_grp_x;
+
   SetMemberParams(OneTimePad::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   set_gid_hashalg(&pub_key.gid, kSha384);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_EQ(expected_join_request, join_request);
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_EQ(expected_join_request_buffer, join_request);
 }
 
 TEST_F(EpidMemberTest,
@@ -119,15 +113,16 @@ TEST_F(EpidMemberTest,
   GroupPubKey pub_key = kGrpXKey;
   OneTimePad prng;
   prng.InitUint8(this->kOtpData);  // reinitialize prng with test data
-  MemberJoinRequest join_request = {0};
-  MemberJoinRequest expected_join_request;
-  expected_join_request.request = joinreq_sha512_grp_x;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
+  std::vector<uint8_t> expected_join_request_buffer = joinreq_sha512_grp_x;
+
   SetMemberParams(OneTimePad::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   set_gid_hashalg(&pub_key.gid, kSha512);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_EQ(expected_join_request, join_request);
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_EQ(expected_join_request_buffer, join_request);
 }
 
 TEST_F(EpidMemberTest,
@@ -136,14 +131,15 @@ TEST_F(EpidMemberTest,
   GroupPubKey pub_key = kGrpXKey;
   OneTimePad prng;
   prng.InitUint8(this->kOtpData);  // reinitialize prng with test data
-  MemberJoinRequest join_request = {0};
-  MemberJoinRequest expected_join_request;
-  expected_join_request.request = joinreq_sha512256_grp_x;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
+  std::vector<uint8_t> expected_join_request_buffer = joinreq_sha512256_grp_x;
+
   SetMemberParams(OneTimePad::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   set_gid_hashalg(&pub_key.gid, kSha512_256);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_EQ(expected_join_request, join_request);
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_EQ(expected_join_request_buffer, join_request);
 }
 }  // namespace

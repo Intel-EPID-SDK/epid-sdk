@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,11 +13,8 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief Pseudo random number generator interface.
- */
+/// Pseudo random number generator interface.
+/*! \file */
 
 #ifndef EXAMPLE_SIGNMSG_SRC_PRNG_H_
 #define EXAMPLE_SIGNMSG_SRC_PRNG_H_
@@ -28,7 +25,7 @@
 #define __STDCALL
 #endif
 
-#include "epid/common/errors.h"
+#include "epid/errors.h"
 
 /// Creates Pseudo Random Number Generator for ::PrngGen()
 EpidStatus PrngCreate(void** prng);

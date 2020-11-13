@@ -18,6 +18,7 @@
  * \file
  * \brief Buffer handling utilities implementation.
  */
+#define _CRT_SECURE_NO_DEPRECATE
 
 #include <util/buffutil.h>
 

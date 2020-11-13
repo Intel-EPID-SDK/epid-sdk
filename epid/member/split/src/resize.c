@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 /// Implements ResizeOctStr
 /*! \file */
 
-#include "epid/member/split/src/resize.h"
+#include "epid/member/split/resize.h"
 
 #include <stdint.h>
-#include "epid/common/src/memory.h"
+#include "ippmath/memory.h"
 
 EpidStatus ResizeOctStr(ConstOctStr a, size_t a_size, OctStr r, size_t r_size) {
   if (!a || !a_size || !r || !r_size) return kEpidBadArgErr;
   if (a_size <= r_size) {
-    memset(r, 0, r_size - a_size);
+    EpidZeroMemory(r, r_size - a_size);
     if (memcpy_S((uint8_t*)r + (r_size - a_size), a_size, a, a_size))
       return kEpidErr;
   } else {

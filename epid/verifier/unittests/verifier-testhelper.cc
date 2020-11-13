@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  * \brief Test fixture class for EpidVerifier.
  */
 
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "verifier-testhelper.h"
 
 const G1ElemStr EpidVerifierTest::kG1IdentityStr = {
     {{{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -444,73 +444,73 @@ const std::vector<uint8_t> EpidVerifierTest::kEmptyGrp01VerRl = {
     // no k's
 };
 const Epid2Params EpidVerifierTest::kParamsStr = {
-#include "epid/common/src/epid2params_ate.inc"
+#include "common/epid2params_ate.inc"
 };
 const GroupPubKey EpidVerifierTest::kGrp01Key = {
-#include "epid/common-testhelper/testdata/grp01/gpubkey.inc"
+#include "testhelper/testdata/grp01/gpubkey.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrp01PrivRl = {
-#include "epid/common-testhelper/testdata/grp01/privrl.inc"
+#include "testhelper/testdata/grp01/privrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrp01SigRl = {
-#include "epid/common-testhelper/testdata/grp01/sigrl.inc"
+#include "testhelper/testdata/grp01/sigrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kEmptySigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl_empty.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrl_empty.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrp01VerRl = {
-#include "epid/common-testhelper/testdata/grp01/verrl.inc"
+#include "testhelper/testdata/grp01/verrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha256RandombaseTest0 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test0_sha256_sigrl.inc"
+#include "testhelper/testdata/grp01/member0/sig_test0_sha256_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha512kBsn0Data_0_255 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_bsn0_msg_0_255_sha512.inc"
+#include "testhelper/testdata/grp01/member0/sig_bsn0_msg_0_255_sha512.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigMember0Sha256RandombaseMsg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_msg0_sha256_sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_msg0_sha256_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha384RandombaseTest0 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test0_sha384_sigrl.inc"
+#include "testhelper/testdata/grp01/member0/sig_test0_sha384_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha512RandombaseTest0 = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test0_sha512_sigrl.inc"
+#include "testhelper/testdata/grp01/member0/sig_test0_sha512_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXMember0Sha512256RandombaseMsg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha256RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha256.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha256Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_basename1_sha256.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_basename1_sha256.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigSha256Basename1Test1NoSigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_test1_basename1_sha256.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_test1_basename1_sha256.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha384RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha384.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha384.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrp01Member0Sha512RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
+#include "testhelper/testdata/grp01/member0/sig_test1_sha512.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXMember0Sha512256RandombaseMsg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_256_rndbase_msg0_no_sigrl.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kTest0 = {
@@ -548,335 +548,335 @@ const std::vector<uint8_t> EpidVerifierTest::kData_0_255 = {
 const OctStr32 EpidVerifierTest::kOctStr32_1 = {0x00, 0x00, 0x00, 0x01};
 
 const GroupPubKey EpidVerifierTest::kPubKeySigRlVerify = {
-#include "epid/verifier/unittests/testdata/sigrl/pub_key_sigrl_verify.inc"
+#include "testdata/sigrl/pub_key_sigrl_verify.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigRlSingleEntry = {
-#include "epid/verifier/unittests/testdata/sigrl/sigrl_single_entry.inc"
+#include "testdata/sigrl/sigrl_single_entry.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigRlFiveEntries = {
-#include "epid/verifier/unittests/testdata/sigrl/sigrl_five_entries.inc"
+#include "testdata/sigrl/sigrl_five_entries.inc"
 };
 const EpidNonSplitSignature EpidVerifierTest::kSignatureSigrlFirst = {
-#include "epid/verifier/unittests/testdata/sigrl/signature_sigrl_first.inc"
+#include "testdata/sigrl/signature_sigrl_first.inc"
 };
 const EpidNonSplitSignature EpidVerifierTest::kSignatureSigrlMiddle = {
-#include "epid/verifier/unittests/testdata/sigrl/signature_sigrl_middle.inc"
+#include "testdata/sigrl/signature_sigrl_middle.inc"
 };
 const EpidNonSplitSignature EpidVerifierTest::kSignatureSigrlLast = {
-#include "epid/verifier/unittests/testdata/sigrl/signature_sigrl_last.inc"
+#include "testdata/sigrl/signature_sigrl_last.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kGrpRl = {
-#include "epid/common-testhelper/testdata/grprl.inc"
+#include "testhelper/testdata/grprl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/grprl.inc"
+#include "testhelper/testdata/ikgf/grprl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpRlRevokedGrpXOnlyEntry = {
-#include "epid/common-testhelper/testdata/grprl_single_entry_revoked_grp_x.inc"
+#include "testhelper/testdata/grprl_single_entry_revoked_grp_x.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpRlRevokedGrpXFirstEntry = {
-#include "epid/common-testhelper/testdata/grprl_revoked_grp_x_first_entry.inc"
+#include "testhelper/testdata/grprl_revoked_grp_x_first_entry.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpRlRevokedGrpXMiddleEntry = {
-#include "epid/common-testhelper/testdata/grprl_revoked_grp_x_middle_entry.inc"
+#include "testhelper/testdata/grprl_revoked_grp_x_middle_entry.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpRlRevokedGrpXLastEntry = {
-#include "epid/common-testhelper/testdata/grprl_revoked_grp_x_last_entry.inc"
+#include "testhelper/testdata/grprl_revoked_grp_x_last_entry.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kBsn0 = {'b', 's', 'n', '0'};
 const std::vector<uint8_t> EpidVerifierTest::kMsg0 = {'m', 's', 'g', '0'};
 
 const GroupPubKey EpidVerifierTest::kGrpXKey = {
-#include "epid/common-testhelper/testdata/grp_x/pubkey.inc"
+#include "testhelper/testdata/grp_x/pubkey.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXPrivRl = {
-#include "epid/common-testhelper/testdata/grp_x/privrl.inc"
+#include "testhelper/testdata/grp_x/privrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXCorruptedPrivRl = {
-#include "epid/common-testhelper/testdata/grp_x/corrupted_privrl.inc"
+#include "testhelper/testdata/grp_x/corrupted_privrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kPrivRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/privrl.inc"
+#include "testhelper/testdata/ikgf/groupa/privrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kEmptyPrivRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/privrl_empty.inc"
+#include "testhelper/testdata/ikgf/groupa/privrl_empty.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kGrpXPrivRlRevokedPrivKey000OnlyEntry = {
-#include "epid/common-testhelper/testdata/grp_x/privrl_single_entry_revoked_key000.inc"
+#include "testhelper/testdata/grp_x/privrl_single_entry_revoked_key000.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl.inc"
+#include "testhelper/testdata/grp_x/sigrl.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kGrpXSigRlVersion2 = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_ver_2.inc"
+#include "testhelper/testdata/grp_x/sigrl_ver_2.inc"
 };
 
 const std::vector<uint8_t>
     EpidVerifierTest::kGrpXSigRlMember0Sha256Bsn0Msg0OnlyEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_single_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_single_entry.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kGrpXSigRlMember0Sha256Bsn0Msg0FirstEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_first_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_first_entry.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kGrpXSigRlMember0Sha256Bsn0Msg0MiddleEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_middle_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_middle_entry.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kGrpXSigRlMember0Sha256Bsn0Msg0LastEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_last_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_member0_sig_sha256_bsn0_msg0_revoked_last_entry.inc"
 };
 
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha256VerRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/verrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha384VerRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha384.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha384.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha512VerRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0Sha512256VerRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512_256.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/verrl_sha512_256.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn0VerRlSingleEntry = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/verrl_1entry.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/verrl_1entry.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn1VerRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn1/verrl.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn1/verrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kGrpXBsn1VerRl_012 = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn1/verrl_012revoked.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn1/verrl_012revoked.inc"
 };
 // clang-format off
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXVerRevokedMember0Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked0sha256bsn0msg0.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked0sha256bsn0msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXVerRevokedMember1Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked1sha256bsn0msg0.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked1sha256bsn0msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXVerRevokedMember2Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked2sha256bsn0msg0.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/sig_revoked2sha256bsn0msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXVerRevokedMember3Sha256Bsn1Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn1/sig_revoked3sha256bsn1msg0.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn1/sig_revoked3sha256bsn1msg0.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember0Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigMember0Sha256Bsn0Msg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigMember0Sha256Bsn0Msg0EmptySigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_empty_sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_empty_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigMember0Sha256Bsn0Msg0NoSigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_nosigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_nosigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigRevSigMember0Sha256Bsn0Msg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sigrevoked_sha256_bsn0_msg0.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sigrevoked_sha256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kRevGroupSigMember0Sha256Bsn0Msg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupb/sig_grouprevoked_sha256_bsn0_msg0.inc"
+#include "testhelper/testdata/ikgf/groupb/sig_grouprevoked_sha256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierTest::kSigGrpXMember0Sha256Bsn0Msg0SingleEntrySigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg0_rl_singleentry.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg0_rl_singleentry.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXRevokedPrivKey000Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey000.inc"
+#include "testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey000.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigRevokedPrivKeySha256Bsn0Msg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_revkey.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sha256_bsn0_msg0_revkey.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXRevokedPrivKey001Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey001.inc"
+#include "testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey001.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXRevokedPrivKey002Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey002.inc"
+#include "testhelper/testdata/grp_x/privrevoked/signatures/sig_sha256_bsn0_msg0_revkey002.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember0Sha256Bsn0Msg1 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg1.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_bsn0_msg1.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember0Sha256Bsn1Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_bsn1_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_bsn1_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha256RandbaseMsg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_rndbase_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_rndbase_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigMember0Sha256RandbaseMsg0Ikgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sig_sha256_rndbase_msg0.inc"
+#include "testhelper/testdata/ikgf/groupa/sig_sha256_rndbase_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha256RandbaseMsg1 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha256_rndbase_msg1.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha256_rndbase_msg1.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember0Sha384Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha384_bsn0_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha384_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha384RandbaseMsg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha384_rndbase_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha384_rndbase_msg0.inc"
 };
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember0Sha512Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_bsn0_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha512HugeBsnMsg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_huge_bsn_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_huge_bsn_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha512RandbaseMsg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_rndbase_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_rndbase_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha512256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member0/sig_sha512_256_bsn0_msg0.inc"
+#include "testhelper/testdata/grp_x/member0/sig_sha512_256_bsn0_msg0.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierTest::kSigGrpXMember0Sha512256RandbaseMsg0 =
                   kSigGrpXMember0Sha512256RandombaseMsg0;
 const std::vector<uint8_t> EpidVerifierTest::kSigGrpXMember1Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member1/sig_sha256_bsn0_msg0.inc"
+#include "testhelper/testdata/grp_x/member1/sig_sha256_bsn0_msg0.inc"
 };
 
 
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256kBsn0Data_0_255NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0255_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0255_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512kBsn0Data_0_255 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_bsn0_msg0255_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_bsn0_msg0255_5_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember4Sha256Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member4/splitsig_sha256_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member4/splitsig_sha256_basename1_test1_no_sigrl.inc"
 };
 
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256Basename1Test2NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test2_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test2_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigSha256Basename1Test1NoSigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/splitsig_sha256_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/splitsig_sha256_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha384RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha384_rndbase_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha384_rndbase_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_rndbase_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_rndbase_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512256RndbaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_256_rndbase_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_256_rndbase_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256HugeBsnMsg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_hugebsn_msg0_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_hugebsn_msg0_no_sigrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierSplitTest::
 kSplitSigRevokedGidMember0Sha256Bsn0Msg0NoSigRlIkgf = {
-#include "epid/common-testhelper/testdata/ikgf/groupb/splitsig_sha256_bsn0_msg0_revoked_gr01_no_sigrl.inc"
+#include "testhelper/testdata/ikgf/groupb/splitsig_sha256_bsn0_msg0_revoked_gr01_no_sigrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierSplitTest::
 kSplitSigGrpXRevokedPrivKey000Sha256Bsn0Msg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/privrevoked/splitsig_sha256_bsn0_msg0_no_sigrl_mprivkey000.inc"
+#include "testhelper/testdata/grp_x/privrevoked/splitsig_sha256_bsn0_msg0_no_sigrl_mprivkey000.inc"
 };
 const std::vector<uint8_t> EpidVerifierSplitTest::
 kSplitSigGrpXMember3Sha256Bsn0Msg0SingleEntrySigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_revoked.inc"
 };
 const std::vector<uint8_t> EpidVerifierSplitTest::
 kSplitSigGrpXVerRevokedMember0Sha256Bsn0Msg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/verrevoked/bsn0/splitsig_sha256_bsn0_msg0_no_sigrl_mprivkey000.inc"
+#include "testhelper/testdata/grp_x/verrevoked/bsn0/splitsig_sha256_bsn0_msg0_no_sigrl_mprivkey000.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_5_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha384Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha384_bsn0_msg0_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha384_bsn0_msg0_5_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember4Sha256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member4/splitsig_sha256_bsn0_msg0_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member4/splitsig_sha256_bsn0_msg0_no_sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512256Bsn0Msg0 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_256_bsn0_msg0_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_256_bsn0_msg0_5_sigrl.inc"
 };
 
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256RndBsnTest1WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_5_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha384RndBsnTest1WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha384_rndbase_test1_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha384_rndbase_test1_5_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512RndBsnTest1WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_rndbase_test1_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_rndbase_test1_5_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512_256RndBsnTest1WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_256_rndbase_test1_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_256_rndbase_test1_5_sigrl.inc"
 };
 
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256RndBsnData_0_255WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_msg0255_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_msg0255_5_sigrl.inc"
 };
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256RndBsn2Data_0_255NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase2_msg0255_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase2_msg0255_no_sigrl.inc"
 };
 
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha512HugeBsnMsg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_hugebsn_msg0_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_hugebsn_msg0_no_sigrl.inc"
 };
 const std::vector<uint8_t> EpidVerifierSplitTest::kSigRl5EntrySha256Data = {
-#include "epid/common-testhelper/testdata/grp_x/member3/sigrl_grpx_5_entry_data_sha256.inc"
+#include "testhelper/testdata/grp_x/member3/sigrl_grpx_5_entry_data_sha256.inc"
 };
 
 const std::vector<uint8_t>
 EpidVerifierSplitTest::kSplitSigGrpXMember3Sha256Bsn0Msg0OnlyEntry = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256.inc"
 };

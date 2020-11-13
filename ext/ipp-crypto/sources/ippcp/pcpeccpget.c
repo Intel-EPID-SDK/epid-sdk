@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2003-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2003-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -105,23 +81,18 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
 
    /* test pEC */
    IPP_BAD_PTR1_RET(pEC);
-   /* use aligned EC context */
-   pEC = (IppsGFpECState*)( IPP_ALIGNED_PTR(pEC, ECGFP_ALIGNMENT) );
-   IPP_BADARG_RET(!ECP_TEST_ID(pEC), ippStsContextMatchErr);
+   IPP_BADARG_RET(!VALID_ECP_ID(pEC), ippStsContextMatchErr);
 
    pGF = ECP_GFP(pEC);
    pGFE = GFP_PMA(pGF);
 
    /* test pPrime */
    IPP_BAD_PTR1_RET(pPrime);
-   pPrime = (IppsBigNumState*)( IPP_ALIGNED_PTR(pPrime, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pPrime), ippStsContextMatchErr);
    IPP_BADARG_RET(BN_ROOM(pPrime)<GFP_FELEN(pGFE), ippStsRangeErr);
 
    /* test pA and pB */
    IPP_BAD_PTR2_RET(pA,pB);
-   pA = (IppsBigNumState*)( IPP_ALIGNED_PTR(pA, ALIGN_VAL) );
-   pB = (IppsBigNumState*)( IPP_ALIGNED_PTR(pB, ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pA), ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pB), ippStsContextMatchErr);
    IPP_BADARG_RET(BN_ROOM(pA)<GFP_FELEN(pGFE), ippStsRangeErr);
@@ -129,9 +100,6 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
 
    /* test pG and pGorder pointers */
    IPP_BAD_PTR3_RET(pGX,pGY, pOrder);
-   pGX   = (IppsBigNumState*)( IPP_ALIGNED_PTR(pGX,   ALIGN_VAL) );
-   pGY   = (IppsBigNumState*)( IPP_ALIGNED_PTR(pGY,   ALIGN_VAL) );
-   pOrder= (IppsBigNumState*)( IPP_ALIGNED_PTR(pOrder,ALIGN_VAL) );
    IPP_BADARG_RET(!BN_VALID_ID(pGX),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pGY),    ippStsContextMatchErr);
    IPP_BADARG_RET(!BN_VALID_ID(pOrder), ippStsContextMatchErr);
@@ -161,7 +129,7 @@ IPPFUN(IppStatus, ippsECCPGet, (IppsBigNumState* pPrime,
 
       {
          gsModEngine* pR = ECP_MONT_R(pEC);
-         ippsSet_BN(ippBigNumPOS, MOD_LEN(pR)*sizeof(BNU_CHUNK_T)/sizeof(Ipp32u), (Ipp32u*)MOD_MODULUS(pR), pOrder);
+         ippsSet_BN(ippBigNumPOS, MOD_LEN(pR)*(Ipp32s)(sizeof(BNU_CHUNK_T)/sizeof(Ipp32u)), (Ipp32u*)MOD_MODULUS(pR), pOrder);
       }
 
       *cofactor = (int)ECP_COFACTOR(pEC)[0];

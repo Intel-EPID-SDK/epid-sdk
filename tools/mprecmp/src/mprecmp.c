@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "epid/member/api.h"
-#include "src/mprecmp.h"
+#include "mprecmp.h"
 
 #include "util/envutil.h"
 

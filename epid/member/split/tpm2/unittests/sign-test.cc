@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 /// TPM Sign unit tests.
 /*! \file */
 #include <climits>
-
+#include "tpm2-testhelper.h"
 #include "gtest/gtest.h"
-
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/split/tpm2/unittests/tpm2-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 extern "C" {
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/load_external.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "ippmath/memory.h"
 }
 
 namespace {

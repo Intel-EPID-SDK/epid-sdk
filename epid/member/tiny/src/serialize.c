@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 /// Tiny portable implementations of standard library functions
 /*! \file */
 
-#include "epid/member/tiny/src/serialize.h"
+#include "epid/member/tiny/serialize.h"
 #include <stddef.h>
 
-#include "epid/common/types.h"
-#include "epid/member/tiny/math/serialize.h"
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/signbasic.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/member/tiny/signbasic.h"
+#include "epid/types.h"
+#include "tinymath/serialize.h"
 
 void* BasicSignatureSerialize(BasicSignature* dest,
                               NativeBasicSignature const* src) {

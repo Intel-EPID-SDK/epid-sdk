@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 #define EXPORT_EPID_APIS
 #include "epid/member/api.h"
-#include "epid/member/tiny/src/allowed_basenames.h"
-#include "epid/member/tiny/src/context.h"
+#include "epid/member/tiny/allowed_basenames.h"
+#include "epid/member/tiny/context.h"
 
 EpidStatus EPID_MEMBER_API EpidRegisterBasename(MemberCtx* ctx,
                                                 void const* basename,

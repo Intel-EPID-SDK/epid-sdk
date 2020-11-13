@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,22 +15,22 @@
 ############################################################################*/
 /// Tpm2Ctx wrapper class implementation.
 /*! \file */
-#include "epid/member/split/tpm2/unittests/tpm2_wrapper-testhelper.h"
+#include "tpm2_wrapper-testhelper.h"
 
 #include <cstring>
 #include <string>
+#include <stdexcept>
 
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
 
+#include "epid/member/api.h"
 extern "C" {
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/stdtypes.h"
-#include "epid/common/types.h"
+#include "common/epid2params.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "epid/types.h"
 }
 
 Tpm2CtxObj::Tpm2CtxObj(BitSupplier rnd_func, void* rnd_param,

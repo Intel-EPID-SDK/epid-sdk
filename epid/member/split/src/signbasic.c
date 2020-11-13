@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,24 +15,25 @@
   ############################################################################*/
 /// EpidSplitSignBasic implementation.
 /*! \file */
-#include "epid/member/split/src/signbasic.h"
+#include "epid/member/split/signbasic.h"
 
 #include <string.h>  // memset
 
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
+#include "common/endian_convert.h"
+#include "common/epid2params.h"
+#include "common/hashsize.h"
 #include "epid/member/api.h"
-#include "epid/member/split/src/allowed_basenames.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/presig-internal.h"
-#include "epid/member/split/src/sign_commitment.h"
+#include "epid/member/split/allowed_basenames.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/presig-internal.h"
+#include "epid/member/split/sign_commitment.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/keyinfo.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
+#include "ippmath/pairing.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -79,6 +80,9 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
   FfElement* ra = NULL;
   FfElement* rb = NULL;
 
+  uint16_t counter = 0;
+  bool is_counter_set = false;
+
   struct p2x_t {
     uint32_t i;
     uint8_t bsn[1];
@@ -120,14 +124,13 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
     BigNumStr t1_str = {0};
     BigNumStr t2_str = {0};
     size_t digest_size = 0;
-    uint16_t* rf_ctr = (uint16_t*)&ctx->rf_ctr;
     FfElement const* x = ctx->x;
     size_t commit_len = 0;
     HashAlg hash_alg = Tpm2KeyHashAlg(ctx->f_handle);
 
     if (basename) {
       if (!IsBasenameAllowed(ctx->allowed_basenames, basename, basename_len)) {
-        sts = kEpidBadArgErr;
+        sts = kEpidBasenameNotRegisteredErr;
         BREAK_ON_EPID_ERROR(sts);
       }
     }
@@ -203,9 +206,9 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
         break;
       }
       sts = Tpm2Commit(ctx->tpm2_ctx, ctx->f_handle, ctx->h1, p2x,
-                       sizeof(p2x->i) + basename_len, p2y, k, t, e,
-                       (uint16_t*)&ctx->rf_ctr);
+                       sizeof(p2x->i) + basename_len, p2y, k, t, e, &counter);
       BREAK_ON_EPID_ERROR(sts);
+      is_counter_set = true;
       sts = WriteEcPoint(G1, k, &commit_out.K, sizeof(commit_out.K));
       BREAK_ON_EPID_ERROR(sts);
       // c.i. The member computes R1 = LTPM.
@@ -258,7 +261,9 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
       commit_out.B = curr_presig.B;
       commit_out.K = curr_presig.K;
       commit_out.R1 = curr_presig.R1;
-      ((MemberCtx*)ctx)->rf_ctr = curr_presig.rf_ctr;
+      counter = curr_presig.rf_ctr;
+      curr_presig.is_rf_ctr_set = false;
+      is_counter_set = true;
       commit_out.R2 = curr_presig.R2;
       *rnd_bsn = curr_presig.rnd_bsn;
     }
@@ -290,8 +295,9 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
 
     // 8.  The member computes sf = (rf + hash(k||c) * f) mod p.
     sts = Tpm2Sign(ctx->tpm2_ctx, ctx->f_handle, &commit_values.digest,
-                   digest_size, *rf_ctr, nk, t3);
+                   digest_size, counter, nk, t3);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = false;
     sts = WriteFfElement(Fp, t3, &sig->sf, sizeof(sig->sf));
     BREAK_ON_EPID_ERROR(sts);
     // c' = hash(k||c)
@@ -335,11 +341,10 @@ EpidStatus EpidSplitSignBasic(MemberCtx const* ctx, void const* msg,
     sts = kEpidNoErr;
   } while (0);
 
-  if (sts != kEpidNoErr) {
-    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, (uint16_t)ctx->rf_ctr,
-                             ctx->f_handle);
-    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, curr_presig.rf_ctr, ctx->f_handle);
-  } else if (basename) {
+  if (is_counter_set == true) {
+    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, counter, ctx->f_handle);
+  }
+  if (curr_presig.is_rf_ctr_set == true) {
     (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, curr_presig.rf_ctr, ctx->f_handle);
   }
 

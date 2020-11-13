@@ -1,0 +1,260 @@
+/*############################################################################
+  # Copyright 2017-2020 Intel Corporation
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  ############################################################################*/
+/// Definition of EFq math
+/*! \file */
+
+#ifndef EPID_INTERNAL_TINYMATH_INCLUDE_TINYMATH_EFQ_H_
+#define EPID_INTERNAL_TINYMATH_INCLUDE_TINYMATH_EFQ_H_
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stddef.h>
+#include "epid/bitsupplier.h"
+#include "epid/types.h"
+#include "epid/stdtypes.h"
+
+/// \cond
+typedef struct EccPointFq EccPointFq;
+typedef struct EccPointJacobiFq EccPointJacobiFq;
+typedef struct FpElem FpElem;
+typedef struct FqElem FqElem;
+/// \endcond
+
+/// Convert a point from Affine to Jacobi representation.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+*/
+void EFqFromAffine(EccPointJacobiFq* result, EccPointFq const* in);
+
+/// Convert a point from Jacobi to Affine representation.
+/*!
+\param[out] result target.
+\param[in] in value to set.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqToAffine(EccPointFq* result, EccPointJacobiFq const* in);
+
+/// Add two points in EFq.
+/*!
+\param[out] result of adding left and right.
+\param[in] left The first operand to be added.
+\param[in] right The second operand to be added.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqAffineAdd(EccPointFq* result, EccPointFq const* left,
+                 EccPointFq const* right);
+
+/// Add two points in EFq.
+/*!
+\param[out] result of adding left and right.
+\param[in] left The first operand to be added.
+\param[in] right The second operand to be added.
+*/
+void EFqAdd(EccPointJacobiFq* result, EccPointJacobiFq const* left,
+            EccPointJacobiFq const* right);
+
+/// Multiply two points in EFq.
+/*!
+This function is mitigated against software side-channel
+attacks.
+
+\param[out] result of multiplying left and right.
+\param[in] base The first operand to be multiplied.
+\param[in] exp The second operand to be multiplied.
+*/
+void EFqMulSSCM(EccPointJacobiFq* result, EccPointJacobiFq const* base,
+                FpElem const* exp);
+
+/// Exponentiate a point in EFq by an element of Fp.
+/*!
+\param[out] result target.
+\param[in] base the base.
+\param[in] exp the exponent.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqAffineExp(EccPointFq* result, EccPointFq const* base, FpElem const* exp);
+
+/// Sum the results of exponentiating two points in EFq by elements of Fp.
+/*!
+\param[out] result target.
+\param[in] base0 the first base.
+\param[in] exp0 the first exponent.
+\param[in] base1 the second base.
+\param[in] exp1 the second exponent.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqAffineMultiExp(EccPointFq* result, EccPointFq const* base0,
+                      FpElem const* exp0, EccPointFq const* base1,
+                      FpElem const* exp1);
+
+/// Sum the results of exponentiating two points in EFq by elements of Fp.
+/*!
+\param[out] result target.
+\param[in] base0 the first base.
+\param[in] exp0 the first exponent.
+\param[in] base1 the second base.
+\param[in] exp1 the second exponent.
+\returns 1 on success, 0 on failure
+*/
+void EFqMultiExp(EccPointJacobiFq* result, EccPointJacobiFq const* base0,
+                 FpElem const* exp0, EccPointJacobiFq const* base1,
+                 FpElem const* exp1);
+
+/// Double a point in EFq.
+/*!
+\param[out] result target.
+\param[in] in the value to double.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqAffineDbl(EccPointFq* result, EccPointFq const* in);
+
+/// Double a point in EFq.
+/*!
+\param[out] result target.
+\param[in] in the value to double.
+*/
+void EFqDbl(EccPointJacobiFq* result, EccPointJacobiFq const* in);
+
+/// Generate a random point in EFq.
+/*!
+\param[in] result the random value.
+\param[in] rnd_func Random number generator.
+\param[in] rnd_param Pass through context data for rnd_func.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqRand(EccPointFq* result, BitSupplier rnd_func, void* rnd_param);
+
+/// Generate a random point in EFq.
+/*!
+\param[in] result the random value.
+\param[in] rnd_func Random number generator.
+\param[in] rnd_param Pass through context data for rnd_func.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqJRand(EccPointJacobiFq* result, BitSupplier rnd_func, void* rnd_param);
+
+/// Negate a point on EFq.
+/*!
+\param[out] result the negative of the element.
+\param[in] in the element to negate.
+*/
+void EFqNeg(EccPointJacobiFq* result, EccPointJacobiFq const* in);
+
+/// Hashes an arbitrary message to a point on EFq.
+/*!
+\param[out] result target.
+\param[in] msg buffer to reinterpret.
+\param[in] len length of msg in bytes.
+\param[in] hashalg hash algorithm to use.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqHash(EccPointFq* result, unsigned char const* msg, size_t len,
+            HashAlg hashalg);
+
+/// Test if two points on EFq are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns True on success.
+         False otherwise.
+*/
+bool EFqEqAffine(EccPointFq const* left, EccPointFq const* right);
+
+/// Test if two points on EFq are equal
+/*!
+\param[in] left The first operand to be tested.
+\param[in] right The second operand to be tested.
+\returns True if indeed the values are equal.
+         False otherwise.
+*/
+bool EFqEq(EccPointJacobiFq const* left, EccPointJacobiFq const* right);
+
+/// Test if a point is on EFq.
+/*!
+\param[in] in the point to test.
+\returns True if indeed the point is on the curve.
+         False otherwise.
+*/
+bool EFqOnCurve(EccPointFq const* in);
+
+/// Test if a point is on EFq.
+/*!
+\param[in] in the point to test.
+\returns True if indeed the point is on the curve.
+         False otherwise.
+*/
+bool EFqJOnCurve(EccPointJacobiFq const* in);
+
+/// Test if a point is infinity.
+/*!
+\param[in] in the point to test.
+\returns True if indeed the value is infinity.
+         False otherwise.
+*/
+bool EFqIsInf(EccPointJacobiFq const* in);
+
+/// Set an element's value to infinity.
+/*!
+\param[out] result element to set.
+*/
+void EFqInf(EccPointJacobiFq* result);
+
+/// Copy a point's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void EFqCp(EccPointFq* result, EccPointFq const* in);
+
+/// Copy a point's value
+/*!
+\param[out] result copy target.
+\param[in] in copy source.
+*/
+void EFqJCp(EccPointJacobiFq* result, EccPointJacobiFq const* in);
+
+/// Set a point's value.
+/*!
+\param[out] result target.
+\param[in] x value to set.
+\param[in] y value to set.
+*/
+void EFqSet(EccPointJacobiFq* result, FqElem const* x, FqElem const* y);
+
+/// Conditionally Set a point's value to one of two values.
+/*!
+\param[out] result target.
+\param[in] true_val value to set if condition is true.
+\param[in] false_val value to set if condition is false.
+\param[in] truth_val value of condition.
+*/
+void EFqCondSet(EccPointJacobiFq* result, EccPointJacobiFq const* true_val,
+                EccPointJacobiFq const* false_val, int truth_val);
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // EPID_INTERNAL_TINYMATH_INCLUDE_TINYMATH_EFQ_H_

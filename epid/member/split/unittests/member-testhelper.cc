@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
  * \brief Member C++ wrapper implementation.
  */
 
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 
 #include <cstdio>
 #include <cstring>
 #include <string>
 
 extern "C" {
-#include "epid/common/types.h"
+#include "epid/types.h"
 }
 
-#include "epid/common-testhelper/mem_params-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -52,12 +52,12 @@ bool operator==(GroupPubKey const& lhs, GroupPubKey const& rhs) {
 }
 
 const MemberPrecomp EpidSplitMemberTest::kMemberPrecomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
 };
 
 const std::vector<uint8_t>
     EpidSplitMemberTest::kSplitSigGrpXMember3Sha256Basename1Test1WithSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_5_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_5_sigrl.inc"
 };
 const std::vector<uint8_t> EpidSplitMemberTest::kTest1Msg = {'t', 'e', 's', 't',
                                                              '1'};
@@ -191,30 +191,30 @@ const std::vector<uint8_t> EpidSplitMemberTest::kOtpData = {
     0x5d, 0xd9, 0x14, 0x4c, 0x2f, 0x1d, 0xc6, 0x18, 0x2f, 0xa2, 0x4d, 0x4c};
 
 const GroupPubKey EpidSplitMemberTest::kGrpXKey = {
-#include "epid/common-testhelper/testdata/grp_x/pubkey.inc"  // NOLINT
+#include "testhelper/testdata/grp_x/pubkey.inc"  // NOLINT
 };
 const PrivKey EpidSplitMemberTest::kGrpXMember3PrivKeySha256 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"  // NOLINT
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"  // NOLINT
 };
 const PrivKey EpidSplitMemberTest::kGrpXMember3PrivKeySha384 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha384_01.inc"  // NOLINT
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha384_01.inc"  // NOLINT
 };
 const PrivKey EpidSplitMemberTest::kGrpXMember3PrivKeySha512 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha512_01.inc"  // NOLINT
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha512_01.inc"  // NOLINT
 };
 const PrivKey EpidSplitMemberTest::kGrpXMember3PrivKeySha512256 = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha512_256_01.inc"  // NOLINT
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha512_256_01.inc"  // NOLINT
 };
 const std::vector<uint8_t> EpidSplitMemberTest::kGrpXSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl.inc"
+#include "testhelper/testdata/grp_x/sigrl.inc"
 };
 const std::vector<uint8_t>
     EpidSplitMemberTest::kGrpXSigRlMember3Sha256Bsn0Msg0OnlyEntry = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256.inc"
 };
 const std::vector<uint8_t>
     EpidSplitMemberTest::kGrpXSigRlMember3Sha256Bsn0Msg03EntriesFirstRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_first_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_first_revoked.inc"
 };
 
 const CompressedPrivKey EpidSplitMemberTest::kGrpXMember9CompressedKey = {
@@ -225,7 +225,7 @@ const PrivKey EpidSplitMemberTest::kGrpXMember9PrivKey = {
 };
 
 const GroupPubKey EpidSplitMemberTest::kGrpYKey = {
-#include "epid/common-testhelper/testdata/grp_y/pubkey.inc"
+#include "testhelper/testdata/grp_y/pubkey.inc"
 };
 
 const CompressedPrivKey EpidSplitMemberTest::kGrpYMember9CompressedKey = {};
@@ -233,15 +233,15 @@ const CompressedPrivKey EpidSplitMemberTest::kGrpYMember9CompressedKey = {};
 const OctStr32 EpidSplitMemberTest::kOctStr32_1 = {0x00, 0x00, 0x00, 0x01};
 
 const GroupPubKey EpidSplitMemberTest::kEps0GroupPublicKey = {
-#include "epid/common-testhelper/testdata/grp_sha256/pubkey.inc"
+#include "testhelper/testdata/grp_sha256/pubkey.inc"
 };
 
 const PrivKey EpidSplitMemberTest::kEps0MemberPrivateKey = {
-#include "epid/common-testhelper/testdata/grp_sha256/member_eps0/split_credential.inc"
+#include "testhelper/testdata/grp_sha256/member_eps0/split_credential.inc"
 
-#include "epid/common-testhelper/testdata/grp_sha256/member_eps0/f.inc"
+#include "testhelper/testdata/grp_sha256/member_eps0/f.inc"
 };
 
 const std::vector<uint8_t> EpidSplitMemberTest::kEps0GroupSigRl = {
-#include "epid/common-testhelper/testdata/grp_sha256/sigrl.inc"
+#include "testhelper/testdata/grp_sha256/sigrl.inc"
 };

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@
 /*! \file */
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/split/src/context.h"
+#include "epid/member/split/context.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 namespace {
 
 /// Count of elements in array
@@ -97,7 +97,7 @@ TEST_F(EpidSplitMemberTest, SignFailsGivenUnregisteredBasename) {
   THROW_ON_EPIDERR(
       EpidMemberSetSigRl(member, &srl, sizeof(srl) - sizeof(srl.bk)));
   THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBasenameNotRegisteredErr,
             EpidSign(member, msg.data(), msg.size(), bsn1.data(), bsn1.size(),
                      (EpidSignature*)sig.data(), sig.size()));
 }

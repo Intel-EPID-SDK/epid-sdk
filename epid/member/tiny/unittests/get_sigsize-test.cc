@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 /// GetSigSize unit tests.
 /*!\file */
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-extern "C" {
-#include "epid/common/src/sig_types.h"
 #include "epid/member/api.h"
-}
 
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 
 namespace {
 
@@ -83,7 +80,7 @@ TEST_F(EpidMemberTest, GetSigSizeReturnsCorrectValueGivenValidSigRl) {
 TEST_F(EpidMemberTest,
        GetSigSizeReturnsCorrectValueGivenValidSigRlUsingIKGFData) {
   const std::vector<uint8_t> sigrl_bin = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrl.inc"
   };
 
   SigRl const* sig_rl = reinterpret_cast<const SigRl*>(sigrl_bin.data());

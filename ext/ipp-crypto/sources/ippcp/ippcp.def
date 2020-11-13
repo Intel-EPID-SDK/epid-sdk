@@ -1,6 +1,5 @@
 EXPORTS
 
-ippcpGetLibVersion
 ippcpInit
 cpGetReg
 cpStartTscp
@@ -8,6 +7,7 @@ cpStopTscp
 cpStartTsc
 cpStopTsc
 cpGetCacheSize
+cpGetFeature
 ippcpSetCpuFeatures
 ippcpGetCpuFeatures
 ippcpGetCpuClocks
@@ -16,6 +16,8 @@ ippcpGetNumThreads
 ippcpGetEnabledCpuFeatures
 ippcpGetEnabledNumThreads
 ippcpGetStatusString
+
+ippcpGetLibVersion
 ippsDESGetSize
 ippsDESInit
 ippsDESPack
@@ -53,6 +55,7 @@ ippsAESEncryptCTR
 ippsAESDecryptCTR
 ippsAESEncryptXTS_Direct
 ippsAESDecryptXTS_Direct
+ippsAES_EncryptCFB16_MB
 ippsSMS4GetSize
 ippsSMS4Init
 ippsSMS4SetKey
@@ -204,6 +207,7 @@ ippsHashMethod_SHA512
 ippsHashMethod_SHA384
 ippsHashMethod_SHA512_256
 ippsHashMethod_SHA512_224
+ippsHashMethodGetInfo
 ippsHashGetSize_rmf
 ippsHashInit_rmf
 ippsHashPack_rmf
@@ -213,6 +217,7 @@ ippsHashUpdate_rmf
 ippsHashGetTag_rmf
 ippsHashFinal_rmf
 ippsHashMessage_rmf
+ippsHashGetInfo_rmf
 ippsMGF
 ippsMGF1_rmf
 ippsMGF2_rmf
@@ -315,6 +320,14 @@ ippsRSASign_PKCS1v15
 ippsRSAVerify_PKCS1v15
 ippsRSASign_PKCS1v15_rmf
 ippsRSAVerify_PKCS1v15_rmf
+ippsRSA_MB_GetBufferSizePublicKey
+ippsRSA_MB_GetBufferSizePrivateKey
+ippsRSA_MB_Sign_PSS_rmf
+ippsRSA_MB_Verify_PSS_rmf
+ippsRSA_MB_Encrypt
+ippsRSA_MB_Decrypt
+ippsRSA_MB_Sign_PKCS1v15_rmf
+ippsRSA_MB_Verify_PKCS1v15_rmf
 ippsDLGetResultString
 ippsDLPGetSize
 ippsDLPInit
@@ -445,6 +458,7 @@ ippsGFpMultiExp
 ippsGFpAdd_PE
 ippsGFpSub_PE
 ippsGFpMul_PE
+ippsGFpGetInfo
 ippsGFpECGetSize
 ippsGFpECInit
 ippsGFpECSet
@@ -466,6 +480,7 @@ ippsGFpECBindGxyTblStd521r1
 ippsGFpECBindGxyTblStdSM2
 ippsGFpECGet
 ippsGFpECGetSubgroup
+ippsGFpECGetInfo_GF
 ippsGFpECScratchBufferSize
 ippsGFpECVerify
 ippsGFpECPointGetSize
@@ -477,6 +492,8 @@ ippsGFpECSetPointRandom
 ippsGFpECMakePoint
 ippsGFpECSetPointHash
 ippsGFpECSetPointHash_rmf
+ippsGFpECSetPointHashBackCompatible
+ippsGFpECSetPointHashBackCompatible_rmf
 ippsGFpECGetPoint
 ippsGFpECGetPointRegular
 ippsGFpECSetPointOctString

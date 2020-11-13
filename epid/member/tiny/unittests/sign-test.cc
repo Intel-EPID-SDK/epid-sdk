@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@
  */
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/verifier/api.h"
+#include "epid/verifier.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 namespace {
 
 /// Count of elements in array
@@ -133,7 +133,7 @@ TEST_F(EpidMemberTest, SignFailsGivenUnregisteredBasename) {
   THROW_ON_EPIDERR(
       EpidMemberSetSigRl(member, &srl, sizeof(srl) - sizeof(srl.bk)));
   THROW_ON_EPIDERR(EpidRegisterBasename(member, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBasenameNotRegisteredErr,
             EpidSign(member, msg.data(), msg.size(), bsn1.data(), bsn1.size(),
                      (EpidSignature*)sig.data(), sig.size()));
 }
@@ -554,7 +554,7 @@ TEST_F(EpidMemberTest, SignsMessageGivenSigRlWithNoEntriesUsingIkgfData) {
   MemberCtxObj member_ikgf(grp_public_key, mbr_private_key, &Prng::Generate,
                            &my_prng);
   uint8_t sig_rl_data_n2_one_gid0[] = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl_empty.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrl_empty.inc"
   };
   SigRl* srl_ikgf = reinterpret_cast<SigRl*>(sig_rl_data_n2_one_gid0);
   size_t srl_size = sizeof(sig_rl_data_n2_one_gid0);
@@ -687,7 +687,7 @@ TEST_F(EpidMemberTest, SignMessageReportsIfMemberRevoked) {
   Prng my_prng;
   MemberCtxObj member(pub_key, priv_key, &Prng::Generate, &my_prng);
   const std::vector<uint8_t> kGrpXSigRlMember0Sha512Rndbase0Msg0MiddleEntry = {
-#include "epid/common-testhelper/testdata/grp_x/sigrl_member0_sig_sha512_rndbase_msg0_revoked_middle_entry.inc"
+#include "testhelper/testdata/grp_x/sigrl_member0_sig_sha512_rndbase_msg0_revoked_middle_entry.inc"
   };
   auto srl = reinterpret_cast<SigRl const*>(
       kGrpXSigRlMember0Sha512Rndbase0Msg0MiddleEntry.data());
@@ -712,14 +712,14 @@ TEST_F(EpidMemberTest, SignMessageReportsIfMemberRevokedUsingIKGFData) {
   GroupPubKey grp_public_key = *reinterpret_cast<const GroupPubKey*>(
       this->kGroupPublicKeyDataIkgf.data());
   const PrivKey member_private_key_revoked_by_sig = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrevokedmember0/mprivkey.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrevokedmember0/mprivkey.inc"
   };
   Prng my_prng;
   MemberCtxObj member(grp_public_key, member_private_key_revoked_by_sig,
                       &Prng::Generate, &my_prng);
   auto& msg = this->kMsg0;
   const std::vector<uint8_t> sig_Rl = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/sigrl.inc"
+#include "testhelper/testdata/ikgf/groupa/sigrl.inc"
   };
   auto srl = reinterpret_cast<SigRl const*>(sig_Rl.data());
   size_t srl_size = sig_Rl.size();

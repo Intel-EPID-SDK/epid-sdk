@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,20 +13,16 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- *
- * \brief Extract group keys from group key output file
- */
+/// Extract group keys from group key output file
+/*! \file */
 
 #include <argtable3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "epid/common/file_parser.h"
-#include "epid/common/types.h"
+#include "epid/file_parser.h"
+#include "epid/types.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
@@ -58,9 +54,6 @@ int main(int argc, char* argv[]) {
 
   int i = 0;
   size_t bytes_read = 0;
-
-  // Verbose flag parameter
-  static bool verbose_flag = false;
 
   struct arg_file* keyfile =
       arg_file1(NULL, NULL, "FILE", "FILE containing keys to extract");
@@ -109,7 +102,7 @@ int main(int argc, char* argv[]) {
       break;
     }
     if (verbose->count > 0) {
-      verbose_flag = ToggleVerbosity();
+      ToggleVerbosity();
     }
     /* If the parser returned any errors then display them and exit */
     if (nerrors > 0) {

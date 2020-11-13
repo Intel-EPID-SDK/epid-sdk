@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 /// Non-sensitive member context implementation
 /*! \file */
 
-#include "epid/member/split/src/validatekey.h"
+#include "epid/member/split/validatekey.h"
 
 #include <stddef.h>
 
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
-#include "epid/common/math/pairing.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"  // MemberPrecomp
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/privateexp.h"
+#include "common/epid2params.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/privateexp.h"
 #include "epid/member/split/tpm2/keyinfo.h"
+#include "epid/types.h"  // MemberPrecomp
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
+#include "ippmath/pairing.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

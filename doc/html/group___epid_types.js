@@ -79,10 +79,10 @@ var group___epid_types =
       [ "gid", "struct_membership_credential.html#afbff64ec55888c7e2a658eabb5e16671", null ],
       [ "x", "struct_membership_credential.html#a2c5c0d22999d6917fea5ad6618883bcf", null ]
     ] ],
-    [ "JoinRequest", "struct_join_request.html", [
-      [ "c", "struct_join_request.html#a55e30a274e83b808db6fbab5ae6c6cb8", null ],
-      [ "F", "struct_join_request.html#a005651506fd4511e8a3537f6c3634532", null ],
-      [ "s", "struct_join_request.html#a73bf8989df5f90eb3d06e7a42ad74d1d", null ]
+    [ "NoneSplitJoinRequest", "struct_none_split_join_request.html", [
+      [ "c", "struct_none_split_join_request.html#a9da6392194d8c80e44e7c10aef9775e4", null ],
+      [ "F", "struct_none_split_join_request.html#a02323895a932fb0c07e25e4d48818a7f", null ],
+      [ "s", "struct_none_split_join_request.html#a560a29e99d042d8d6c9fb6925cbb8185", null ]
     ] ],
     [ "SplitJoinRequest", "struct_split_join_request.html", [
       [ "c", "struct_split_join_request.html#a7c7bd55893d9e42f70b20580181b1f0c", null ],

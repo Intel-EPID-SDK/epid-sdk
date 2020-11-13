@@ -1,6 +1,6 @@
 # pylint:disable=I0011,W0401,W0614,C0103,E0602
 ############################################################################
-# Copyright 2016-2019 Intel Corporation
+# Copyright 2016-2020 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ Import('*')
 
 env.PartVersion("2019.0.1")
 env.PartName("ippcp")
+env.Append( CCFLAGS=["-Wno-deprecated-declarations"] )
+env.Append( CCFLAGS=["-Wno-unused-variable"] )
 ippcp_libname = '${PART_SHORT_NAME}'
 
 include_files = Pattern(
@@ -83,7 +85,7 @@ if 'use_commercial_ipp' in env['MODE']:
     env['CCOPY_LOGIC'] = 'copy'
     try:
         IPPCRYPTOROOT = os.environ['IPPCRYPTOROOT']
-    except KeyError, e:
+    except KeyError as e:
         env.PrintError(
             "Necessary environment variable not set: ", e, show_stack=False)
     if env['TARGET_PLATFORM']['OS'] == 'win32':

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief Signature verification implementation.
- */
+/// Signature verification implementation.
+/*! \file */
 
 #include "src/verifysig.h"
 
 #include <stdlib.h>
 
-#include "epid/common/file_parser.h"
-#include "epid/verifier/api.h"
+#include "epid/file_parser.h"
+#include "epid/verifier.h"
 
 EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
                   size_t msg_len, void const* basename, size_t basename_len,
@@ -52,7 +49,7 @@ EpidStatus Verify(EpidSignature const* sig, size_t sig_len, void const* msg,
     // ensure the pre-computation blob is not in a legacy format
     if (*verifier_precomp &&
         *verifier_precomp_size != sizeof(VerifierPrecomp)) {
-      result = kEpidBadArgErr;
+      result = kEpidBadPrecompErr;
       break;
     }
     *verifier_precomp_size = sizeof(VerifierPrecomp);

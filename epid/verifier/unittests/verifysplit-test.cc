@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,40 +20,37 @@
  */
 #include <algorithm>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
+#include "common/endian_convert.h"
 #include "gtest/gtest.h"
-
+#include "testhelper/epid_gtest-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 extern "C" {
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/src/verify.h"
+#include "verify.h"
 }
-
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
 
 namespace {
 void set_gid_hashalg(GroupId* id, HashAlg hashalg) {
   id->data[1] = (id->data[1] & 0xf0) | (hashalg & 0x0f);
 }
 std::vector<uint8_t> kGrpXSigRlMember3Sha256Bsn0Msg0ThreeEntryFirstRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_first_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_first_revoked.inc"
 };
 std::vector<uint8_t> kGrpXSigRlMember3Sha256Bsn0Msg0ThreeEntryMiddleRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_middle_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_middle_revoked.inc"
 };
 std::vector<uint8_t> kGrpXSigRlMember3Sha256Bsn0Msg0ThreeEntryLastRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_last_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsigrl_grpx_member3_bsn0_msg0_sha256_last_revoked.inc"
 };
 std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Msg0FirstRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_first_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_first_revoked.inc"
 };
 std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Msg0MiddleRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_middle_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_middle_revoked.inc"
 };
 std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Msg0LastRevoked = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_last_revoked.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0_last_revoked.inc"
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -64,12 +61,13 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsGivenNullParameters) {
   auto& sig = this->kSplitSigGrpXMember3Sha256RandombaseTest1NoSigRl;
   auto& msg = this->kTest0;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerifySplitSig(nullptr, (EpidSplitSignature const*)sig.data(),
                                sig.size(), msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifySplitSig(verifier, nullptr, sig.size(),
-                                               msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
+            EpidVerifySplitSig(verifier, nullptr, sig.size(), msg.data(),
+                               msg.size()));
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sig.size(), nullptr, msg.size()));
 }
@@ -79,10 +77,10 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsGivenTooShortSigLen) {
   auto& sig = this->kSplitSigGrpXMember3Sha256RandombaseTest1NoSigRl;
   auto& msg = this->kTest1;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                0, msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sizeof(EpidSplitSignature) - sizeof(NrProof) - 1,
                                msg.data(), msg.size()));
@@ -98,7 +96,7 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsGivenSigLenTooShortForRlCount) {
              (n2 - 2) * sizeof(((EpidSplitSignature*)0)->sigma));
   auto& msg = this->kTest1;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sig.size(), msg.data(), msg.size()));
 }
@@ -113,7 +111,7 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsGivenSigLenTooLongForRlCount) {
              n2 * sizeof(((EpidSplitSignature*)0)->sigma));
   auto& msg = this->kTest1;
 
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sig.size(), msg.data(), msg.size()));
 }
@@ -130,7 +128,7 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsGivenRlCountTooBig) {
   sig_struct->n2 = *((OctStr32*)&n2_);
   sig.resize(sizeof(EpidSplitSignature) + (n2 - 1) * sizeof(NrProof));
   auto& msg = this->kTest1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sig.size(), msg.data(), msg.size()));
 }
@@ -649,7 +647,7 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsOnSigRlverNotMatchSigRlRlver) {
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                         sig_rl.size()));
 
-  EXPECT_EQ(kEpidErr,
+  EXPECT_EQ(kEpidVersionMismatchErr,
             EpidVerifySplitSig(verifier, (EpidSplitSignature const*)sig.data(),
                                sig.size(), msg.data(), msg.size()));
 }
@@ -670,8 +668,9 @@ TEST_F(EpidVerifierSplitTest, VerifySplitFailsOnSigN2NotMatchSigRlN2) {
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
   THROW_ON_EPIDERR(EpidVerifierSetSigRl(verifier, sig_rl, sig_rl_size));
 
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifySplitSig(verifier, sig, sig_data.size(),
-                                               msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadSignatureErr,
+            EpidVerifySplitSig(verifier, sig, sig_data.size(), msg.data(),
+                               msg.size()));
 }
 
 TEST_F(EpidVerifierSplitTest, VerifySplitRejectsSigFromSigRlSingleEntry) {

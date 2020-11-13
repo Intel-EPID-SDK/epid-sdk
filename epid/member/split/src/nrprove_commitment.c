@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 /// Host non-revoked proof helper implementation
 /*! \file */
 
-#include "epid/member/split/src/nrprove_commitment.h"
+#include "epid/member/split/nrprove_commitment.h"
 
 #include <stdint.h>
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/memory.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -65,7 +65,7 @@ EpidStatus HashNrProveCommitment(FiniteField* Fp, HashAlg hash_alg,
     size_t const commit_len =
         sizeof(*commit_values) - sizeof(*commit_values->msg) + msg_len;
     Epid2Params params = {
-#include "epid/common/src/epid2params_ate.inc"
+#include "common/epid2params_ate.inc"
     };
 
     commit_values = SAFE_ALLOC(commit_len);

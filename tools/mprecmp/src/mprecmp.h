@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
 #ifndef TOOLS_MPRECMP_SRC_MPRECMP_H_
 #define TOOLS_MPRECMP_SRC_MPRECMP_H_
 
-#include "epid/common/errors.h"
-#include "epid/common/file_parser.h"
-#include "epid/common/stdtypes.h"
+#include "epid/errors.h"
+#include "epid/file_parser.h"
+#include "epid/stdtypes.h"
 
 /// Pre-compute Member data
 EpidStatus PrecomputeMemberData(GroupPubKey const* pub_key,

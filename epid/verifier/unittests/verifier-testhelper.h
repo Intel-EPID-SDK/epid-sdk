@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,13 +23,10 @@
 
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/common/src/sig_types.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-extern "C" {
-#include "epid/verifier/api.h"
-}
+#include "epid/verifier.h"
 
 /// Test fixture class for EpidVerifier
 class EpidVerifierTest : public ::testing::Test {

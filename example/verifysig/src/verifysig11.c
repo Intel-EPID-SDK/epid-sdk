@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2017 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 
 #include <stdlib.h>
 
-#include "epid/common/1.1/file_parser.h"
-#include "epid/verifier/1.1/api.h"
+#include "epid/1.1/file_parser.h"
+#include "epid/1.1/verifier.h"
 
 EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
                     size_t msg_len, void const* basename, size_t basename_len,
@@ -51,7 +51,7 @@ EpidStatus Verify11(Epid11Signature const* sig, size_t sig_len, void const* msg,
 
     if (*verifier_precomp &&
         *verifier_precomp_size != sizeof(Epid11VerifierPrecomp)) {
-      result = kEpidBadArgErr;
+      result = kEpidBadPrecompErr;
       break;
     }
     *verifier_precomp_size = sizeof(Epid11VerifierPrecomp);

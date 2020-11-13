@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2018 Intel Corporation
+  # Copyright 2018-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@
 /*! \file */
 
 #include <cstring>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 extern "C" {
-#include "epid/common/src/sig_types.h"
-#include "epid/member/split/src/signbasic.h"
+#include "common/sig_types.h"
+#include "epid/member/split/signbasic.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/onetimepad.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/onetimepad.h"
+#include "testhelper/prng-testhelper.h"
 
 bool operator==(BigNumStr const& lhs, BigNumStr const& rhs);
 bool operator==(FpElemStr const& lhs, FpElemStr const& rhs);
@@ -39,9 +39,11 @@ namespace {
 /// A security parameter. In this version of Intel(R) EPID SDK, slen = 128
 #define EPID_SLEN 128
 
+#ifndef TPM_TSS  // unused function in TPM mode
 void set_gid_hashalg(GroupId* id, HashAlg hashalg) {
   id->data[1] = (id->data[1] & 0xf0) | (hashalg & 0x0f);
 }
+#endif  // TPM_TSS
 
 /// a data with bytes [0,255]
 const std::vector<uint8_t> kData_0_255 = {
@@ -78,60 +80,63 @@ const std::vector<uint8_t> kTest1Msg = {'t', 'e', 's', 't', '1'};
 /// the basename "basename1"
 const std::vector<uint8_t> kBasename1 = {'b', 'a', 's', 'e', 'n',
                                          'a', 'm', 'e', '1'};
+
+#ifndef TPM_TSS  // unused test data in TPM mode
 const MemberPrecomp kMember3Sha256Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha256_01.inc"
 };
 const MemberPrecomp kMember3Sha512Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_01.inc"
 };
 const MemberPrecomp kMember3Sha384Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha384_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha384_01.inc"
 };
 const MemberPrecomp kMember3Sha512256Precomp = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_256_01.inc"
+#include "testhelper/testdata/grp_x/member3/splitprecomp_grpx_member3_sha512_256_01.inc"
 };
 static const GroupPubKey kGrpXKey = {
-#include "epid/common-testhelper/testdata/grp_x/pubkey.inc"
+#include "testhelper/testdata/grp_x/pubkey.inc"
 };
 static const PrivKey kGrpXMember3Sha256PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
 };
 static const PrivKey kGrpXMember3Sha512PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha512_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha512_01.inc"
 };
 static const PrivKey kGrpXMember3Sha384PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha384_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha384_01.inc"
 };
 static const PrivKey kGrpXMember3Sha512256PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha512_256_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha512_256_01.inc"
 };
+#endif  // TPM_TSS
 
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256RandombaseTest1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256kData_0_255Msg0NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0255_msg0_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0255_msg0_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha512Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha384Basename1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha384_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha384_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha512256Base1Test1NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha512_256_basename1_test1_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha512_256_basename1_test1_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256Basename1EmptyNoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_empty_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_basename1_empty_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256RandombaseMlnNoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_million_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_rndbase_million_no_sigrl.inc"
 };
 const std::vector<uint8_t> kSplitSigGrpXMember3Sha256Bsn0Data_0_255NoSigRl = {
-#include "epid/common-testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0255_no_sigrl.inc"
+#include "testhelper/testdata/grp_x/member3/splitsig_sha256_bsn0_msg0255_no_sigrl.inc"
 };
 
 const std::vector<uint8_t>
@@ -155,21 +160,6 @@ const std::vector<uint8_t> kSplitSigGrpXMember0Sha512Bsn0Msg0NoSigRl_EPS0 = {
 
 /// data for OneTimePad to be used in BasicSign: without rf and nonce
 const std::vector<uint8_t> kOtpDataWithoutRfAndNonce = {
-    // entropy of EpidMemberIsKeyValid
-    // r in Tpm2Commit =
-    // 0x531201cf42e8946136e516c3651a8b04c826283ab43829926e9277902962f15f
-    // OctStr representation:
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x53, 0x12, 0x01, 0xcf, 0x42, 0xe8, 0x94, 0x61,
-    0x36, 0xe5, 0x16, 0xc3, 0x65, 0x1a, 0x8b, 0x04, 0xc8, 0x26, 0x28, 0x3a,
-    0xb4, 0x38, 0x29, 0x92, 0x6e, 0x92, 0x77, 0x90, 0x29, 0x62, 0xf1, 0x5f,
-    // noncek =
-    // 0xe95408071241a77b0871d175c90185241ed61b5a150793015c903154d2636773
-    // OctStr representation:
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0xe9, 0x54, 0x08, 0x07, 0x12, 0x41, 0xa7, 0x7b,
-    0x08, 0x71, 0xd1, 0x75, 0xc9, 0x01, 0x85, 0x24, 0x1e, 0xd6, 0x1b, 0x5a,
-    0x15, 0x07, 0x93, 0x01, 0x5c, 0x90, 0x31, 0x54, 0xd2, 0x63, 0x67, 0x73,
     // entropy for other operations
     // bsn in presig
     0x25, 0xeb, 0x8c, 0x48, 0xff, 0x89, 0xcb, 0x85, 0x4f, 0xc0, 0x90, 0x81,
@@ -489,11 +479,8 @@ TEST_F(EpidMemberSplitSignTest, SignBasicSucceedsWithoutPrecomputedSignatures) {
   auto otp_data = kOtpDataWithoutRfAndNonce;
   otp_data.insert(otp_data.end(), rf.begin(), rf.end());
   otp_data.insert(otp_data.end(), kNoncek.begin(), kNoncek.end());
-  // double the entropy, except those, that are needed for key validation
-  otp_data.insert(
-      otp_data.end(),
-      otp_data.begin() + 2 * (sizeof(BigNumStr) + EPID_SLEN / CHAR_BIT),
-      otp_data.end());
+  // double the entropy
+  otp_data.insert(otp_data.end(), otp_data.begin(), otp_data.end());
   OneTimePad my_prng(otp_data);
   MemberCtxObj member(kGrpXKey, kGrpXMember3Sha256PrivKey,
                       kMember3Sha256Precomp, &OneTimePad::Generate, &my_prng);

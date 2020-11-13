@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,21 +21,20 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
 }
 
 namespace {
-
 EpidStatus ProvisionBulkAndStart(MemberCtx* ctx, GroupPubKey const* pub_key,
                                  PrivKey const* priv_key,
                                  MemberPrecomp const* precomp_str) {
@@ -87,14 +86,14 @@ TEST_F(EpidMemberTest, ProvisionBulkSucceedsGivenValidParameters) {
 TEST_F(EpidMemberTest, ProvisionBulkSucceedsGivenValidParametersUsingIKGFData) {
   Prng prng;
   const GroupPubKey pub_key = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/pubkey.inc"
+#include "testhelper/testdata/ikgf/groupa/pubkey.inc"
   };
   const PrivKey priv_key = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/member0/mprivkey.inc"
+#include "testhelper/testdata/ikgf/groupa/member0/mprivkey.inc"
   };
 
   const MemberPrecomp precomp = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/member0/mprecomp.inc"
+#include "testhelper/testdata/ikgf/groupa/member0/mprecomp.inc"
   };
   MemberParams params = {0};
   SetMemberParams(&Prng::Generate, &prng, nullptr, &params);
@@ -257,13 +256,14 @@ TEST_F(EpidMemberTest, CanProvisionAfterCreatingJoinRequestForDifferentGroup) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request = {0};
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
 
   // create join request into one group
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x01;  // sha384
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
 
   // provision into another group
   EXPECT_EQ(kEpidNoErr, EpidProvisionKey(member, &this->kGroupPublicKey,

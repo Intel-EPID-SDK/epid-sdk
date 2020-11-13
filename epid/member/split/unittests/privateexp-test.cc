@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
 ############################################################################*/
 /// EpidPrivateExp unit tests.
 /*! \file */
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/privateexp.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/privateexp.h"
 #include "epid/member/split/tpm2/createprimary.h"
 }
 
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
 
 namespace {
 

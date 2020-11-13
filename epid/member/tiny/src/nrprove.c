@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 /// Tiny EpidNrProve implementation.
 /*! \file */
 
-#include "epid/member/tiny/src/nrprove.h"
-#include "epid/common/errors.h"
-#include "epid/member/tiny/math/efq.h"
-#include "epid/member/tiny/math/fp.h"
-#include "epid/member/tiny/math/hashwrap.h"
-#include "epid/member/tiny/math/mathtypes.h"
-#include "epid/member/tiny/math/serialize.h"
-#include "epid/member/tiny/src/context.h"
-#include "epid/member/tiny/src/native_types.h"
+#include "epid/member/tiny/nrprove.h"
+#include "epid/errors.h"
+#include "epid/member/tiny/context.h"
+#include "epid/member/tiny/native_types.h"
+#include "tinymath/efq.h"
+#include "tinymath/fp.h"
+#include "tinymath/hashwrap.h"
+#include "tinymath/mathtypes.h"
+#include "tinymath/serialize.h"
 static const FpElem epid20_p = {
     {{0xD10B500D, 0xF62D536C, 0x1299921A, 0x0CDC65FB, 0xEE71A49E, 0x46E5F25E,
       0xFFFCF0CD, 0xFFFFFFFF}}};

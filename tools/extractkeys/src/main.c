@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
+/// Extract member private keys from key output file
 /*!
  * \file
- *
- * \brief Extract member private keys from key output file
  *
  * Not validating SHA hashes in key file
  */
@@ -26,7 +24,7 @@
 #include <stdlib.h>
 
 #include <argtable3.h>
-#include "epid/common/types.h"
+#include "epid/types.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"
@@ -73,9 +71,6 @@ int main(int argc, char* argv[]) {
   size_t num_keys_in_file = 0;
 
   FILE* file = NULL;
-
-  // Verbose flag parameter
-  static bool verbose_flag = false;
 
   int i = 0;
   size_t bytes_read = 0;
@@ -130,7 +125,7 @@ int main(int argc, char* argv[]) {
       break;
     }
     if (verbose->count > 0) {
-      verbose_flag = ToggleVerbosity();
+      ToggleVerbosity();
     }
     /* If the parser returned any errors then display them and exit */
     if (nerrors > 0) {

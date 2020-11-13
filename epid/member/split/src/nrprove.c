@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -15,23 +15,25 @@
   ############################################################################*/
 /// EpidNrProve implementation.
 /*! \file */
-#include "epid/member/split/src/nrprove.h"
+#include "epid/member/split/nrprove.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/stdtypes.h"
-#include "epid/common/types.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/nrprove_commitment.h"
-#include "epid/member/split/src/privateexp.h"
+#include "common/endian_convert.h"
+#include "common/epid2params.h"
+#include "common/hashsize.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/nrprove_commitment.h"
+#include "epid/member/split/privateexp.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/keyinfo.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "epid/stdtypes.h"
+#include "epid/types.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -96,6 +98,9 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
   BigNumStr mu_str = {0};
   BigNumStr nu_str = {0};
   BigNumStr rmu_str = {0};
+  uint16_t counter =
+      0;  ///< TPM counter pointing to Nr Proof related random value
+  bool is_counter_set = false;
 
   if (!ctx || (0 != msg_len && !msg) || !sig || !sigrl_entry || !proof)
     return kEpidBadArgErr;
@@ -117,8 +122,7 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
     const BigNumStr kOne = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
     FpElemStr c_str = {0};
-    uint16_t rnu_ctr =
-        0;  ///< TPM counter pointing to Nr Proof related random value
+
     HashAlg hash_alg = Tpm2KeyHashAlg(ctx->f_handle);
     size_t digest_len = EpidGetHashSize(hash_alg);
     size_t commit_len = 0;
@@ -215,8 +219,9 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
     }
     sts =
         Tpm2Commit(ctx->tpm2_ctx, ctx->f_handle, rlB, s2,
-                   basename_len + sizeof(i), y2, k_tpm, l_tpm, e_tpm, &rnu_ctr);
+                   basename_len + sizeof(i), y2, k_tpm, l_tpm, e_tpm, &counter);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = true;
     // R1 = rmu * K + (-mu * L)
     sts = WriteFfElement(Fp, rmu, &rmu_str, sizeof(rmu_str));
     BREAK_ON_EPID_ERROR(sts);
@@ -260,8 +265,9 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
     sts = NewFfElement(Fp, &t2);
     BREAK_ON_EPID_ERROR(sts);
     sts = Tpm2Sign(ctx->tpm2_ctx, ctx->f_handle, &commit_values.digest,
-                   digest_len, rnu_ctr, noncek, t2);
+                   digest_len, counter, noncek, t2);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = false;
     // snu = -mu * s
     sts = FfMul(Fp, nu, t2, t2);
     BREAK_ON_EPID_ERROR(sts);
@@ -296,6 +302,9 @@ EpidStatus EpidNrProve(MemberCtx const* ctx, void const* msg, size_t msg_len,
     sts = kEpidNoErr;
   } while (0);
 
+  if (is_counter_set == true) {
+    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, counter, ctx->f_handle);
+  }
   SAFE_FREE(s2);
   EpidZeroMemory(&mu_str, sizeof(mu_str));
   EpidZeroMemory(&nu_str, sizeof(nu_str));

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
 /// Member private exponentiation implementation
 /*! \file */
 
-#include "epid/member/split/src/privateexp.h"
+#include "epid/member/split/privateexp.h"
 
 #include <stdio.h>
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
-#include "epid/member/split/src/context.h"
+#include "common/epid2params.h"
+#include "common/hashsize.h"
+#include "epid/member/split/context.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/keyinfo.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "epid/types.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -56,6 +56,7 @@ EpidStatus EpidPrivateExp(MemberCtx* ctx, EcPoint const* a,
 
   BigNumStr tmp_ff_str = {0};
   uint16_t counter = 0;
+  bool is_counter_set = false;
 
   EcPoint* k_pt = NULL;
   EcPoint* l_pt = NULL;
@@ -98,6 +99,7 @@ EpidStatus EpidPrivateExp(MemberCtx* ctx, EcPoint const* a,
     sts = Tpm2Commit(ctx->tpm2_ctx, f_handle, a, NULL, 0, NULL, k_pt, l_pt,
                      e_pt, &counter);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = true;
 
     // (k, s) = TPM2_Sign(c=0, counter)
     sts = NewFfElement(Fp, &k);
@@ -108,6 +110,7 @@ EpidStatus EpidPrivateExp(MemberCtx* ctx, EcPoint const* a,
     sts = Tpm2Sign(ctx->tpm2_ctx, f_handle, &commit_values.digest, digest_len,
                    counter, k, s);
     BREAK_ON_EPID_ERROR(sts);
+    is_counter_set = false;
     // k1 = Fq.hash(k || c)
     sts = WriteFfElement(Fp, k, &commit_values.nonce_k,
                          sizeof(commit_values.nonce_k));
@@ -142,7 +145,7 @@ EpidStatus EpidPrivateExp(MemberCtx* ctx, EcPoint const* a,
     BREAK_ON_EPID_ERROR(sts);
   } while (0);
 
-  if (sts != kEpidNoErr) {
+  if (is_counter_set == true) {
     (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, counter, f_handle);
   }
   DeleteFfElement(&s);

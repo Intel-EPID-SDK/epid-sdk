@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 /// Host join helper implementation
 /*! \file */
 
-#include "epid/member/split/src/join_commitment.h"
+#include "epid/member/split/join_commitment.h"
 
-#include "epid/common/math/finitefield.h"
-#include "epid/common/types.h"
+#include "epid/types.h"
+#include "ippmath/finitefield.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -56,7 +56,7 @@ EpidStatus HashJoinCommitment(FiniteField* Fp, HashAlg hash_alg,
   do {
     JoinPCommitValues commit_values = {0};
     Epid2Params params = {
-#include "epid/common/src/epid2params_ate.inc"
+#include "common/epid2params_ate.inc"
     };
 
     commit_values.p = params.p;

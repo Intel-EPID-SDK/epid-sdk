@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@
 #include <stddef.h>
 #include <string.h>
 #include <tss2/tss.h>
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
+#include "common/epid2params.h"
+#include "common/hashsize.h"
 #include "epid/member/split/tpm2/getrandom.h"
 #include "epid/member/split/tpm2/ibm_tss/conversion.h"
 #include "epid/member/split/tpm2/ibm_tss/printtss.h"
 #include "epid/member/split/tpm2/ibm_tss/state.h"
+#include "epid/types.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle Intel(R) EPID Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

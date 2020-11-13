@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #include <epid/member/api.h>
 
 #include <string.h>
-#include "epid/common/types.h"
-#include "epid/member/split/src/context.h"
+#include "epid/member/split/context.h"
+#include "epid/types.h"
 
 EpidStatus EPID_MEMBER_API
 EpidProvisionCompressed(MemberCtx* ctx, GroupPubKey const* pub_key,

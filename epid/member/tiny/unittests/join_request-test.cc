@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,79 +13,75 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief Join Request related unit tests.
- */
+/// Join Request related unit tests.
+/*! \file */
 
 #include <cstring>
 #include <memory>
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/epid2params.h"
+#include "common/epid2params.h"
 #include "epid/member/api.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 }
 
-#include "epid/common-testhelper/ecgroup_wrapper-testhelper.h"
-#include "epid/common-testhelper/ecpoint_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/ffelement_wrapper-testhelper.h"
-#include "epid/common-testhelper/finite_field_wrapper-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/ecgroup_wrapper-testhelper.h"
+#include "testhelper/ecpoint_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/ffelement_wrapper-testhelper.h"
+#include "testhelper/finite_field_wrapper-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 
 /// compares FpElemStr values
 bool operator==(FpElemStr const& lhs, FpElemStr const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
 
-/// compares MemberJoinRequest values
-bool operator==(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs) {
-  return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
-}
-
-/// compares MemberJoinRequest values for inequality
-bool operator!=(MemberJoinRequest const& lhs, MemberJoinRequest const& rhs) {
-  return 0 != std::memcmp(&lhs, &rhs, sizeof(lhs));
-}
-
 namespace {
-
 // local constant for Join Request tests. This can be hoisted later if needed
 // avoids cpplint warning about multiple includes.
 const GroupPubKey kPubKey = {
-#include "epid/common-testhelper/testdata/grp01/gpubkey.inc"
+#include "testhelper/testdata/grp01/gpubkey.inc"
 };
 
 /// Validates join request.
-void ValidateJoinRequest(JoinRequest const& request, HashAlg hash_alg,
+void ValidateJoinRequest(void* request, size_t request_size, HashAlg hash_alg,
                          GroupPubKey const& grp_public_key, FpElemStr const& f,
                          IssuerNonce const& ni) {
   Epid2Params params_values = {
-#include "epid/common/src/epid2params_ate.inc"
+#include "common/epid2params_ate.inc"
   };
-
+  struct {
+    G1ElemStr F;  /// an element in G1
+    FpElemStr c;  /// an integer between [0, p-1]
+    FpElemStr s;  /// an integer between [0, p-1]
+  } joinreq_values;
   Epid20Params params;
 
   // h1^f ?= F
   EcPointObj F_expected(&params.G1, grp_public_key.h1);
+  ASSERT_EQ(sizeof(joinreq_values), request_size);
+  if (0 != memcpy_S(&joinreq_values, sizeof(joinreq_values), request,
+                    request_size)) {
+    THROW_ON_EPIDERR(kEpidBadArgErr);
+  }
   THROW_ON_EPIDERR(EcExp(params.G1, F_expected, (BigNumStr*)&f, F_expected));
-  ASSERT_EQ(*(G1ElemStr*)(F_expected.data().data()), request.F);
+  ASSERT_EQ(*(G1ElemStr*)(F_expected.data().data()), joinreq_values.F);
 
   // H(p|g1|g2|h1|h2|w|F|R|ni) ?= c, where R = h1^s * F^(-c)
-  FfElementObj nc(&params.fp, request.c);
+  FfElementObj nc(&params.fp, joinreq_values.c);
   THROW_ON_EPIDERR(FfNeg(params.fp, nc, nc));
   EcPointObj a(&params.G1, grp_public_key.h1);
-  EcPointObj b(&params.G1, request.F);
-  THROW_ON_EPIDERR(EcExp(params.G1, a, (BigNumStr*)&request.s, a));
+  EcPointObj b(&params.G1, joinreq_values.F);
+  THROW_ON_EPIDERR(EcExp(params.G1, a, (BigNumStr*)&joinreq_values.s, a));
   THROW_ON_EPIDERR(EcExp(params.G1, b, (BigNumStr*)nc.data().data(), b));
   THROW_ON_EPIDERR(EcMul(params.G1, a, b, a));
 
@@ -106,7 +102,7 @@ void ValidateJoinRequest(JoinRequest const& request, HashAlg hash_alg,
                          grp_public_key.h1,
                          grp_public_key.h2,
                          grp_public_key.w,
-                         request.F,
+                         joinreq_values.F,
                          *(G1ElemStr*)(a.data().data()),
                          ni};
 #pragma pack()
@@ -114,7 +110,7 @@ void ValidateJoinRequest(JoinRequest const& request, HashAlg hash_alg,
   FfElementObj commitment(&params.fp);
   THROW_ON_EPIDERR(FfHash(params.fp, &commitment_values,
                           sizeof commitment_values, hash_alg, commitment));
-  ASSERT_EQ(*(FpElemStr*)(commitment.data().data()), request.c);
+  ASSERT_EQ(*(FpElemStr*)(commitment.data().data()), joinreq_values.c);
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenNullParameters) {
@@ -122,16 +118,48 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenNullParameters) {
   IssuerNonce ni;
   MemberParams params;
   Prng prng;
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, nullptr, &params);
   MemberCtxObj ctx(&params);
   EXPECT_EQ(kEpidBadArgErr,
-            EpidCreateJoinRequest(nullptr, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(nullptr, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
   EXPECT_EQ(kEpidBadArgErr,
-            EpidCreateJoinRequest(ctx, nullptr, &ni, &join_request));
+            EpidCreateJoinRequest(ctx, nullptr, &ni, join_request.data(),
+                                  join_request.size()));
   EXPECT_EQ(kEpidBadArgErr,
-            EpidCreateJoinRequest(ctx, &pub_key, nullptr, &join_request));
-  EXPECT_EQ(kEpidBadArgErr, EpidCreateJoinRequest(ctx, &pub_key, &ni, nullptr));
+            EpidCreateJoinRequest(ctx, &pub_key, nullptr, join_request.data(),
+                                  join_request.size()));
+  EXPECT_EQ(kEpidBadArgErr, EpidCreateJoinRequest(ctx, &pub_key, &ni, nullptr,
+                                                  join_request.size()));
+}
+
+TEST_F(EpidMemberTest, CreateJoinRequestFailsRejectsRequestOfInsufficentSize) {
+  Prng prng;
+  MemberParams params = {0};
+  GroupPubKey pub_key = kPubKey;
+  pub_key.gid.data[1] = 0x02;  // sha512
+  FpElemStr f = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff,
+  };
+  IssuerNonce ni = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+  };
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
+  SetMemberParams(Prng::Generate, &prng, &f, &params);
+  MemberCtxObj member(&params);
+  EXPECT_EQ(kEpidNoMemErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni,
+                                  (JoinRequest*)join_request.data(), 0));
+
+  EXPECT_EQ(kEpidNoMemErr,
+            EpidCreateJoinRequest(member, &pub_key, &ni,
+                                  (JoinRequest*)join_request.data(),
+                                  EpidGetJoinRequestSize() - 1));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestWorksGivenNoF) {
@@ -139,11 +167,12 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksGivenNoF) {
   IssuerNonce ni;
   MemberParams params;
   Prng prng;
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, nullptr, &params);
   MemberCtxObj ctx(&params);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(ctx, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(ctx, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidGroupKey) {
@@ -163,13 +192,14 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidGroupKey) {
   pub_key.h1.x.data.data[15] = 0xff;
   Epid20Params epid_params;
   EcPointObj pt(&epid_params.G1);
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   ASSERT_NE(kEpidNoErr, ReadEcPoint(epid_params.G1, (uint8_t*)&pub_key.h1,
                                     sizeof(pub_key.h1), pt));
   EXPECT_EQ(kEpidBadArgErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
@@ -186,7 +216,7 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   EpidStatus sts;
   SetMemberParams(Prng::Generate, &prng, &f, &params);
 
@@ -205,7 +235,7 @@ TEST_F(EpidMemberTest, CreateJoinRequestFailsGivenInvalidFValue) {
 
   if (kEpidNoErr == sts) {
     sts = EpidCreateJoinRequest((MemberCtx*)member.get(), &pub_key, &ni,
-                                &join_request);
+                                join_request.data(), join_request.size());
     EXPECT_EQ(kEpidBadArgErr, sts);
   }
 
@@ -227,13 +257,14 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha512) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha512, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha512, pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha256) {
@@ -250,13 +281,14 @@ TEST_F(EpidMemberTest, CreateJoinRequestWorksUsingSha256) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha256, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha256, pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest,
@@ -274,18 +306,20 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request1;
-  MemberJoinRequest join_request2;
+  std::vector<uint8_t> join_request1(EpidGetJoinRequestSize());
+  std::vector<uint8_t> join_request2(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request1));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request1.request, kSha256, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request1.data(),
+                                  join_request1.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request1.data(), join_request1.size(), kSha256, pub_key, f, ni));
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request2));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request2.request, kSha256, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request2.data(),
+                                  join_request2.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request2.data(), join_request2.size(), kSha256, pub_key, f, ni));
   EXPECT_NE(join_request1, join_request2);
 }
 
@@ -303,8 +337,8 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request1;
-  MemberJoinRequest join_request2;
+  std::vector<uint8_t> join_request1(EpidGetJoinRequestSize());
+  std::vector<uint8_t> join_request2(EpidGetJoinRequestSize());
   // Ensure that two members created with equal seed and do not
   // interfere each other. Member1 is deleted by the time member2
   // is created.
@@ -313,10 +347,11 @@ TEST_F(EpidMemberTest,
     SetMemberParams(Prng::Generate, &prng, &f, &params);
     MemberCtxObj member1(&params);
     prng.set_seed(0x1234);
-    EXPECT_EQ(kEpidNoErr,
-              EpidCreateJoinRequest(member1, &pub_key, &ni, &join_request1));
-    EXPECT_NO_FATAL_FAILURE(
-        ValidateJoinRequest(join_request1.request, kSha256, pub_key, f, ni));
+    EXPECT_EQ(kEpidNoErr, EpidCreateJoinRequest(member1, &pub_key, &ni,
+                                                join_request1.data(),
+                                                join_request1.size()));
+    EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+        join_request1.data(), join_request1.size(), kSha256, pub_key, f, ni));
   }
   {
     Prng prng;
@@ -324,10 +359,11 @@ TEST_F(EpidMemberTest,
     MemberCtxObj member2(&params);
     prng.set_seed(0x1234);
     pub_key.gid.data[1] = 0x02;  // set sha512
-    EXPECT_EQ(kEpidNoErr,
-              EpidCreateJoinRequest(member2, &pub_key, &ni, &join_request2));
-    EXPECT_NO_FATAL_FAILURE(
-        ValidateJoinRequest(join_request2.request, kSha512, pub_key, f, ni));
+    EXPECT_EQ(kEpidNoErr, EpidCreateJoinRequest(member2, &pub_key, &ni,
+                                                join_request2.data(),
+                                                join_request2.size()));
+    EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+        join_request2.data(), join_request2.size(), kSha512, pub_key, f, ni));
   }
   EXPECT_NE(join_request1, join_request2);
 }
@@ -348,13 +384,14 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request;
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
   SetMemberParams(Prng::Generate, &prng, &f, &params);
   MemberCtxObj member(&params);
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha256, *pub_key, f, ni));
+            EpidCreateJoinRequest(member, pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha256, *pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest,
@@ -369,7 +406,7 @@ TEST_F(EpidMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request = {0};
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
 
   SetMemberParams(&Prng::Generate, &my_prng, &mpriv_key.f, &params);
   MemberCtxObj member(&params);
@@ -384,8 +421,10 @@ TEST_F(EpidMemberTest,
   pub_key.gid.data[1] |= 0x01;  // sha384
 
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(join_request.request, kSha384,
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(join_request.data(),
+                                              join_request.size(), kSha384,
                                               pub_key, mpriv_key.f, ni));
 }
 
@@ -402,43 +441,47 @@ TEST_F(EpidMemberTest, CanCreateMultipleJoinRequestsWithDiffHashAlgs) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request = {0};
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
 
   // create join request into a group with sha256 hash alg
   // verify join request
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x00;
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha256, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha256, pub_key, f, ni));
 
   // create join request into a group with sha384 hash alg
   // verify join request
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x01;
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha384, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha384, pub_key, f, ni));
 
   // create join request into a group with sha512 hash alg
   // verify join request
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x02;
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha512, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha512, pub_key, f, ni));
 
   // create join request into a group with sha512_256 hash alg
   // verify join request
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x03;
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
-  EXPECT_NO_FATAL_FAILURE(
-      ValidateJoinRequest(join_request.request, kSha512_256, pub_key, f, ni));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
+  EXPECT_NO_FATAL_FAILURE(ValidateJoinRequest(
+      join_request.data(), join_request.size(), kSha512_256, pub_key, f, ni));
 }
 
 TEST_F(EpidMemberTest, CreateJoinRequestDoesNotChangeHashAlgorithm) {
@@ -451,14 +494,15 @@ TEST_F(EpidMemberTest, CreateJoinRequestDoesNotChangeHashAlgorithm) {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request = {0};
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
 
   // create join request into a group with a different hash alg
   GroupPubKey pub_key = kPubKey;
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x01;  // sha384
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
 
   auto& msg = this->kMsg0;
   std::vector<uint8_t> sig_data(EpidGetSigSize(nullptr));

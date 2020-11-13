@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2010-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2010-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -63,7 +39,7 @@ __INLINE int degree(const BNU_CHUNK_T* pE, const gsModEngine* pGFEx)
 {
     int groundElemLen = GFP_FELEN(GFP_PARENT(pGFEx));
     int deg;
-    for(deg=GFP_EXTDEGREE(pGFEx)-1; deg>=0; deg-- ) {
+    for(deg=GFP_EXTDEGREE(pGFEx)-1; deg>=0; deg--) {
         if(!GFP_IS_ZERO(pE+groundElemLen*deg, groundElemLen)) break;
     }
     return deg;
@@ -123,66 +99,45 @@ __INLINE int cpGFpxCopyFromChunk(Ipp32u* pA, const BNU_CHUNK_T* pElm, const gsMo
    return basicElmLen32*deg;
 }
 
-
-#define      cpGFpxRand OWNAPI(cpGFpxRand)
-BNU_CHUNK_T* cpGFpxRand(BNU_CHUNK_T* pR, gsModEngine* pGFEx, IppBitSupplier rndFunc, void* pRndParam);
-
-#define      cpGFpxSet OWNAPI(cpGFpxSet)
-BNU_CHUNK_T* cpGFpxSet (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx);
-
-#define      cpGFpxGet OWNAPI(cpGFpxGet)
-BNU_CHUNK_T* cpGFpxGet (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, gsModEngine* pGFEx);
-
-#define      cpGFpxSetPolyTerm OWNAPI(cpGFpxSetPolyTerm)
-BNU_CHUNK_T* cpGFpxSetPolyTerm (BNU_CHUNK_T* pR, int deg, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx);
-
-#define      cpGFpxGetPolyTerm OWNAPI(cpGFpxGetPolyTerm)
-BNU_CHUNK_T* cpGFpxGetPolyTerm (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, int deg, gsModEngine* pGFEx);
-
-#define      cpGFpxAdd OWNAPI(cpGFpxAdd)
-BNU_CHUNK_T* cpGFpxAdd     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
-
-#define      cpGFpxSub OWNAPI(cpGFpxSub)
-BNU_CHUNK_T* cpGFpxSub     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
-
-#define      cpGFpxMul OWNAPI(cpGFpxMul)
-BNU_CHUNK_T* cpGFpxMul     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx);
-
-#define      cpGFpxSqr OWNAPI(cpGFpxSqr)
-BNU_CHUNK_T* cpGFpxSqr     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
-
-#define      cpGFpxAdd_GFE OWNAPI(cpGFpxAdd_GFE)
-BNU_CHUNK_T* cpGFpxAdd_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
-
-#define      cpGFpxSub_GFE OWNAPI(cpGFpxSub_GFE)
-BNU_CHUNK_T* cpGFpxSub_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
-
-#define      cpGFpxMul_GFE OWNAPI(cpGFpxMul_GFE)
-BNU_CHUNK_T* cpGFpxMul_GFE (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx);
-
+#define cpGFpxSet  OWNAPI(cpGFpxSet)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxSet, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx))
+#define cpGFpxRand OWNAPI(cpGFpxRand)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxRand, (BNU_CHUNK_T* pR, gsModEngine* pGFEx, IppBitSupplier rndFunc, void* pRndParam))
+#define cpGFpxGet  OWNAPI(cpGFpxGet)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxGet, (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, gsModEngine* pGFEx))
+#define cpGFpxSetPolyTerm OWNAPI(cpGFpxSetPolyTerm)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxSetPolyTerm, (BNU_CHUNK_T* pR, int deg, const BNU_CHUNK_T* pDataA, int nsA, gsModEngine* pGFEx))
+#define cpGFpxGetPolyTerm OWNAPI(cpGFpxGetPolyTerm)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxGetPolyTerm, (BNU_CHUNK_T* pDataA, int nsA, const BNU_CHUNK_T* pR, int deg, gsModEngine* pGFEx))
+#define cpGFpxAdd OWNAPI(cpGFpxAdd)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxAdd, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx))
+#define cpGFpxSub OWNAPI(cpGFpxSub)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxSub, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx))
+#define cpGFpxMul OWNAPI(cpGFpxMul)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxMul, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pB, gsModEngine* pGFEx))
+#define cpGFpxSqr OWNAPI(cpGFpxSqr)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxSqr, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx))
+#define cpGFpxAdd_GFE OWNAPI(cpGFpxAdd_GFE)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxAdd_GFE, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx))
+#define cpGFpxSub_GFE OWNAPI(cpGFpxSub_GFE)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxSub_GFE, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx))
+#define cpGFpxMul_GFE OWNAPI(cpGFpxMul_GFE)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxMul_GFE, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pGroundB, gsModEngine* pGFEx))
 #define cpGFpGetOptimalWinSize OWNAPI(cpGFpGetOptimalWinSize)
-int     cpGFpGetOptimalWinSize(int bitsize);
-
-#define      cpGFpxExp OWNAPI(cpGFpxExp)
-BNU_CHUNK_T* cpGFpxExp     (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, gsModEngine* pGFEx, Ipp8u* pScratchBuffer);
-
-#define      cpGFpxMultiExp OWNAPI(cpGFpxMultiExp)
-BNU_CHUNK_T* cpGFpxMultiExp(BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems,
-                          gsModEngine* pGFEx, Ipp8u* pScratchBuffer);
-
-#define      cpGFpxConj OWNAPI(cpGFpxConj)
-BNU_CHUNK_T* cpGFpxConj(BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
-
-#define      cpGFpxNeg OWNAPI(cpGFpxNeg)
-BNU_CHUNK_T* cpGFpxNeg (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
-
-#define      cpGFpxInv OWNAPI(cpGFpxInv)
-BNU_CHUNK_T* cpGFpxInv (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
-
-#define      cpGFpxHalve OWNAPI(cpGFpxHalve)
-BNU_CHUNK_T* cpGFpxHalve (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx);
-
+   IPP_OWN_DECL (int, cpGFpGetOptimalWinSize, (int bitsize))
+#define cpGFpxExp OWNAPI(cpGFpxExp)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxExp, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, const BNU_CHUNK_T* pE, int nsE, gsModEngine* pGFEx, Ipp8u* pScratchBuffer))
+#define cpGFpxMultiExp OWNAPI(cpGFpxMultiExp)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxMultiExp, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* ppA[], const BNU_CHUNK_T* ppE[], int nsE[], int nItems, gsModEngine* pGFEx, Ipp8u* pScratchBuffer))
+#define cpGFpxConj OWNAPI(cpGFpxConj)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxConj, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx))
+#define cpGFpxNeg OWNAPI(cpGFpxNeg)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxNeg, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx))
+#define cpGFpxInv OWNAPI(cpGFpxInv)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxInv, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx))
+#define cpGFpxHalve OWNAPI(cpGFpxHalve)
+   IPP_OWN_DECL (BNU_CHUNK_T*, cpGFpxHalve, (BNU_CHUNK_T* pR, const BNU_CHUNK_T* pA, gsModEngine* pGFEx))
 #define InitGFpxCtx OWNAPI(InitGFpxCtx)
-void InitGFpxCtx(const IppsGFpState* pGroundGF, int extDeg, const IppsGFpMethod* method, IppsGFpState* pGFpx);
+   IPP_OWN_DECL (void, InitGFpxCtx, (const IppsGFpState* pGroundGF, int extDeg, const IppsGFpMethod* method, IppsGFpState* pGFpx))
 
 #endif /* _PCP_GFPEXT_H_ */

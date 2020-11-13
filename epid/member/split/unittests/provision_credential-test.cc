@@ -1,18 +1,18 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-############################################################################*/
+  # Copyright 2017-2019 Intel Corporation
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  ############################################################################*/
 
 /*!
  * \file
@@ -25,16 +25,16 @@
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/storage.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/storage.h"
 }
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/epid_gtest-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 
 namespace {
 void set_gid_hashalg(GroupId* id, HashAlg hashalg) {
@@ -47,15 +47,15 @@ const FpElemStr f = {0x48, 0x40, 0xb5, 0x6c, 0x6d, 0x47, 0x09, 0x0b,
                      0x36, 0x2d, 0x41, 0x35, 0x63, 0x61, 0x31, 0xc7};
 
 const MembershipCredential kGrpXMember3Sha512Credential = {
-#include "epid/common-testhelper/testdata/split/grp_x/member3/membercredential_grpx_member3_sha512_01.inc"
+#include "testhelper/testdata/split/grp_x/member3/membercredential_grpx_member3_sha512_01.inc"
 };
 
 const MemberPrecomp kGrpXMember3Sha512Precomp = {
-#include "epid/common-testhelper/testdata/split/grp_x/member3/precomp_grpx_member3_sha512_01.inc"
+#include "testhelper/testdata/split/grp_x/member3/precomp_grpx_member3_sha512_01.inc"
 };
 
 const PrivKey kGrpXMember3Sha256PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
 };
 
 EpidStatus ProvisionCredentialAndStart(MemberCtx* ctx,

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,18 +20,19 @@
 
 #include <string.h>
 
-#include "epid/common/math/ecgroup.h"
-#include "epid/common/math/finitefield.h"
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/src/stack.h"
-#include "epid/member/split/src/context.h"
+#include "common/endian_convert.h"
+#include "common/epid2params.h"
+#include "common/stack.h"
+#include "epid/member/split/context.h"
 #include "epid/member/split/tpm2/commit.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/getrandom.h"
 #include "epid/member/split/tpm2/keyinfo.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
+#include "ippmath/pairing.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -186,6 +187,7 @@ EpidStatus MemberComputePreSig(MemberCtx const* ctx,
     sts = Tpm2Commit(tpm, ctx->f_handle, ctx->h1, &p2x, sizeof(p2x), p2y, k, t,
                      e, &precompsig->rf_ctr);
     BREAK_ON_EPID_ERROR(sts);
+    precompsig->is_rf_ctr_set = true;
     sts = WriteEcPoint(G1, k, &precompsig->K, sizeof(precompsig->K));
     BREAK_ON_EPID_ERROR(sts);
     // 4.k. The member computes R1 = LTPM.
@@ -274,8 +276,9 @@ EpidStatus MemberComputePreSig(MemberCtx const* ctx,
     sts = kEpidNoErr;
   } while (0);
 
-  if (sts != kEpidNoErr) {
+  if (sts != kEpidNoErr && precompsig->is_rf_ctr_set == true) {
     (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, precompsig->rf_ctr, ctx->f_handle);
+    precompsig->is_rf_ctr_set = false;
   }
 
   EpidZeroMemory(&t1_str, sizeof(t1_str));

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@
 #include <epid/member/api.h>
 
 #include <string.h>
-#include "epid/common/src/memory.h"
-#include "epid/common/types.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/storage.h"
-#include "epid/member/split/src/validatekey.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/storage.h"
+#include "epid/member/split/validatekey.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/createprimary.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/load_external.h"
+#include "epid/types.h"
+#include "ippmath/memory.h"
 
-#include "epid/common/src/gid_parser.h"
+#include "common/gid_parser.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \

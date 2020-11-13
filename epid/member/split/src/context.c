@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -22,26 +22,23 @@
 #include <epid/member/api.h>
 
 #include <string.h>
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/epid2params.h"
-#include "epid/common/src/memory.h"
-#include "epid/common/src/sigrlvalid.h"
-#include "epid/common/src/stack.h"
-#include "epid/common/types.h"
-#ifdef TPM_TSS
-#include "epid/member/tpm_member.h"
-#else
-#include "epid/member/software_member.h"
-#endif
-#include "epid/member/split/src/allowed_basenames.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/precomp.h"
+#include "common/endian_convert.h"
+#include "common/epid2params.h"
+#include "common/sigrlvalid.h"
+#include "common/stack.h"
+#include "epid/member/split/allowed_basenames.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/precomp.h"
 #include "epid/member/split/tpm2/context.h"
 #include "epid/member/split/tpm2/createprimary.h"
 #include "epid/member/split/tpm2/flushcontext.h"
 #include "epid/member/split/tpm2/keyinfo.h"
 #include "epid/member/split/tpm2/load_external.h"
 #include "epid/member/split/tpm2/sign.h"
+#include "epid/types.h"
+#include "ippmath/ecgroup.h"
+#include "ippmath/finitefield.h"
+#include "ippmath/memory.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -66,7 +63,7 @@ EpidStatus EPID_MEMBER_API EpidMemberInit(MemberParams const* params,
   if (!params || !ctx) {
     return kEpidBadArgErr;
   }
-  memset(ctx, 0, sizeof(*ctx));
+  EpidZeroMemory(ctx, sizeof(*ctx));
   do {
     ctx->sig_rl = NULL;
     ctx->precomp_ready = false;
@@ -103,10 +100,6 @@ EpidStatus EPID_MEMBER_API EpidMemberInit(MemberParams const* params,
       sts = kEpidMemAllocErr;
       BREAK_ON_EPID_ERROR(sts);
     }
-
-    ctx->join_ctr = 0;
-    ctx->rf_ctr = 0;
-    ctx->rnu_ctr = 0;
 
     sts = NewEcPoint(ctx->epid2_params->G1, (EcPoint**)&ctx->A);
     BREAK_ON_EPID_ERROR(sts);
@@ -149,11 +142,10 @@ void EPID_MEMBER_API EpidMemberDeinit(MemberCtx* ctx) {
   presig_size = StackGetSize(ctx->presigs);
   buf = StackGetBuf(ctx->presigs);
   for (i = 0; i < presig_size; ++i) {
-    (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, (buf++)->rf_ctr, ctx->f_handle);
+    if (buf->is_rf_ctr_set == true) {
+      (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, (buf++)->rf_ctr, ctx->f_handle);
+    }
   }
-  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->join_ctr, ctx->f_handle);
-  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->rf_ctr, ctx->f_handle);
-  (void)Tpm2ReleaseCounter(ctx->tpm2_ctx, ctx->rnu_ctr, ctx->f_handle);
   Tpm2FlushContext(ctx->tpm2_ctx, &ctx->f_handle);
   ctx->f_handle = NULL;
   DeleteStack(&ctx->presigs);
@@ -186,7 +178,8 @@ EpidStatus EPID_MEMBER_API EpidMemberCreate(MemberParams const* params,
     BREAK_ON_EPID_ERROR(sts);
     member_ctx = SAFE_ALLOC(context_size);
     if (!member_ctx) {
-      BREAK_ON_EPID_ERROR(kEpidMemAllocErr);
+      sts = kEpidMemAllocErr;
+      break;
     }
     sts = EpidMemberInit(params, member_ctx);
     BREAK_ON_EPID_ERROR(sts);
@@ -259,8 +252,8 @@ EpidStatus EPID_MEMBER_API EpidMemberSetSigRl(MemberCtx* ctx,
     unsigned int incoming_ver = 0;
     current_ver = ntohl(ctx->sig_rl->version);
     incoming_ver = ntohl(sig_rl->version);
-    if (current_ver >= incoming_ver) {
-      return kEpidBadArgErr;
+    if (incoming_ver < current_ver) {
+      return kEpidVersionMismatchErr;
     }
   }
   ctx->sig_rl = sig_rl;

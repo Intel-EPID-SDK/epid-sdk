@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,28 +13,24 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief VerifierCreate unit tests.
- */
+/// VerifierCreate unit tests.
+/*! \file */
 
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
+#include "epid/verifier.h"
 extern "C" {
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
+#include "common/endian_convert.h"
+#include "context.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 bool operator==(VerifierPrecomp const& lhs, VerifierPrecomp const& rhs) {
   return 0 == std::memcmp(&lhs, &rhs, sizeof(lhs));
 }
@@ -49,11 +45,11 @@ namespace {
 // EpidVerifierCreate Tests
 TEST_F(EpidVerifierTest, CreateFailsGivenNullPointer) {
   VerifierCtx* ctx = nullptr;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerifierCreate(&this->kPubKeyStr, &this->kVerifierPrecompStr,
                                nullptr));
   EpidVerifierDelete(&ctx);
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             EpidVerifierCreate(nullptr, &this->kVerifierPrecompStr, &ctx));
   EpidVerifierDelete(&ctx);
 }
@@ -72,17 +68,17 @@ TEST_F(EpidVerifierTest, CreateFailsGivenInvalidPubkey) {
   VerifierCtx* ctx = nullptr;
   GroupPubKey pubkey_with_bad_h1 = this->kPubKeyStr;
   pubkey_with_bad_h1.h1.x.data.data[31]++;  // munge h1 so not in G1
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             EpidVerifierCreate(&pubkey_with_bad_h1, nullptr, &ctx));
   EpidVerifierDelete(&ctx);
   GroupPubKey pubkey_with_bad_h2 = this->kPubKeyStr;
   pubkey_with_bad_h2.h2.x.data.data[31]++;  // munge h2 so not in G1
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             EpidVerifierCreate(&pubkey_with_bad_h2, nullptr, &ctx));
   EpidVerifierDelete(&ctx);
   GroupPubKey pubkey_with_bad_w = this->kPubKeyStr;
   pubkey_with_bad_w.w.x[0].data.data[31]++;  // munge w so not in G2
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             EpidVerifierCreate(&pubkey_with_bad_w, nullptr, &ctx));
   EpidVerifierDelete(&ctx);
 }
@@ -109,7 +105,7 @@ TEST_F(EpidVerifierTest, CreateFailsGivenBadGroupIdInPrecomp) {
   // tweak GID
   auto verifier_precomp = this->kVerifierPrecompStr;
   verifier_precomp.gid.data[0] = ~verifier_precomp.gid.data[0];
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidPrecompNotInGroupErr,
             EpidVerifierCreate(&this->kPubKeyStr, &verifier_precomp, &ctx));
 }
 //////////////////////////////////////////////////////////////////////////
@@ -132,8 +128,8 @@ TEST_F(EpidVerifierTest, WritePrecompFailsGivenNullPointer) {
   VerifierPrecomp precomp;
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierCtx* ctx = verifier;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierWritePrecomp(nullptr, &precomp));
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierWritePrecomp(ctx, nullptr));
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifierWritePrecomp(nullptr, &precomp));
+  EXPECT_EQ(kEpidBadPrecompErr, EpidVerifierWritePrecomp(ctx, nullptr));
 }
 TEST_F(EpidVerifierTest, WritePrecompSucceedGivenValidArgument) {
   VerifierPrecomp precomp;
@@ -154,8 +150,8 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenNullPointer) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   PrivRl prl = {{0}, {0}, {0}, {0}};
   prl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetPrivRl(nullptr, &prl, sizeof(prl)));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifierSetPrivRl(nullptr, &prl, sizeof(prl)));
+  EXPECT_EQ(kEpidBadPrivRlErr,
             EpidVerifierSetPrivRl(verifier, nullptr, sizeof(prl)));
 }
 
@@ -163,7 +159,7 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenZeroSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   PrivRl prl = {{0}, {0}, {0}, {0}};
   prl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetPrivRl(verifier, &prl, 0));
+  EXPECT_EQ(kEpidBadPrivRlErr, EpidVerifierSetPrivRl(verifier, &prl, 0));
 }
 
 // Size parameter must be at least big enough for n1 == 0 case
@@ -172,11 +168,11 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenTooSmallSize) {
   PrivRl prl = {{0}, {0}, {0}, {0}};
   prl.gid = this->kPubKeyStr.gid;
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadPrivRlErr,
       EpidVerifierSetPrivRl(verifier, &prl, (sizeof(prl) - sizeof(prl.f)) - 1));
   prl.n1 = this->kOctStr32_1;
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadPrivRlErr,
       EpidVerifierSetPrivRl(verifier, &prl, (sizeof(prl) - sizeof(prl.f)) - 1));
 }
 
@@ -186,7 +182,7 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenN1TooBigForSize) {
   PrivRl prl = {{0}, {0}, {0}, {0}};
   prl.gid = this->kPubKeyStr.gid;
   prl.n1 = this->kOctStr32_1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadPrivRlErr,
             EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl) - sizeof(prl.f)));
 }
 
@@ -194,7 +190,8 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenN1TooSmallForSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   PrivRl prl = {{0}, {0}, {0}, {0}};
   prl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl)));
+  EXPECT_EQ(kEpidBadPrivRlErr,
+            EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl)));
 }
 
 TEST_F(EpidVerifierTest, SetPrivRlPassesGivenDefaultPrivRl) {
@@ -217,7 +214,7 @@ TEST_F(EpidVerifierTest, SetPrivRlPassesGivenEmptyPrivRlUsingIkgfData) {
   VerifierCtxObj verifier(this->kPubKeyIkgfStr, this->kVerifierPrecompIkgfStr);
 
   uint8_t priv_rl_data_n1_zero_ikgf[] = {
-#include "epid/common-testhelper/testdata/ikgf/groupa/privrl_empty.inc"
+#include "testhelper/testdata/ikgf/groupa/privrl_empty.inc"
   };
   PrivRl* priv_rl = reinterpret_cast<PrivRl*>(priv_rl_data_n1_zero_ikgf);
   size_t priv_rl_size = sizeof(priv_rl_data_n1_zero_ikgf);
@@ -238,29 +235,37 @@ TEST_F(EpidVerifierTest, SetPrivRlFailsGivenBadGroupId) {
   prl.gid = this->kPubKeyStr.gid;
   prl.gid.data[0] = ~prl.gid.data[0];
   prl.n1 = this->kOctStr32_1;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl)));
+  EXPECT_EQ(kEpidBadPrivRlErr,
+            EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl)));
 }
 
 TEST_F(EpidVerifierTest,
        SetPrivRlFailsGivenEmptyPrivRlFromDifferentGroupUsingIkgfData) {
   VerifierCtxObj verifier(this->kPubKeyRevGroupIkgfStr);
   auto& priv_rl = this->kEmptyPrivRlIkgf;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadPrivRlErr,
             EpidVerifierSetPrivRl(verifier, (PrivRl const*)priv_rl.data(),
                                   priv_rl.size()));
 }
 
 TEST_F(EpidVerifierTest, SetPrivRlFailsGivenOldVersion) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
-  PrivRl prl = {{0}, {0}, {0}, {0}};
-  prl.gid = this->kPubKeyStr.gid;
-  prl.version = this->kOctStr32_1;
-  EXPECT_EQ(kEpidNoErr,
-            EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl) - sizeof(prl.f)));
   OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
-  prl.version = octstr32_0;
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidVerifierSetPrivRl(verifier, &prl, sizeof(prl) - sizeof(prl.f)));
+  PrivRl prl_v0 = {0};
+  prl_v0.gid = this->kPubKeyStr.gid;
+  prl_v0.version = octstr32_0;
+  OctStr32 octstr32_1 = {0x00, 0x00, 0x00, 0x01};
+  PrivRl prl_v1 = {0};
+  prl_v1.gid = this->kPubKeyStr.gid;
+  prl_v1.version = octstr32_1;
+
+  EXPECT_EQ(kEpidNoErr,
+            EpidVerifierSetPrivRl(verifier, &prl_v1,
+                                  sizeof(prl_v1) - sizeof(prl_v1.f)));
+
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidVerifierSetPrivRl(verifier, &prl_v0,
+                                  sizeof(prl_v0) - sizeof(prl_v0.f)));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,8 +274,8 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenNullPointer) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetSigRl(nullptr, &srl, sizeof(SigRl)));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifierSetSigRl(nullptr, &srl, sizeof(SigRl)));
+  EXPECT_EQ(kEpidBadSigRlErr,
             EpidVerifierSetSigRl(verifier, nullptr, sizeof(SigRl)));
 }
 
@@ -278,7 +283,7 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenZeroSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetSigRl(verifier, &srl, 0));
+  EXPECT_EQ(kEpidBadSigRlErr, EpidVerifierSetSigRl(verifier, &srl, 0));
 }
 
 // Size parameter must be at least big enough for n2 == 0 case
@@ -287,11 +292,11 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenTooSmallSize) {
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadSigRlErr,
       EpidVerifierSetSigRl(verifier, &srl, (sizeof(srl) - sizeof(srl.bk)) - 1));
   srl.n2 = this->kOctStr32_1;
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadSigRlErr,
       EpidVerifierSetSigRl(verifier, &srl, (sizeof(srl) - sizeof(srl.bk)) - 1));
 }
 
@@ -300,7 +305,7 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenN2TooBigForSize) {
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
   srl.n2 = this->kOctStr32_1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSigRlErr,
             EpidVerifierSetSigRl(verifier, &srl, sizeof(srl) - sizeof(srl.bk)));
 }
 
@@ -308,7 +313,8 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenN2TooSmallForSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetSigRl(verifier, &srl, sizeof(srl)));
+  EXPECT_EQ(kEpidBadSigRlErr,
+            EpidVerifierSetSigRl(verifier, &srl, sizeof(srl)));
 }
 
 TEST_F(EpidVerifierTest, SetSigRlWorksGivenDefaultSigRl) {
@@ -387,7 +393,7 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenBadGroupId) {
   SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
   srl.gid = this->kPubKeyStr.gid;
   srl.gid.data[0] = ~srl.gid.data[0];
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSigRlErr,
             EpidVerifierSetSigRl(verifier, &srl, sizeof(srl) - sizeof(srl.bk)));
 }
 
@@ -395,22 +401,29 @@ TEST_F(EpidVerifierTest,
        SetPrivRlFailsGivenEmptySigRlFromDifferentGroupUsingIkgfData) {
   VerifierCtxObj verifier(this->kPubKeyRevGroupIkgfStr);
   auto& sig_rl = this->kEmptySigRlIkgf;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSigRlErr,
             EpidVerifierSetSigRl(verifier, (SigRl const*)sig_rl.data(),
                                  sig_rl.size()));
 }
 
 TEST_F(EpidVerifierTest, SetSigRlFailsGivenOldVersion) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
-  SigRl srl = {{{0}}, {{0}}, {{0}}, {{{{0}, {0}}, {{0}, {0}}}}};
-  srl.gid = this->kPubKeyStr.gid;
-  srl.version = this->kOctStr32_1;
-  EXPECT_EQ(kEpidNoErr,
-            EpidVerifierSetSigRl(verifier, &srl, sizeof(srl) - sizeof(srl.bk)));
   OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
-  srl.version = octstr32_0;
-  EXPECT_EQ(kEpidBadArgErr,
-            EpidVerifierSetSigRl(verifier, &srl, sizeof(srl) - sizeof(srl.bk)));
+  SigRl sigrl_v0 = {0};
+  sigrl_v0.gid = this->kPubKeyStr.gid;
+  sigrl_v0.version = octstr32_0;
+  OctStr32 octstr32_1 = {0x00, 0x00, 0x00, 0x01};
+  SigRl sigrl_v1 = {0};
+  sigrl_v1.version = octstr32_1;
+  sigrl_v1.gid = this->kPubKeyStr.gid;
+
+  EXPECT_EQ(kEpidNoErr,
+            EpidVerifierSetSigRl(verifier, &sigrl_v1,
+                                 sizeof(sigrl_v1) - sizeof(sigrl_v1.bk)));
+
+  EXPECT_EQ(kEpidVersionMismatchErr,
+            EpidVerifierSetSigRl(verifier, &sigrl_v0,
+                                 sizeof(sigrl_v0) - sizeof(sigrl_v0.bk)));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -418,8 +431,8 @@ TEST_F(EpidVerifierTest, SetSigRlFailsGivenOldVersion) {
 TEST_F(EpidVerifierTest, SetGroupRlFailsGivenNullPointer) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl grl = {{0}, {0}, {0}};
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetGroupRl(nullptr, &grl, sizeof(grl)));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifierSetGroupRl(nullptr, &grl, sizeof(grl)));
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, nullptr, sizeof(grl)));
 }
 
@@ -427,14 +440,15 @@ TEST_F(EpidVerifierTest, SetGroupRlFailsGivenSizeZero) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl grl = {{0}, {0}, {0}};
   size_t grl_size = 0;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetGroupRl(verifier, &grl, grl_size));
+  EXPECT_EQ(kEpidBadGroupRlErr,
+            EpidVerifierSetGroupRl(verifier, &grl, grl_size));
 }
 
 TEST_F(EpidVerifierTest, SetGroupRlFailsGivenSizeTooSmall) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl grl = {{0}, {0}, {0}};
   size_t grl_size = sizeof(grl) - sizeof(grl.gid[0]);
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, &grl, grl_size - 1));
 }
 
@@ -442,14 +456,14 @@ TEST_F(EpidVerifierTest, SetGroupRlFailsGivenSizeTooLarge) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl grl = {{0}, {0}, {0}};
   size_t grl_size = sizeof(grl) - sizeof(grl.gid[0]);
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, &grl, grl_size + 1));
 }
 
 TEST_F(EpidVerifierTest, SetGroupRlFailsGivenN3ZeroAndGroupRLSizeTooBig) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl* group_rl = (GroupRl*)this->kGroupRl3GidN0Buf.data();
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, group_rl,
                                    this->kGroupRl3GidN0Buf.size()));
 }
@@ -457,7 +471,7 @@ TEST_F(EpidVerifierTest, SetGroupRlFailsGivenN3ZeroAndGroupRLSizeTooBig) {
 TEST_F(EpidVerifierTest, SetGroupRlFailsGivenN3TooSmall) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl* group_rl = (GroupRl*)this->kGroupRl3GidN2Buf.data();
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, group_rl,
                                    this->kGroupRl3GidN2Buf.size()));
 }
@@ -465,7 +479,7 @@ TEST_F(EpidVerifierTest, SetGroupRlFailsGivenN3TooSmall) {
 TEST_F(EpidVerifierTest, SetGroupRlFailsGivenN3TooLarge) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   GroupRl* group_rl = (GroupRl*)this->kGroupRl3GidN4Buf.data();
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupRlErr,
             EpidVerifierSetGroupRl(verifier, group_rl,
                                    this->kGroupRl3GidN4Buf.size()));
 }
@@ -495,7 +509,7 @@ TEST_F(EpidVerifierTest, SetGroupRlFailsGivenOldVersion) {
   EXPECT_EQ(kEpidNoErr, EpidVerifierSetGroupRl(verifier, group_rl,
                                                this->kGroupRl3GidBuf.size()));
   GroupRl* empty_grl = (GroupRl*)this->kGroupRlEmptyBuf.data();
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidVersionMismatchErr,
             EpidVerifierSetGroupRl(verifier, empty_grl,
                                    this->kGroupRlEmptyBuf.size()));
 }
@@ -505,9 +519,9 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenNullPointer) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierRl ver_rl = {{0}, {{0}, {0}}, {0}, {0}, {{{0}, {0}}}};
   ver_rl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerifierSetVerifierRl(nullptr, &ver_rl, sizeof(ver_rl)));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(verifier, nullptr, sizeof(ver_rl)));
 }
 
@@ -521,7 +535,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenMismatchedBasename) {
   THROW_ON_EPIDERR(
       EpidVerifierSetBasename(ctx, wrong_bsn.data(), wrong_bsn.size()));
   EXPECT_EQ(
-      kEpidBadArgErr,
+      kEpidBadVerifierRlErr,
       EpidVerifierSetVerifierRl(
           ctx, (VerifierRl const*)this->kGrp01VerRl.data(), res_ver_rl_size));
 }
@@ -539,7 +553,8 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenSizeZero) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierRl ver_rl = {{0}, {{0}, {0}}, {0}, {0}, {{{0}, {0}}}};
   ver_rl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetVerifierRl(verifier, &ver_rl, 0));
+  EXPECT_EQ(kEpidBadVerifierRlErr,
+            EpidVerifierSetVerifierRl(verifier, &ver_rl, 0));
 }
 
 // Size parameter must be at least equal to minimum value for n4 == 0 case
@@ -547,11 +562,11 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenSizeTooSmall) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierRl ver_rl = {{0}, {{0}, {0}}, {0}, {0}, {{{0}, {0}}}};
   ver_rl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(
                 verifier, &ver_rl, sizeof(ver_rl) - sizeof(ver_rl.K[0]) - 1));
   ver_rl.n4 = this->kOctStr32_1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(
                 verifier, &ver_rl, sizeof(ver_rl) - sizeof(ver_rl.K[0]) - 1));
 }
@@ -561,7 +576,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenN4TooBigForSize) {
   VerifierRl ver_rl = {{0}, {{0}, {0}}, {0}, {0}, {{{0}, {0}}}};
   ver_rl.gid = this->kPubKeyStr.gid;
   ver_rl.n4 = this->kOctStr32_1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(verifier, &ver_rl,
                                       sizeof(ver_rl) - sizeof(ver_rl.K[0])));
 }
@@ -570,7 +585,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenN4TooSmallForSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierRl ver_rl = {{0}, {{0}, {0}}, {0}, {0}, {{{0}, {0}}}};
   ver_rl.gid = this->kPubKeyStr.gid;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(verifier, &ver_rl, sizeof(ver_rl)));
 }
 
@@ -628,8 +643,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlWorksGivenVerifierRlWithOneElement) {
       0x3a, 0x3c, 0xe6, 0x7e, 0x3d, 0x0e, 0xe8, 0x86, 0xa9, 0x58, 0xf4, 0xfe,
       0xfa, 0x8b, 0xe4, 0x1c, 0xad, 0x58, 0x5b, 0x1c, 0xc7, 0x54, 0xee, 0x7e,
       0xe7, 0x12, 0x6a, 0x4b, 0x01, 0x63, 0xb4, 0xdb, 0x6e, 0xe7, 0x7a, 0xe9,
-      0x62, 0xa5, 0xb4, 0xe3,
-  };
+      0x62, 0xa5, 0xb4, 0xe3};
   VerifierRl* ver_rl_ptr = reinterpret_cast<VerifierRl*>(ver_rl_data_n4_one);
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, this->kBasename.data(),
                                            this->kBasename.size()));
@@ -641,15 +655,19 @@ TEST_F(EpidVerifierTest, CanSetVerifierRlTwice) {
   VerifierCtxObj verifier(this->kGrpXKey);
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, this->kBsn0.data(),
                                            this->kBsn0.size()));
-  EXPECT_EQ(kEpidNoErr,
-            EpidVerifierSetVerifierRl(
-                verifier, reinterpret_cast<VerifierRl const*>(
-                              this->kGrpXBsn0VerRlSingleEntry.data()),
-                this->kGrpXBsn0VerRlSingleEntry.size()));
-  EXPECT_EQ(kEpidNoErr, EpidVerifierSetVerifierRl(
-                            verifier, reinterpret_cast<VerifierRl const*>(
-                                          this->kGrpXBsn0Sha256VerRl.data()),
-                            this->kGrpXBsn0Sha256VerRl.size()));
+  VerifierCtx* ctx = verifier;
+  VerifierRl const* first_ver_rl = reinterpret_cast<VerifierRl const*>(
+      this->kGrpXBsn0VerRlSingleEntry.data());
+  size_t first_ver_rl_size = this->kGrpXBsn0VerRlSingleEntry.size();
+  EpidStatus sts =
+      EpidVerifierSetVerifierRl(ctx, first_ver_rl, first_ver_rl_size);
+  EXPECT_EQ(kEpidNoErr, sts);
+
+  VerifierRl const* second_ver_rl =
+      reinterpret_cast<VerifierRl const*>(this->kGrpXBsn0Sha256VerRl.data());
+  size_t second_ver_rl_size = this->kGrpXBsn0Sha256VerRl.size();
+  sts = EpidVerifierSetVerifierRl(ctx, second_ver_rl, second_ver_rl_size);
+  EXPECT_EQ(kEpidNoErr, sts);
 }
 
 TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenBadGroupId) {
@@ -659,7 +677,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenBadGroupId) {
   VerifierRl* valid_ver_rl = (VerifierRl*)(this->kEmptyGrp01VerRl.data());
   ver_rl.B = valid_ver_rl->B;
   ver_rl.gid.data[0] = ~ver_rl.gid.data[0];
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidVerifierSetVerifierRl(verifier, &ver_rl,
                                       sizeof(ver_rl) - sizeof(ver_rl.K[0])));
 }
@@ -678,7 +696,7 @@ TEST_F(EpidVerifierTest, SetVerifierRlFailsGivenOldVersion) {
                                       sizeof(ver_rl) - sizeof(ver_rl.K[0])));
   OctStr32 octstr32_0 = {0x00, 0x00, 0x00, 0x00};
   ver_rl.version = octstr32_0;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidVersionMismatchErr,
             EpidVerifierSetVerifierRl(verifier, &ver_rl,
                                       sizeof(ver_rl) - sizeof(ver_rl.K[0])));
 }
@@ -765,9 +783,10 @@ TEST_F(EpidVerifierTest, WriteVerifierRlFailsGivenNullPointer) {
   size_t res_ver_rl_size = this->kGrp01VerRl.size();
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       ctx, (VerifierRl const*)this->kGrp01VerRl.data(), res_ver_rl_size));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidWriteVerifierRl(nullptr, &res_ver_rl, res_ver_rl_size));
-  EXPECT_EQ(kEpidBadArgErr, EpidWriteVerifierRl(ctx, nullptr, res_ver_rl_size));
+  EXPECT_EQ(kEpidBadVerifierRlErr,
+            EpidWriteVerifierRl(ctx, nullptr, res_ver_rl_size));
 }
 TEST_F(EpidVerifierTest, WriteVerifierRlFailsGivenInvalidSize) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
@@ -778,9 +797,9 @@ TEST_F(EpidVerifierTest, WriteVerifierRlFailsGivenInvalidSize) {
   size_t res_ver_rl_size = this->kGrp01VerRl.size();
   THROW_ON_EPIDERR(EpidVerifierSetVerifierRl(
       ctx, (VerifierRl const*)this->kGrp01VerRl.data(), res_ver_rl_size));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidWriteVerifierRl(ctx, &res_ver_rl, res_ver_rl_size - 1));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadVerifierRlErr,
             EpidWriteVerifierRl(ctx, &res_ver_rl, res_ver_rl_size + 1));
 }
 TEST_F(EpidVerifierTest, WriteVerifierRlWorksForEmptyVerifierRl) {
@@ -846,12 +865,13 @@ TEST_F(EpidVerifierTest, BlacklistSigFailsGivenNullPointer) {
   auto msg = this->kMsg0;
   auto bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidBlacklistSig(nullptr, (EpidSignature*)sig.data(), sig.size(),
                              msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidBlacklistSig(verifier, nullptr, sig.size(),
-                                             msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(
+      kEpidBadSignatureErr,
+      EpidBlacklistSig(verifier, nullptr, sig.size(), msg.data(), msg.size()));
+  EXPECT_EQ(kEpidBadMessageErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(), sig.size(),
                              nullptr, 1));
 }
@@ -861,13 +881,13 @@ TEST_F(EpidVerifierTest, BlacklistSigFailsGivenInvalidSignatureLength) {
   auto msg = this->kMsg0;
   auto bsn = this->kBsn0;
   THROW_ON_EPIDERR(EpidVerifierSetBasename(verifier, bsn.data(), bsn.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(), 0,
                              msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(),
                              sig.size() - 1, msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadSignatureErr,
             EpidBlacklistSig(verifier, (EpidSignature*)sig.data(),
                              sig.size() + 1, msg.data(), msg.size()));
 }
@@ -1037,7 +1057,7 @@ TEST_F(EpidVerifierTest, VerifyReturnsSigRevokedInVerifierRlAfterBlacklistSig) {
 //////////////////////////////////////////////////////////////////////////
 // EpidVerifierSetHashAlg
 TEST_F(EpidVerifierTest, SetHashAlgFailsGivenNullPointer) {
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifierSetHashAlg(nullptr, kSha256));
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifierSetHashAlg(nullptr, kSha256));
 }
 TEST_F(EpidVerifierTest, CanSetHashAlgoToSHA256) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
@@ -1075,14 +1095,14 @@ TEST_F(EpidVerifierTest, DefaultBasenameIsNull) {
 }
 TEST_F(EpidVerifierTest, SetBasenameFailsGivenNullContext) {
   auto& basename = this->kBasename1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadCtxErr,
             EpidVerifierSetBasename(nullptr, basename.data(), basename.size()));
 }
 TEST_F(EpidVerifierTest, SetBasenameFailsGivenNullBasenameAndNonzeroLength) {
   VerifierCtxObj verifier(this->kPubKeyStr, this->kVerifierPrecompStr);
   VerifierCtx* ctx = verifier;
   auto& basename = this->kBasename1;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadBasenameErr,
             EpidVerifierSetBasename(ctx, nullptr, basename.size()));
 }
 TEST_F(EpidVerifierTest, SetBasenameSucceedsGivenValidParameters) {

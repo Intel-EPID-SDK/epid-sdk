@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2013-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2013-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -60,13 +36,44 @@
 #define AES_ALIGNMENT   (RIJ_ALIGNMENT)
 
 /* valid AES context ID */
-#define VALID_AES_ID(ctx)   (RIJ_ID((ctx))==idCtxRijndael)
+#define VALID_AES_ID(ctx)   ((((ctx)->idCtx) ^ (Ipp32u)IPP_UINT_PTR((ctx))) == (Ipp32u)idCtxRijndael)
+
+/* number of rounds (use [NK] for access) */
+static int rij128nRounds[3] = {NR128_128, NR128_192, NR128_256};
+
+/*
+// number of keys (estimation only!)  (use [NK] for access)
+//
+// accurate number of keys necassary for encrypt/decrypt are:
+//    nKeys = NB * (NR+1)
+//       where NB - data block size (32-bit words)
+//             NR - number of rounds (depend on NB and keyLen)
+//
+// but the estimation
+//    estnKeys = (NK*n) >= nKeys
+// or
+//    estnKeys = ( (NB*(NR+1) + (NK-1)) / NK) * NK
+//       where NK - key length (words)
+//             NB - data block size (word)
+//             NR - number of rounds (depend on NB and keyLen)
+//             nKeys - accurate numner of keys
+// is more convinient when calculates key extension
+*/
+static int rij128nKeys[3] = {44,  52,  60 };
+
+/*
+// helper for nRounds[] and estnKeys[] access
+// note: x is length in 32-bits words
+*/
+__INLINE int rij_index(int x)
+{
+   return (x-NB(128))>>1;
+}
 
 /* size of AES context */
 __INLINE int cpSizeofCtx_AES(void)
 {
-   return sizeof(IppsAESSpec)
-         +(AES_ALIGNMENT-1);
+   return sizeof(IppsAESSpec);
 }
 
 #endif /* _PCP_AES_H */

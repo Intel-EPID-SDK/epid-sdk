@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,18 +13,13 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- *
- * \brief Create group revocation list request
- *
- */
+/// Create group revocation list request
+/*! \file */
 
 #include <argtable3.h>
 #include <stdlib.h>
 #include <string.h>
-#include "epid/common/file_parser.h"
+#include "epid/file_parser.h"
 #include "util/buffutil.h"
 #include "util/envutil.h"
 #include "util/stdtypes.h"

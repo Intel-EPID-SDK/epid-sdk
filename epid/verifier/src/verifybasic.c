@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief VerifyBasicSig implementation.
- */
+/// VerifyBasicSig implementation.
+/*! \file */
 #define EXPORT_EPID_APIS
 
-#include "epid/verifier/src/verifybasic.h"
-#include "epid/common/src/hashsize.h"
-#include "epid/common/src/memory.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
+#include "verifybasic.h"
+#include "common/hashsize.h"
+#include "epid/verifier.h"
+#include "ippmath/memory.h"
+#include "ippmath/pairing.h"
+#include "context.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
@@ -77,13 +75,16 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
   FfElement* c_hash = NULL;
   VerifyBasicCommitValues split_commit_values = {0};
 
-  if (!ctx || !sig) return kEpidBadArgErr;
+  if (!ctx || !ctx->epid2_params || !ctx->pub_key) {
+    return kEpidBadCtxErr;
+  }
+  if (!sig) {
+    return kEpidBadSignatureErr;
+  }
   if (!msg && (0 != msg_len)) {
     // if message is non-empty it must have both length and content
-    return kEpidBadArgErr;
+    return kEpidBadMessageErr;
   }
-  if (!ctx->epid2_params || !ctx->pub_key) return kEpidBadArgErr;
-
   do {
     bool cmp_result = false;
     BigNumStr c_str = {0};
@@ -106,7 +107,7 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
     EcPoint* basename_hash = ctx->basename_hash;
 
     if (!G1 || !G2 || !GT || !Fp || !g1 || !g2 || !w) {
-      res = kEpidBadArgErr;
+      res = kEpidBadCtxErr;
       BREAK_ON_EPID_ERROR(res);
     }
 
@@ -157,7 +158,7 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
     //   a. The verifier verifies G1.inGroup(B) = true.
     res = ReadEcPoint(G1, &(sig->B), sizeof(sig->B), B);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
@@ -182,7 +183,7 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
     //   d. The verifier verifies G1.inGroup(K) = true.
     res = ReadEcPoint(G1, &(sig->K), sizeof(sig->K), K);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
@@ -190,7 +191,7 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
     //   e. The verifier verifies G1.inGroup(T) = true.
     res = ReadEcPoint(G1, &(sig->T), sizeof(sig->T), T);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
@@ -198,35 +199,35 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
     //   f. The verifier verifies c, sx, sf, sa, sb in [0, p-1].
     res = ReadFfElement(Fp, &(sig->c), sizeof(sig->c), c);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
     }
     res = ReadFfElement(Fp, &(sig->sx), sizeof(sig->sx), sx);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
     }
     res = ReadFfElement(Fp, &(sig->sf), sizeof(sig->sf), sf);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
     }
     res = ReadFfElement(Fp, &(sig->sa), sizeof(sig->sa), sa);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
     }
     res = ReadFfElement(Fp, &(sig->sb), sizeof(sig->sb), sb);
     if (kEpidNoErr != res) {
-      if (kEpidBadArgErr == res) {
+      if (EPID_IS_BADARG_ERROR(res)) {
         res = kEpidSigInvalid;
       }
       break;
@@ -235,7 +236,7 @@ EpidStatus EpidVerifyBasicSplitSig(VerifierCtx const* ctx,
       // if nk is present c = Fp.hash(nk || c)
       digest_size = EpidGetHashSize(ctx->hash_alg);
       if (sizeof(split_commit_values.digest) < digest_size) {
-        res = kEpidBadArgErr;
+        res = kEpidBadCtxErr;
         break;
       }
       memcpy_S(split_commit_values.digest.digest + digest_size - sizeof(sig->c),

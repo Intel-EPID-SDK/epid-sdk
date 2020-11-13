@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2020 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -17,21 +17,21 @@
 /*! \file */
 
 #ifndef SHARED
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
-#include "epid/member/tiny/unittests/member-testhelper.h"
+#include "member-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/member/tiny/src/native_types.h"
-#include "epid/member/tiny/src/nrprove.h"
-#include "epid/member/tiny/src/serialize.h"
-#include "epid/member/tiny/src/signbasic.h"
-#include "epid/verifier/src/rlverify.h"
+#include "epid/member/tiny/native_types.h"
+#include "epid/member/tiny/nrprove.h"
+#include "epid/member/tiny/serialize.h"
+#include "epid/member/tiny/signbasic.h"
+#include "rlverify.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 namespace {
 
 TEST_F(EpidMemberTest, NrProveFailsGivenInvalidSigRlEntry) {

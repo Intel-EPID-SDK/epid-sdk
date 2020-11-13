@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
 ############################################################################*/
 /// TPM fixture class implementation.
 /*! \file */
-#include "epid/member/split/tpm2/unittests/tpm2-testhelper.h"
+#include "tpm2-testhelper.h"
 
 #include <climits>
 #include <cstring>
 
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/common-testhelper/epid_params-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
+#include "testhelper/epid_params-testhelper.h"
 
 extern "C" {
-#include "epid/common/types.h"
+#include "epid/types.h"
 }
 
 bool operator==(FpElemStr const& lhs, FpElemStr const& rhs) {

@@ -1,5 +1,5 @@
 /*############################################################################
-# Copyright 2017-2018 Intel Corporation
+# Copyright 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@
  */
 #include <limits.h>
 
-#include "epid/common/src/memory.h"
 #include "epid/member/split/tpm2/getrandom.h"
 #include "epid/member/split/tpm2/ibm_tss/printtss.h"
 #include "epid/member/split/tpm2/ibm_tss/state.h"
+#include "ippmath/memory.h"
 
 #include "tss2/TPM_Types.h"
 #include "tss2/tss.h"
@@ -59,7 +59,8 @@ EpidStatus Tpm2GetRandom(Tpm2Ctx* ctx, int const num_bits, void* random_data) {
       sts = kEpidErr;
       break;
     }
-    if (!out.randomBytes.t.size || out.randomBytes.t.size > bytes_to_request) {
+    if (out.randomBytes.t.size == (UINT16)sizeof(sizeof(TPMS_EMPTY)) ||
+        out.randomBytes.t.size > bytes_to_request) {
       sts = kEpidErr;
       break;
     }

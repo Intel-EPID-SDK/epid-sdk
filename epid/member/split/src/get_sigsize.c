@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief EpidGetSigSize implementation.
- */
+/// EpidGetSigSize implementation.
+/*! \file */
 #define EXPORT_EPID_APIS
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/sig_types.h"
+#include "common/endian_convert.h"
+#include "common/sig_types.h"
 #include "epid/member/api.h"
 
 size_t EPID_MEMBER_API EpidGetSigSize(SigRl const* sig_rl) {

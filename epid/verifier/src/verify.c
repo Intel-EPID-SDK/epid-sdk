@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -13,40 +13,23 @@
   # See the License for the specific language governing permissions and
   # limitations under the License.
   ############################################################################*/
-
-/*!
- * \file
- * \brief Verify implementation.
- */
+/// Verify implementation.
+/*! \file */
 #define EXPORT_EPID_APIS
-#include "epid/verifier/src/verify.h"
+#include "verify.h"
 #include <string.h>
-#include "epid/common/src/endian_convert.h"
-#include "epid/common/src/sig_types.h"
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/context.h"
-#include "epid/verifier/src/rlverify.h"
-#include "epid/verifier/src/verifybasic.h"
+#include "common/endian_convert.h"
+#include "common/sig_types.h"
+#include "epid/verifier.h"
+#include "context.h"
+#include "rlverify.h"
+#include "verifybasic.h"
 
 /// Handle SDK Error with Break
 #define BREAK_ON_EPID_ERROR(ret) \
   if (kEpidNoErr != (ret)) {     \
     break;                       \
   }
-
-static size_t EpidGetSignatureRlCount(EpidNonSplitSignature const* sig) {
-  if (!sig)
-    return 0;
-  else
-    return ntohl(sig->n2);
-}
-
-static size_t EpidGetSplitSignatureRlCount(EpidSplitSignature const* sig) {
-  if (!sig)
-    return 0;
-  else
-    return ntohl(sig->n2);
-}
 
 static size_t EpidGetGroupRlCount(GroupRl const* rl) {
   if (!rl)
@@ -76,43 +59,6 @@ static size_t EpidGetVerifierRlCount(VerifierRl const* rl) {
     return ntohl(rl->n4);
 }
 
-/// Infer type of a signature from its content
-EpidSigType EpidDetectSigType(void const* sig_data, size_t sig_len) {
-  // size of basic sig plus add-on fields (n2, rl_ver, etc.)
-  const size_t non_split_sig_len =
-      sizeof(EpidNonSplitSignature) - sizeof(NrProof);
-  const size_t split_sig_len =
-      sizeof(EpidSplitSignature) - sizeof(SplitNrProof);
-
-  // only look at things big enough to be split sigs
-  if (sig_len >= split_sig_len) {
-    EpidSplitSignature* sig = (EpidSplitSignature*)sig_data;
-
-    // check that the value we assumed was n2 results in a signature
-    // of the size we have
-    if ((EpidGetSplitSignatureRlCount(sig) * sizeof(SplitNrProof)) +
-            split_sig_len ==
-        sig_len) {
-      return kSigSplit;
-    }
-  }
-
-  // only look at things big enough to be non-split sigs
-  if (sig_len >= non_split_sig_len) {
-    EpidSignature* sig = (EpidSignature*)sig_data;
-
-    // check that the value we assumed was n2 results in a signature
-    // of the size we have
-    if ((EpidGetSignatureRlCount(sig) * sizeof(NrProof)) + non_split_sig_len ==
-        sig_len) {
-      return kSigNonSplit;
-    }
-  }
-
-  // No signature type match
-  return kSigUnknown;
-}
-
 // implements section 4.1.2 "Verify algorithm" from Intel(R) EPID 2.0 Spec
 EpidStatus EpidVerifyNonSplitSig(VerifierCtx const* ctx,
                                  EpidNonSplitSignature const* sig,
@@ -124,23 +70,23 @@ EpidStatus EpidVerifyNonSplitSig(VerifierCtx const* ctx,
   EpidStatus sts = kEpidErr;
   size_t rl_count = 0;
   size_t i;
-  if (!ctx || !sig) {
-    return kEpidBadArgErr;
+  if (!ctx || !ctx->epid2_params) {
+    return kEpidBadCtxErr;
+  }
+  if (!ctx->pub_key) {
+    return kEpidOutOfSequenceError;
+  }
+  if (!sig || sig_len < sig_header_len) {
+    return kEpidBadSignatureErr;
   }
   if (!msg && (0 != msg_len)) {
     // if message is non-empty it must have both length and content
-    return kEpidBadArgErr;
-  }
-  if (!ctx->epid2_params || !ctx->pub_key) {
-    return kEpidBadArgErr;
-  }
-  if (sig_len < sig_header_len) {
-    return kEpidBadArgErr;
+    return kEpidBadMessageErr;
   }
   rl_count = EpidGetSignatureRlCount(sig);
   if (rl_count > (SIZE_MAX - sig_header_len) / sizeof(sig->sigma[0]) ||
       (rl_count * sizeof(sig->sigma[0])) + sig_header_len != sig_len) {
-    return kEpidBadArgErr;
+    return kEpidBadSignatureErr;
   }
   // Step 2. The verifier verifies the basic signature Sigma0 as follows:
   sts = EpidVerifyBasicSig(ctx, &sig->sigma0, msg, msg_len);
@@ -170,7 +116,7 @@ EpidStatus EpidVerifyNonSplitSig(VerifierCtx const* ctx,
     // If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->priv_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
     // b. For i = 0, ..., n1-1, the verifier computes t4 =G1.exp(B, f[i]) and
     // verifies that G1.isEqual(t4, K) = false. A faster private-key revocation
@@ -191,20 +137,20 @@ EpidStatus EpidVerifyNonSplitSig(VerifierCtx const* ctx,
     // If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->sig_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
 
     // b. The verifier verifies that RLver in Sigma and in SigRL match. If
     // mismatch, abort and output "operation failed".
     if (0 != memcmp(&ctx->sig_rl->version, &sig->rl_ver,
                     sizeof(ctx->sig_rl->version))) {
-      return kEpidErr;
+      return kEpidVersionMismatchErr;
     }
 
     // c. The verifier verifies that n2 in Sigma and in SigRL match. If
     // mismatch, abort and output "operation failed".
     if (sigrl_count != rl_count) {
-      return kEpidBadArgErr;
+      return kEpidBadSignatureErr;
     }
 
     // d. For i = 0, ..., n2-1, the verifier verifies nrVerify(B, K, B[i],
@@ -226,7 +172,7 @@ EpidStatus EpidVerifyNonSplitSig(VerifierCtx const* ctx,
     // match. If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->verifier_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
 
     // b. The verifier verifies that B in the signature and in VerifierRL
@@ -258,23 +204,23 @@ EpidStatus EpidVerifySplitSig(VerifierCtx const* ctx,
   EpidStatus sts = kEpidErr;
   size_t i;
   size_t rl_count = 0;
-  if (!ctx || !sig) {
-    return kEpidBadArgErr;
+  if (!ctx || !ctx->epid2_params) {
+    return kEpidBadCtxErr;
+  }
+  if (!ctx->pub_key) {
+    return kEpidOutOfSequenceError;
+  }
+  if (!sig || sig_len < sig_header_len) {
+    return kEpidBadSignatureErr;
   }
   if (!msg && (0 != msg_len)) {
     // if message is non-empty it must have both length and content
-    return kEpidBadArgErr;
-  }
-  if (!ctx->epid2_params || !ctx->pub_key) {
-    return kEpidBadArgErr;
-  }
-  if (sig_len < sig_header_len) {
-    return kEpidBadArgErr;
+    return kEpidBadMessageErr;
   }
   rl_count = EpidGetSplitSignatureRlCount(sig);
   if (rl_count > (SIZE_MAX - sig_header_len) / sizeof(sig->sigma[0]) ||
       (rl_count * sizeof(sig->sigma[0])) + sig_header_len != sig_len) {
-    return kEpidBadArgErr;
+    return kEpidBadSignatureErr;
   }
   // Step 2. The verifier verifies the basic signature Sigma0 as follows:
   sts = EpidVerifyBasicSplitSig(ctx, &sig->sigma0, &sig->nonce, msg, msg_len);
@@ -304,7 +250,7 @@ EpidStatus EpidVerifySplitSig(VerifierCtx const* ctx,
     // If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->priv_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
     // b. For i = 0, ..., n1-1, the verifier computes t4 =G1.exp(B, f[i]) and
     // verifies that G1.isEqual(t4, K) = false. A faster private-key revocation
@@ -326,20 +272,20 @@ EpidStatus EpidVerifySplitSig(VerifierCtx const* ctx,
     // If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->sig_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
 
     // b. The verifier verifies that RLver in Sigma and in SigRL match. If
     // mismatch, abort and output "operation failed".
     if (0 != memcmp(&ctx->sig_rl->version, &sig->rl_ver,
                     sizeof(ctx->sig_rl->version))) {
-      return kEpidErr;
+      return kEpidVersionMismatchErr;
     }
 
     // c. The verifier verifies that n2 in Sigma and in SigRL match. If
     // mismatch, abort and output "operation failed".
     if (sigrl_count != rl_count) {
-      return kEpidBadArgErr;
+      return kEpidBadSignatureErr;
     }
 
     // d. For i = 0, ..., n2-1, the verifier verifies nrVerify(B, K, B[i],
@@ -361,7 +307,7 @@ EpidStatus EpidVerifySplitSig(VerifierCtx const* ctx,
     // match. If mismatch, abort and return "operation failed".
     if (0 != memcmp(&ctx->pub_key->gid, &ctx->verifier_rl->gid,
                     sizeof(ctx->pub_key->gid))) {
-      return kEpidBadArgErr;
+      return kEpidBadCtxErr;
     }
 
     // b. The verifier verifies that B in the signature and in VerifierRL
@@ -395,6 +341,6 @@ EpidStatus EPID_VERIFIER_API EpidVerify(VerifierCtx const* ctx, void const* sig,
       return EpidVerifyNonSplitSig(ctx, (EpidSignature const*)sig, sig_len, msg,
                                    msg_len);
     default:
-      return kEpidBadArgErr;
+      return kEpidBadSignatureErr;
   }
 }

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@
 
 #include <limits.h>
 #include <stdint.h>
+#include "tpm2-testhelper.h"
 #include "gtest/gtest.h"
-
-#include "epid/common-testhelper/epid2params_wrapper-testhelper.h"
-#include "epid/member/split/tpm2/unittests/tpm2-testhelper.h"
+#include "testhelper/epid2params_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/member/split/tpm2/context.h"

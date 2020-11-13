@@ -6,7 +6,6 @@ var group___epid11_verifier_module =
       [ "e2w", "struct_epid11_verifier_precomp.html#a14ebadf105aff085edb9a817a2d1db89", null ],
       [ "gid", "struct_epid11_verifier_precomp.html#a03138e937f4488bdbc52ed473dc313da", null ]
     ] ],
-    [ "Epid11VerifierCtx", "group___epid11_verifier_module.html#gabe6a864a06322205ae7536ffea34c702", null ],
     [ "Epid11AreSigsLinked", "group___epid11_verifier_module.html#gab0b6560b226a37321f5ca5d4fb55eba7", null ],
     [ "Epid11CheckPrivRlEntry", "group___epid11_verifier_module.html#ga0b79c79d09e3551158e1c38c7c335929", null ],
     [ "Epid11NrVerify", "group___epid11_verifier_module.html#ga3a2e320d7de6156b2ce9d73e9cdce813", null ],

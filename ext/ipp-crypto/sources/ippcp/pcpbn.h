@@ -1,40 +1,16 @@
 /*******************************************************************************
-* Copyright 2002-2018 Intel Corporation
-* All Rights Reserved.
+* Copyright 2002-2020 Intel Corporation
 *
-* If this  software was obtained  under the  Intel Simplified  Software License,
-* the following terms apply:
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+*     http://www.apache.org/licenses/LICENSE-2.0
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
-*
-*
-* If this  software  was obtained  under the  Apache License,  Version  2.0 (the
-* "License"), the following terms apply:
-*
-* You may  not use this  file except  in compliance  with  the License.  You may
-* obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless  required  by   applicable  law  or  agreed  to  in  writing,  software
-* distributed under the License  is distributed  on an  "AS IS"  BASIS,  WITHOUT
-* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*
-* See the   License  for the   specific  language   governing   permissions  and
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
 
@@ -60,7 +36,7 @@
 */
 struct _cpBigNum
 {
-   IppCtxId      idCtx;    /* BigNum ctx id                 */
+   Ipp32u        idCtx;    /* BigNum ctx id                 */
    IppsBigNumSGN sgn;      /* sign                          */
    cpSize        size;     /* BigNum size (BNU_CHUNK_T)     */
    cpSize        room;     /* BigNum max size (BNU_CHUNK_T) */
@@ -69,7 +45,7 @@ struct _cpBigNum
 };
 
 /* BN accessory macros */
-#define BN_ID(pBN)         ((pBN)->idCtx)
+#define BN_SET_ID(pBN)     ((pBN)->idCtx = (Ipp32u)idCtxBigNum ^ (Ipp32u)IPP_UINT_PTR(pBN))
 #define BN_SIGN(pBN)       ((pBN)->sgn)
 #define BN_POSITIVE(pBN)   (BN_SIGN(pBN)==ippBigNumPOS)
 #define BN_NEGATIVE(pBN)   (BN_SIGN(pBN)==ippBigNumNEG)
@@ -77,10 +53,10 @@ struct _cpBigNum
 #define BN_BUFFER(pBN)     ((pBN)->buffer)
 #define BN_ROOM(pBN)       ((pBN)->room)
 #define BN_SIZE(pBN)       ((pBN)->size)
-#define BN_SIZE32(pBN)     ((pBN)->size*(sizeof(BNU_CHUNK_T)/sizeof(Ipp32u)))
+#define BN_SIZE32(pBN)     ((pBN)->size*((Ipp32s)(sizeof(BNU_CHUNK_T)/sizeof(Ipp32u))))
 //#define BN_SIZE32(pBN)     (BITS2WORD32_SIZE( BITSIZE_BNU(BN_NUMBER((pBN)),BN_SIZE((pBN)))))
 
-#define BN_VALID_ID(pBN)   (BN_ID((pBN))==idCtxBigNum)
+#define BN_VALID_ID(pBN)   ((((pBN)->idCtx) ^ (Ipp32u)IPP_UINT_PTR((pBN))) == (Ipp32u)idCtxBigNum)
 
 #define INVERSE_SIGN(s)    (((s)==ippBigNumPOS)? ippBigNumNEG : ippBigNumPOS)
 
@@ -89,9 +65,9 @@ struct _cpBigNum
 
 /* pack-unpack context */
 #define cpPackBigNumCtx OWNAPI(cpPackBigNumCtx)
-   void cpPackBigNumCtx(const IppsBigNumState* pBN, Ipp8u* pBuffer);
+   IPP_OWN_DECL (void, cpPackBigNumCtx, (const IppsBigNumState* pBN, Ipp8u* pBuffer))
 #define cpUnpackBigNumCtx OWNAPI(cpUnpackBigNumCtx)
-   void cpUnpackBigNumCtx(const Ipp8u* pBuffer, IppsBigNumState* pBN);
+   IPP_OWN_DECL (void, cpUnpackBigNumCtx, (const Ipp8u* pBuffer, IppsBigNumState* pBN))
 
 /* copy BN */
 __INLINE IppsBigNumState* cpBN_copy(IppsBigNumState* pDst, const IppsBigNumState* pSrc)
@@ -197,7 +173,7 @@ __INLINE IppsBigNumState* BN_Set(const BNU_CHUNK_T* pData, cpSize len, IppsBigNu
 }
 __INLINE IppsBigNumState* BN_Make(BNU_CHUNK_T* pData, BNU_CHUNK_T* pBuffer, cpSize len, IppsBigNumState* pBN)
 {
-   BN_ID(pBN)   = idCtxBigNum;
+   BN_SET_ID(pBN);
    BN_SIGN(pBN) = ippBigNumPOS;
    BN_SIZE(pBN) = 1;
    BN_ROOM(pBN) = len;
@@ -205,8 +181,6 @@ __INLINE IppsBigNumState* BN_Make(BNU_CHUNK_T* pData, BNU_CHUNK_T* pBuffer, cpSi
    BN_BUFFER(pBN) = pBuffer;
    return pBN;
 }
-
-
 
 /*
 // fixed single chunk BN
@@ -218,12 +192,12 @@ typedef struct _ippcpBigNumChunk {
 } IppsBigNumStateChunk;
 
 /* reference to BN(1) and BN(2) */
-#define          cpBN_OneRef OWNAPI(cpBN_OneRef)
-IppsBigNumState* cpBN_OneRef(void);
-#define          cpBN_TwoRef OWNAPI(cpBN_TwoRef)
-IppsBigNumState* cpBN_TwoRef(void);
-#define          cpBN_ThreeRef OWNAPI(cpBN_ThreeRef)
-IppsBigNumState* cpBN_ThreeRef(void);
+#define cpBN_OneRef OWNAPI(cpBN_OneRef)
+   IPP_OWN_DECL (IppsBigNumState*, cpBN_OneRef, (void))
+#define cpBN_TwoRef OWNAPI(cpBN_TwoRef)
+   IPP_OWN_DECL (IppsBigNumState*, cpBN_TwoRef, (void))
+#define cpBN_ThreeRef OWNAPI(cpBN_ThreeRef)
+   IPP_OWN_DECL (IppsBigNumState*, cpBN_ThreeRef, (void))
 
 #define BN_ONE_REF()   cpBN_OneRef()
 #define BN_TWO_REF()   cpBN_TwoRef()

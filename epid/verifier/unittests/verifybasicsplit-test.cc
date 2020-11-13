@@ -1,18 +1,18 @@
 /*############################################################################
-# Copyright 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-############################################################################*/
+  # Copyright 2018-2019 Intel Corporation
+  #
+  # Licensed under the Apache License, Version 2.0 (the "License");
+  # you may not use this file except in compliance with the License.
+  # You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  ############################################################################*/
 
 /*!
  * \file
@@ -22,17 +22,17 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
 extern "C" {
-#include "epid/verifier/api.h"
-#include "epid/verifier/src/verifybasic.h"
+#include "epid/verifier.h"
+#include "verifybasic.h"
 }
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/verifier/unittests/verifier-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
+#include "verifier-testhelper.h"
 
 namespace {
 
@@ -45,12 +45,14 @@ TEST_F(EpidVerifierSplitTest, VerifyBasicSplitSigFailsGivenNullPtr) {
   const FpElemStr nk = sig->nonce;
   auto& msg = this->kTest1;
 
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifyBasicSplitSig(nullptr, &basic_sig, &nk,
+  EXPECT_EQ(kEpidBadCtxErr, EpidVerifyBasicSplitSig(nullptr, &basic_sig, &nk,
                                                     msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifyBasicSplitSig(verifier, nullptr, &nk,
-                                                    msg.data(), msg.size()));
-  EXPECT_EQ(kEpidBadArgErr, EpidVerifyBasicSplitSig(verifier, &basic_sig, &nk,
-                                                    nullptr, msg.size()));
+  EXPECT_EQ(
+      kEpidBadSignatureErr,
+      EpidVerifyBasicSplitSig(verifier, nullptr, &nk, msg.data(), msg.size()));
+  EXPECT_EQ(
+      kEpidBadMessageErr,
+      EpidVerifyBasicSplitSig(verifier, &basic_sig, &nk, nullptr, msg.size()));
 }
 
 TEST_F(EpidVerifierSplitTest,

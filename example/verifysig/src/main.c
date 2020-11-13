@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "epid/common/file_parser.h"
-#include "epid/verifier/1.1/api.h"
-#include "epid/verifier/api.h"
+#include "epid/1.1/verifier.h"
+#include "epid/file_parser.h"
+#include "epid/verifier.h"
 #include "src/verifysig.h"
 #include "src/verifysig11.h"
 #include "util/buffutil.h"

@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2016-2018 Intel Corporation
+  # Copyright 2016-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
  * \brief Main entry point for unit tests.
  */
 
-#include "epid/common-testhelper/testapp-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/testapp-testhelper.h"
 
 int main(int argc, char** argv) {
   std::vector<std::string> positive;

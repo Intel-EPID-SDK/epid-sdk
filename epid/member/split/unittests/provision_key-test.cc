@@ -1,5 +1,5 @@
 /*############################################################################
-  # Copyright 2017-2018 Intel Corporation
+  # Copyright 2017-2019 Intel Corporation
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -21,25 +21,25 @@
 #include <cstring>
 #include <vector>
 
-#include "epid/common-testhelper/epid_gtest-testhelper.h"
 #include "gtest/gtest.h"
+#include "testhelper/epid_gtest-testhelper.h"
 
-#include "epid/common-testhelper/errors-testhelper.h"
-#include "epid/common-testhelper/mem_params-testhelper.h"
-#include "epid/common-testhelper/prng-testhelper.h"
-#include "epid/common-testhelper/verifier_wrapper-testhelper.h"
-#include "epid/member/split/unittests/member-testhelper.h"
+#include "member-testhelper.h"
+#include "testhelper/errors-testhelper.h"
+#include "testhelper/mem_params-testhelper.h"
+#include "testhelper/prng-testhelper.h"
+#include "testhelper/verifier_wrapper-testhelper.h"
 
 extern "C" {
 #include "epid/member/api.h"
-#include "epid/member/split/src/context.h"
-#include "epid/member/split/src/storage.h"
+#include "epid/member/split/context.h"
+#include "epid/member/split/storage.h"
 }
 
 namespace {
 
 const PrivKey kGrpXMember3Sha256PrivKey = {
-#include "epid/common-testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
+#include "testhelper/testdata/grp_x/member3/mprivkey_sha256_01.inc"
 };
 
 EpidStatus ProvisionBulkAndStart(MemberCtx* ctx, GroupPubKey const* pub_key,
@@ -102,58 +102,58 @@ TEST_F(EpidSplitMemberTest, ProvisionBulkFailsForInvalidGroupPubKey) {
 
   pub_key = this->kGrpXKey;
   pub_key.h1.x.data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.h1.y.data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.h2.x.data.data[0]++;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.h2.y.data.data[0]++;
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidBadArgErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.w.x[0].data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.w.x[1].data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.w.y[0].data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   pub_key = this->kGrpXKey;
   pub_key.w.y[1].data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadGroupPubKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 }
 
@@ -191,16 +191,16 @@ TEST_F(EpidSplitMemberTest, ProvisionBulkFailsForInvalidPrivateKey) {
 
   priv_key = this->kGrpXMember3PrivKeySha256;
   priv_key.A.x.data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadPrivKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadPrivKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 
   priv_key = this->kGrpXMember3PrivKeySha256;
   priv_key.A.y.data.data[0]++;
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadPrivKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, &precomp));
-  EXPECT_EQ(kEpidKeyNotInGroupErr,
+  EXPECT_EQ(kEpidBadPrivKeyErr,
             ProvisionBulkAndStart(member, &pub_key, &priv_key, nullptr));
 }
 
@@ -265,13 +265,14 @@ TEST_F(EpidSplitMemberTest,
       0x04, 0x05, 0x06, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
   };
-  MemberJoinRequest join_request = {0};
+  std::vector<uint8_t> join_request(EpidGetJoinRequestSize());
 
   // create join request into group with sha384
   pub_key.gid.data[1] &= 0xf0;
   pub_key.gid.data[1] |= 0x01;
   EXPECT_EQ(kEpidNoErr,
-            EpidCreateJoinRequest(member, &pub_key, &ni, &join_request));
+            EpidCreateJoinRequest(member, &pub_key, &ni, join_request.data(),
+                                  join_request.size()));
 
   // provision into group with sha256
   EXPECT_EQ(kEpidNoErr,
