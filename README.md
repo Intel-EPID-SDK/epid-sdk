@@ -57,3 +57,5 @@ The source code used for math primitives in the Intel(R) EPID SDK is a subset of
 the Intel(R) IPP Cryptography library written in pure C and not optimized for
 performance. For higher performance, you can use the full version available at
 [https://github.com/intel/ipp-crypto].
+
+## Used by FDO
